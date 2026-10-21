@@ -65,11 +65,11 @@ const recommendations: Recommendation[] = [
     name: "checkout-api",
     current: "CPU 500m · RAM 256 / 512 MiB",
     observed: "CPU p95 180m · RAM max 468 MiB",
-    recommended: "Không đề xuất",
+    recommended: "No recommendation",
     coverage: "96%",
     status: "Excluded · recent OOM",
     reason:
-      "Có OOM trong cửa sổ thu thập. Không hạ memory request/limit; cần theo dõi sau phục hồi.",
+      "OOM occurred within this window. Do not lower memory requests or limits; monitor after recovery.",
   },
   {
     id: "catalog",
@@ -80,74 +80,74 @@ const recommendations: Recommendation[] = [
     coverage: "98%",
     status: "Advisory",
     reason:
-      "Dựa trên window demo 6 giờ; chưa đại diện chu kỳ tải tuần. Chỉ xuất đề xuất, không tự apply.",
+      "Based on six hours of demo data, not a full weekly load cycle. Export only; no automatic changes.",
   },
   {
     id: "media",
     name: "media-api",
     current: "CPU 600m · RAM 512 / 768 MiB",
     observed: "CPU p95 380m · RAM max 330 MiB",
-    recommended: "Không đề xuất",
+    recommended: "No recommendation",
     coverage: "97%",
     status: "Excluded · HPA",
     reason:
-      "Workload do HPA điều khiển. Cần đánh giá tương tác giữa requests và autoscaling trước khi right-size.",
+      "HPA controls this workload. Review the interaction between requests and autoscaling before right-sizing.",
   },
   {
     id: "worker",
     name: "worker-api",
     current: "CPU 250m · RAM 256 / 512 MiB",
-    observed: "Không đủ mẫu",
-    recommended: "Không đề xuất",
+    observed: "Insufficient samples",
+    recommended: "No recommendation",
     coverage: "22%",
     status: "Insufficient",
     reason:
-      "Pod Pending; dữ liệu usage không đủ. Thu thêm telemetry sau khi workload chạy ổn định.",
+      "Pod is Pending and usage samples are insufficient. Collect telemetry once the workload is stable.",
   },
   {
     id: "search",
     name: "search-api",
     current: "CPU 250m · RAM 128 / 256 MiB",
-    observed: "Mẫu cuối: 09:00",
-    recommended: "Không đề xuất",
+    observed: "Last sample: 09:00",
+    recommended: "No recommendation",
     coverage: "61%",
     status: "Stale",
     reason:
-      "Nguồn telemetry ngừng cập nhật. Report cũ không đủ điều kiện ra quyết định.",
+      "Telemetry has stopped updating. This old report is not suitable for a new decision.",
   },
 ];
 const runbooks = [
   {
     id: "oom",
-    title: "OOM: phân biệt giới hạn thấp và memory leak",
+    title: "OOM: distinguish a low limit from a memory leak",
     version: "v3",
     tags: ["OOM", "memory"],
     source: "runbooks/oom.md",
-    body: "1. Đối chiếu OOMKilled, restart count và memory limit trong cùng cửa sổ.\n2. Kiểm tra working set trước lần restart; không kết luận memory leak chỉ từ OOM.\n3. Xem profile server-side, headroom và quota. Thiếu bằng chứng → manual guidance.\n4. Sau thay đổi, theo dõi restart và memory trong cửa sổ verification.\nĐiều kiện: không tự hạ memory khi vừa có OOM.",
+    body: "1. Correlate OOMKilled, restart count and the memory limit within the same window.\n2. Check the working set before the restart; OOM alone does not prove a memory leak.\n3. Review server-defined profiles, headroom and quota. Insufficient evidence requires manual guidance.\n4. Monitor restarts and memory during verification after a change.\nGuard: do not automatically lower memory after a recent OOM.",
   },
   {
     id: "rollout",
-    title: "CrashLoop sau rollout: kiểm tra và phục hồi",
+    title: "CrashLoop after rollout: investigate and recover",
     version: "v3",
     tags: ["CrashLoop", "rollout"],
     source: "runbooks/failed-rollout.md",
-    body: "1. So sánh thời điểm rollout với lần lỗi đầu tiên.\n2. Đọc previous logs, exit code và events; liên kết đúng Deployment UID.\n3. Chỉ restore snapshot known-good đã xác nhận trước sự cố.\n4. Review diff, preconditions và approval TTL. Không có baseline → hướng dẫn thủ công.\n5. Xác minh rollout ready và không có restart mới.",
+    body: "1. Compare the rollout time with the first failure.\n2. Read previous logs, exit codes and events; bind them to the correct Deployment UID.\n3. Restore only a known-good snapshot confirmed before the incident.\n4. Review the diff, preconditions and approval expiry. No baseline means manual guidance.\n5. Verify rollout readiness and no new restarts.",
   },
   {
     id: "load",
-    title: "Latency tăng: kiểm tra tải và capacity",
+    title: "High latency: check load and capacity",
     version: "v3",
     tags: ["Load", "capacity"],
     source: "runbooks/traffic-spike.md",
-    body: "1. So sánh RPS, latency, errors và CPU throttling.\n2. Kiểm tra replicas, node headroom và HPA.\n3. Chỉ scale trong bounds nếu không xung đột controller.\n4. Verification phải giữ cùng mức tải; ghi thời điểm load generator dừng.\n5. Nếu lỗi đến từ dependency, scale không được xem là giải pháp đã chứng minh.",
+    body: "1. Compare RPS, latency, errors and CPU throttling.\n2. Check replicas, node headroom and HPA.\n3. Scale only within bounds and without conflicting with a controller.\n4. Keep load constant during verification; record when the load generator stops.\n5. If a dependency causes the failure, scaling is not a proven fix.",
   },
   {
     id: "pending",
-    title: "Pending / ImagePull: thu evidence và handoff",
+    title: "Pending / ImagePull: gather evidence and hand off",
     version: "v3",
     tags: ["Pending", "ImagePull"],
     source: "runbooks/pod-startup.md",
-    body: "1. Đọc scheduling / image pull events và trạng thái container.\n2. Đối chiếu requests, quota, node capacity và image reference.\n3. Chỉ báo cáo nguyên nhân có evidence; lỗi quyền đọc là Not checked.\n4. Hai nhóm này investigation-only trong release. Không tạo action ghi.\n5. Ghi bước kiểm tra tiếp theo và người nhận handoff.",
+    body: "1. Read scheduling and image-pull events and container status.\n2. Compare requests, quota, node capacity and the image reference.\n3. Report only evidence-backed causes; a read permission failure means Not checked.\n4. These patterns are investigation-only in this release. Do not create a write action.\n5. Record the next checks and handoff owner.",
   },
 ];
 const integrations = [
@@ -155,33 +155,33 @@ const integrations = [
     id: "worker",
     name: "CloudOps worker",
     subtitle: "Durable workflow · demo-worker-01",
-    status: "Sẵn sàng",
+    status: "Ready",
     detail:
-      "Một worker; job có thể retry và giữ lịch sử. Không chạy Akmatori/Aurora runtime.",
+      "One worker with retryable jobs and retained history. No Akmatori or Aurora runtime.",
   },
   {
     id: "kubernetes",
     name: "Kubernetes",
     subtitle: "lab-k3s · namespace cloudops-lab",
-    status: "Sẵn sàng",
+    status: "Ready",
     detail:
-      "Collector chỉ đọc; executor tách quyền ghi. Kết nối demo không truy cập cluster thật.",
+      "The collector is read-only; the executor has separate write permissions. This demo does not access a real cluster.",
   },
   {
     id: "prometheus",
     name: "Prometheus",
-    subtitle: "metrics.internal · cửa sổ 6 giờ",
+    subtitle: "metrics.internal · six-hour window",
     status: "Stale",
     detail:
-      "Mẫu search-api đã cũ. Retry demo chỉ cập nhật trạng thái kết nối; không sửa report lịch sử.",
+      "The search-api sample is stale. Demo retry updates connection status only, not historical reports.",
   },
   {
     id: "model",
     name: "Model endpoint",
     subtitle: "OpenAI-compatible · ops-model",
-    status: "Chưa kiểm tra",
+    status: "Not checked",
     detail:
-      "Base URL cấu hình phía server: https://model.example/v1 · credential ref: MODEL_API_KEY. Không lưu key trong browser.",
+      "Server-configured base URL: https://model.example/v1 · credential reference: MODEL_API_KEY. Keys are never stored in the browser.",
   },
   {
     id: "embedding",
@@ -189,7 +189,7 @@ const integrations = [
     subtitle: "Embedding optional · catalog fallback",
     status: "Degraded",
     detail:
-      "Index chưa cập nhật. Vẫn đọc được bản runbook đã lưu; retrieval có thể bỏ sót tài liệu mới.",
+      "The index is out of date. Saved runbooks remain readable; retrieval may miss new documents.",
   },
 ];
 
@@ -219,7 +219,7 @@ function Header({
       <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
         {eyebrow}
         <Badge variant="outline" className="normal-case tracking-normal">
-          Demo tương tác
+          Interactive demo
         </Badge>
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
@@ -241,7 +241,7 @@ export function SupportPages({
   const [selected, setSelected] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
-  const [tag, setTag] = useState("Tất cả");
+  const [tag, setTag] = useState("All");
   const [indexDegraded, setIndexDegraded] = useState(true);
   const [connectionStates, setConnectionStates] = useState<
     Record<string, string>
@@ -268,7 +268,7 @@ export function SupportPages({
       `${r.title} ${r.tags.join(" ")} ${r.body}`
         .toLowerCase()
         .includes(query.toLowerCase()) &&
-      (tag === "Tất cả" || r.tags.includes(tag)),
+      (tag === "All" || r.tags.includes(tag)),
   );
   const feedback = notice ? (
     <Alert>
@@ -280,14 +280,14 @@ export function SupportPages({
     if (!confirm) return;
     if (!state.healthyCandidates[confirm] || !canWrite) {
       setNotice(
-        "Không thể xác nhận: candidate không còn healthy hoặc phiên không có quyền.",
+        "Cannot confirm: the candidate is no longer healthy or this session lacks permission.",
       );
       setConfirm(null);
       return;
     }
     dispatch({ type: "confirm_known_good", workloadId: confirm });
     setNotice(
-      "Đã xác nhận known-good metadata trong demo. Không có Kubernetes write.",
+      "Known-good metadata confirmed in the demo. No Kubernetes write was sent.",
     );
     setConfirm(null);
   };
@@ -296,9 +296,9 @@ export function SupportPages({
     return (
       <div className="space-y-6">
         <Header
-          eyebrow="Tài nguyên & tối ưu"
+          eyebrow="Resources & optimization"
           title="Workloads"
-          description="Đọc tình trạng workload, chuẩn bị known-good baseline và bắt đầu điều tra theo scope. Recommendations chỉ hỗ trợ quyết định; không tự thay đổi tài nguyên."
+          description="Review workload health, prepare a known-good baseline and start a scoped investigation. Recommendations support decisions without changing resources automatically."
         />
         {feedback}
         <Tabs defaultValue="inventory">
@@ -310,9 +310,9 @@ export function SupportPages({
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                aria-label="Tìm workload"
+                aria-label="Search workloads"
                 className="pl-9"
-                placeholder="Tìm workload, namespace hoặc dấu hiệu…"
+                placeholder="Search workload, namespace or symptom…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -322,10 +322,10 @@ export function SupportPages({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Workload</TableHead>
-                    <TableHead>Tình trạng</TableHead>
+                    <TableHead>Health</TableHead>
                     <TableHead>Controller</TableHead>
                     <TableHead>Known-good</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -351,7 +351,7 @@ export function SupportPages({
                           }
                         >
                           {state.healthyCandidates[w.id]
-                            ? "Healthy · ổn định 30 phút"
+                            ? "Healthy · stable for 30 minutes"
                             : w.pattern}
                         </Badge>
                       </TableCell>
@@ -360,8 +360,8 @@ export function SupportPages({
                       </TableCell>
                       <TableCell>
                         {state.knownGood[w.id]
-                          ? "Đã xác nhận"
-                          : "Chưa có baseline"}
+                          ? "Confirmed"
+                          : "No baseline"}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -369,7 +369,7 @@ export function SupportPages({
                           size="sm"
                           onClick={() => setSelected(w.id)}
                         >
-                          Xem chi tiết
+                          View details
                           <ArrowRight className="ml-1 h-3 w-3" />
                         </Button>
                       </TableCell>
@@ -379,16 +379,16 @@ export function SupportPages({
               </Table>
               {!filteredWorkloads.length && (
                 <p className="p-8 text-center text-muted-foreground">
-                  Không có workload khớp tìm kiếm.{" "}
+                  No workloads match this search.{" "}
                   <button className="underline" onClick={() => setQuery("")}>
-                    Xóa bộ lọc
+                    Clear filters
                   </button>
                 </p>
               )}
             </Card>
             <p className="text-xs text-muted-foreground">
-              Scope demo: 1 cluster · cloudops-lab. Healthy dựa trên candidate
-              fixture, không suy từ việc không có alert.
+              Demo scope: one cluster · cloudops-lab. Health comes from the
+              candidate fixture, not the absence of alerts.
             </p>
           </TabsContent>
           <TabsContent value="recommendations" className="space-y-4 pt-4">
@@ -402,13 +402,13 @@ export function SupportPages({
               </div>
               <div className="flex flex-wrap gap-2">
                 <select
-                  aria-label="Chọn report"
+                  aria-label="Select report"
                   className="rounded-md border bg-background px-3 py-2 text-sm"
                   value={report}
                   onChange={(e) => setReport(e.target.value)}
                 >
-                  <option value="current">Report 10:00–16:00 · 6 giờ</option>
-                  <option value="old">Report hôm qua · stale</option>
+                  <option value="current">Report 10:00–16:00 · 6 hours</option>
+                  <option value="old">Previous-day report · stale</option>
                 </select>
                 <Button
                   variant="outline"
@@ -430,7 +430,7 @@ export function SupportPages({
                             status: report === "old" ? "Stale" : r.status,
                             recommended:
                               report === "old"
-                                ? "Không đề xuất: report stale"
+                                ? "No recommendation: stale report"
                                 : r.recommended,
                           })),
                         },
@@ -440,12 +440,12 @@ export function SupportPages({
                       "application/json",
                     );
                     setNotice(
-                      "Đã xuất report JSON có coverage, units và exclusions. Export không phải apply.",
+                      "Exported a JSON report with coverage, units and exclusions. Export does not apply changes.",
                     );
                   }}
                 >
                   <ArrowDownToLine className="mr-2 h-4 w-4" />
-                  Xuất JSON
+                  Export JSON
                 </Button>
               </div>
             </div>
@@ -453,13 +453,13 @@ export function SupportPages({
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>
                 {report === "old"
-                  ? "Report đã cũ — không dùng để apply"
-                  : "Chỉ là advisory từ 6 giờ dữ liệu demo"}
+                  ? "This report is stale — do not use it to apply changes"
+                  : "Advisory only: six hours of demo data"}
               </AlertTitle>
               <AlertDescription>
-                Không phải billing savings. Giảm requests trên EC2 cố định không
-                tự giảm hóa đơn. Không có auto-apply; không bỏ exclusions bằng
-                UI.
+                These are not billing savings. Lower requests on a fixed EC2
+                instance do not automatically reduce the bill. There is no
+                auto-apply or exclusion override.
               </AlertDescription>
             </Alert>
             <Card>
@@ -470,7 +470,7 @@ export function SupportPages({
                     <TableHead>Current · request / limit</TableHead>
                     <TableHead>Observed</TableHead>
                     <TableHead>Recommended</TableHead>
-                    <TableHead>Kết quả</TableHead>
+                    <TableHead>Result</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -484,14 +484,14 @@ export function SupportPages({
                           {r.name}
                         </button>
                         <div className="mt-1 text-xs text-muted-foreground">
-                          {r.coverage} coverage · 6 giờ
+                          {r.coverage} coverage · 6 hours
                         </div>
                       </TableCell>
                       <TableCell className="text-xs">{r.current}</TableCell>
                       <TableCell className="text-xs">{r.observed}</TableCell>
                       <TableCell className="text-xs">
                         {report === "old"
-                          ? "Không đề xuất: stale"
+                          ? "No recommendation: stale"
                           : r.recommended}
                       </TableCell>
                       <TableCell>
@@ -500,7 +500,7 @@ export function SupportPages({
                         </Badge>
                         <p className="mt-2 max-w-xs text-xs leading-5 text-muted-foreground">
                           {report === "old"
-                            ? "Cần report mới trước khi review."
+                            ? "A fresh report is required before review."
                             : r.reason}
                         </p>
                       </TableCell>
@@ -532,8 +532,8 @@ export function SupportPages({
                   </div>
                   <div>
                     {state.healthyCandidates[chosen.id]
-                      ? "Healthy · 30 phút"
-                      : `Chưa ổn định · ${chosen.pattern}`}
+                      ? "Healthy · 30 minutes"
+                      : `Unhealthy · ${chosen.pattern}`}
                   </div>
                   <div className="text-muted-foreground">Revision</div>
                   <code>
@@ -554,15 +554,15 @@ export function SupportPages({
                   <div>
                     {state.knownGood[chosen.id]
                       ? `Baseline rev-${chosen.id === "catalog" ? "17 / APP_MODE=production" : "7"}`
-                      : "Chưa xác nhận"}
+                      : "Not confirmed"}
                   </div>
                 </div>
                 <Alert>
                   <ShieldCheck className="h-4 w-4" />
                   <AlertDescription>
-                    Baseline chỉ lưu metadata khi healthy. Snapshot không đủ
-                    điều kiện không thể dùng để restore. UID/hash/health phải
-                    được kiểm tra lại trước khi lưu trong backend thật.
+                    A baseline stores metadata only when healthy. Ineligible
+                    snapshots cannot be restored. A real backend must recheck
+                    UID, hash and health before saving.
                   </AlertDescription>
                 </Alert>
                 <div className="flex flex-wrap gap-2">
@@ -573,7 +573,7 @@ export function SupportPages({
                       onInvestigate(chosen.id);
                     }}
                   >
-                    Bắt đầu điều tra
+                    Start investigation
                   </Button>
                   <Button
                     variant="outline"
@@ -585,13 +585,13 @@ export function SupportPages({
                     onClick={() => setConfirm(chosen.id)}
                   >
                     {state.knownGood[chosen.id]
-                      ? "Known-good đã lưu"
-                      : "Xác nhận known-good"}
+                      ? "Known-good saved"
+                      : "Confirm known-good"}
                   </Button>
                 </div>
                 {!state.healthyCandidates[chosen.id] && (
                   <p className="text-xs text-muted-foreground">
-                    Không thể xác nhận baseline khi workload chưa healthy.
+                    A baseline cannot be confirmed while the workload is unhealthy.
                   </p>
                 )}
                 {chosen.id === "catalog" &&
@@ -606,18 +606,18 @@ export function SupportPages({
                           workloadId: "catalog",
                         });
                         setNotice(
-                          "Đã mô phỏng rollout lỗi cho catalog. Mở incident mới để tiếp tục investigation.",
+                          "Simulated a failed catalog rollout. Open the incident to continue investigating.",
                         );
                         setSelected(null);
                       }}
                     >
                       <Activity className="mr-2 h-4 w-4" />
-                      Demo: inject rollout lỗi
+                      Demo: inject failed rollout
                     </Button>
                   )}
                 <div className="border-t pt-4">
                   <h3 className="mb-2 text-sm font-medium">
-                    Incident liên quan
+                    Related incidents
                   </h3>
                   {state.incidents
                     .filter((i) => i.workloadId === chosen.id)
@@ -637,7 +637,7 @@ export function SupportPages({
                     ))}
                   {!state.incidents.some((i) => i.workloadId === chosen.id) && (
                     <p className="text-sm text-muted-foreground">
-                      Chưa có incident. Có thể chủ động điều tra workload.
+                      No incidents yet. Start a manual investigation for this workload.
                     </p>
                   )}
                 </div>
@@ -653,10 +653,10 @@ export function SupportPages({
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Xác nhận candidate known-good?</DialogTitle>
+              <DialogTitle>Confirm this known-good candidate?</DialogTitle>
               <DialogDescription>
-                Chỉ xác nhận bản bạn đã review. Đây là metadata demo; không thay
-                đổi tài nguyên.
+                Confirm only a snapshot you have reviewed. This is demo metadata;
+                resources are not changed.
               </DialogDescription>
             </DialogHeader>
             <div className="rounded-md border p-4 text-sm">
@@ -673,13 +673,13 @@ export function SupportPages({
               <p className="mt-2">
                 Health:{" "}
                 {confirm && state.healthyCandidates[confirm]
-                  ? "Healthy · 30 phút"
-                  : "Không đủ điều kiện"}
+                  ? "Healthy · 30 minutes"
+                  : "Not eligible"}
               </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setConfirm(null)}>
-                Hủy
+                Cancel
               </Button>
               <Button
                 disabled={
@@ -687,7 +687,7 @@ export function SupportPages({
                 }
                 onClick={confirmBaseline}
               >
-                Xác nhận snapshot
+                Confirm snapshot
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -699,9 +699,9 @@ export function SupportPages({
     return (
       <div className="space-y-6">
         <Header
-          eyebrow="Nguồn tri thức"
+          eyebrow="Knowledge sources"
           title="Knowledge"
-          description="Runbook có source và version rõ ràng. Tài liệu hướng dẫn điều tra; telemetry live mới là evidence cho kết luận incident."
+          description="Runbooks have explicit sources and versions. They guide investigation; live telemetry provides evidence for incident findings."
         />
         {feedback}
         <Alert>
@@ -709,12 +709,12 @@ export function SupportPages({
           <AlertTitle>
             {indexDegraded
               ? "Retrieval index degraded"
-              : "Index demo đã đồng bộ"}
+              : "Demo index is up to date"}
           </AlertTitle>
           <AlertDescription>
             {indexDegraded
-              ? "Bản mới có thể chưa searchable qua retrieval. Catalog vẫn đọc được tài liệu đã lưu."
-              : "Đã mô phỏng reindex 4 runbooks. Không gọi embedding provider."}
+              ? "New versions may not be searchable through retrieval. Saved documents remain available in the catalog."
+              : "Simulated reindexing four runbooks. No embedding provider was called."}
             <Button
               className="ml-3"
               size="sm"
@@ -724,12 +724,12 @@ export function SupportPages({
                 setIndexDegraded((v) => !v);
                 setNotice(
                   indexDegraded
-                    ? "Reindex demo hoàn tất; 4 version đã được đánh dấu indexed."
-                    : "Đã mô phỏng lỗi index để kiểm tra degraded UX.",
+                    ? "Demo reindex completed; four versions are marked as indexed."
+                    : "Simulated an index failure to review the degraded experience.",
                 );
               }}
             >
-              {indexDegraded ? "Retry reindex demo" : "Mô phỏng degraded"}
+              {indexDegraded ? "Retry demo reindex" : "Simulate degraded index"}
             </Button>
           </AlertDescription>
         </Alert>
@@ -737,21 +737,21 @@ export function SupportPages({
           <div className="relative min-w-56 flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              aria-label="Tìm runbook"
+              aria-label="Search runbooks"
               className="pl-9"
-              placeholder="Tìm nội dung, tiêu đề hoặc tag…"
+              placeholder="Search content, title or tag…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
           <select
-            aria-label="Lọc tag runbook"
+            aria-label="Filter runbook tags"
             className="rounded-md border bg-background px-3 py-2 text-sm"
             value={tag}
             onChange={(e) => setTag(e.target.value)}
           >
             {[
-              "Tất cả",
+              "All",
               "OOM",
               "memory",
               "CrashLoop",
@@ -791,7 +791,7 @@ export function SupportPages({
                   onClick={() => setSelected(r.id)}
                 >
                   <BookOpen className="mr-2 h-4 w-4" />
-                  Đọc runbook
+                  Read runbook
                 </Button>
               </CardContent>
             </Card>
@@ -800,15 +800,15 @@ export function SupportPages({
         {!filteredBooks.length && (
           <Card>
             <CardContent className="p-8 text-center text-sm text-muted-foreground">
-              Không tìm thấy runbook.{" "}
+              No runbooks found.{" "}
               <button
                 className="underline"
                 onClick={() => {
                   setQuery("");
-                  setTag("Tất cả");
+                  setTag("All");
                 }}
               >
-                Xóa bộ lọc
+                Clear filters
               </button>
             </CardContent>
           </Card>
@@ -823,8 +823,8 @@ export function SupportPages({
             <DialogHeader>
               <DialogTitle>{activeRunbook?.title}</DialogTitle>
               <DialogDescription>
-                {activeRunbook?.source} · {activeRunbook?.version} · bản hiện
-                hành trong catalog demo
+                {activeRunbook?.source} · {activeRunbook?.version} · current
+                version in the demo catalog
               </DialogDescription>
             </DialogHeader>
             <div className="whitespace-pre-wrap text-sm leading-8">
@@ -842,9 +842,9 @@ export function SupportPages({
                 }}
               >
                 <ArrowDownToLine className="mr-2 h-4 w-4" />
-                Tải bản Markdown
+                Download Markdown
               </Button>
-              <Button onClick={() => setSelected(null)}>Đóng</Button>
+              <Button onClick={() => setSelected(null)}>Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -854,9 +854,9 @@ export function SupportPages({
   return (
     <div className="space-y-6">
       <Header
-        eyebrow="Vận hành hệ thống"
+        eyebrow="System operations"
         title="Connections"
-        description="Phân biệt transport, RCA contract và độ mới dữ liệu. Mọi kiểm tra bên dưới là mô phỏng local; không kết nối endpoint hay đọc secret thật."
+        description="Distinguish transport, the RCA contract and data freshness. All checks below are local simulations; no endpoint is contacted or real secret read."
       />
       {feedback}
       <div className="grid gap-3 sm:grid-cols-3">
@@ -871,7 +871,7 @@ export function SupportPages({
             <p className="text-xs text-muted-foreground">Token usage</p>
             <p className="mt-2 font-medium">Unavailable</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Provider chưa trả usage; không giả định zero.
+              The provider has not returned usage; do not assume zero.
             </p>
           </CardContent>
         </Card>
@@ -880,7 +880,7 @@ export function SupportPages({
             <p className="text-xs text-muted-foreground">Remaining quota</p>
             <p className="mt-2 font-medium">Unknown</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Không suy quota từ số request local.
+              Quota is not inferred from local request counts.
             </p>
           </CardContent>
         </Card>
@@ -897,7 +897,7 @@ export function SupportPages({
                     <Badge variant="outline">
                       {connectionStates[c.id] ||
                         (c.id === "embedding" && !indexDegraded
-                          ? "Sẵn sàng"
+                          ? "Ready"
                           : c.status)}
                     </Badge>
                   </div>
@@ -909,7 +909,7 @@ export function SupportPages({
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
                     {connectionStates[c.id]
-                      ? "Last attempt: vừa chạy mô phỏng local"
+                      ? "Last attempt: just simulated locally"
                       : "Last attempt: 16:00 fixture · last success: 15:58 fixture"}
                   </p>
                 </div>
@@ -920,7 +920,7 @@ export function SupportPages({
                   variant="outline"
                   onClick={() => setSetup(c.id)}
                 >
-                  Hướng dẫn
+                  Setup guide
                 </Button>
                 {c.id !== "model" && (
                   <Button
@@ -930,11 +930,11 @@ export function SupportPages({
                     onClick={() => {
                       setConnectionStates((v) => ({
                         ...v,
-                        [c.id]: "Sẵn sàng · demo",
+                        [c.id]: "Ready · demo",
                       }));
                       if (c.id === "embedding") setIndexDegraded(false);
                       setNotice(
-                        `${c.name}: retry mô phỏng hoàn tất. Không có network request.`,
+                        `${c.name}: simulated retry completed. No network request was sent.`,
                       );
                     }}
                   >
@@ -949,9 +949,9 @@ export function SupportPages({
       </div>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Kiểm tra model endpoint</CardTitle>
+          <CardTitle className="text-base">Test model endpoint</CardTitle>
           <CardDescription>
-            Transport OK chỉ xác nhận truy cập. RCA contract: structured JSON,
+            Transport OK confirms reachability only. RCA contract: structured JSON,
             evidence IDs, scope and abstention. Evidence is supplied by the
             fixed workflow; model tool calling is not required.
           </CardDescription>
@@ -959,7 +959,7 @@ export function SupportPages({
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
             <select
-              aria-label="Kịch bản kiểm tra endpoint"
+              aria-label="Endpoint test scenario"
               className="min-w-0 max-w-full rounded-md border bg-background px-3 py-2 text-sm"
               value={testMode}
               onChange={(e) => {
@@ -997,7 +997,7 @@ export function SupportPages({
                       : testMode === "transport"
                         ? {
                             transport: "Failed · timeout fixture",
-                            contract: "Not checked · transport thất bại",
+                            contract: "Not checked · transport failed",
                           }
                         : testMode === "contract"
                           ? {
@@ -1026,7 +1026,7 @@ export function SupportPages({
                 }));
               }}
             >
-              Chạy kiểm tra demo
+              Run demo test
             </Button>
           </div>
           {testResult && (
@@ -1046,8 +1046,8 @@ export function SupportPages({
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Capabilities chỉ được đánh dấu sau contract pass. Kiểm tra demo
-            không cấp quyền execute hoặc tự thay model.
+            Capabilities are marked only after the contract passes. Demo checks
+            do not grant execution permissions or switch models.
           </p>
         </CardContent>
       </Card>
@@ -1060,80 +1060,80 @@ export function SupportPages({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Cấu hình {integrations.find((c) => c.id === setup)?.name}
+              Configure {integrations.find((c) => c.id === setup)?.name}
             </DialogTitle>
             <DialogDescription>
-              Hướng dẫn setup có scope; không có secret editor hoặc endpoint
-              editor trong browser.
+              Scoped setup instructions; there is no secret or endpoint editor
+              in the browser.
             </DialogDescription>
           </DialogHeader>
           <ol className="list-decimal space-y-3 pl-5 text-sm leading-6">
             {setup === "model" ? (
               <>
                 <li>
-                  Đặt base URL OpenAI-compatible và model ID trong cấu hình
-                  server. URL hiển thị ở đây chỉ là example fixture.
+                  Set the OpenAI-compatible base URL and model ID in server
+                  configuration. The URL shown here is an example fixture.
                 </li>
                 <li>
-                  Đặt credential qua secret/environment reference MODEL_API_KEY.
-                  Không paste key vào UI hay runbook.
+                  Supply credentials through the MODEL_API_KEY secret or
+                  environment reference. Never paste keys into the UI or runbooks.
                 </li>
                 <li>
-                  Cấu hình request/token budget, timeout, retry và concurrency.
-                  Không tự fallback sang endpoint trả phí.
+                  Configure request and token budgets, timeouts, retries and
+                  concurrency. Do not fall back automatically to a paid endpoint.
                 </li>
                 <li>
-                  Chạy transport test rồi RCA contract test; lỗi contract giữ
-                  integration degraded. Usage không được provider trả →
-                  unavailable.
+                  Run the transport test, then the RCA contract test. A failed
+                  contract keeps the integration degraded. Missing provider
+                  usage remains unavailable.
                 </li>
               </>
             ) : setup === "kubernetes" ? (
               <>
-                <li>Chỉ kết nối cluster lab-k3s và namespace cloudops-lab.</li>
+                <li>Connect only to cluster lab-k3s and namespace cloudops-lab.</li>
                 <li>
-                  Cấp credential read-only cho collector; executor dùng
-                  credential riêng với action allowlist.
+                  Grant read-only credentials to the collector. Use separate
+                  executor credentials with an action allowlist.
                 </li>
                 <li>
-                  Kiểm tra quyền đọc pods, logs, events và Deployment; không cấp
-                  cluster-admin để bỏ qua lỗi.
+                  Check read access to pods, logs, events and Deployments. Do not
+                  grant cluster-admin to bypass errors.
                 </li>
               </>
             ) : setup === "embedding" ? (
               <>
                 <li>
-                  Embedding là optional; cấu hình provider/model phía server nếu
-                  dùng semantic retrieval.
+                  Embeddings are optional. Configure the provider and model on
+                  the server if using semantic retrieval.
                 </li>
                 <li>
-                  Index theo source checksum và version. Không trộn
-                  dimension/model khác nhau.
+                  Index by source checksum and version. Do not mix embedding
+                  dimensions or models.
                 </li>
                 <li>
-                  Khi index lỗi, vẫn cho đọc catalog; retry không sửa snapshot
-                  evidence cũ.
+                  Keep the catalog readable if indexing fails. Retrying must not
+                  change old evidence snapshots.
                 </li>
               </>
             ) : (
               <>
                 <li>
-                  Kiểm tra service trong deployment nội bộ và health endpoint
-                  theo tài liệu setup.
+                  Check the internal deployment service and health endpoint
+                  using the setup guide.
                 </li>
                 <li>
-                  Xác minh timestamp của nguồn, timeout và quyền truy cập; giữ
-                  rõ missing/stale.
+                  Verify source timestamps, timeouts and access permissions.
+                  Keep missing and stale states explicit.
                 </li>
                 <li>
-                  Retry trong prototype chỉ mô phỏng trạng thái. Không khẳng
-                  định telemetry lịch sử đã được phục hồi.
+                  Prototype retries simulate state only. They do not demonstrate
+                  recovery of historical telemetry.
                 </li>
               </>
             )}
           </ol>
           <DialogFooter>
-            <Button onClick={() => setSetup(null)}>Đã hiểu</Button>
+            <Button onClick={() => setSetup(null)}>Got it</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

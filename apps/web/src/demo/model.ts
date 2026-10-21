@@ -271,125 +271,125 @@ export const workloadOptions = [
 
 export const scenarioOptions = [
   {
-    id: "success",
-    label: "Phục hồi OOM",
-    goal: "Xem bằng chứng, duyệt profile bộ nhớ trong giới hạn, xác minh và đóng sự cố.",
+    "id": "success",
+    "label": "OOM recovery",
+    "goal": "Inspect evidence, approve a bounded memory profile, verify recovery and resolve the incident."
   },
   {
-    id: "restore",
-    label: "Chuẩn bị bản tốt để khôi phục",
-    goal: "Xác nhận template đang khỏe, tạo lỗi demo rồi khôi phục bản tốt.",
+    "id": "restore",
+    "label": "Prepare a restore baseline",
+    "goal": "Confirm a healthy template, inject a demo fault and restore the known-good baseline."
   },
   {
-    id: "scale",
-    label: "Lưu lượng tăng đột biến",
-    goal: "Kiểm tra capacity và metrics ứng dụng trước khi duyệt tăng replica trong giới hạn.",
+    "id": "scale",
+    "label": "Traffic spike",
+    "goal": "Review capacity and application metrics before approving a bounded replica increase."
   },
   {
-    id: "pending",
-    label: "Chẩn đoán Pending",
-    goal: "Xem bằng chứng scheduling và bàn giao thủ công, không tạo lệnh thực thi.",
+    "id": "pending",
+    "label": "Pending diagnosis",
+    "goal": "Inspect scheduling evidence and hand off manually without an executable action."
   },
   {
-    id: "imagepull",
-    label: "Chẩn đoán lỗi kéo image",
-    goal: "Xem bằng chứng image và registry; không đọc credential hoặc ghi vào cluster.",
+    "id": "imagepull",
+    "label": "Image pull diagnosis",
+    "goal": "Inspect image and registry evidence without reading credentials or writing to the cluster."
   },
   {
-    id: "partial",
-    label: "Thiếu bằng chứng",
-    goal: "Xác định dữ liệu còn thiếu, thu thập lại và giữ kết quả điều tra trước.",
+    "id": "partial",
+    "label": "Insufficient evidence",
+    "goal": "Identify missing data, retry collection and preserve the earlier investigation result."
   },
   {
-    id: "quota",
-    label: "Hết quota model",
-    goal: "Xem evidence đã thu, hủy hoặc thử lại lượt chờ; không tự chuyển sang trả phí.",
+    "id": "quota",
+    "label": "Model quota exhausted",
+    "goal": "Review collected evidence, cancel or retry the waiting run without an automatic paid fallback."
   },
   {
-    id: "stale",
-    label: "Target đã thay đổi",
-    goal: "Không duyệt plan cũ; tạo điều tra mới với snapshot hiện tại.",
+    "id": "stale",
+    "label": "Target changed",
+    "goal": "See why an outdated plan cannot be approved and investigate a fresh snapshot."
   },
   {
-    id: "expired",
-    label: "Plan hết hạn",
-    goal: "Xem lý do không thể thực thi plan hết hạn và điều tra lại.",
+    "id": "expired",
+    "label": "Expired plan",
+    "goal": "Understand why an expired plan cannot execute and start a new investigation."
   },
   {
-    id: "rollback",
-    label: "Xác minh và rollback",
-    goal: "Theo dõi post-check thất bại, xem inverse diff và xác nhận rollback.",
+    "id": "rollback",
+    "label": "Verification and rollback",
+    "goal": "Observe a failed post-check, review the inverse diff and confirm rollback."
   },
   {
-    id: "failed-rollback",
-    label: "Rollback không hoàn tất",
-    goal: "Giữ nguyên kết quả thất bại và bàn giao để xử lý thủ công.",
+    "id": "failed-rollback",
+    "label": "Rollback cannot complete",
+    "goal": "Preserve the failed outcome and hand off for manual intervention."
   },
   {
-    id: "rollback-expired",
-    label: "Hết cửa sổ rollback",
-    goal: "Xem thời hạn rollback riêng ngăn thao tác khôi phục nghịch đảo.",
+    "id": "rollback-expired",
+    "label": "Rollback window expired",
+    "goal": "See the separate rollback deadline prevent an inverse action."
   },
   {
-    id: "rollback-stale",
-    label: "Target rollback đã đổi",
-    goal: "Không ghi đè các trường đã được thay đổi sau lần thực thi ban đầu.",
+    "id": "rollback-stale",
+    "label": "Rollback target changed",
+    "goal": "Do not overwrite fields changed after the original execution."
   },
   {
-    id: "rollback-unsafe",
-    label: "Profile cũ không an toàn",
-    goal: "Không khôi phục profile bộ nhớ cũ có thể gây OOM trở lại.",
+    "id": "rollback-unsafe",
+    "label": "Unsafe old profile",
+    "goal": "Prevent restoring an old memory profile that could cause OOM again."
   },
   {
-    id: "scale-hpa",
-    label: "HPA quản lý replica",
-    goal: "Nhận hướng dẫn thủ công khi controller sở hữu trường replica.",
+    "id": "scale-hpa",
+    "label": "HPA owns scaling",
+    "goal": "Receive manual guidance when a controller owns the replica field."
   },
   {
-    id: "scale-no-headroom",
-    label: "Node không đủ headroom",
-    goal: "Chặn đề xuất tăng replica khi capacity không đủ.",
+    "id": "scale-no-headroom",
+    "label": "Insufficient node headroom",
+    "goal": "Block a scale proposal when capacity cannot support more replicas."
   },
   {
-    id: "restore-no-baseline",
-    label: "Chưa có bản tốt",
-    goal: "Giải thích vì sao chưa thể restore; không đánh dấu template lỗi là khỏe.",
+    "id": "restore-no-baseline",
+    "label": "No known-good baseline",
+    "goal": "Understand why restore is unavailable without marking a failed template healthy."
   },
   {
-    id: "restore-external-config",
-    label: "Cấu hình ngoài template đổi",
-    goal: "Không khẳng định restore template sẽ phục hồi nội dung ConfigMap hoặc Secret được tham chiếu.",
+    "id": "restore-external-config",
+    "label": "External configuration changed",
+    "goal": "Understand why a template restore cannot recover referenced ConfigMap or Secret contents."
   },
   {
-    id: "failed-rerun",
-    label: "Điều tra lại thất bại",
-    goal: "Giữ và đối chiếu kết luận đã hoàn tất khi lần điều tra mới nhất thất bại.",
+    "id": "failed-rerun",
+    "label": "Failed re-investigation",
+    "goal": "Retain and compare the earlier completed finding when the latest investigation fails."
   },
   {
-    id: "uncertain",
-    label: "Chưa rõ kết quả ghi",
-    goal: "Reconcile có giới hạn, bàn giao giữ nguyên unknown, rồi xác minh trước khi mở khóa target.",
+    "id": "uncertain",
+    "label": "Unknown write outcome",
+    "goal": "Bound reconciliation, preserve the unknown outcome during handoff, then verify before unlocking the target."
   },
   {
-    id: "no-op",
-    label: "Workload đã tự hồi phục",
-    goal: "Nhận kết quả no-op; không tính tự hồi phục thành thành công của action.",
+    "id": "no-op",
+    "label": "Workload already recovered",
+    "goal": "Observe a no-op outcome without counting automatic recovery as action success."
   },
   {
-    id: "inconclusive",
-    label: "Chưa đủ kết luận phục hồi",
-    goal: "Rollout Ready nhưng thiếu coverage hoặc tải giảm nên chưa thể khẳng định phục hồi.",
+    "id": "inconclusive",
+    "label": "Inconclusive recovery",
+    "goal": "See why a Ready rollout with missing coverage or falling traffic does not establish recovery."
   },
   {
-    id: "viewer",
-    label: "Quyền chỉ đọc",
-    goal: "Xem và xuất dữ liệu; các thao tác thay đổi trạng thái bị chặn.",
+    "id": "viewer",
+    "label": "Viewer permissions",
+    "goal": "Browse and export data while state-changing actions remain unavailable."
   },
   {
-    id: "session-expired",
-    label: "Phiên đăng nhập hết hạn",
-    goal: "Xem thao tác bị chặn, rồi khôi phục phiên operator mô phỏng.",
-  },
+    "id": "session-expired",
+    "label": "Expired session",
+    "goal": "See a blocked action, then restore a simulated operator session."
+  }
 ] as const;
 
 const copy = <T>(value: T): T => structuredClone(value);

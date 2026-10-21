@@ -63,14 +63,14 @@ type Decision =
   | "manual_handoff"
   | "verify_manually";
 const labels: Record<Decision, string> = {
-  approve: "Duyệt thay đổi",
-  reject: "Từ chối đề xuất",
-  resolve: "Đóng incident",
-  reopen: "Mở lại incident",
-  reinvestigate: "Điều tra lại",
-  request_rollback: "Xác nhận rollback",
-  manual_handoff: "Bàn giao xử lý thủ công",
-  verify_manually: "Xác minh thủ công để mở khóa",
+  approve: "Approve change",
+  reject: "Reject proposal",
+  resolve: "Resolve incident",
+  reopen: "Reopen incident",
+  reinvestigate: "Re-investigate",
+  request_rollback: "Confirm rollback",
+  manual_handoff: "Record manual handoff",
+  verify_manually: "Verify manually and unlock",
 };
 
 export function IncidentWorkspace({
@@ -155,7 +155,7 @@ export function IncidentWorkspace({
     <>
       <Button variant="ghost" size="sm" onClick={onBack}>
         <ArrowLeft />
-        Quay lại
+        Back
       </Button>
       <div className="incident-heading">
         <div>
@@ -163,7 +163,7 @@ export function IncidentWorkspace({
             <span className="mono muted text-xs">{i.id}</span>
             <Badge variant="outline">
               {i.runs[0]?.reason.startsWith("Manual investigation")
-                ? "Điều tra chủ động"
+                ? "Manual investigation"
                 : i.severity}
             </Badge>
             <StatusBadge status={i.status} />
@@ -181,7 +181,7 @@ export function IncidentWorkspace({
             disabled={readonly || i.status !== "open"}
             onClick={() => act({ type: "acknowledge" })}
           >
-            {i.acknowledgedBy ? "Đã tiếp nhận" : "Tiếp nhận"}
+            {i.acknowledgedBy ? "Acknowledged" : "Acknowledge"}
           </Button>
           <Button
             variant="outline"
@@ -196,7 +196,7 @@ export function IncidentWorkspace({
             onClick={() => open("reinvestigate")}
           >
             <RotateCcw />
-            Điều tra lại
+            Re-investigate
           </Button>
           <Button
             disabled={
@@ -207,7 +207,7 @@ export function IncidentWorkspace({
             }
             onClick={() => open(i.status === "resolved" ? "reopen" : "resolve")}
           >
-            {i.status === "resolved" ? "Mở lại" : "Đóng incident"}
+            {i.status === "resolved" ? "Reopen" : "Resolve incident"}
           </Button>
         </div>
       </div>
@@ -224,8 +224,8 @@ export function IncidentWorkspace({
           <Play />
           <AlertTitle>
             {active
-              ? "Đang thực hiện quyết định"
-              : "Tiến trình điều tra mới nhất"}{" "}
+              ? "Executing approved decision"
+              : "Latest investigation progress"}{" "}
             ·{" "}
             <StatusBadge status={active ? i.execution.status : i.run.status} />
           </AlertTitle>
@@ -238,7 +238,7 @@ export function IncidentWorkspace({
                   disabled={readonly}
                   onClick={() => act({ type: "advance" })}
                 >
-                  Tiếp tục mô phỏng
+                  Advance simulation
                 </Button>
               )}
               {[
@@ -252,7 +252,7 @@ export function IncidentWorkspace({
                   disabled={readonly}
                   onClick={() => act({ type: "retry" })}
                 >
-                  Thử điều tra lại
+                  Retry investigation
                 </Button>
               )}
               {["queued", "waiting_for_quota"].includes(i.run.status) && (
@@ -262,7 +262,7 @@ export function IncidentWorkspace({
                   disabled={readonly}
                   onClick={() => act({ type: "cancel_run" })}
                 >
-                  Hủy lượt đang chờ
+                  Cancel queued run
                 </Button>
               )}
             </div>
@@ -272,15 +272,15 @@ export function IncidentWorkspace({
       {locked && (
         <Alert className="my-4">
           <ShieldCheck />
-          <AlertTitle>Target đang khóa · {locked.incidentId}</AlertTitle>
+          <AlertTitle>Target locked · {locked.incidentId}</AlertTitle>
           <AlertDescription>
-            {locked.reason} Không gửi lại thao tác ghi khi chưa rõ kết quả.
+            {locked.reason} Do not resend a write while its outcome is unknown.
             {locked.incidentId !== i.id && (
               <Button
                 variant="link"
                 onClick={() => onOpenIncident(locked.incidentId)}
               >
-                Mở incident giữ khóa
+                Open incident holding the lock
               </Button>
             )}
           </AlertDescription>
@@ -289,7 +289,7 @@ export function IncidentWorkspace({
       <div className="incident-layout">
         <section className="investigation-main">
           <div className="flex items-center gap-3 mb-4 flex-wrap">
-            <Label htmlFor="run-select">Snapshot điều tra</Label>
+            <Label htmlFor="run-select">Investigation snapshot</Label>
             <select
               id="run-select"
               className="native-select max-w-80"
@@ -305,12 +305,12 @@ export function IncidentWorkspace({
           </div>
           {old && (
             <Alert className="mb-4">
-              <AlertTitle>Đang xem kết quả cũ · {run.id}</AlertTitle>
+              <AlertTitle>Viewing a previous result · {run.id}</AlertTitle>
               <AlertDescription>
-                Lượt mới nhất {i.run.id}: {i.run.status}. Kết luận này chưa phản
-                ánh lượt mới.{" "}
+                Latest run {i.run.id}: {i.run.status}. This finding does not yet reflect
+                the latest run.{" "}
                 <Button variant="link" onClick={() => onTab(tab, i.run.id)}>
-                  Xem lượt mới nhất
+                  View latest run
                 </Button>
               </AlertDescription>
             </Alert>
@@ -323,14 +323,14 @@ export function IncidentWorkspace({
                   Evidence ({run.evidence.length})
                 </TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
-                <TabsTrigger value="compare">So sánh runs</TabsTrigger>
+                <TabsTrigger value="compare">Compare runs</TabsTrigger>
                 <TabsTrigger value="handoff">Handoff</TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value="findings">
               <div className="content-panel">
                 <div className="panel-heading">
-                  <h2>Kết luận điều tra</h2>
+                  <h2>Investigation findings</h2>
                   <StatusBadge status={run.status} />
                 </div>
                 <p className="prose-block">{run.summary}</p>
@@ -354,23 +354,23 @@ export function IncidentWorkspace({
                 <MetricOverview run={run} pattern={i.pattern} />
                 <div className="two-cols mt-6">
                   <div>
-                    <h3>Đã loại trừ</h3>
+                    <h3>Ruled out</h3>
                     <BulletList
                       items={
                         run.ruledOut.length
                           ? run.ruledOut
-                          : ["Chưa đủ bằng chứng để loại trừ thêm nguyên nhân."]
+                          : ["No additional causes have been ruled out with sufficient evidence."]
                       }
                     />
                   </div>
                   <div>
-                    <h3>Chưa kiểm chứng</h3>
+                    <h3>Unverified</h3>
                     <BulletList items={run.unverified} />
                   </div>
                 </div>
                 {run.missingEvidence.length > 0 && (
                   <Alert className="mt-5">
-                    <AlertTitle>Evidence còn thiếu</AlertTitle>
+                    <AlertTitle>Missing evidence</AlertTitle>
                     <AlertDescription>
                       <BulletList items={run.missingEvidence} />
                     </AlertDescription>
@@ -382,15 +382,15 @@ export function IncidentWorkspace({
                   onClick={() => setRunbook(true)}
                 >
                   <BookOpen />
-                  Runbook đã dùng · {i.pattern} v3
+                  Referenced runbook · {i.pattern} v3
                 </Button>
               </div>
             </TabsContent>
             <TabsContent value="evidence">
               <div className="content-panel">
-                <h2>Evidence của {run.id}</h2>
+                <h2>Evidence for {run.id}</h2>
                 <p className="muted mb-5">
-                  Nguồn, thời điểm và dữ liệu gốc gắn với từng lượt điều tra.
+                  Sources, timestamps and original data are attached to each investigation run.
                 </p>
                 <div className="evidence-grid">
                   {run.evidence.map((e) => (
@@ -412,14 +412,14 @@ export function IncidentWorkspace({
                 </div>
                 {!run.evidence.length && (
                   <p className="empty-state">
-                    Chưa có snapshot cho lượt này. Tiếp tục thu thập evidence.
+                    No snapshot exists for this run yet. Continue evidence collection.
                   </p>
                 )}
               </div>
             </TabsContent>
             <TabsContent value="activity">
               <div className="content-panel">
-                <h2>Activity & ghi chú</h2>
+                <h2>Activity and notes</h2>
                 <form
                   className="note-form"
                   onSubmit={(e) => {
@@ -429,15 +429,15 @@ export function IncidentWorkspace({
                   }}
                 >
                   <Textarea
-                    aria-label="Ghi chú incident"
-                    placeholder="Ghi lại quan sát hoặc bước xử lý ngoài ứng dụng…"
+                    aria-label="Incident note"
+                    placeholder="Record observations or actions taken outside the application…"
                     required
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     disabled={readonly}
                   />
                   <Button type="submit" disabled={readonly || !note.trim()}>
-                    Thêm ghi chú
+                    Add note
                   </Button>
                 </form>
                 <div className="timeline">
@@ -451,7 +451,7 @@ export function IncidentWorkspace({
                     </div>
                   ))}
                 </div>
-                <h3 className="mt-5">Ghi chú đã lưu</h3>
+                <h3 className="mt-5">Saved notes</h3>
                 {i.notes.map((n) => (
                   <div key={n.id} className="prose-block">
                     <p>{n.text}</p>
@@ -464,8 +464,8 @@ export function IncidentWorkspace({
             </TabsContent>
             <TabsContent value="compare">
               <div className="content-panel">
-                <h2>So sánh hai lượt điều tra</h2>
-                <Label htmlFor="compare-run">So sánh với</Label>
+                <h2>Compare two investigation runs</h2>
+                <Label htmlFor="compare-run">Compare with</Label>
                 <select
                   id="compare-run"
                   className="native-select my-3"
@@ -480,8 +480,8 @@ export function IncidentWorkspace({
                 </select>
                 {i.runs.length < 2 && (
                   <p className="muted mb-4">
-                    Điều tra lại để có snapshot thứ hai. Lượt cũ vẫn được giữ
-                    nguyên.
+                    Re-investigate to create a second snapshot. The earlier run remains
+                    unchanged.
                   </p>
                 )}
                 <div className="compare-grid">
@@ -514,12 +514,12 @@ export function IncidentWorkspace({
             <TabsContent value="handoff">
               <div className="content-panel">
                 <div className="panel-heading">
-                  <h2>Bàn giao & lịch sử đóng</h2>
+                  <h2>Handoff and resolution history</h2>
                   <Badge variant="outline">
                     {i.resolutions.length} snapshots
                   </Badge>
                 </div>
-                <Label htmlFor="resolution">Bản báo cáo</Label>
+                <Label htmlFor="resolution">Report version</Label>
                 <select
                   id="resolution"
                   className="native-select my-3"
@@ -529,7 +529,7 @@ export function IncidentWorkspace({
                     setCopied(false);
                   }}
                 >
-                  <option value="">Trạng thái hiện tại</option>
+                  <option value="">Current state</option>
                   {i.resolutions.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.id} · {r.at}
@@ -538,14 +538,14 @@ export function IncidentWorkspace({
                 </select>
                 {resolutionId && (
                   <p className="muted mb-3">
-                    Snapshot đã lưu khi đóng, không thay đổi sau khi mở lại hoặc
-                    xác minh thêm.
+                    This snapshot was saved at resolution and does not change after reopening or
+                    further verification.
                   </p>
                 )}
                 <div className="flex gap-2 mb-4">
                   <Button variant="outline" onClick={() => copy(md)}>
                     {copied ? <Check /> : <Copy />}
-                    {copied ? "Đã sao chép" : "Sao chép"}
+                    {copied ? "Copied" : "Copy"}
                   </Button>
                   <Button
                     onClick={() =>
@@ -556,7 +556,7 @@ export function IncidentWorkspace({
                     }
                   >
                     <Download />
-                    Tải Markdown
+                    Download Markdown
                   </Button>
                 </div>
                 <pre className="handoff-preview">{md}</pre>
@@ -569,10 +569,10 @@ export function IncidentWorkspace({
             <div className="eyebrow">NEXT STEP</div>
             <h2>
               {i.status === "resolved"
-                ? "Incident đã đóng"
+                ? "Incident resolved"
                 : plan
-                  ? "Quyết định thay đổi"
-                  : "Hướng xử lý thủ công"}
+                  ? "Review proposed change"
+                  : "Manual guidance"}
             </h2>
             {plan ? (
               <>
@@ -583,17 +583,17 @@ export function IncidentWorkspace({
                 <p className="mono text-xs break-all muted">{plan.hash}</p>
                 <Diff rows={plan.diff} />
                 <details className="my-4">
-                  <summary>Điều kiện, rủi ro & xác minh</summary>
-                  <h3 className="mt-3">Điều kiện</h3>
+                  <summary>Prerequisites, risks and verification</summary>
+                  <h3 className="mt-3">Prerequisites</h3>
                   <BulletList items={plan.prerequisites} />
-                  <h3 className="mt-3">Rủi ro</h3>
+                  <h3 className="mt-3">Risks</h3>
                   <BulletList items={plan.risks} />
-                  <h3 className="mt-3">Kiểm chứng</h3>
+                  <h3 className="mt-3">Verification</h3>
                   <BulletList items={plan.verification} />
                   <p className="text-xs muted mt-3">
                     UID: {plan.targetUid}
                     <br />
-                    Hết hạn: {plan.expiresAt}
+                    Expires: {plan.expiresAt}
                     <br />
                     Run: {plan.runId}
                   </p>
@@ -606,28 +606,28 @@ export function IncidentWorkspace({
                       disabled={readonly || Boolean(locked)}
                       onClick={() => open("approve")}
                     >
-                      Review & duyệt
+                      Review and approve
                     </Button>
                     <Button
                       variant="outline"
                       disabled={readonly}
                       onClick={() => open("reject")}
                     >
-                      Từ chối
+                      Reject
                     </Button>
                   </div>
                 ) : (
                   <p className="muted text-sm">
                     {i.status === "resolved"
-                      ? "Mở lại incident nếu cần một quyết định mới."
+                      ? "Reopen the incident if a new decision is needed."
                       : [
                             "stale",
                             "expired",
                             "rejected",
                             "invalidated",
                           ].includes(plan.status)
-                        ? "Đề xuất không còn dùng được. Điều tra lại để tạo một kế hoạch mới."
-                        : "Quyết định và kết quả được ghi trong Activity."}
+                        ? "This proposal is no longer actionable. Re-investigate to create a fresh plan."
+                        : "Decisions and outcomes are recorded in Activity."}
                   </p>
                 )}
               </>
@@ -635,17 +635,17 @@ export function IncidentWorkspace({
               <>
                 <p className="prose-block">
                   {i.manualReason ||
-                    "Đợi kết quả điều tra để xác định bước tiếp theo."}
+                    "Wait for the investigation result to determine the next step."}
                 </p>
                 <Button variant="outline" onClick={() => setRunbook(true)}>
                   <BookOpen />
-                  Đọc runbook
+                  Read runbook
                 </Button>
               </>
             )}
           </div>
           <div className="content-panel">
-            <h2>Kết quả thực thi</h2>
+            <h2>Execution outcome</h2>
             <StatusBadge status={i.execution.status} />
             <p className="prose-block">{i.execution.summary}</p>
             {i.execution.id && (
@@ -656,8 +656,8 @@ export function IncidentWorkspace({
             <BulletList items={i.execution.verification} />
             {i.execution.status === "none" && (
               <p className="muted text-sm">
-                Duyệt một đề xuất để bắt đầu. Mỗi bước mô phỏng cần bạn bấm tiếp
-                tục.
+                Approve a proposal to begin. Each simulated stage advances when you choose
+                to continue.
               </p>
             )}
             {i.status !== "resolved" &&
@@ -675,8 +675,8 @@ export function IncidentWorkspace({
             {i.execution.outcomeUnknown && (
               <>
                 <p className="text-sm mt-3">
-                  Reconciliation: {i.execution.reconcileAttempts}/2. Không suy
-                  luận thành công từ trạng thái Ready.
+                  Reconciliation: {i.execution.reconcileAttempts}/2. Do not infer
+                  success from Ready status alone.
                 </p>
                 <Button
                   className="mt-3"
@@ -684,7 +684,7 @@ export function IncidentWorkspace({
                   disabled={readonly || i.execution.reconcileAttempts >= 2}
                   onClick={() => act({ type: "reconcile" })}
                 >
-                  Đối soát kết quả
+                  Reconcile outcome
                 </Button>
                 <Button
                   className="mt-3 w-full"
@@ -692,7 +692,7 @@ export function IncidentWorkspace({
                   disabled={readonly || i.execution.reconcileAttempts < 2}
                   onClick={() => open("verify_manually")}
                 >
-                  Xác minh thủ công để mở khóa
+                  Verify manually and unlock
                 </Button>
               </>
             )}
@@ -703,11 +703,11 @@ export function IncidentWorkspace({
             disabled={readonly || active || i.execution.status === "uncertain"}
             onClick={() => open("manual_handoff")}
           >
-            Bàn giao thủ công
+            Manual handoff
           </Button>
           <Button variant="ghost" onClick={() => onTab("handoff", run.id)}>
             <FileText />
-            Xem báo cáo bàn giao
+            View handoff report
           </Button>
         </aside>
       </div>
@@ -721,22 +721,22 @@ export function IncidentWorkspace({
           <SheetHeader>
             <SheetTitle>{evidence?.title}</SheetTitle>
             <SheetDescription>
-              {evidence?.id} · snapshot đã lưu
+              {evidence?.id} · saved snapshot
             </SheetDescription>
           </SheetHeader>
           {evidence && (
             <div className="p-4 space-y-5">
               <StatusBadge status={evidence.status} />
               <dl>
-                <dt className="muted">Nguồn</dt>
+                <dt className="muted">Source</dt>
                 <dd>{evidence.source}</dd>
-                <dt className="muted mt-3">Quan sát lúc</dt>
+                <dt className="muted mt-3">Observed at</dt>
                 <dd>{evidence.observedAt}</dd>
               </dl>
               <pre className="handoff-preview">{evidence.excerpt}</pre>
               <Button variant="outline" onClick={() => copy(evidence.excerpt)}>
                 <Copy />
-                {copied ? "Đã sao chép" : "Sao chép evidence"}
+                {copied ? "Copied" : "Copy evidence"}
               </Button>
             </div>
           )}
@@ -747,31 +747,31 @@ export function IncidentWorkspace({
           <DialogHeader>
             <DialogTitle>{i.pattern} · runbook v3</DialogTitle>
             <DialogDescription>
-              Phiên bản tham chiếu bởi {run.id} · full-text retrieval
+              Version referenced by {run.id} · full-text retrieval
             </DialogDescription>
           </DialogHeader>
           <ol className="check-list">
-            <li>Kiểm tra UID, owner và cửa sổ quan sát của workload.</li>
+            <li>Check the workload UID, owner and observation window.</li>
             <li>
-              Đối chiếu event, previous logs và telemetry; ghi rõ phần thiếu.
+              Compare events, previous logs and telemetry; identify missing information.
             </li>
             <li>
               {i.pattern === "OOM"
-                ? "Đối chiếu OOMKilled với memory limit; không kết luận memory leak chỉ từ một lần restart."
+                ? "Compare OOMKilled with the memory limit; a single restart does not establish a memory leak."
                 : i.pattern === "Load"
-                  ? "Kiểm tra RPS, latency, throttling, headroom và HPA trước khi scale."
+                  ? "Check RPS, latency, throttling, capacity and HPA ownership before scaling."
                   : i.pattern === "CrashLoop"
-                    ? "Chỉ restore template có baseline healthy đã xác nhận; không khôi phục nội dung ConfigMap/Secret."
-                    : "Chuyển evidence cho resource owner; không đề xuất thay đổi tự động cho pattern này."}
+                    ? "Restore only a confirmed healthy template baseline; referenced ConfigMap and Secret contents are not restored."
+                    : "Hand evidence to the resource owner; this pattern has no automated recovery action."}
             </li>
             <li>
-              Xác minh bằng dữ liệu mới và coverage đầy đủ; bàn giao nếu kết quả
-              chưa rõ.
+              Verify using fresh data and adequate coverage; hand off if the outcome
+              remains unknown.
             </li>
           </ol>
           <p className="muted text-xs">
-            Nội dung mẫu minh họa cho review UX. Knowledge lưu các tài liệu hiện
-            hành.
+            Illustrative content for UX review. Knowledge contains the current
+            runbooks.
           </p>
         </DialogContent>
       </Dialog>
@@ -786,12 +786,12 @@ export function IncidentWorkspace({
             <DialogTitle>{decision && labels[decision]}</DialogTitle>
             <DialogDescription>
               {decision === "resolve"
-                ? "Lưu snapshot bằng chứng, quyết định và kết quả hiện tại. Đóng incident không chứng minh thay đổi thành công."
+                ? "Save a snapshot of the evidence, decisions and current outcome. Resolving an incident does not prove the change succeeded."
                 : decision === "approve"
-                  ? "Bạn đang duyệt đúng diff và target của kế hoạch này. Mọi thao tác ở đây chỉ là mô phỏng."
+                  ? "You are approving this exact plan diff and target. All actions here are simulated."
                   : decision === "request_rollback"
-                    ? "Rollback là một quyết định riêng; các điều kiện và tính an toàn sẽ được kiểm tra lại."
-                    : "Lý do được lưu vào lịch sử của incident."}
+                    ? "Rollback is a separate decision. Preconditions and safety are checked again."
+                    : "The reason is recorded in the incident history."}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -813,13 +813,13 @@ export function IncidentWorkspace({
                   </p>
                   {decision === "request_rollback" && (
                     <p className="muted">
-                      Không rollback khi hết hạn, target đã đổi hoặc cấu hình cũ
-                      không an toàn.
+                      Do not roll back after expiry, when the target has changed, or when the old configuration is
+                      unsafe.
                     </p>
                   )}
                   {decision === "approve" && (
                     <details>
-                      <summary>Thử xung đột trước khi gửi duyệt</summary>
+                      <summary>Simulate a conflict before approval</summary>
                       <div className="flex gap-2 mt-2">
                         <Button
                           type="button"
@@ -827,7 +827,7 @@ export function IncidentWorkspace({
                           variant="outline"
                           onClick={() => act({ type: "stale_plan" })}
                         >
-                          Mô phỏng target đổi
+                          Simulate target change
                         </Button>
                         <Button
                           type="button"
@@ -835,7 +835,7 @@ export function IncidentWorkspace({
                           variant="outline"
                           onClick={() => act({ type: "expire_plan" })}
                         >
-                          Mô phỏng hết hạn
+                          Simulate expiry
                         </Button>
                       </div>
                       <StatusBadge status={decisionPlan.status} />
@@ -850,40 +850,40 @@ export function IncidentWorkspace({
                   Run: {i.run.id} · {i.run.status}
                 </p>
                 <p>
-                  Kết quả: <StatusBadge status={i.execution.status} />
+                  Outcome: <StatusBadge status={i.execution.status} />
                 </p>
                 <p>
                   {i.execution.outcomeUnknown
-                    ? "Chưa rõ kết quả ghi. Target tiếp tục khóa sau khi đóng."
+                    ? "Write outcome unknown. The target remains locked after resolution."
                     : i.execution.summary}
                 </p>
                 <p>
-                  {i.notes.length} ghi chú · {i.run.evidence.length} evidence
+                  {i.notes.length} notes · {i.run.evidence.length} evidence
                 </p>
               </div>
             )}
             {decision === "verify_manually" && (
               <>
                 <Label htmlFor="manual-evidence">
-                  Bằng chứng kiểm chứng trực tiếp
+                  Fresh verification evidence
                 </Label>
                 <Textarea
                   id="manual-evidence"
                   required
                   value={manualEvidence}
                   onChange={(e) => setManualEvidence(e.target.value)}
-                  placeholder="UID/resourceVersion, giá trị quan sát, nguồn và thời điểm…"
+                  placeholder="UID/resourceVersion, observed values, source and timestamp…"
                 />
-                <Label htmlFor="manual-outcome">Kết quả quan sát</Label>
+                <Label htmlFor="manual-outcome">Observed outcome</Label>
                 <select
                   id="manual-outcome"
                   className="native-select"
                   value={outcome}
                   onChange={(e) => setOutcome(e.target.value as typeof outcome)}
                 >
-                  <option value="applied">Thay đổi đã hiện diện</option>
+                  <option value="applied">Desired change is present</option>
                   <option value="not_applied">
-                    Thay đổi không được áp dụng
+                    Desired change is not present
                   </option>
                 </select>
                 <label className="flex gap-3 items-start">
@@ -891,12 +891,12 @@ export function IncidentWorkspace({
                     checked={stopped}
                     onCheckedChange={(v) => setStopped(v === true)}
                   />
-                  Tôi đã xác minh yêu cầu ghi cũ đã dừng và không thể ghi muộn.
+                  I verified that the old write request has stopped and cannot write late.
                 </label>
               </>
             )}
             <Label htmlFor="decision-reason">
-              Lý do {decision === "approve" ? "(tùy chọn)" : "(bắt buộc)"}
+              Reason {decision === "approve" ? "(optional)" : "(required)"}
             </Label>
             <Textarea
               id="decision-reason"
@@ -904,7 +904,7 @@ export function IncidentWorkspace({
               required={decision !== "approve"}
               minLength={decision === "approve" ? undefined : 3}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ghi rõ quyết định và bước xử lý tiếp theo…"
+              placeholder="Describe the decision and next steps…"
             />
             <div className="dialog-actions">
               <Button
@@ -912,7 +912,7 @@ export function IncidentWorkspace({
                 variant="outline"
                 onClick={() => setDecision(null)}
               >
-                Hủy
+                Cancel
               </Button>
               <Button
                 type="submit"
@@ -951,9 +951,9 @@ function Diff({
       <table>
         <thead>
           <tr>
-            <th>Trường</th>
-            <th>Hiện tại</th>
-            <th>{inverse ? "Khôi phục" : "Đề xuất"}</th>
+            <th>Field</th>
+            <th>Current</th>
+            <th>{inverse ? "Restore" : "Proposed"}</th>
           </tr>
         </thead>
         <tbody>
@@ -980,10 +980,10 @@ function MetricOverview({
   if (!metric || metric.status !== "available")
     return (
       <div className="metric-card">
-        <h3>Telemetry chưa đủ</h3>
+        <h3>Insufficient telemetry</h3>
         <p className="muted">
-          Không hiển thị đường bằng 0 khi thiếu dữ liệu. Xem Evidence để biết
-          phần chưa thu thập được.
+          Missing data is not shown as a zero line. Open Evidence to see
+          what could not be collected.
         </p>
       </div>
     );
@@ -1049,7 +1049,7 @@ function MetricOverview({
               className="metric-chart"
               viewBox="0 0 280 90"
               role="img"
-              aria-label={`${s.name}: ${s.values.join(", ")} ${s.unit}, 10:30 đến 10:45 UTC+7`}
+              aria-label={`${s.name}: ${s.values.join(", ")} ${s.unit}, 10:30 to 10:45 UTC+7`}
             >
               <path
                 d="M0 75H280 M0 40H280 M0 5H280"
@@ -1082,7 +1082,7 @@ function MetricOverview({
         ))}
       </div>
       <p className="text-xs muted mt-2">
-        Dữ liệu fixture minh họa · {metric.id}. Cửa sổ snapshot: {run.window}.
+        Illustrative demo fixture data · {metric.id}. Snapshot window: {run.window}.
       </p>
     </>
   );

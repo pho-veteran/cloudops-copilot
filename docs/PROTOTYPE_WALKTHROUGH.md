@@ -1,10 +1,10 @@
-# Hướng dẫn trải nghiệm CloudOps prototype
+﻿# CloudOps prototype walkthrough
 
-Đây là prototype React/Vite có thể thao tác, dùng shadcn/ui và fixture trong trình duyệt. Không có backend, Kubernetes, Prometheus, model endpoint hoặc credential thật. Nút duyệt, thực thi, rollback, retry và kiểm tra kết nối chỉ chuyển trạng thái mô phỏng; không gửi lệnh ra hệ thống bên ngoài.
+This is an interactive React/Vite prototype using shadcn/ui and browser fixtures. It has no backend, Kubernetes, Prometheus, model endpoint or real credentials. Approval, execution, rollback, retry and connection tests only change simulated state; they do not send commands to external systems.
 
-## Chạy trên máy phát triển
+## Run locally
 
-Cài Node.js tương thích với phiên bản Vite trong `apps/web/package.json` và npm. Từ thư mục repository, chạy lần lượt:
+Install Node.js compatible with the Vite version in `apps/web/package.json`, together with npm. From the repository root, run these commands in order:
 
 ```powershell
 cd apps/web
@@ -12,83 +12,83 @@ npm ci
 npm run dev
 ```
 
-Mở URL local mà Vite in trong terminal, thường là `http://127.0.0.1:5173`. Nếu cổng bận, dùng URL thực tế trong output. Giữ terminal chạy trong lúc dùng prototype; `Ctrl+C` để dừng.
+Open the local URL printed by Vite, usually `http://127.0.0.1:5173`. If that port is busy, use the actual URL in the output. Keep the terminal running while using the prototype; press `Ctrl+C` to stop it.
 
-Các kiểm tra có thể chạy riêng:
+Run these checks separately:
 
 ```powershell
 npm test
 npm run build
 ```
 
-`npm ci` cần tải dependency. Sau khi cài và khởi động, các thao tác nghiệp vụ trong app dùng dữ liệu local; không gọi API sản phẩm. Build/test thành công không thay thế review giao diện trên browser.
+`npm ci` downloads dependencies. After installation and startup, product interactions use local data and do not call a product API. Passing build and test checks does not replace a browser review.
 
-## Cách điều khiển demo
+## Demo controls
 
-- **Work queue:** lọc/tìm incident và mở workspace; nút **Điều tra workload** tạo một lượt điều tra chủ động.
-- **Workloads:** inventory, workload detail, known-good baseline và tab **Recommendations**. Không có một trang Approvals riêng; quyết định nằm trong incident.
-- **Knowledge:** tìm/lọc và đọc runbook có source/version, tải Markdown và mô phỏng index degraded/reindex.
-- **Connections:** xem health, cấu hình hướng dẫn, unknown usage và mô phỏng transport/RCA contract.
+- **Work queue:** filter or search incidents and open a workspace; **Investigate workload** starts a manual investigation.
+- **Workloads:** inventory, workload details, known-good baselines and the **Recommendations** tab. There is no separate Approvals page; decisions belong to the incident workspace.
+- **Knowledge:** search/filter and read versioned runbooks with source information, download Markdown, and simulate a degraded index or reindexing.
+- **Connections:** inspect health, setup guidance, unknown usage and simulated transport/RCA contract checks.
 
-Chọn **Chọn user story** ở sidebar hoặc **Đổi story** trên banner để tải một trong 24 fixture. Chọn story sẽ thay dữ liệu nghiệp vụ hiện tại bằng fixture mới. Nút biểu tượng bắt đầu lại trên banner reset story đang chọn. Menu tài khoản cho đổi Operator/Viewer và mô phỏng hết phiên; nút mặt trời/mặt trăng đổi theme.
+Use **Choose a story** in the sidebar or **Change story** on the banner to load one of the 24 fixtures. Choosing a story replaces the current business data with a fresh fixture. The restart icon on the banner resets the selected story. The account menu switches between Operator and Viewer and simulates session expiry; the sun/moon button switches themes.
 
-Trong incident, **Tiếp tục mô phỏng** đẩy đúng một stage. Không có worker tự chạy nền: hãy bấm tiếp khi nút còn xuất hiện, rồi đọc trạng thái mới. Một luồng thường đi qua queued → collecting → analyzing → kết quả điều tra; sau duyệt đi qua queued → executing → verifying → outcome. Không dùng nút này để thử gửi lại thao tác ghi khi outcome unknown; tình huống đó có controls riêng.
+In an incident, **Advance simulation** advances exactly one stage. No background worker runs automatically: keep advancing while the button is available, then read the new state. A typical investigation moves through queued → collecting → analyzing → investigation result; after approval, execution moves through queued → executing → verifying → outcome. Do not use this button to resend a write with an unknown outcome; that scenario has dedicated controls.
 
-Dữ liệu nghiệp vụ và theme được lưu bằng localStorage. Refresh thường giữ tiến trình demo. Chọn lại story để có điểm bắt đầu xác định; không dùng dữ liệu trình duyệt làm nguồn lưu trữ incident thật. Bộ lọc/tab incident dùng hash URL để điều hướng trong prototype.
+Business data and the theme are stored in localStorage. Refreshing normally retains the demo progress. Reload a story for a deterministic starting point; browser storage is not a real incident database. Incident filters and tabs use the URL hash for prototype navigation.
 
-## Những hành trình nên thử
+## Suggested walkthroughs
 
-| Vai trò / mục tiêu | Đường thao tác thực tế | Kết quả mong đợi trong demo |
+| Role / goal | Interaction path | Expected demo outcome |
 |---|---|---|
-| Operator: phục hồi OOM | Chọn **Phục hồi OOM** → đọc Findings → bấm citation hoặc mở Evidence → **Review & duyệt** → đọc diff/target → **Duyệt thay đổi** → **Tiếp tục mô phỏng** qua các stage | Profile bộ nhớ trong giới hạn được mô phỏng; outcome tách khỏi trạng thái incident. OOM không tự được gọi là memory leak. |
-| Operator: kiểm tra từ chối/xung đột | Tại plan chờ duyệt, chọn **Từ chối** và ghi lý do; hoặc mở review, bung **Thử xung đột trước khi gửi duyệt**, chọn target đổi/hết hạn rồi gửi | Plan rejected/stale/expired không thể thực thi; muốn có plan mới cần điều tra lại. Reset story để thử nhánh khác. |
-| Operator: chuẩn bị restore | Chọn **Chuẩn bị bản tốt để khôi phục** → Workloads → catalog-api → **Xác nhận known-good** → review rev17, `APP_MODE=production`, 1/1 Ready và hash → xác nhận → **Demo: inject rollout lỗi** → mở incident catalog → tiếp tục điều tra → review/duyệt restore | Baseline được xác nhận trước lỗi; revision18 thiếu `APP_MODE` mới là bản lỗi. Confirm chỉ lưu metadata demo. Template đang lỗi không được xác nhận healthy. |
-| Operator: scale có điều kiện | Chọn **Lưu lượng tăng đột biến** → Findings/Evidence → mở điều kiện, rủi ro và xác minh → duyệt diff replica → tiếp tục | Scale chỉ trong bounds fixture. Đọc cả traffic/latency và capacity; Ready không tự chứng minh dịch vụ phục hồi. |
-| Operator: chẩn đoán thủ công | Chọn **Chẩn đoán Pending** hoặc **Chẩn đoán lỗi kéo image** → Evidence → **Đọc runbook** → **Bàn giao thủ công**, ghi lý do → Handoff | Không có executable plan cho hai pattern này. Handoff vẫn chứa finding, evidence và phần chưa kiểm chứng. |
-| Operator: chủ động điều tra | Work queue → **Điều tra workload**, hoặc Workloads → detail → **Bắt đầu điều tra** → chọn workload, symptom, window và nhập câu hỏi → bắt đầu → tiếp tục | Tạo incident/run mới có scope và câu hỏi. Không cần alert thật; câu hỏi không rỗng. |
-| Operator: thiếu evidence/quota | Chọn **Thiếu bằng chứng** hoặc **Hết quota model** → đọc phần thiếu/trạng thái chờ → **Thử điều tra lại**, rồi tiếp tục; lượt chờ phù hợp cũng có **Hủy lượt đang chờ** | Evidence cũ còn xem được; lỗi provider không tạo plan từ output không hợp lệ, không tự fallback trả phí. |
-| Operator: xem lịch sử điều tra | Chọn **Điều tra lại thất bại** → đọc banner kết quả cũ → **Snapshot điều tra** / **Xem lượt mới nhất** → **So sánh runs**, chọn run khác | Kết luận completed trước vẫn tồn tại; lượt mới failed không được trình bày như kết luận mới thành công. Có thể mở evidence riêng từng snapshot. |
-| Operator: rollback | Chọn **Xác minh và rollback** → duyệt action → tiếp tục đến verification failed → **Review rollback** → đọc inverse diff, nhập lý do → xác nhận → tiếp tục | Rollback là quyết định riêng. Outcome rolled_back không bị trộn với initial action succeeded. |
-| Operator: rollback bị chặn | Chọn một story rollback hết hạn/target đổi/profile cũ không an toàn, đi đến post-check rồi thử review rollback | Guard giải thích lý do không được inverse write. Với **Rollback không hoàn tất**, tiếp tục nhánh rollback để nhận manual intervention và bàn giao. |
-| Operator: xử lý unknown | Chọn **Chưa rõ kết quả ghi** → duyệt và tiếp tục đến uncertain → **Đối soát kết quả** tối đa hai lần → có thể bàn giao/đóng với lý do → **Xác minh thủ công để mở khóa** | Không replay write; đóng incident vẫn giữ unknown/target lock. Để mở khóa cần nhập evidence, chọn kết quả và xác nhận yêu cầu ghi cũ không thể ghi muộn. Đây đều là khai báo fixture, không xác minh hệ thống thật. |
-| Operator: ghi chú và đóng/mở lại | Activity → nhập ghi chú → **Thêm ghi chú** → **Đóng incident**, nhập lý do → Handoff → chọn snapshot đã lưu → **Mở lại** với lý do | Resolution snapshot giữ evidence, plan, outcome và note lúc đóng; mở lại không sửa snapshot cũ. Đóng incident không tự xác nhận recovery. |
-| Viewer: xem và xuất | Chọn **Quyền chỉ đọc** → mở evidence, history và Handoff → **Sao chép** / **Tải Markdown** | Xem/export được; acknowledge, approve, note và các mutation bị vô hiệu. Clipboard cần browser cho phép; dùng download nếu không copy được. |
-| Người dùng hết phiên | Chọn **Phiên đăng nhập hết hạn** hoặc menu tài khoản → mô phỏng hết phiên → **Tiếp tục với tài khoản demo** / xem với Viewer | Không dùng tài khoản/password thật. Khôi phục phiên không tự gửi lại quyết định trước đó. |
-| Người review resource | Workloads → Recommendations → chọn report → đọc current/observed/recommended, units, coverage và exclusions → **Xuất JSON** | File tải xuống chứa report 6 giờ và các giới hạn. HPA/recent OOM/insufficient/stale không bị biểu diễn thành recommendation bằng zero; export không phải apply hoặc bill savings. |
-| Người review tri thức | Knowledge → tìm theo từ khóa/tag → **Đọc runbook** → xem source/v3 → tải Markdown; thử reindex demo | Catalog vẫn đọc được khi index degraded. Reindex chỉ đổi trạng thái local, không gọi embedding provider. |
-| Operator: kiểm tra model | Connections → **Hướng dẫn** → chọn fixture transport/contract/pass/401/429 → **Chạy kiểm tra demo** | Phân biệt timeout, credential rejected, rate limit và structured RCA không hợp lệ. HTTP reachable không đồng nghĩa RCA contract pass; tool calling không phải yêu cầu baseline. Usage/quota chưa có dữ liệu vẫn unavailable/unknown. |
+| Operator: recover from OOM | Choose **OOM recovery** → read Findings → open a citation or Evidence → **Review and approve** → review the diff/target → **Approve change** → **Advance simulation** through the stages | The bounded memory-profile change is simulated; the execution outcome remains separate from incident status. OOM is not automatically described as a memory leak. |
+| Operator: reject or test a conflict | For a proposal awaiting approval, choose **Reject** and enter a reason; or open its review, expand **Simulate a conflict before approval**, simulate a target change or expiry, then submit | Rejected/stale/expired plans cannot execute; re-investigate to obtain a fresh plan. Reset the story to try another branch. |
+| Operator: prepare a restore baseline | Choose **Prepare a restore baseline** → Workloads → catalog-api → **Confirm known-good** → review revision 17, `APP_MODE=production`, 1/1 Ready and the hash → **Confirm snapshot** → **Demo: inject failed rollout** → open the catalog incident → advance investigation → review/approve restore | The baseline is confirmed before the fault; revision 18 with missing `APP_MODE` is the failed version. Confirmation only records demo metadata. A failed template cannot be confirmed as healthy. |
+| Operator: scale conditionally | Choose **Traffic spike** → Findings/Evidence → expand prerequisites, risks and verification → approve the replica diff → advance | Scaling stays within the fixture bounds. Review traffic/latency and capacity together; Ready status alone does not establish service recovery. |
+| Operator: diagnose a manual-only pattern | Choose **Pending diagnosis** or **Image pull diagnosis** → Evidence → **Read runbook** → **Manual handoff**, enter a reason → Handoff | These two patterns have no executable plan. The handoff still includes findings, evidence and unverified checks. |
+| Operator: start a manual investigation | Work queue → **Investigate workload**, or Workloads → detail → **Start investigation** → choose workload, symptom and window, enter a question → start → advance | A new scoped incident/run preserves the question. No real alert is needed; the question must not be empty. |
+| Operator: handle missing evidence/quota | Choose **Insufficient evidence** or **Model quota exhausted** → read the missing-data/waiting state → **Retry investigation**, then advance; eligible waiting runs also offer **Cancel queued run** | Previous evidence remains available; provider failure does not produce a plan from invalid output or trigger a paid fallback. |
+| Operator: inspect investigation history | Choose **Failed re-investigation** → read the previous-result banner → **Investigation snapshot** / **View latest run** → **Compare runs**, choose another run | The earlier completed finding remains available; the latest failed run is not presented as a successful fresh conclusion. Each snapshot has its own evidence. |
+| Operator: roll back | Choose **Verification and rollback** → approve the action → advance until verification fails → **Review rollback** → review the inverse diff, enter a reason → confirm → advance | Rollback is a separate decision. The rolled_back outcome is not confused with the original action succeeding. |
+| Operator: inspect blocked rollback | Choose a rollback-expired, target-changed or unsafe-profile story, advance through the post-check, then review rollback | The guard explains why the inverse write is blocked. In **Rollback cannot complete**, advance the rollback branch to reach manual intervention and hand off. |
+| Operator: handle an unknown outcome | Choose **Unknown write outcome** → approve and advance to uncertain → **Reconcile outcome** at most twice → optionally hand off/resolve with a reason → **Verify manually and unlock** | The write is not replayed; resolution retains the unknown outcome and target lock. Unlocking requires evidence, an observed outcome and confirmation that the old request cannot write late. These are fixture declarations, not verification of a real system. |
+| Operator: add notes and resolve/reopen | Activity → enter a note → **Add note** → **Resolve incident**, enter a reason → Handoff → select the saved snapshot → **Reopen** with a reason | The resolution snapshot preserves evidence, plan, outcome and notes at resolution; reopening does not modify it. Resolving an incident does not automatically verify recovery. |
+| Viewer: browse and export | Choose **Viewer permissions** → open evidence, history and Handoff → **Copy** / **Download Markdown** | Reading/exporting works; acknowledge, approve, note and other mutations are disabled. Clipboard access requires browser permission; use download if copying is unavailable. |
+| User with an expired session | Choose **Expired session**, or simulate expiry through the account menu → **Continue with demo account** / **Continue as Viewer** | No real account/password is used. Restoring the session does not replay a previous decision. |
+| Resource reviewer | Workloads → Recommendations → choose a report → inspect current/observed/recommended values, units, coverage and exclusions → **Export JSON** | The download contains the six-hour report and its limitations. HPA/recent OOM/insufficient/stale states are not represented as zero-valued recommendations; export does not apply changes or establish bill savings. |
+| Knowledge reviewer | Knowledge → search by keyword/tag → **Read runbook** → review source/v3 → download Markdown; try demo reindexing | The catalog remains readable when the index is degraded. Reindexing only changes local state and does not call an embedding provider. |
+| Operator: test model connectivity | Connections → **Setup guide** → select a transport/contract/pass/401/429 fixture → **Run demo test** | The UI distinguishes timeout, rejected credentials, rate limiting and invalid structured RCA. HTTP reachability does not imply an RCA contract pass; tool calling is not a baseline requirement. Unavailable usage/quota data remains unavailable/unknown. |
 
-## Danh sách đủ 24 story
+## All 24 stories
 
-| # | Tên trong bộ chọn | Điểm cần quan sát |
+| # | Story selector label | What to observe |
 |---|---|---|
-| 01 | Phục hồi OOM | Approval → verification → resolution. |
-| 02 | Chuẩn bị bản tốt để khôi phục | Healthy baseline trước fault injection. |
-| 03 | Lưu lượng tăng đột biến | Capacity và metrics trước scale. |
-| 04 | Chẩn đoán Pending | Investigation-only, manual handoff. |
-| 05 | Chẩn đoán lỗi kéo image | Evidence registry/image; không đọc secret. |
-| 06 | Thiếu bằng chứng | Missing evidence và retry. |
-| 07 | Hết quota model | Waiting/retry/cancel, không paid fallback. |
-| 08 | Target đã thay đổi | Plan stale không thể dùng. |
-| 09 | Plan hết hạn | TTL approval được thể hiện riêng. |
-| 10 | Xác minh và rollback | Review inverse diff và quyết định rollback. |
-| 11 | Rollback không hoàn tất | Manual intervention, không báo rollback thành công. |
-| 12 | Hết cửa sổ rollback | Thời hạn rollback riêng. |
-| 13 | Target rollback đã đổi | Không ghi đè field đã đổi. |
-| 14 | Profile cũ không an toàn | Không trở lại memory profile gây OOM. |
-| 15 | HPA quản lý replica | Không tranh quyền sở hữu replicas. |
-| 16 | Node không đủ headroom | Không tạo scale plan thiếu capacity. |
-| 17 | Chưa có bản tốt | Template lỗi không thể làm baseline. |
-| 18 | Cấu hình ngoài template đổi | Restore template không khôi phục ConfigMap/Secret. |
-| 19 | Điều tra lại thất bại | Giữ completed run cũ và so sánh lịch sử. |
-| 20 | Chưa rõ kết quả ghi | Bounded reconcile, lock, manual verification. |
-| 21 | Workload đã tự hồi phục | No-op không tính là action success. |
-| 22 | Chưa đủ kết luận phục hồi | Ready nhưng coverage/tải chưa đủ. |
-| 23 | Quyền chỉ đọc | Viewer xem và export, không mutation. |
-| 24 | Phiên đăng nhập hết hạn | Login demo và khôi phục quyền rõ ràng. |
+| 01 | OOM recovery | Approval → verification → resolution. |
+| 02 | Prepare a restore baseline | A healthy baseline is recorded before fault injection. |
+| 03 | Traffic spike | Capacity and metrics are checked before scaling. |
+| 04 | Pending diagnosis | Investigation only, with manual handoff. |
+| 05 | Image pull diagnosis | Registry/image evidence; no secret contents are read. |
+| 06 | Insufficient evidence | Missing evidence and retry. |
+| 07 | Model quota exhausted | Waiting/retry/cancel, with no paid fallback. |
+| 08 | Target changed | A stale plan cannot be used. |
+| 09 | Expired plan | The approval TTL is explicit. |
+| 10 | Verification and rollback | Review the inverse diff and approve rollback separately. |
+| 11 | Rollback cannot complete | Manual intervention; rollback is not reported as successful. |
+| 12 | Rollback window expired | Rollback has its own deadline. |
+| 13 | Rollback target changed | Changed fields are not overwritten. |
+| 14 | Unsafe old profile | Do not return to a memory profile that could trigger OOM. |
+| 15 | HPA owns scaling | Do not compete for replica ownership. |
+| 16 | Insufficient node headroom | No scale plan without adequate capacity. |
+| 17 | No known-good baseline | A failed template cannot become the baseline. |
+| 18 | External configuration changed | Template restore does not recover ConfigMap/Secret contents. |
+| 19 | Failed re-investigation | Preserve the earlier completed run and compare history. |
+| 20 | Unknown write outcome | Bounded reconciliation, target lock and manual verification. |
+| 21 | Workload already recovered | No-op is not counted as action success. |
+| 22 | Inconclusive recovery | Ready status with inadequate coverage or traffic is inconclusive. |
+| 23 | Viewer permissions | Viewers can browse/export but cannot mutate data. |
+| 24 | Expired session | Demo login and explicit session restoration. |
 
-## Những điều prototype chưa chứng minh
+## What the prototype does not establish
 
-State machine, guards và màn hình là mô phỏng để review sản phẩm. Backend production vẫn cần enforce authorization, immutable approval/hash/expiry, job persistence, idempotency, identity/precondition checks, scoped executor, reconciliation, telemetry collection và actual post-check. LocalStorage không thay database/audit; fixture hash không phải checksum một tài nguyên thật; kiểm tra endpoint local không xác minh một provider thật.
+The state machine, guards and screens simulate the product for review. A production backend must still enforce authorization, immutable approval/hash/expiry, persistent jobs, idempotency, identity/precondition checks, scoped execution, reconciliation, telemetry collection and actual post-checks. LocalStorage does not replace a database/audit trail; a fixture hash is not the checksum of a real resource; a local endpoint test does not validate a real provider.
 
-Các biểu đồ, timestamps, coverage, KRR suggestions và runbook nội dung dùng để review luồng, không phải kết quả benchmark hoặc resource/billing evidence. Các nút có phản hồi local và file export thật, nhưng không phải bằng chứng backend đã triển khai. Hướng dẫn này không tuyên bố browser QA toàn diện hoặc thiết kế đã được người dùng chấp thuận; cần walkthrough trực tiếp ở dark/light, desktop/mobile và keyboard trước khi chốt trải nghiệm.
+Charts, timestamps, coverage, KRR suggestions and runbook content illustrate the workflow; they are not benchmark results or resource/billing evidence. Controls provide local feedback and real file exports, but do not prove that a backend has been implemented. This guide does not claim comprehensive browser QA or user acceptance of the design. Walk through dark/light themes, desktop/mobile layouts and keyboard interaction before accepting the experience.

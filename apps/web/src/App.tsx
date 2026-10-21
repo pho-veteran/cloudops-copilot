@@ -182,11 +182,10 @@ export default function App() {
               <span>CloudOps</span>
             </div>
             <div>
-              <Badge variant="outline">DEMO · không dùng tài khoản thật</Badge>
-              <h1>Phiên làm việc đã hết hạn</h1>
+              <Badge variant="outline">DEMO · no real account required</Badge>
+              <h1>Your session has expired</h1>
               <p className="muted">
-                Đăng nhập lại để tiếp tục tại màn hình trước. Quyết định đang
-                xem sẽ không tự gửi lại.
+                Sign in again to return to your previous screen. Pending decisions will not be submitted automatically.
               </p>
             </div>
             <Button
@@ -194,7 +193,7 @@ export default function App() {
               onClick={() => dispatch({ type: "set_session", active: true })}
             >
               <UserRound />
-              Tiếp tục với tài khoản demo
+              Continue with demo account
             </Button>
             <Button
               variant="outline"
@@ -204,7 +203,7 @@ export default function App() {
                 dispatch({ type: "set_session", active: true });
               }}
             >
-              Xem với quyền Viewer
+              Continue as Viewer
             </Button>
           </CardContent>
         </Card>
@@ -262,10 +261,10 @@ export default function App() {
         <SidebarFooter>
           <Button variant="outline" onClick={() => setStories(true)}>
             <FlaskConical />
-            Chọn user story
+            Choose a story
           </Button>
           <div className="text-xs text-muted-foreground px-2 py-2">
-            Prototype trải nghiệm · dữ liệu mô phỏng
+            Interactive prototype · simulated data
           </div>
         </SidebarFooter>
       </Sidebar>
@@ -283,7 +282,7 @@ export default function App() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Đổi giao diện sáng tối"
+              aria-label="Toggle light and dark theme"
               onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
             >
               {theme === "dark" ? <Sun /> : <Moon />}
@@ -306,7 +305,7 @@ export default function App() {
                     })
                   }
                 >
-                  Đổi sang {state.role === "operator" ? "Viewer" : "Operator"}
+                  Switch to {state.role === "operator" ? "Viewer" : "Operator"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
@@ -314,7 +313,7 @@ export default function App() {
                   }
                 >
                   <LogOut />
-                  Mô phỏng hết phiên
+                  Simulate session expiry
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -324,16 +323,16 @@ export default function App() {
           <section className="story-strip">
             <FlaskConical size={18} />
             <div className="min-w-0">
-              <strong>{story?.label || "Khám phá tự do"}</strong>
+              <strong>{story?.label || "Explore freely"}</strong>
               <p>
-                {story?.goal || "Đi qua các bước điều tra và ra quyết định."}
+                {story?.goal || "Explore the investigation and decision workflow."}
               </p>
             </div>
             <div className="flex gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Bắt đầu lại user story"
+                aria-label="Restart story"
                 onClick={() => loadStory(state.scenarioId)}
               >
                 <RotateCcw size={15} />
@@ -343,23 +342,22 @@ export default function App() {
                 size="sm"
                 onClick={() => setStories(true)}
               >
-                Đổi story
+                Change story
               </Button>
             </div>
           </section>
           {state.role === "viewer" && (
             <Alert className="mb-4">
               <ShieldCheck />
-              <AlertTitle>Chế độ chỉ đọc</AlertTitle>
+              <AlertTitle>Read-only access</AlertTitle>
               <AlertDescription>
-                Bạn có thể xem evidence, lịch sử và export. Cần Operator để thay
-                đổi hoặc duyệt.
+                You can view evidence, history and exports. Operator access is required to make changes or approve a plan.
               </AlertDescription>
             </Alert>
           )}
           {state.error && (
             <Alert variant="destructive" className="mb-4" role="alert">
-              <AlertTitle>Không thể thực hiện</AlertTitle>
+              <AlertTitle>Action unavailable</AlertTitle>
               <AlertDescription>{state.error}</AlertDescription>
             </Alert>
           )}
@@ -399,13 +397,12 @@ export default function App() {
             ) : (
               <Card>
                 <CardContent className="p-8">
-                  <h1>Không tìm thấy incident</h1>
+                  <h1>Incident not found</h1>
                   <p className="muted">
-                    Fixture hiện tại không có ID này. Chọn một user story để tải
-                    đúng dữ liệu.
+                    This incident is not in the current fixture. Choose a story to load its sample data.
                   </p>
                   <Button onClick={() => setStories(true)}>
-                    Chọn user story
+                    Choose a story
                   </Button>
                 </CardContent>
               </Card>
@@ -420,18 +417,17 @@ export default function App() {
               onOpenIncident={openIncident}
             />
           ) : (
-            <Button onClick={() => go("queue")}>Về Work queue</Button>
+            <Button onClick={() => go("queue")}>Back to Work queue</Button>
           )}
         </main>
         <Dialog open={stories} onOpenChange={setStories}>
           <DialogContent className="story-dialog">
             <DialogHeader>
               <DialogTitle>
-                Trải nghiệm công việc của người vận hành
+                Explore operator workflows
               </DialogTitle>
               <DialogDescription>
-                Chọn tình huống để bắt đầu từ fixture mới. Mọi thao tác chỉ thay
-                đổi dữ liệu demo trong trình duyệt.
+                Choose a scenario to start with a fresh fixture. All actions affect only the demo data in this browser.
               </DialogDescription>
             </DialogHeader>
             <div className="story-grid">
@@ -491,12 +487,12 @@ function Queue({
     [signal, setSignal] = useState(""),
     [duplicates, setDuplicates] = useState(1);
   const filters = [
-    ["all", "Tất cả"],
-    ["attention", "Cần xử lý"],
-    ["approval", "Chờ duyệt"],
-    ["verifying", "Đang xác minh"],
-    ["blocked", "Bị chặn"],
-    ["resolved", "Đã đóng"],
+    ["all", "All"],
+    ["attention", "Needs attention"],
+    ["approval", "Awaiting approval"],
+    ["verifying", "Verifying"],
+    ["blocked", "Blocked"],
+    ["resolved", "Resolved"],
   ];
   const matches = (i: Incident) =>
     filter === "all" ||
@@ -528,15 +524,15 @@ function Queue({
         <div>
           <div className="eyebrow">OPERATIONS</div>
           <h1>Work queue</h1>
-          <p className="muted">Điều gì cần bạn quyết định tiếp theo?</p>
+          <p className="muted">What needs your decision next?</p>
         </div>
         <Button disabled={state.role === "viewer"} onClick={onInvestigate}>
           <Plus />
-          Điều tra workload
+          Investigate workload
         </Button>
       </div>
       <div className="queue-toolbar">
-        <div className="filter-list" aria-label="Lọc incident">
+        <div className="filter-list" aria-label="Filter incidents">
           {filters.map(([id, label]) => (
             <Button
               key={id}
@@ -550,24 +546,24 @@ function Queue({
           ))}
         </div>
         <Input
-          aria-label="Tìm incident hoặc workload"
-          placeholder="Tìm incident hoặc workload…"
+          aria-label="Search incidents or workloads"
+          placeholder="Search incidents or workloads…"
           value={search}
           onChange={(e) => onFilter(filter, e.target.value)}
         />
       </div>
       <div className="queue-demo-controls">
-        <Label htmlFor="queue-state">Thử trạng thái dữ liệu</Label>
+        <Label htmlFor="queue-state">Preview data states</Label>
         <select
           id="queue-state"
           className="native-select"
           value={queueView}
           onChange={(e) => setQueueView(e.target.value)}
         >
-          <option value="ready">Đã tải</option>
-          <option value="loading">Đang tải</option>
-          <option value="error">Lỗi tải queue</option>
-          <option value="empty">Chưa có incident</option>
+          <option value="ready">Loaded</option>
+          <option value="loading">Loading</option>
+          <option value="error">Queue load error</option>
+          <option value="empty">No incidents yet</option>
           <option value="capacity">Analysis deferred</option>
         </select>
         <Button
@@ -576,31 +572,31 @@ function Queue({
           onClick={() => {
             setDuplicates((n) => n + 1);
             setSignal(
-              "Alert trùng fingerprint của INC-042: gộp vào incident hiện có, không tạo incident mới.",
+              "Duplicate alert fingerprint for INC-042: grouped into the existing incident without creating a new one.",
             );
           }}
         >
-          Mô phỏng alert trùng ({duplicates})
+          Simulate duplicate alert ({duplicates})
         </Button>
         <Button
           size="sm"
           variant="outline"
           onClick={() =>
             setSignal(
-              "Nguồn alert báo resolved. Đây là tín hiệu phục hồi; trạng thái incident không tự đóng. Operator vẫn cần xem evidence và quyết định.",
+              "The alert source reports recovery. This signal does not automatically resolve the incident. An operator must still review the evidence and decide.",
             )
           }
         >
-          Mô phỏng alert resolved
+          Simulate resolved alert
         </Button>
       </div>
       {signal && (
         <Alert className="mb-4">
-          <AlertTitle>Tín hiệu intake · fixture</AlertTitle>
+          <AlertTitle>Intake signal · fixture</AlertTitle>
           <AlertDescription>
             {signal}
             <Button variant="link" onClick={() => onOpen("INC-042")}>
-              Mở INC-042
+              Open INC-042
             </Button>
           </AlertDescription>
         </Alert>
@@ -609,44 +605,43 @@ function Queue({
         <Alert className="mb-4">
           <AlertTitle>Analysis deferred · capacity</AlertTitle>
           <AlertDescription>
-            Alert đã được nhận, job ở trạng thái queued vì worker chưa có slot.
-            Dữ liệu cũ vẫn đọc được.
+            The alert was received. Analysis is queued until a worker slot becomes available. Existing data remains readable.
             <Button
               size="sm"
               variant="outline"
               className="mt-3"
               onClick={() => setQueueView("ready")}
             >
-              Mô phỏng worker có slot
+              Simulate available worker slot
             </Button>
           </AlertDescription>
         </Alert>
       )}
       {queueView === "loading" ? (
         <div className="content-panel space-y-4">
-          <p>Đang tải work queue…</p>
+          <p>Loading work queue…</p>
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
           <Button variant="outline" onClick={() => setQueueView("ready")}>
-            Hoàn tất tải mô phỏng
+            Complete simulated load
           </Button>
         </div>
       ) : queueView === "error" ? (
         <Alert variant="destructive">
-          <AlertTitle>Không tải được work queue</AlertTitle>
+          <AlertTitle>Could not load work queue</AlertTitle>
           <AlertDescription>
-            Timeout mô phỏng. Không hiển thị số lượng bằng 0 thay cho lỗi.
+            Simulated timeout. An error is not displayed as an empty queue.
             <Button
               className="mt-3"
               variant="outline"
               onClick={() => setQueueView("ready")}
             >
-              Thử tải lại
+              Retry loading
             </Button>
           </AlertDescription>
         </Alert>
       ) : (
-        <section className="incident-list" aria-label="Danh sách incident">
+        <section className="incident-list" aria-label="Incident list">
           {rows.length ? (
             rows.map((i) => (
               <button
@@ -679,7 +674,7 @@ function Queue({
                       <StatusBadge status="awaiting_approval" />
                     )}
                     {state.targetLocks[i.workloadId] && (
-                      <Badge variant="outline">Target đang khóa</Badge>
+                      <Badge variant="outline">Target locked</Badge>
                     )}
                   </div>
                 </div>
@@ -689,12 +684,12 @@ function Queue({
           ) : (
             <div className="empty-state">
               <ListTodo size={28} />
-              <h2>Không có incident phù hợp</h2>
+              <h2>No matching incidents</h2>
               <p className="muted">
-                Thử bỏ bộ lọc hoặc chủ động điều tra một workload.
+                Clear the filters or start a workload investigation.
               </p>
               <Button variant="outline" onClick={() => onFilter("all", "")}>
-                Xóa bộ lọc
+                Clear filters
               </Button>
             </div>
           )}
@@ -717,7 +712,7 @@ function ManualDialog({
 }) {
   const [workload, setWorkload] = useState(workloadId || workloadOptions[0].id),
     [question, setQuestion] = useState(""),
-    [window, setWindow] = useState("30 phút"),
+    [window, setWindow] = useState("30 minutes"),
     [symptom, setSymptom] = useState("OOM");
   useEffect(() => {
     if (workloadId) {
@@ -734,9 +729,9 @@ function ManualDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Điều tra một workload</DialogTitle>
+          <DialogTitle>Investigate a workload</DialogTitle>
           <DialogDescription>
-            Chọn phạm vi và điều bạn muốn biết. Không cần chờ alert xuất hiện.
+            Choose a scope and ask a question. You do not need to wait for an alert.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -752,7 +747,7 @@ function ManualDialog({
             });
           }}
         >
-          <Label htmlFor="manual-workload">Deployment trong cloudops-lab</Label>
+          <Label htmlFor="manual-workload">Deployment in cloudops-lab</Label>
           <select
             id="manual-workload"
             className="native-select"
@@ -767,7 +762,7 @@ function ManualDialog({
           </select>
           <div className="two-cols">
             <div>
-              <Label htmlFor="manual-symptom">Triệu chứng</Label>
+              <Label htmlFor="manual-symptom">Symptom</Label>
               <select
                 id="manual-symptom"
                 className="native-select"
@@ -782,34 +777,34 @@ function ManualDialog({
               </select>
             </div>
             <div>
-              <Label htmlFor="manual-window">Cửa sổ evidence</Label>
+              <Label htmlFor="manual-window">Evidence window</Label>
               <select
                 id="manual-window"
                 className="native-select"
                 value={window}
                 onChange={(e) => setWindow(e.target.value)}
               >
-                {["15 phút", "30 phút", "1 giờ"].map((v) => (
+                {["15 minutes", "30 minutes", "1 hour"].map((v) => (
                   <option key={v}>{v}</option>
                 ))}
               </select>
             </div>
           </div>
-          <Label htmlFor="manual-question">Câu hỏi cần điều tra</Label>
+          <Label htmlFor="manual-question">Investigation question</Label>
           <Textarea
             id="manual-question"
             required
             minLength={3}
-            placeholder="Vì sao workload liên tục restart?"
+            placeholder="Why does this workload keep restarting?"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
           />
           <div className="dialog-actions">
             <Button variant="outline" type="button" onClick={onClose}>
-              Hủy
+              Cancel
             </Button>
             <Button type="submit" disabled={state.role === "viewer"}>
-              Bắt đầu điều tra
+              Start investigation
             </Button>
           </div>
         </form>

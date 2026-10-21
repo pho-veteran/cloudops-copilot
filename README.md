@@ -59,13 +59,15 @@ npm ci
 npm run dev
 ```
 
-Mở URL Vite in ra (mặc định `http://127.0.0.1:5173`). Chọn **Chọn user story** hoặc **Đổi story**. Bắt đầu với **Phục hồi OOM**: đọc evidence → review diff → duyệt → bấm **Tiếp tục mô phỏng** qua các giai đoạn → đóng incident → xem/export snapshot Handoff. Sau đó thử restore, rollback, kết quả ghi chưa rõ, quota và quyền Viewer.
+Mở URL Vite in ra (mặc định `http://127.0.0.1:5173`). Chọn **Choose a story** hoặc **Change story**. Bắt đầu với **OOM recovery**: đọc evidence → review diff → duyệt → bấm **Advance simulation** qua các giai đoạn → đóng incident → xem/export snapshot Handoff. Sau đó thử restore, rollback, kết quả ghi chưa rõ, quota và quyền Viewer.
 
 [Hướng dẫn user stories và thao tác](docs/PROTOTYPE_WALKTHROUGH.md) mô tả mục tiêu, đường đi và kết quả cần quan sát. Bốn khu vực Work queue, Workloads, Knowledge và Connections đều có tương tác. State incident lưu trong localStorage; đổi story sẽ reset fixture. Hành động, thời gian, metrics và kết quả kiểm tra đều là dữ liệu mô phỏng, không gọi Kubernetes/provider/backend.
 
 Kiểm tra tại `apps/web`: `npm test` chạy state-machine tests; `npm run build` kiểm tra TypeScript và bundle. [Bản HTML cũ](docs/cloudops-ui-template.html) chỉ lưu lịch sử, không còn là template chính. Prototype giúp kiểm chứng thiết kế, không chứng nhận runtime hoặc cho phép chia epic tự động.
 
 ## Quy tắc làm việc tiếp
+
+**Language convention:** Product UI, user stories, accessibility text, GitHub issues and EPICs use English. See [CONTRIBUTING.md](CONTRIBUTING.md). Trao đổi trong chat và tài liệu nghiên cứu có thể tiếp tục bằng tiếng Việt.
 
 1. Nêu câu hỏi cần quyết định trong đúng issue; dẫn tới section tài liệu và evidence.
 2. Phân biệt source-audited, demonstrated bằng prototype, measured bằng thử nghiệm và giả định chưa kiểm chứng.
