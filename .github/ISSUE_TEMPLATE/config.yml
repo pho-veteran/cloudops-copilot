@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: System scope and feature roadmap
+    url: https://github.com/pho-veteran/cloudops-copilot/issues/3
+    about: Read the system framework and update the relevant EPIC before proposing overlapping work.

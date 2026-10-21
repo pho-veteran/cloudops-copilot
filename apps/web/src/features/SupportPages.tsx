@@ -157,7 +157,7 @@ const integrations = [
     subtitle: "Durable workflow · demo-worker-01",
     status: "Ready",
     detail:
-      "One worker with retryable jobs and retained history. No Akmatori or Aurora runtime.",
+      "One worker with retryable jobs and retained history.",
   },
   {
     id: "kubernetes",
