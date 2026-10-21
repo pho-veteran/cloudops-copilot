@@ -23,6 +23,8 @@ The [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) i
 
 ## Run the prototype
 
+Use the Node version in `.node-version`. For contribution setup, PR expectations and contract changes, read [CONTRIBUTING.md](CONTRIBUTING.md). The [foundation readiness milestone](https://github.com/pho-veteran/cloudops-copilot/issues/3#foundation-ready-for-parallel-contribution) defines the prerequisites for parallel feature implementation; it is not yet a completed backend baseline.
+
 ```sh
 cd apps/web
 npm ci

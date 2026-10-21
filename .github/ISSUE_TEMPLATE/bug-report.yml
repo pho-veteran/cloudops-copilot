@@ -1,0 +1,35 @@
+name: Bug report
+description: Report an observed defect in the prototype or implemented product.
+title: "bug(area): "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe observed behavior in English. Preserve quoted evidence in its
+        original language, but remove credentials and sensitive operational data.
+        State whether this happened in the fixture prototype or a real integration.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Commit/version, browser or runtime, selected story and role, and fixture/live mode.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual behavior
+      description: Include impact, frequency and a workaround if known.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence and related work
+      description: Screenshots, relevant errors and links to existing work. Do not paste secrets.
