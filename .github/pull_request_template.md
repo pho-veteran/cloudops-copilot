@@ -1,5 +1,8 @@
 ## Problem and result
 
+<!-- PR title and new commits: type(scope): description, e.g.
+feat(incidents): persist manual incident intake. See CONTRIBUTING.md. -->
+
 <!-- Describe the user-visible or contributor-visible before/after behavior. -->
 
 ## Scope and linked work
@@ -23,6 +26,7 @@ integrations. For UI changes, include the relevant journey and screenshots.
 For omitted checks, give the reason and the remaining acceptance gate. -->
 
 - [ ] The change stays within the linked scope and preserves English product copy.
+- [ ] The PR title and new commits follow `type(scope): description`; breaking changes are explained.
 - [ ] Relevant checks passed, or missing evidence is explicitly described.
 - [ ] Changed contracts, setup instructions and generated artifacts are updated, or not applicable.
 - [ ] The PR contains no credentials or unsanitized operational evidence.

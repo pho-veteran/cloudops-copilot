@@ -4,6 +4,8 @@
 
 Use English for product UI, demo copy, accessibility text, generated reports, GitHub issues and EPICs. Preserve human-authored input and evidence in their original language. Chat may remain Vietnamese.
 
+Keep Issues and PR descriptions focused on project behavior, decisions and verification evidence. Omit assistant/model reviewer names, review-session metadata and tool execution logs. Product requirements for model configuration and endpoint compatibility remain valid technical content.
+
 ## Planning source of truth
 
 Use the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and its feature EPICs for active scope, architecture, UX decisions, research, dependencies and acceptance. Do not recreate parallel proposal/research/backlog documents in the repository. Keep source and directly useful implementation/run instructions here.
@@ -16,12 +18,22 @@ Distinguish prototype, source-inspected, fixture-tested and live-verified claims
 
 ## Start a contribution
 
-1. Read the owning EPIC and the [foundation readiness section](https://github.com/pho-veteran/cloudops-copilot/issues/3#foundation-ready-for-parallel-contribution). EPIC numbers are feature identifiers, not a serial delivery order.
+1. Read the owning EPIC and [Foundation v0.1 — E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). E00 owns the interactive foundation; E01–E10 retain feature semantics and complete release acceptance. EPIC numbers are identifiers, not a serial delivery order.
 2. For a feature slice, record the active owner and settle the interfaces needed by that slice in the EPIC before creating task issues. Small fixes do not need an artificial planning issue.
 3. State which modules and contracts you will change. Coordinate shared infrastructure changes with its owning EPIC and affected consumers.
 4. Branch from current `main`, keep a PR focused on a reviewable result, and use the PR template. Link the EPIC with `Related to`; reserve closing keywords for the task actually completed.
 
 Use the feature-task form only after an EPIC starts. A native parent relationship should match the EPIC link in the task body. Dependencies refer to concrete outputs, not whole EPICs when a smaller prerequisite is enough.
+
+## Commit and PR titles
+
+Use [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) for new commits and PR titles. This repository requires a lowercase scope: `type(scope): description`, or `type(scope)!: description` for a breaking change. Write a concise English description of the result.
+
+Allowed types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `style`, `revert`. Use `feat` for new behavior and `fix` for corrected behavior; choose a meaningful scope such as `auth`, `incidents`, `contracts`, `web`, `foundation` or `repo`. Explain breaking changes and migration steps in the commit body/PR, using a `BREAKING CHANGE:` footer where appropriate.
+
+Examples: `feat(incidents): persist manual incident intake`, `fix(auth): reject expired sessions`, `docs(repo): explain local setup`.
+
+Apply this convention through contributor instructions and the PR template. Before merging, check the PR title, new commit subjects and final merge message. For squash merge, use the conventional PR title as the final commit subject. No commit/PR-title CI check or hook is required.
 
 ## Ownership and shared changes
 
@@ -32,7 +44,7 @@ Each EPIC owns its feature implementation and consumer integration. Its active o
 - Keep shared modules small. Add a shared abstraction for a demonstrated cross-feature need, with an owner; avoid copying another feature's persistence or introducing a generic framework.
 - Keep changes to shared UI primitives separate from unrelated feature work when possible. Feature-specific components stay with their feature.
 
-The planned module layout and contract decisions live in #3. Proposed backend paths and contract tooling are not implemented merely because they appear in the plan. The fixture model is not the future server API schema.
+System-wide decisions live in #3; the planned foundation module layout, contract pipeline and F0–F4 delivery live in E00 #15. Proposed backend paths and contract tooling are not implemented merely because they appear in the plan. The fixture model is not the future server API schema.
 
 ## API and contract changes
 

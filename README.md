@@ -10,6 +10,7 @@ The [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) i
 
 | EPIC | Feature |
 |---|---|
+| [E00 · #15](https://github.com/pho-veteran/cloudops-copilot/issues/15) | Interactive application foundation v0.1 |
 | [E01 · #4](https://github.com/pho-veteran/cloudops-copilot/issues/4) | User access and application sessions |
 | [E02 · #5](https://github.com/pho-veteran/cloudops-copilot/issues/5) | Scoped workloads, health and known-good baselines |
 | [E03 · #6](https://github.com/pho-veteran/cloudops-copilot/issues/6) | Incident intake, work queue, lifecycle and handoff |
@@ -23,7 +24,7 @@ The [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) i
 
 ## Run the prototype
 
-Use the Node version in `.node-version`. For contribution setup, PR expectations and contract changes, read [CONTRIBUTING.md](CONTRIBUTING.md). The [foundation readiness milestone](https://github.com/pho-veteran/cloudops-copilot/issues/3#foundation-ready-for-parallel-contribution) defines the prerequisites for parallel feature implementation; it is not yet a completed backend baseline.
+Use the Node version in `.node-version`. For contribution setup, PR expectations and contract changes, read [CONTRIBUTING.md](CONTRIBUTING.md). [Foundation v0.1 — E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) will deliver an interactive UI backed by a local API, worker and database, with generated contracts and contributor documentation. It is planned; the current runnable app remains the fixture prototype.
 
 ```sh
 cd apps/web
