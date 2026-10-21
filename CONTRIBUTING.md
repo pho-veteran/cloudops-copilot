@@ -23,7 +23,7 @@ Distinguish prototype, source-inspected, fixture-tested and live-verified claims
 3. State which modules and contracts you will change. Coordinate shared infrastructure changes with its owning EPIC and affected consumers.
 4. Branch from current `main`, keep a PR focused on a reviewable result, and use the PR template. Link the EPIC with `Related to`; reserve closing keywords for the task actually completed.
 
-Use the feature-task form only after an EPIC starts. A native parent relationship should match the EPIC link in the task body. Dependencies refer to concrete outputs, not whole EPICs when a smaller prerequisite is enough.
+Use the general Markdown issue template for a feature, bug, improvement or task; omit sections that do not help explain the work. Create implementation child tasks only after their EPIC starts. A native parent relationship should match the EPIC link in the task body. Dependencies refer to concrete outputs, not whole EPICs when a smaller prerequisite is enough.
 
 ## Commit and PR titles
 
@@ -34,6 +34,8 @@ Allowed types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`,
 Examples: `feat(incidents): persist manual incident intake`, `fix(auth): reject expired sessions`, `docs(repo): explain local setup`.
 
 Apply this convention through contributor instructions and the PR template. Before merging, check the PR title, new commit subjects and final merge message. For squash merge, use the conventional PR title as the final commit subject. No commit/PR-title CI check or hook is required.
+
+For PR-body and commit-message guidance, use the repository [contribution-writing skill](.agents/skills/contribution-writing/SKILL.md). It adapts Synapse's concise change/rationale pattern to this repository; the local template and conventions remain authoritative.
 
 ## Ownership and shared changes
 
