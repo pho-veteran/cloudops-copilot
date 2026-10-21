@@ -6,6 +6,8 @@ Use English for product UI, demo copy, accessibility text, generated reports, Gi
 
 Keep Issues and PR descriptions focused on project behavior, decisions and verification evidence. Omit assistant/model reviewer names, review-session metadata and tool execution logs. Product requirements for model configuration and endpoint compatibility remain valid technical content.
 
+Keep authored code, templates and skills free of research-source links, borrowed-project attribution and assistant identities. Skills must contain their own actionable instructions and work without external reference documents.
+
 ## Planning source of truth
 
 Use the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and its feature EPICs for active scope, architecture, UX decisions, research, dependencies and acceptance. Do not recreate parallel proposal/research/backlog documents in the repository. Keep source and directly useful implementation/run instructions here.
@@ -27,7 +29,7 @@ Use the general Markdown issue template for a feature, bug, improvement or task;
 
 ## Commit and PR titles
 
-Use [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) for new commits and PR titles. This repository requires a lowercase scope: `type(scope): description`, or `type(scope)!: description` for a breaking change. Write a concise English description of the result.
+Use Conventional Commits for new commits and PR titles. This repository requires a lowercase scope: `type(scope): description`, or `type(scope)!: description` for a breaking change. Write a concise English description of the result.
 
 Allowed types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `style`, `revert`. Use `feat` for new behavior and `fix` for corrected behavior; choose a meaningful scope such as `auth`, `incidents`, `contracts`, `web`, `foundation` or `repo`. Explain breaking changes and migration steps in the commit body/PR, using a `BREAKING CHANGE:` footer where appropriate.
 
@@ -35,7 +37,7 @@ Examples: `feat(incidents): persist manual incident intake`, `fix(auth): reject 
 
 Apply this convention through contributor instructions and the PR template. Before merging, check the PR title, new commit subjects and final merge message. For squash merge, use the conventional PR title as the final commit subject. No commit/PR-title CI check or hook is required.
 
-For PR-body and commit-message guidance, use the repository [contribution-writing skill](.agents/skills/contribution-writing/SKILL.md). It adapts Synapse's concise change/rationale pattern to this repository; the local template and conventions remain authoritative.
+The repository [contribution-writing skill](.agents/skills/contribution-writing/SKILL.md) contains self-contained PR-body and commit-message instructions.
 
 ## Ownership and shared changes
 

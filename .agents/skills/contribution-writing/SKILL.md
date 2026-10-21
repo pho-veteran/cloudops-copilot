@@ -5,11 +5,11 @@ description: Draft or update CloudOps Copilot PR bodies, PR titles and commit me
 
 # Contribution writing
 
-Read the repository's `CONTRIBUTING.md` and `.github/pull_request_template.md` before writing. Inspect the relevant diff and linked issue so the text describes the final change, not an abandoned plan. For a commit message, inspect the intended commit's diff; for a PR, inspect the complete branch diff against its base. Do not infer finished work from a title or planning checklist.
+This skill contains the complete writing conventions needed for commits and PRs. Inspect the relevant diff and task context so the text describes the final change, not an abandoned plan. For a commit message, inspect the intended commit's diff; for a PR, inspect the complete branch diff against its base. Do not infer finished work from a title or planning checklist.
 
 ## Commit messages and PR titles
 
-Use `type(scope): description`, or `type(scope)!: description` for breaking changes. Follow the allowed types and scope rules in CONTRIBUTING. A scope names the affected feature/module, such as `incidents`, `auth`, `contracts`, `web` or `repo`; it is not a contributor name or issue number.
+Use `type(scope): description`, or `type(scope)!: description` for breaking changes. Allowed types are `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `style` and `revert`. Require a lowercase scope naming the affected feature/module, such as `incidents`, `auth`, `contracts`, `web` or `repo`; it is not a contributor name or issue number. Write a concise English description.
 
 - Describe the concrete result in concise English: `fix(auth): reject expired sessions`, not `fix(auth): address feedback`.
 - Match the type to the actual diff: `feat` adds behavior, `fix` corrects behavior, `docs` changes documentation, and `test` changes tests. Do not label a documentation-only delivery as an implemented feature.
@@ -31,7 +31,7 @@ Do not claim this example exists in the code. Adapt messages to inspected change
 
 ## PR body
 
-Use the current Markdown template as the default, with detail proportional to the change:
+Use this structure, with detail proportional to the change:
 
 1. **Summary:** concrete problem and resulting behavior, with a short before/after example when useful.
 2. **Changes:** the few implementation decisions a reviewer needs. Explain affected contracts, consumers, migrations or UI states only when relevant. Link the EPIC with `Related to` or `Refs`; reserve `Closes` for fully completed task scope.
@@ -45,11 +45,3 @@ When scope changes, rewrite the title and body around the final implementation. 
 ## Applying the text
 
 Drafting text alone does not authorize committing, pushing, publishing, closing issues or requesting reviews. Use authorization already present in the task; do not ask again for an authorized update. When using `gh` for a multiline body, write UTF-8 text to a temporary file and pass `--body-file`. Re-read published content to confirm it matches. After an uncertain write, inspect the current state before retrying.
-
-## Pattern sources
-
-Adapted from the following inspected Synapse sources. They explain the writing pattern, not CloudOps runtime requirements; do not import its Go/pnpm commands, security program, reviewers or CI gates.
-
-- [Contribution conventions](https://github.com/KKloudTarus/synapse-ce/blob/139268f0751a9073cc8f1ae621accb4b8331c259/CONTRIBUTING.md) and [PR template](https://github.com/KKloudTarus/synapse-ce/blob/139268f0751a9073cc8f1ae621accb4b8331c259/.github/PULL_REQUEST_TEMPLATE.md): focused change/rationale, conventional subjects and relevant verification. Synapse's guide permits unscoped subjects; CloudOps requires a scope by local convention.
-- [Issue #1339](https://github.com/KKloudTarus/synapse-ce/issues/1339) and [issue #1463](https://github.com/KKloudTarus/synapse-ce/issues/1463), authored by `nghiadaulau`: goal, work and expected output. Our general issue template keeps that backbone without requiring an EPIC-sized checklist.
-- [PR #1595](https://github.com/KKloudTarus/synapse-ce/pull/1595) and [commit 9ec4bb9](https://github.com/KKloudTarus/synapse-ce/commit/9ec4bb906ee31cdae616032f3b222da019693655): explain the concrete failure and resulting behavior, and retain incomplete acceptance. Longer investigation detail is appropriate only when it helps review the actual change.
