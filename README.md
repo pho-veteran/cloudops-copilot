@@ -1,86 +1,40 @@
 # CloudOps Copilot
 
-Ứng dụng hỗ trợ vận hành Kubernetes: điều tra bằng evidence, đề xuất bước xử lý, duyệt hành động có giới hạn và xác minh kết quả.
+Kubernetes incident investigation and bounded recovery for a small operations team.
 
-**Trạng thái: proposal và UI/UX đang được kiểm chứng, chưa bắt đầu triển khai sản phẩm hoặc chia epic.** Repository hiện chứa nghiên cứu, quyết định kiến trúc, đặc tả và prototype minh họa. Review kiến trúc trước đó là baseline để tiếp tục phản biện, không phải xác nhận mọi thiết kế đã đóng.
+**Current state:** a runnable English React/Vite + shadcn/ui prototype using local fixtures. The backend, real model/cluster integrations and deployment runtime are not implemented.
 
-## Định hướng đang giữ
+## Project and roadmap
 
-- **UI:** React + Vite + TypeScript + Tailwind + shadcn/ui. Học phong cách Aurora: neutral surfaces, sidebar gọn, hierarchy rõ, evidence dễ đọc; thiết kế luồng CloudOps riêng.
-- **Backend:** Python/FastAPI, workflow hữu hạn, PostgreSQL jobs/state và executor có credential riêng.
-- **AI:** gọi OpenAI-compatible Chat Completions trực tiếp qua cấu hình endpoint/model; không khóa một hãng hoặc một model.
-- **Reference:** Akmatori và Aurora là nguồn học thiết kế/tính năng; không chạy runtime của hai nền tảng.
-- **Release:** một cluster, Deployment stateless trong allowlist; đủ luồng vận hành nội bộ, không chỉ một demo MVP và không mở rộng sang enterprise hardening.
+The [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) is the source of truth for product scope, architecture, UX direction, research, dependencies and release acceptance. Each feature EPIC owns its detailed research. Task issues are created only when that EPIC starts.
 
-## Phạm vi chức năng để tiếp tục review
-
-| Nhóm | Baseline |
+| EPIC | Feature |
 |---|---|
-| Nhận vấn đề | Alertmanager intake, work queue, manual investigation |
-| Điều tra | CrashLoop/startup failure, OOM, tải tăng, Pending, ImagePull; evidence/citations và giới hạn kết luận |
-| Ra quyết định | Findings, hypotheses, ruled-out/unverified checks, plan diff, manual guidance |
-| Phục hồi | Restore known-good template, memory profile, scale; approval, fresh checks, verification và rollback có điều kiện |
-| Lifecycle | Acknowledge, notes, re-investigate, compare runs, resolve/reopen, handoff snapshot |
-| Tài nguyên | KRR advisory với coverage/exclusions/export, chưa auto-apply |
-| Vận hành app | Viewer/operator, connection health, stale/partial/error states, quota/budget |
+| [E01 · #4](https://github.com/pho-veteran/cloudops-copilot/issues/4) | User access and application sessions |
+| [E02 · #5](https://github.com/pho-veteran/cloudops-copilot/issues/5) | Scoped workloads, health and known-good baselines |
+| [E03 · #6](https://github.com/pho-veteran/cloudops-copilot/issues/6) | Incident intake, work queue, lifecycle and handoff |
+| [E04 · #7](https://github.com/pho-veteran/cloudops-copilot/issues/7) | Evidence collection, durable investigation runs and comparison |
+| [E05 · #8](https://github.com/pho-veteran/cloudops-copilot/issues/8) | Versioned runbooks and knowledge retrieval |
+| [E06 · #9](https://github.com/pho-veteran/cloudops-copilot/issues/9) | AI diagnosis through OpenAI-compatible endpoints |
+| [E07 · #10](https://github.com/pho-veteran/cloudops-copilot/issues/10) | Approved recovery, verification, reconciliation and rollback |
+| [E08 · #11](https://github.com/pho-veteran/cloudops-copilot/issues/11) | Resource recommendations, coverage and export |
+| [E09 · #12](https://github.com/pho-veteran/cloudops-copilot/issues/12) | Connections, freshness and operating visibility |
+| [E10 · #13](https://github.com/pho-veteran/cloudops-copilot/issues/13) | Reproducible lab, evaluation and release delivery |
 
-Không dùng model để tự duyệt, tạo raw patch hoặc thực thi shell. Các điều kiện này cùng phạm vi chức năng vẫn phải được review về tính hữu ích, tính nhất quán và công triển khai.
+## Run the prototype
 
-## Hai luồng làm việc
-
-| Issue | Trách nhiệm |
-|---|---|
-| [#1 · UI/UX: Aurora-inspired + shadcn/ui](https://github.com/pho-veteran/cloudops-copilot/issues/1) | Style, component system, interaction, prototype và walkthrough |
-| [#2 · PROPOSAL: verify trước khi chia epic](https://github.com/pho-veteran/cloudops-copilot/issues/2) | Feature scope, contracts, architecture, assumptions và readiness |
-
-Thay đổi ảnh hưởng cả hai phải được đối chiếu, không để prototype tự đổi domain contract. Hai issue đều mở để tiếp tục cải thiện; chưa có implementation epic.
-
-Chỉ chuyển sang chia epic sau khi hoàn tất [gate sẵn sàng](docs/PROPOSAL_READINESS.md), ghi rõ version/commit đã duyệt và người dùng chốt hướng. Không tự tạo epic hoặc implementation backlog từ trạng thái hiện tại.
-
-## Bắt đầu đọc
-
-| Tài liệu | Vai trò |
-|---|---|
-| [Release proposal](CLOUDOPS_COPILOT_RELEASE_PROPOSAL.md) | Baseline sản phẩm, feature scope, contracts và acceptance |
-| [UI/UX spec](CLOUDOPS_COPILOT_UI_UX_SPEC.md) | Sitemap, từng màn hình, journeys, permissions và failure states |
-| [Aurora → shadcn/ui design direction](docs/UI_DESIGN_DIRECTION.md) | Nguồn tham khảo hình ảnh/code, visual language và component mapping |
-| [Architecture decision](CLOUDOPS_COPILOT_ARCHITECTURE_DECISION.md) | Debate direct workflow với Akmatori/Aurora/library |
-| [Research](CLOUDOPS_COPILOT_RESEARCH.md) | Kiểm chứng nguồn, provider, KRR và giới hạn evidence |
-| [Review decisions](CLOUDOPS_COPILOT_REVIEW_DECISIONS.md) | Lịch sử phản biện Claude, quyết định tiếp nhận/bác bỏ và điểm còn mở |
-| [Proposal readiness](docs/PROPOSAL_READINESS.md) | Điều kiện để bắt đầu chia epic, tách khỏi release acceptance |
-
-## Trải nghiệm prototype
-
-Template hiện tại là **ứng dụng React/Vite tương tác**, dùng shadcn/ui (Radix Nova), có 24 tình huống để người review tự đi qua user stories trước khi chốt proposal.
-
-```powershell
+```sh
 cd apps/web
 npm ci
 npm run dev
 ```
 
-Mở URL Vite in ra (mặc định `http://127.0.0.1:5173`). Chọn **Choose a story** hoặc **Change story**. Bắt đầu với **OOM recovery**: đọc evidence → review diff → duyệt → bấm **Advance simulation** qua các giai đoạn → đóng incident → xem/export snapshot Handoff. Sau đó thử restore, rollback, kết quả ghi chưa rõ, quota và quyền Viewer.
+Open the URL printed by Vite. Select **Choose a story** and start with **OOM recovery**. Inspect evidence, review and approve the plan, use **Advance simulation**, then resolve and inspect Handoff. **Change story** and **Restart story** reset fixtures. All 24 scenarios are described in the system tracker.
 
-[Hướng dẫn user stories và thao tác](docs/PROTOTYPE_WALKTHROUGH.md) mô tả mục tiêu, đường đi và kết quả cần quan sát. Bốn khu vực Work queue, Workloads, Knowledge và Connections đều có tương tác. State incident lưu trong localStorage; đổi story sẽ reset fixture. Hành động, thời gian, metrics và kết quả kiểm tra đều là dữ liệu mô phỏng, không gọi Kubernetes/provider/backend.
+The demo stores state in localStorage. It does not call Kubernetes, a model provider or a backend. Simulation controls are not production controls.
 
-Kiểm tra tại `apps/web`: `npm test` chạy state-machine tests; `npm run build` kiểm tra TypeScript và bundle. [Bản HTML cũ](docs/cloudops-ui-template.html) chỉ lưu lịch sử, không còn là template chính. Prototype giúp kiểm chứng thiết kế, không chứng nhận runtime hoặc cho phép chia epic tự động.
+## Checks
 
-## Quy tắc làm việc tiếp
+From `apps/web`, run `npm test` and `npm run build`. These verify the prototype, not the future runtime or release gates.
 
-**Language convention:** Product UI, user stories, accessibility text, GitHub issues and EPICs use English. See [CONTRIBUTING.md](CONTRIBUTING.md). Trao đổi trong chat và tài liệu nghiên cứu có thể tiếp tục bằng tiếng Việt.
-
-1. Nêu câu hỏi cần quyết định trong đúng issue; dẫn tới section tài liệu và evidence.
-2. Phân biệt source-audited, demonstrated bằng prototype, measured bằng thử nghiệm và giả định chưa kiểm chứng.
-3. Review → phản biện → sửa tài liệu/prototype → kiểm tra lại phần thay đổi. Giữ câu hỏi mở khi chưa đủ bằng chứng.
-4. Các thay đổi proposal đáng kể tiếp tục qua Claude Code review; ghi candidate commit, findings, phản hồi và giới hạn review. Không dùng verdict của snapshot cũ để chứng nhận bản mới.
-5. Chỉ chia epic khi feature/UX contracts đủ rõ, không có blocker thiết kế và người dùng xác nhận. Các phép đo runtime thuộc implementation/release gates, trừ spike hữu hạn thật sự cần để quyết định kiến trúc.
-
-## Reference và provenance
-
-- [Aurora](https://github.com/Arvo-AI/aurora), audit tại `5af24c46416ed1bc4eec057d88db0af60b6ed3c6`.
-- Akmatori audit tại `4b9e984fbfb6818d3e5798228af1010c1fc0ddc8`; nguồn và kết quả trong research.
-- [shadcn/ui cho Vite](https://ui.shadcn.com/docs/installation/vite) và [theming](https://ui.shadcn.com/docs/theming).
-
-[Build plan ban đầu](CLOUDOPS_COPILOT_BUILD_PLAN.md) chỉ để đối chiếu lịch sử. Các lựa chọn Next.js/Akmatori runtime trong đó đã bị thay thế. Review và manifest trong `docs/reviews/` gắn với snapshot tại thời điểm review, không tự chứng nhận HEAD.
-
-Chưa copy source/assets Aurora vào app và chưa chọn license phát hành cho CloudOps. Nếu reuse code sau này, ghi nguồn/file/commit và giữ notices tương ứng.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for language and planning conventions. Historical research/proposal/review documents were removed from the current tree after migration to Issues; the system tracker retains immutable Git references for provenance.
