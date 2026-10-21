@@ -49,13 +49,21 @@ Chỉ chuyển sang chia epic sau khi hoàn tất [gate sẵn sàng](docs/PROPOS
 | [Review decisions](CLOUDOPS_COPILOT_REVIEW_DECISIONS.md) | Lịch sử phản biện Claude, quyết định tiếp nhận/bác bỏ và điểm còn mở |
 | [Proposal readiness](docs/PROPOSAL_READINESS.md) | Điều kiện để bắt đầu chia epic, tách khỏi release acceptance |
 
-## Prototype hiện có
+## Trải nghiệm prototype
 
-[Template tương tác](docs/cloudops-ui-template.html) là bản HTML minh họa để xem luồng, có dữ liệu demo và host-preview integration. Nó **chưa phải React/shadcn implementation**, chưa phải bản redesign theo Aurora và không kết nối backend/Kubernetes/model. Hướng redesign mới được ghi trong design direction và theo dõi ở issue UI/UX.
+Template hiện tại là **ứng dụng React/Vite tương tác**, dùng shadcn/ui (Radix Nova), có 24 tình huống để người review tự đi qua user stories trước khi chốt proposal.
 
-GitHub chỉ hiển thị source HTML. Có thể xem file bằng preview HTML trong công cụ làm việc; với trình duyệt thông thường, cần bọc fragment trong một trang HTML. Không có `npm run dev` hoặc server backend ở trạng thái repository hiện tại.
+```powershell
+cd apps/web
+npm ci
+npm run dev
+```
 
-Bản shadcn tiếp theo phải chứng minh component usage và các tương tác thật bằng fixture; CSS giống shadcn không được tính là đã áp dụng thư viện. Prototype vẫn là công cụ verify thiết kế trước epic, không phải bắt đầu build toàn bộ app.
+Mở URL Vite in ra (mặc định `http://127.0.0.1:5173`). Chọn **Chọn user story** hoặc **Đổi story**. Bắt đầu với **Phục hồi OOM**: đọc evidence → review diff → duyệt → bấm **Tiếp tục mô phỏng** qua các giai đoạn → đóng incident → xem/export snapshot Handoff. Sau đó thử restore, rollback, kết quả ghi chưa rõ, quota và quyền Viewer.
+
+[Hướng dẫn user stories và thao tác](docs/PROTOTYPE_WALKTHROUGH.md) mô tả mục tiêu, đường đi và kết quả cần quan sát. Bốn khu vực Work queue, Workloads, Knowledge và Connections đều có tương tác. State incident lưu trong localStorage; đổi story sẽ reset fixture. Hành động, thời gian, metrics và kết quả kiểm tra đều là dữ liệu mô phỏng, không gọi Kubernetes/provider/backend.
+
+Kiểm tra tại `apps/web`: `npm test` chạy state-machine tests; `npm run build` kiểm tra TypeScript và bundle. [Bản HTML cũ](docs/cloudops-ui-template.html) chỉ lưu lịch sử, không còn là template chính. Prototype giúp kiểm chứng thiết kế, không chứng nhận runtime hoặc cho phép chia epic tự động.
 
 ## Quy tắc làm việc tiếp
 

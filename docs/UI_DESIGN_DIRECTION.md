@@ -1,6 +1,6 @@
 # CloudOps UI: học Aurora, áp dụng shadcn/ui
 
-Trạng thái: design direction để review tiếp, ngày 21/10/2026. Đây là yêu cầu cho bản redesign; prototype HTML hiện tại là baseline luồng cũ, chưa đạt direction này và chưa dùng component shadcn thật.
+Trạng thái: design direction để review tiếp, ngày 21/10/2026. Prototype React/Vite tại apps/web hiện dùng shadcn/ui thật và là bản trải nghiệm chính để tiếp tục review. Prototype HTML cũ chỉ giữ làm lịch sử.
 
 ## Nguồn đã quan sát
 
@@ -33,7 +33,7 @@ Không dùng xanh lá chỉ vì analysis đã hoàn tất. Incident status, inve
 
 Frontend đã chọn React/Vite/TypeScript + Tailwind + shadcn/ui. Dùng component source từ một preset/version được pin, có `components.json`, alias `@/`, CSS variables và Lucide; không coi một tập CSS bắt chước button là shadcn. Chọn một bộ primitives nhất quán khi dựng prototype, không trộn Base/Radix tùy hứng hoặc port `next/*` từ Aurora.
 
-Theo [hướng dẫn Vite](https://ui.shadcn.com/docs/installation/vite), component được thêm vào project để ứng dụng sở hữu và điều chỉnh. Theo [theming](https://ui.shadcn.com/docs/theming), dùng semantic tokens để đổi theme, không sửa từng class rời rạc. Version/lockfile và lựa chọn preset được ghi khi prototype chạy; chưa giả định cấu hình package chưa cài là đã build-pass.
+Theo [hướng dẫn Vite](https://ui.shadcn.com/docs/installation/vite), component được thêm vào project để ứng dụng sở hữu và điều chỉnh. Theo [theming](https://ui.shadcn.com/docs/theming), dùng semantic tokens để đổi theme, không sửa từng class rời rạc. Prototype `apps/web` đã pin dependencies trong package-lock.json, dùng preset Radix Nova (CLI shadcn 4.22.1), semantic variables và Lucide. Build/typecheck được chạy cho snapshot hiện tại; xem walkthrough và review log để biết phạm vi đã kiểm chứng.
 
 | CloudOps surface | shadcn building blocks | Hành vi domain cần giữ |
 |---|---|---|
@@ -58,7 +58,7 @@ Chart wrapper có thể dùng shadcn Chart, nhưng dữ liệu/window/units/gaps
 4. Recommendations với insufficient/excluded và Connections có unavailable usage; không có zero giả.
 5. Reopen giữ resolution snapshot, cross-incident target lock hiện rõ khi outcome unknown.
 
-Prototype bằng fixtures có nhãn, không yêu cầu backend thật. Các guards và chuyển trạng thái phải theo proposal; phần chưa mô phỏng ghi rõ. Bản HTML cũ chỉ hỗ trợ một phần và không phải evidence rằng các journey này đã đạt.
+Prototype bằng fixtures có nhãn, không yêu cầu backend thật. Các guards và chuyển trạng thái phải theo proposal; phần chưa mô phỏng ghi rõ. Bản React/Vite tại `apps/web` là template chính, có 24 stories và các thao tác bằng fixture; hướng dẫn tại `PROTOTYPE_WALKTHROUGH.md`. Bản HTML cũ chỉ giữ làm lịch sử. User review vẫn là bước riêng sau verification kỹ thuật.
 
 ## Tiêu chí duyệt thiết kế
 
