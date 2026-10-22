@@ -4,7 +4,7 @@ Kubernetes incident investigation and bounded recovery for a small operations te
 
 **Current implementation:** a local interactive foundation with a React/Vite UI, FastAPI API, PostgreSQL, server-side sessions and a durable collection worker. Operators create manual incidents and investigations; Viewers inspect saved records. The development collector saves **labeled synthetic evidence**. Live Kubernetes/Prometheus collection, AI diagnosis and recovery are unavailable.
 
-Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. E00's independent-contributor gate remains open until another contributor demonstrates it; no release tag is claimed.
+Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. The foundation consumer integration exercise is self-verified in PR #16; it does not require a second contributor.
 
 ## Quick start
 
@@ -35,7 +35,7 @@ Open [http://localhost:5173](http://localhost:5173). Use that exact origin: logi
 6. Sign out and sign in as the Viewer. The same records remain readable; incident/run mutations are unavailable in the UI and denied by the backend.
 7. Open **Connections** for database and worker heartbeat observations. An unavailable model or executor is shown explicitly.
 
-See [foundation operation and contributor handoff](docs/foundation.md) for failure/restart exercises, API conventions, verification evidence and the independent consumer exercise.
+See [foundation operation and contributor handoff](docs/foundation.md) for failure/restart exercises, API conventions, verification evidence and the consumer integration verification.
 
 ## Start, stop and recover locally
 

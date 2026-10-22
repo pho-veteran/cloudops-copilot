@@ -4,7 +4,7 @@ The local foundation stores application state and runs collection jobs. External
 
 ## Delivered behavior and evidence
 
-The integrated UI first landed in `47f09ff`; the verification/hardening wave in the same PR adds current contract checks, setup evidence and patched runtime dependencies. The PR and E00 record the final tested commit. These are delivery notes, not a v0.1.0 release/tag: the independent-contributor gate is still open.
+The integrated UI first landed in `47f09ff`; the verification/hardening wave in the same PR adds current contract checks, setup evidence and patched runtime dependencies. The PR and E00 record the final tested commit. These delivery notes include the completed F4 consumer verification; the maintainer directed that it be performed by the active implementer. No second contributor is required.
 
 | Surface | Implemented behavior | Verification |
 |---|---|---|
@@ -29,7 +29,7 @@ A clean archive of `abdcd65` was built in an isolated Compose project with an em
 
 The failed-collection browser exercise created run `86719204-70a7-4497-a4b7-f1bc23bc1a85`, recorded three failed attempts, published no evidence and retained the earlier run. Ordinary worker configuration was restored afterward.
 
-The images document local behavior. They do not prove live source collection, model quality, recovery safety or independent contribution.
+The images document local behavior. They do not prove live source collection, model quality, recovery safety or independent review.
 
 ## Configuration and account operations
 
@@ -118,13 +118,25 @@ npm --prefix apps/web run build
 
 The drift exercise uses a temporary schema/consumer copy and deliberately adds a typed API operation. Unsynchronized artifacts fail; regenerated artifacts pass; the working tree is untouched. Export/check does not need runtime configuration, database access, cluster credentials or a worker.
 
-## Independent consumer exercise (F4)
+## Consumer verification (F4)
 
-A second contributor should follow README from a clean checkout, then implement a small read-only workload identity panel in `features/workloads` using generated `WorkloadView` fields. It should show the persisted identity and UID, retaining unavailable live health. Use the feature's schema-checked `workloadFixture` and `workloadsQueryOptions` through the shared transport; keep changes inside that feature and its tests. No backend DTO copy, shared job edit or unrelated feature internals should be necessary.
+At the maintainer's direction, the active implementer completed this exercise from a clean source archive of `a267c43`. This is self-verification and does not claim independent review. F4 no longer requires another human contributor.
 
-Run focused fixture tests and build, then integrate the same query against the local API with Operator and Viewer accounts. Record the contributor, commit, environment, focused checks, observed API behavior and remaining limitations in E00. Remove credentials and cookie/CSRF values from evidence.
+The exercise implemented a read-only workload identity panel in `features/workloads`, using generated `WorkloadView` fields and the existing `useWorkloads` query/shared transport. Only `Workloads.tsx`, `WorkloadIdentity.tsx` and its focused test changed. The panel shows persisted record ID, cluster/namespace/Deployment UID, configured scope, fixture source and unavailable live health. Generated contracts, backend modules, shared infrastructure and other feature internals were unchanged.
 
-The current maintainer has exercised typed fixtures and the live local consumer path, but that is **not independent F4 evidence**. Keep F4 and the v0.1 release/tag gate open until this exercise is performed independently. No additional child issue is required for the current single-PR delivery.
+Locked `npm ci` and the six workload consumer tests passed in the clean archive. Tests validate the typed fixture against OpenAPI, exercise the unchanged HTTP query, render Viewer/Operator behavior, retry an API failure without fabricated identity data, and preserve removed-scope identity. After integration, all 34 frontend tests, TypeScript/Vite build and the contract-drift check passed.
+
+A separate Compose project with an empty PostgreSQL 17.11 volume started the same consumer against the real local API. Viewer and Operator sign-in both displayed persisted record `74483c3e-adc2-4d05-93a6-c218afc6ebe7`, with UID `development-checkout-v1`; these values matched authenticated API reads. The Viewer had no investigation mutation control, while the Operator retained the existing investigation action. Keyboard inspection worked. [Browser evidence](evidence/foundation-consumer.jpg) records the Viewer panel. The isolated stack used loopback port/origin overrides to avoid the existing workspace; its disposable database was removed after verification.
+
+Reproduce the focused consumer checks with:
+
+```sh
+npm ci --prefix apps/web
+npm --prefix apps/web test -- src/features/workloads
+npm --prefix apps/web run build
+```
+
+Then follow README startup/account setup, open Workloads and choose **Inspect workload identity** with each role. The same query and component run against fixtures and the API without a second DTO or feature-policy edit. The implementation commit and final CI results are recorded in PR #16 and E00. No child issue is required for this single-PR delivery.
 
 ## Remaining operational boundaries
 

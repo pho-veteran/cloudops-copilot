@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useWorkloads } from "./queries";
+import { WorkloadIdentity } from "./WorkloadIdentity";
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +40,7 @@ export function Workloads({
                 </h2>
                 <p>Cluster: {w.cluster}</p>
                 <p className="muted">Live health unavailable</p>
-                <p className="mono">UID: {w.uid}</p>
+                <WorkloadIdentity workload={w} />
                 {canMutate ? (
                   <Button onClick={() => onInvestigate(w.id)}>
                     Investigate workload
