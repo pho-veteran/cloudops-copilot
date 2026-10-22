@@ -21,4 +21,4 @@ assignees: ''
 ## Context
 
 <!-- Optional: related EPIC/issue, dependencies, environment, screenshots or sanitized errors.
-Create implementation tasks only when their EPIC starts. Write in English; preserve quoted evidence. -->
+Create implementation tasks only when their EPIC starts and decomposition is requested; an explicitly requested single-PR EPIC delivery does not need artificial child issues. Write in English; preserve quoted evidence. -->

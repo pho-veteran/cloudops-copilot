@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prototype:
-    name: Prototype tests and build
+  web:
+    name: Web tests and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -32,7 +32,51 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
       - name: Install locked dependencies
         run: npm ci
-      - name: Test prototype behavior
+      - name: Test persisted UI and simulation behavior
         run: npm test
-      - name: Type-check and build prototype
+      - name: Type-check and build web
         run: npm run build
+
+  backend:
+    name: Backend, migrations and contract drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.11-bookworm
+        env:
+          POSTGRES_USER: cloudops
+          POSTGRES_PASSWORD: ci-local-only
+          POSTGRES_DB: cloudops_test
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U cloudops -d cloudops_test"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://cloudops:ci-local-only@localhost:5432/cloudops_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: tools/contracts/package-lock.json
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.9.26"
+      - name: Install locked backend and contract tooling
+        run: |
+          uv sync --project services/backend --frozen
+          npm ci --prefix tools/contracts
+      - name: Check backend source
+        run: |
+          uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend scripts
+          uv run --project services/backend ruff format --check --config services/backend/pyproject.toml services/backend scripts
+      - name: Test PostgreSQL migration, authorization, admission and worker recovery
+        run: uv run --project services/backend pytest -q services/backend/tests
+      - name: Check generated contracts without runtime credentials
+        run: |
+          uv run --project services/backend python scripts/contracts.py
+          uv run --project services/backend python scripts/test-contract-drift.py

@@ -2,11 +2,90 @@
 
 Kubernetes incident investigation and bounded recovery for a small operations team.
 
-**Current state:** a runnable English React/Vite + shadcn/ui prototype using local fixtures. The backend, real model/cluster integrations and deployment runtime are not implemented.
+**Current implementation:** a local interactive foundation with a React/Vite UI, FastAPI API, PostgreSQL, server-side sessions and a durable collection worker. Operators create manual incidents and investigations; Viewers inspect saved records. The development collector saves **labeled synthetic evidence**. Live Kubernetes/Prometheus collection, AI diagnosis and recovery are unavailable.
 
-## Project and roadmap
+Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. The foundation consumer integration exercise is self-verified in PR #16; it does not require a second contributor.
 
-The [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) is the source of truth for product scope, architecture, UX direction, research, dependencies and release acceptance. Each feature EPIC owns its detailed research. Task issues are created only when that EPIC starts.
+## Quick start
+
+Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.
+
+From the repository root:
+
+```sh
+cp .env.example .env
+# Edit .env: choose a local POSTGRES_PASSWORD containing URL-safe letters/digits/hyphens.
+docker compose up -d --build
+# Provision accounts; each command prompts for a password (12..256 characters).
+docker compose exec api python -m cloudops.entrypoints.cli account operator --role operator
+docker compose exec api python -m cloudops.entrypoints.cli account viewer --role viewer
+```
+
+Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. HTTPS deployment, reverse proxy and executor credentials remain E10/E07 work.
+
+`migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Provisioning an existing username resets its password/role and revokes its sessions. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
+
+## First interactive journey
+
+1. Sign in as the Operator. Open **Workloads** and choose **Investigate workload** on `demo/checkout`.
+2. Enter a title and optional description, then **Create incident and collect evidence**. Incident, run and job admission are one database transaction.
+3. Observe queued/collecting states, then inspect **Evidence** and **Collection attempts**. The terminal state is **insufficient evidence**: synthetic collection finished, but live telemetry and AI diagnosis are unavailable. It is not completed RCA.
+4. Inspect the source, workload UID, timestamps, SHA-256 and stored payload. Navigate away/back and refresh the URL. The selected incident/run remains readable.
+5. Stop/start the stack with `docker compose down` and `docker compose up -d`, then refresh. IDs, human-authored description, evidence and attempts persist. **Start new investigation** creates another run while preserving earlier snapshots.
+6. Sign out and sign in as the Viewer. The same records remain readable; incident/run mutations are unavailable in the UI and denied by the backend.
+7. Open **Connections** for database and worker heartbeat observations. An unavailable model or executor is shown explicitly.
+
+See [foundation operation and contributor handoff](docs/foundation.md) for failure/restart exercises, API conventions, verification evidence and the consumer integration verification.
+
+## Start, stop and recover locally
+
+```sh
+docker compose ps
+docker compose logs --tail 100 api worker migrate
+docker compose down                  # stops services; preserves the database volume
+docker compose up -d --build         # reapplies migrations/config sync; preserves records
+docker compose run --rm migrate      # explicit migration and configured-workload sync
+```
+
+After editing workload configuration or backend source, rebuild/start with `docker compose up -d --build`. Removed workload identities remain in incident history but cannot admit new work. Changing a Deployment UID creates a different persisted identity.
+
+If `migrate` fails, API/worker do not start ready. Inspect `docker compose logs migrate`, correct configuration or the migration failure, then rerun the explicit migration command and `docker compose up -d`. Do not mark a revision as applied or delete the database to bypass a failed migration. The current migrations add tables without rewriting existing application data; rerunning upgrade preserves records. Downgrade removes the affected tables and is only exercised on the disposable test database. Future data migrations must document recovery separately.
+
+If the worker stops during collection, a restarted worker reclaims the job after its 30-second lease. Heartbeats renew the lease every 5 seconds. At most three attempts run; older tokens cannot publish. Failed collection publishes no successful evidence. The Operator can explicitly create a new investigation after failure. Reads may be repeated; no exactly-once external call guarantee is made.
+
+## Contributor setup and checks
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md). For host development, install Node from `.node-version`, Python from `.python-version` and uv 0.9.26. Keep API/worker/database in Compose and run web locally:
+
+```sh
+docker compose stop web
+npm ci --prefix apps/web
+npm --prefix apps/web run dev
+```
+
+Use `http://localhost:5173` even if Vite prints `127.0.0.1`; Origin must match configuration. The default Vite proxy uses the loopback API at port 8000. To return web to Compose, stop the host Vite process, then run `docker compose up -d web`.
+
+```sh
+npm ci --prefix apps/web
+npm --prefix apps/web test
+npm --prefix apps/web run build
+./scripts/check-backend.sh
+# Contract tooling is isolated because its TypeScript peer range differs from the app's.
+npm ci --prefix tools/contracts
+uv sync --project services/backend --frozen
+uv run --project services/backend python scripts/contracts.py
+uv run --project services/backend python scripts/test-contract-drift.py
+```
+
+The backend check creates/reuses **cloudops_test**, a separate disposable database, and clears only its application tables. Do not point tests at application data. Host tests require `TEST_DATABASE_URL` ending in `_test`; see the handoff guide. Contract export/check requires no database, running worker, runtime configuration or external credentials. After changing Pydantic routes/models, regenerate with `uv run --project services/backend python scripts/contracts.py --write`, review both generated artifacts, and run producer/consumer checks.
+
+CI runs web tests/build, PostgreSQL authorization/admission/migration/worker checks and deliberate contract-drift rejection. These checks establish local application behavior and fixture contracts, not live cluster/model behavior or release acceptance.
+
+## Fixture simulation
+
+Open [the explicitly labeled simulation](http://localhost:5173/?simulation=1) to explore the broader 24-story experience. Choose **OOM recovery**, inspect evidence, review/approve the simulated plan and use **Advance simulation**. **Change story** and **Restart story** reset fixtures. Its state stays in localStorage and makes no backend, Kubernetes or model calls. The persisted application never uses simulation controls or fixture RCA as real results.
+
+## Feature roadmap
 
 | EPIC | Feature |
 |---|---|
@@ -21,23 +100,3 @@ The [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) i
 | [E08 · #11](https://github.com/pho-veteran/cloudops-copilot/issues/11) | Resource recommendations, coverage and export |
 | [E09 · #12](https://github.com/pho-veteran/cloudops-copilot/issues/12) | Connections, freshness and operating visibility |
 | [E10 · #13](https://github.com/pho-veteran/cloudops-copilot/issues/13) | Reproducible lab, evaluation and release delivery |
-
-## Run the prototype
-
-Use the Node version in `.node-version`. For contribution setup, PR expectations and contract changes, read [CONTRIBUTING.md](CONTRIBUTING.md). [Foundation v0.1 — E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) will deliver an interactive UI backed by a local API, worker and database, with generated contracts and contributor documentation. It is planned; the current runnable app remains the fixture prototype.
-
-```sh
-cd apps/web
-npm ci
-npm run dev
-```
-
-Open the URL printed by Vite. Select **Choose a story** and start with **OOM recovery**. Inspect evidence, review and approve the plan, use **Advance simulation**, then resolve and inspect Handoff. **Change story** and **Restart story** reset fixtures. All 24 scenarios are described in the system tracker.
-
-The demo stores state in localStorage. It does not call Kubernetes, a model provider or a backend. Simulation controls are not production controls.
-
-## Checks
-
-From `apps/web`, run `npm test` and `npm run build`. These verify the prototype, not the future runtime or release gates.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for language and planning conventions. Historical research/proposal/review documents were removed from the current tree after migration to Issues; the system tracker retains immutable Git references for provenance.
