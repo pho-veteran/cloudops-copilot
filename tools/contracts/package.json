@@ -1,0 +1,12 @@
+{
+  "name": "cloudops-contract-tools",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "generate": "openapi-typescript ../../contracts/openapi.json -o ../../apps/web/src/lib/api/generated/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

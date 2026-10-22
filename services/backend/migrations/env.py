@@ -1,4 +1,11 @@
 from alembic import context
+
+# Composition root registers feature persistence for migration metadata.
+from cloudops.features.access import models as access_models  # noqa: F401
+from cloudops.features.incidents import models as incident_models  # noqa: F401
+from cloudops.features.investigations import models as investigation_models  # noqa: F401
+from cloudops.features.workloads import models as workload_models  # noqa: F401
+from cloudops.shared import jobs  # noqa: F401
 from cloudops.shared.config import settings
 from cloudops.shared.database import Base, engine
 
