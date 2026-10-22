@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Failure } from "@/app/Feedback";
 
 export function SignIn({
-  expired,
+  reason,
   onSuccess,
 }: {
-  expired: boolean;
+  reason: "expired" | "signed_out" | null;
   onSuccess: (value: components["schemas"]["SessionView"]) => void;
 }) {
   const [username, setUsername] = useState("");
@@ -30,7 +30,10 @@ export function SignIn({
       <div className="eyebrow">CLOUDOPS COPILOT · LOCAL FOUNDATION</div>
       <h1>Sign in to your workspace</h1>
       <p>Inspect saved incidents and development evidence.</p>
-      {expired && (
+      {reason === "signed_out" && (
+        <p role="status">You signed out. Sign in to return to your workspace.</p>
+      )}
+      {reason === "expired" && (
         <p role="status">
           Your session ended. Sign in again; saved work remains available. No
           action will be replayed.

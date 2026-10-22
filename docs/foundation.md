@@ -140,6 +140,16 @@ Then follow README startup/account setup, open Workloads and choose **Inspect wo
 
 ## Remaining operational boundaries
 
+The final foundation polish separates deliberate sign-out from session expiry. An isolated
+browser check signed in, opened Connections, signed out, confirmed the
+[signed-out notice](evidence/foundation-signed-out.jpg), and signed back in to the same
+Connections route. The [Connections view](evidence/foundation-connections.jpg) clarifies
+that collector availability describes the configured synthetic adapter, not a successful
+collection or live source health. Attempt history remains the source for collection
+results; failed collection leaves `last_success_at` unset. All 35 frontend tests,
+16 PostgreSQL tests, build, Python lint/format and contract/drift checks passed after
+these changes.
+
 Live Kubernetes/Prometheus packs, Alertmanager intake, notes/lifecycle/handoff, run comparison, runbooks, model analysis, plans/execution, KRR and deployment/recovery tooling remain in E01–E10 as applicable. No E00 fixture result satisfies those acceptance gates. The local worker cannot write to Kubernetes, and an application role does not grant maintenance/executor authority.
 
 Fresh package audits are recorded with the tested PR commit. Existing web development-tool advisories remain an E10 release-tooling gate; a zero production-package audit is not a container/OS vulnerability scan or a complete security assessment. Only one maintainer has reviewed producer/consumer integration so far.

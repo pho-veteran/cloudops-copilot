@@ -58,7 +58,9 @@ const queryClient = new QueryClient({
 
 export function Workspace() {
   const cache = useQueryClient();
-  const [expired, setExpired] = useState(false);
+  const [signInReason, setSignInReason] = useState<
+    "expired" | "signed_out" | null
+  >(null);
   const [route, setRoute] = useState(readRoute);
   const [creating, setCreating] = useState<{ workload?: string } | null>(null);
   const [dark, setDark] = useState(
@@ -73,7 +75,7 @@ export function Workspace() {
     },
     retry: false,
     refetchInterval: 60000,
-    enabled: !expired,
+    enabled: signInReason === null,
   });
   useEffect(() => {
     const listener = () => {
@@ -86,7 +88,7 @@ export function Workspace() {
   useEffect(() => {
     const listener = () => {
       setCreating(null);
-      setExpired(true);
+      setSignInReason("expired");
       void cache.cancelQueries();
       cache.removeQueries({
         predicate: (query) => query.queryKey[0] !== "session",
@@ -107,7 +109,7 @@ export function Workspace() {
     mutationFn: async () => unwrap(await api.POST("/api/logout")),
     onSuccess: () => {
       transport.setCsrfToken(null);
-      setExpired(true);
+      setSignInReason("signed_out");
       setCreating(null);
       cache.removeQueries({
         predicate: (query) => query.queryKey[0] !== "session",
@@ -115,21 +117,21 @@ export function Workspace() {
     },
   });
   if (
-    expired ||
+    signInReason !== null ||
     (session.isError &&
       session.error instanceof ApiError &&
       session.error.status === 401)
   ) {
     return (
       <SignIn
-        expired={expired}
+        reason={signInReason}
         onSuccess={(result) => {
           cache.removeQueries({
             predicate: (query) => query.queryKey[0] !== "session",
           });
           transport.setCsrfToken(result.csrf_token);
           cache.setQueryData(["session"], result);
-          setExpired(false);
+          setSignInReason(null);
         }}
       />
     );

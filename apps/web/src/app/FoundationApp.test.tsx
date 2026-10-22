@@ -78,7 +78,35 @@ describe("application session boundary", () => {
     });
     await screen.findByRole("heading", { name: "Sign in to your workspace" });
     expect(cache.getQueryData(["incidents", "saved"])).toBeUndefined();
+    expect(screen.getByRole("status").textContent).toContain("Your session ended.");
     expect(mocks.post).not.toHaveBeenCalled();
+    cache.clear();
+  });
+  it("distinguishes intentional sign-out and allows a fresh sign-in", async () => {
+    mocks.get.mockResolvedValue(success(session));
+    mocks.post.mockImplementation((path) =>
+      Promise.resolve(success(path === "/api/login" ? session : {})),
+    );
+    const cache = mount();
+    await screen.findByRole("heading", { name: "Work queue" });
+    cache.setQueryData(["incidents", "saved"], { private: true });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Sign out" }));
+    await screen.findByRole("heading", { name: "Sign in to your workspace" });
+    expect(screen.getByRole("status").textContent).toContain("You signed out.");
+    expect(screen.queryByText(/Your session ended/)).toBeNull();
+    expect(cache.getQueryData(["incidents", "saved"])).toBeUndefined();
+    expect(mocks.csrf).toHaveBeenCalledWith(null);
+    expect(mocks.post).toHaveBeenCalledTimes(1);
+    await user.type(screen.getByLabelText("Username"), "operator");
+    await user.type(screen.getByLabelText("Password"), "local-test-password");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    await screen.findByRole("heading", { name: "Work queue" });
+    expect(screen.queryByText(/You signed out/)).toBeNull();
+    expect(mocks.post.mock.calls.map(([path]) => path)).toEqual([
+      "/api/logout",
+      "/api/login",
+    ]);
     cache.clear();
   });
   it("hides mutation controls for a Viewer", async () => {

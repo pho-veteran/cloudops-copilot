@@ -16,6 +16,8 @@ export function Connections() {
       <p className="muted">
         A fresh worker heartbeat describes the local process. Fixture
         availability does not establish live source health.
+        Collector availability describes the configured adapter; inspect
+        investigation attempts for collection results.
       </p>
       {query.isPending ? (
         <Loading />

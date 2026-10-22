@@ -73,7 +73,9 @@ def observations(db: Session = Depends(get_db)):
                 "collector",
                 "available",
                 "development_fixture",
-                "Deterministic synthetic collector; live Kubernetes/Prometheus unavailable.",
+                "Synthetic collector adapter configured; availability does not indicate collection "
+                "success. Inspect investigation attempts for results. Live Kubernetes/Prometheus "
+                "unavailable.",
             ),
             observation(
                 "diagnosis",

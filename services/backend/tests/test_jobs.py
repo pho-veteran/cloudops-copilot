@@ -96,6 +96,13 @@ def test_failures_exhaust_budget_without_success_evidence(client, monkeypatch):
     result = read_run(client, ids)
     assert result["state"] == "failed" and result["evidence"] == []
     assert [a["state"] for a in result["attempts"]] == ["failed"] * 3
+    collector = next(
+        o for o in client.get("/api/health").json()["observations"] if o["component"] == "collector"
+    )
+    # Adapter availability must not manufacture a successful collection observation.
+    assert collector["status"] == "available"
+    assert collector["source"] == "development_fixture"
+    assert collector["last_success_at"] is None
     assert (
         client.post(
             f"/api/incidents/{ids['incident_id']}/runs",
