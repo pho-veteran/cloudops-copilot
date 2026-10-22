@@ -31,7 +31,7 @@ Open [http://localhost:5173](http://localhost:5173). Use that exact origin: logi
 2. Enter a title and optional description, then **Create incident and collect evidence**. Incident, run and job admission are one database transaction.
 3. Observe queued/collecting states, then inspect **Evidence** and **Collection attempts**. The terminal state is **insufficient evidence**: synthetic collection finished, but live telemetry and AI diagnosis are unavailable. It is not completed RCA.
 4. Inspect the source, workload UID, timestamps, SHA-256 and stored payload. Navigate away/back and refresh the URL. The selected incident/run remains readable.
-5. Restart services with `docker compose restart db api worker web`, then refresh. IDs, human-authored description, evidence and attempts persist. **Start new investigation** creates another run while preserving earlier snapshots.
+5. Stop/start the stack with `docker compose down` and `docker compose up -d`, then refresh. IDs, human-authored description, evidence and attempts persist. **Start new investigation** creates another run while preserving earlier snapshots.
 6. Sign out and sign in as the Viewer. The same records remain readable; incident/run mutations are unavailable in the UI and denied by the backend.
 7. Open **Connections** for database and worker heartbeat observations. An unavailable model or executor is shown explicitly.
 

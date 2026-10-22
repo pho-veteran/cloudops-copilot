@@ -21,8 +21,13 @@ Browser walkthrough records use incident `6741962c-f88d-43fa-b994-712c4d0985c7`,
 - [Viewer inspecting the same persisted evidence](evidence/foundation-viewer.jpg)
 - [320px Viewer layout](evidence/foundation-mobile.jpg)
 - [Expired session preserving the selected incident/run route](evidence/foundation-expired-session.jpg)
+- [Three failed attempts with no published evidence](evidence/foundation-failed-collection.jpg)
 
 The browser also exercised an eight-second development session: polling returned 401 after expiry, protected content disappeared, sign-in retained the incident/run route, and no mutation was replayed. Default eight-hour session configuration was restored. Layout checks at 320px, 390px and 768px found no horizontal page overflow; light/dark views were inspected.
+
+A clean archive of `abdcd65` was built in an isolated Compose project with an empty PostgreSQL 17.11 volume, using the README setup and only loopback port/origin overrides to avoid the running workspace. Account provisioning, same-origin web/API access, idempotent admission and worker evidence passed. Re-running migration and stopping/restarting the entire stack preserved session access, incident description and identical evidence. Viewer reads passed and both incident/run mutations returned 403. The isolated containers and disposable volume were removed afterward; no application data was cleared.
+
+The failed-collection browser exercise created run `86719204-70a7-4497-a4b7-f1bc23bc1a85`, recorded three failed attempts, published no evidence and retained the earlier run. Ordinary worker configuration was restored afterward.
 
 The images document local behavior. They do not prove live source collection, model quality, recovery safety or independent contribution.
 
