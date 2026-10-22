@@ -1,0 +1,8 @@
+[
+  {
+    "cluster": "development",
+    "namespace": "demo",
+    "name": "checkout",
+    "uid": "development-checkout-v1"
+  }
+]
