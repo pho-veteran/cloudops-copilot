@@ -48,36 +48,52 @@ Each EPIC owns its feature implementation and consumer integration. Its active o
 - Keep shared modules small. Add a shared abstraction for a demonstrated cross-feature need, with an owner; avoid copying another feature's persistence or introducing a generic framework.
 - Keep changes to shared UI primitives separate from unrelated feature work when possible. Feature-specific components stay with their feature.
 
-System-wide decisions live in #3; the planned foundation module layout, contract pipeline and F0–F4 delivery live in E00 #15. Proposed backend paths and contract tooling are not implemented merely because they appear in the plan. The fixture model is not the future server API schema.
+System-wide decisions live in #3; foundation boundaries and F0–F4 acceptance live in E00 #15. The local runtime is implemented in `services/backend`; the persisted UI uses feature modules in `apps/web/src/features`. The simulation model in `apps/web/src/demo` is not a server API schema. Operational handoff and consumer instructions live in [docs/foundation.md](docs/foundation.md).
 
 ## API and contract changes
 
-Once the backend foundation is implemented, FastAPI/Pydantic request and response models will produce the OpenAPI artifact and generated TypeScript types. Do not hand-maintain a second set of transport DTOs or manually edit generated types. Frontend view models may adapt transport data without changing server semantics.
+Feature-owned FastAPI/Pydantic request and response models produce `contracts/openapi.json` and `apps/web/src/lib/api/generated/schema.d.ts`. Do not hand-maintain a second set of transport DTOs or manually edit generated types. Frontend view models may adapt transport data without changing server semantics.
 
 A contract-changing PR must link the owning decision, identify consumers, regenerate affected artifacts, and include focused producer/consumer evidence. An OpenAPI diff does not prove authorization, state transitions or retry behavior; test the affected behavior too. Keep mock responses conformant to the contract and clearly labeled as fixtures.
 
-Generation/drift checks, backend tests and migration checks become required with the corresponding foundation implementation. They are not available or claimed as passing in the current prototype-only repository.
+Contract generation/drift checks, backend behavior tests and migration checks are required for affected changes. Run `uv run --project services/backend python scripts/contracts.py --write` after contract changes, then check with `scripts/contracts.py` and `scripts/test-contract-drift.py` through the same Python environment. The exporter runs without database configuration or external credentials. Contract tooling is isolated in `tools/contracts` to satisfy its TypeScript 5 peer range while the web app retains TypeScript 7.
 
 ## Local setup and checks
 
-Use the Node version in `.node-version` and the committed npm lockfile. From the repository root:
+Follow [README.md](README.md) for Compose startup, migration/account setup, the persisted journey and the simulation entry point. Use Node from `.node-version`, Python from `.python-version`, uv 0.9.26, and the committed npm/uv lockfiles for host tooling.
+
+For web changes:
 
 ```sh
-cd apps/web
-npm ci
-npm run dev
+npm ci --prefix apps/web
+npm --prefix apps/web test
+npm --prefix apps/web run build
 ```
 
-Before a PR that affects the app, dependencies or build/test configuration:
+For backend/database changes with Compose configured:
 
 ```sh
-npm test
-npm run build
+./scripts/check-backend.sh
 ```
 
-On Windows PowerShell, use `npm.cmd` if execution policy blocks `npm.ps1`; changing execution policy is unnecessary.
+That script clears the separate `cloudops_test` database, never the application database. Tests reject database URLs without the `_test` suffix. The process interruption test waits for a real 30-second lease, so the suite normally takes at least 35 seconds.
 
-The repository workflow runs locked installation, prototype tests and the TypeScript/Vite build. It does not deploy, contact a real cluster/model or validate the future backend. A workflow file does not imply branch protection is configured. Documentation-only changes need link/content review; they do not require new tests that only restate prose.
+For shared contracts, install locked tooling and check both producer and consumer:
+
+```sh
+npm ci --prefix tools/contracts
+uv sync --project services/backend --frozen
+uv run --project services/backend python scripts/contracts.py
+uv run --project services/backend python scripts/test-contract-drift.py
+npm --prefix apps/web test
+npm --prefix apps/web run build
+```
+
+Run `uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend scripts` and the matching `ruff format --check` command for Python changes. Migrations have one Alembic history; use `uv run --project services/backend alembic -c services/backend/alembic.ini revision --autogenerate -m "describe the change"` with an explicitly configured local `DATABASE_URL`, then inspect the generated operations. Never put secrets in migration source.
+
+On Windows PowerShell, use `npm.cmd` if execution policy blocks `npm.ps1`; changing execution policy is unnecessary. Use a Bash-capable shell for `scripts/check-backend.sh`, or run its Compose commands directly.
+
+CI runs locked web tests/build, backend PostgreSQL integration tests, migration readiness/repeat-upgrade checks and deterministic contract checks. It does not deploy or contact a real cluster/model. A workflow file does not imply branch protection. Documentation-only changes need link/content review; do not add tests that restate prose.
 
 ## Review and completion
 

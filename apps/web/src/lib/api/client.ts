@@ -79,6 +79,8 @@ export const transport = createTransport({
 });
 export const api = transport.client;
 export function message(error: unknown): string {
+  if (error instanceof TypeError)
+    return "Cannot reach the local API. Check the API and database services, then retry.";
   return error instanceof Error
     ? error.message
     : "The service is unavailable. Check local services and retry.";

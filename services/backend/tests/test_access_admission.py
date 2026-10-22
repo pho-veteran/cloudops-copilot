@@ -140,3 +140,102 @@ def test_concurrent_duplicate_creates_one_run(client, db):
     assert len({r.json()["run_id"] for r in responses}) == 1
     with sessions()() as check:
         assert check.scalar(select(func.count()).select_from(Job)) == 1
+
+
+def test_capacity_and_admission_failure_do_not_leave_partial_incidents(client, db, monkeypatch):
+    from dataclasses import replace
+    from cloudops.features.incidents import service
+    from cloudops.shared.config import settings
+    from cloudops.shared.errors import DomainError
+
+    headers = sign_in(client)
+    body = incident_body(client)
+    original = settings()
+    monkeypatch.setattr(service, "settings", lambda: replace(original, queue_limit=1))
+    assert create(client, headers, body).status_code == 201
+    assert create(client, headers, body).json()["error"]["code"] == "queue_full"
+    assert db.scalar(select(func.count()).select_from(Incident)) == 1
+    db.rollback()
+    monkeypatch.setattr(service, "settings", lambda: original)
+
+    def fail(*args):
+        raise DomainError(503, "admission_unavailable", "Admission unavailable.")
+
+    monkeypatch.setattr(service, "admit_run", fail)
+    assert create(client, headers, body).status_code == 503
+    assert db.scalar(select(func.count()).select_from(Incident)) == 1
+
+
+def test_allowlist_replacement_preserves_history_but_rejects_old_identity(
+    client, db, monkeypatch, tmp_path
+):
+    import json
+    from cloudops.features.workloads.service import sync_config
+    from cloudops.shared.config import settings
+
+    headers = sign_in(client)
+    body = incident_body(client)
+    incident = create(client, headers, body).json()
+    config = tmp_path / "workloads.json"
+    config.write_text(
+        json.dumps(
+            [
+                {
+                    "cluster": "development",
+                    "namespace": "demo",
+                    "name": "checkout",
+                    "uid": "replacement-uid",
+                }
+            ]
+        )
+    )
+    monkeypatch.setenv("WORKLOADS_FILE", str(config))
+    settings.cache_clear()
+    sync_config(db)
+    new = client.get("/api/workloads").json()["items"]
+    assert len(new) == 1 and new[0]["id"] != body["workload_id"]
+    assert create(client, headers, body).status_code == 422
+    history = client.get(f"/api/incidents/{incident['incident_id']}").json()
+    assert history["workload"]["uid"] == "development-checkout-v1"
+    assert not history["workload"]["active"]
+
+
+def test_health_distinguishes_stale_worker_from_available_database(client, db):
+    from cloudops.entrypoints.worker import heartbeat
+    from cloudops.shared.database import WorkerHeartbeat
+
+    sign_in(client)
+    observations = client.get("/api/health").json()["observations"]
+    assert next(o for o in observations if o["component"] == "worker")["status"] == "stale"
+    heartbeat()
+    assert (
+        next(
+            o
+            for o in client.get("/api/health").json()["observations"]
+            if o["component"] == "worker"
+        )["status"]
+        == "available"
+    )
+    with db.begin():
+        db.execute(
+            update(WorkerHeartbeat).values(
+                observed_at=datetime.now(timezone.utc) - timedelta(seconds=60)
+            )
+        )
+    observations = client.get("/api/health").json()["observations"]
+    assert next(o for o in observations if o["component"] == "worker")["status"] == "stale"
+    assert next(o for o in observations if o["component"] == "database")["status"] == "available"
+    assert next(o for o in observations if o["component"] == "diagnosis")["last_success_at"] is None
+
+
+def test_schema_gate_fails_before_upgrade_and_upgrade_is_repeatable(db):
+    import pytest
+    from cloudops.shared.database import require_schema
+
+    config = Config(str(BACKEND_ROOT / "alembic.ini"))
+    command.downgrade(config, "0001_runtime")
+    with pytest.raises(RuntimeError, match="schema is not current"):
+        require_schema()
+    command.upgrade(config, "head")
+    command.upgrade(config, "head")
+    require_schema()

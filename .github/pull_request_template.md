@@ -17,7 +17,7 @@ Related to:
 
 <!-- List checks actually run and their results. Identify fixtures vs live
 integrations. For UI changes, include the relevant journey and screenshots.
-For omitted checks, give the reason and the remaining acceptance gate. -->
+For backend changes, include PostgreSQL authorization/state/migration and worker-recovery checks. For shared contracts, regenerate artifacts and record producer/consumer and drift-check evidence. For omitted checks, give the reason and the remaining acceptance gate. -->
 
 ## Checklist
 
