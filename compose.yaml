@@ -1,5 +1,6 @@
 name: cloudops-local
 x-backend: &backend
+  image: cloudops-local-backend
   build:
     context: .
     dockerfile: services/backend/Dockerfile
@@ -29,7 +30,7 @@ services:
       retries: 20
   migrate:
     <<: *backend
-    command: [alembic, -c, services/backend/alembic.ini, upgrade, head]
+    command: [python, -m, cloudops.entrypoints.cli, bootstrap]
   api:
     <<: *backend
     ports: ['127.0.0.1:8000:8000']
@@ -57,5 +58,12 @@ services:
     depends_on:
       api:
         condition: service_healthy
+  test:
+    <<: *backend
+    profiles: [checks]
+    environment:
+      <<: *backend-env
+      TEST_DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/cloudops_test
+    command: [pytest, -q, services/backend/tests]
 volumes:
   database:

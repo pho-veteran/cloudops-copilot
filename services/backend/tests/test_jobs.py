@@ -2,11 +2,11 @@ import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from conftest import sign_in
-from sqlalchemy import update
+from sqlalchemy import select, update
 from test_access_admission import create, incident_body
 
 from cloudops.entrypoints.worker import HANDLERS, run_once
@@ -144,3 +144,76 @@ def test_failed_publication_rolls_back_output_and_completion(client, monkeypatch
     expire(claim)
     assert run_once()
     assert len(read_run(client, ids)["evidence"]) == 1
+
+
+def test_worker_in_fresh_process_loads_all_persistence(client, monkeypatch):
+    import os
+    import subprocess
+    import sys
+
+    ids, _ = queued(client)
+    environment = {**os.environ, "COLLECTOR_DELAY_SECONDS": "0", "COLLECTOR_FAIL": "false"}
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from cloudops.entrypoints.worker import run_once; assert run_once()",
+        ],
+        env=environment,
+        check=True,
+        timeout=20,
+        capture_output=True,
+    )
+    result = read_run(client, ids)
+    assert result["state"] == "insufficient_evidence"
+    assert len(result["evidence"]) == 1
+
+
+def test_killed_worker_is_reclaimed_after_real_lease_expiry(client):
+    import os
+    import subprocess
+    import sys
+    import time
+
+    ids, _ = queued(client)
+    environment = {**os.environ, "COLLECTOR_DELAY_SECONDS": "60", "COLLECTOR_FAIL": "false"}
+    process = subprocess.Popen(
+        [sys.executable, "-c", "from cloudops.entrypoints.worker import run_once; run_once()"],
+        env=environment,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        deadline = time.monotonic() + 10
+        lease_remaining = None
+        while time.monotonic() < deadline:
+            with sessions()() as db:
+                job = db.scalar(select(Job).where(Job.subject_id == UUID(ids["run_id"])))
+                if job.state == "running":
+                    lease_remaining = (job.lease_until - database_now(db)).total_seconds()
+                    break
+            time.sleep(0.05)
+        assert lease_remaining is not None, "Worker did not claim the persisted job."
+        process.kill()
+        process.wait(timeout=5)
+        assert read_run(client, ids)["state"] == "collecting"
+        # Let the actual database lease expire, without editing its deadline.
+        time.sleep(max(0, lease_remaining) + 0.2)
+        subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "from cloudops.entrypoints.worker import run_once; assert run_once()",
+            ],
+            env={**environment, "COLLECTOR_DELAY_SECONDS": "0"},
+            check=True,
+            timeout=10,
+            capture_output=True,
+        )
+        result = read_run(client, ids)
+        assert [a["state"] for a in result["attempts"]] == ["expired", "succeeded"]
+        assert len(result["evidence"]) == 1
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=5)

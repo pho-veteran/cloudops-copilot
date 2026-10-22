@@ -4,7 +4,7 @@ from getpass import getpass
 
 from cloudops.features.access.service import provision
 from cloudops.features.workloads.service import sync_config
-from cloudops.shared.database import require_schema, sessions
+from cloudops.shared.database import BACKEND_ROOT, require_schema, sessions
 
 
 def main():
@@ -12,6 +12,9 @@ def main():
         description="Local foundation maintenance. No executor capability."
     )
     sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser(
+        "bootstrap", help="Apply migrations and synchronize configured development workloads."
+    )
     sub.add_parser("sync-workloads", help="Synchronize configured development workload identities.")
     account = sub.add_parser(
         "account", help="Provision/reset a user and revoke their existing sessions."
@@ -24,9 +27,14 @@ def main():
         help="Read password from standard input (automation only).",
     )
     args = parser.parse_args()
+    if args.command == "bootstrap":
+        from alembic import command
+        from alembic.config import Config
+
+        command.upgrade(Config(str(BACKEND_ROOT / "alembic.ini")), "head")
     require_schema()
     with sessions()() as db:
-        if args.command == "sync-workloads":
+        if args.command in {"sync-workloads", "bootstrap"}:
             sync_config(db)
             print("Development workload allowlist synchronized; historical identities preserved.")
         else:

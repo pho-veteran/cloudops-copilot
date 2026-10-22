@@ -4,6 +4,7 @@ import time
 
 from sqlalchemy.dialects.postgresql import insert
 
+from cloudops.entrypoints import metadata  # noqa: F401
 from cloudops.features.investigations.collector import CollectionHandler, collect, prepare
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, require_schema, sessions
@@ -60,9 +61,10 @@ def main():
     while True:
         try:
             run_once()
-        except Exception:
+        except Exception as exc:
             logger.error(
-                "Worker database unavailable. Check database/migrations; retrying in 5 seconds."
+                "Worker cycle failed (%s). Check database/migrations; retrying in 5 seconds.",
+                type(exc).__name__,
             )
             time.sleep(5)
         time.sleep(1)
