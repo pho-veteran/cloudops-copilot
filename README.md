@@ -23,6 +23,8 @@ docker compose exec api python -m cloudops.entrypoints.cli account viewer --role
 
 Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. HTTPS deployment, reverse proxy and executor credentials remain E10/E07 work.
 
+`WEB_ORIGIN` must use the browser's exact origin spelling, with no trailing slash, credentials, path, query, fragment or explicit default port. HTTP requires exactly `localhost` or `127.0.0.1` and `COOKIE_SECURE=false`; HTTPS requires `COOKIE_SECURE=true`. Contradictory configurations fail at startup. See the [browser session configuration and HTTPS handoff](docs/foundation.md#browser-session-configuration-and-https-handoff) for accepted examples and the remaining E10 proxy checks.
+
 `migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Provisioning an existing username resets its password/role and revokes its sessions. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
 
 ## First interactive journey
@@ -69,6 +71,8 @@ Use `http://localhost:5173` even if Vite prints `127.0.0.1`; Origin must match c
 npm ci --prefix apps/web
 npm --prefix apps/web test
 npm --prefix apps/web run build
+# Configuration-only tests need no database.
+uv run --project services/backend pytest -q services/backend/tests_unit
 ./scripts/check-backend.sh
 # Contract tooling is isolated because its TypeScript peer range differs from the app's.
 npm ci --prefix tools/contracts

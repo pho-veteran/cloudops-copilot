@@ -75,7 +75,7 @@ jobs:
           uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend scripts
           uv run --project services/backend ruff format --check --config services/backend/pyproject.toml services/backend scripts
       - name: Test PostgreSQL migration, authorization, admission and worker recovery
-        run: uv run --project services/backend pytest -q services/backend/tests
+        run: uv run --project services/backend pytest -q services/backend/tests_unit services/backend/tests
       - name: Check generated contracts without runtime credentials
         run: |
           uv run --project services/backend python scripts/contracts.py
