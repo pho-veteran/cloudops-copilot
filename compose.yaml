@@ -64,6 +64,6 @@ services:
     environment:
       <<: *backend-env
       TEST_DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/cloudops_test
-    command: [pytest, -q, services/backend/tests]
+    command: [pytest, -q, services/backend/tests_unit, services/backend/tests]
 volumes:
   database:
