@@ -332,3 +332,20 @@ def test_set_role_spares_other_users(db):
     db.rollback()
     assert sessions_for(db, "viewer") == 1
     assert sessions_for(db, "operator") == 0
+
+
+def test_set_role_rolls_back_role_when_revocation_fails(db, monkeypatch):
+    provision(db, "operator", PASSWORD, "operator")
+    token, _ = login(db, "operator", PASSWORD, None)
+    before = account_state(db, "operator")
+
+    def fail_revocation(*args, **kwargs):
+        raise RuntimeError("revocation failed")
+
+    monkeypatch.setattr("cloudops.features.access.service.delete", fail_revocation)
+    with pytest.raises(RuntimeError):
+        set_role(db, "operator", "viewer")
+    monkeypatch.undo()
+
+    assert account_state(db, "operator") == before
+    assert authenticate(db, token).principal.username == "operator"
