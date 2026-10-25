@@ -317,3 +317,18 @@ def test_revoke_sessions_serializes_with_concurrent_login(db):
 
     assert_expired(db, token)
     assert sessions_for(db, "operator") == 0
+
+
+def test_set_role_spares_other_users(db):
+    provision(db, "operator", PASSWORD, "operator")
+    provision(db, "viewer", PASSWORD, "viewer")
+    operator_token, _ = login(db, "operator", PASSWORD, None)
+    viewer_token, _ = login(db, "viewer", PASSWORD, None)
+
+    set_role(db, "operator", "viewer")
+
+    assert_expired(db, operator_token)
+    assert authenticate(db, viewer_token).principal.username == "viewer"
+    db.rollback()
+    assert sessions_for(db, "viewer") == 1
+    assert sessions_for(db, "operator") == 0
