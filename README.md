@@ -23,7 +23,7 @@ docker compose exec api python -m cloudops.entrypoints.cli account viewer --role
 
 Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. HTTPS deployment, reverse proxy and executor credentials remain E10/E07 work.
 
-`migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Provisioning an existing username resets its password/role and revokes its sessions. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
+`migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Provisioning an existing username resets its password/role and revokes its sessions. To change only the role or revoke all sessions without touching the stored password, use `account-role <username> <viewer|operator>` or `revoke-sessions <username>`. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
 
 ## First interactive journey
 

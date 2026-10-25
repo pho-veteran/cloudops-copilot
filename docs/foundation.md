@@ -41,9 +41,15 @@ Compose reads `.env`; see the committed `.env.example`. Use a URL-safe database 
 # Create/reset an account, set its role, and revoke prior sessions.
 docker compose exec api python -m cloudops.entrypoints.cli account operator --role operator
 docker compose exec api python -m cloudops.entrypoints.cli account viewer --role viewer
+# Change only the role: keeps the stored password and account ID; previous sessions of that account are revoked.
+docker compose exec api python -m cloudops.entrypoints.cli account-role operator operator
+# Revoke all active sessions of one account: keeps its password and role.
+docker compose exec api python -m cloudops.entrypoints.cli revoke-sessions operator
 # Apply current migrations and synchronize configured identities.
 docker compose run --rm migrate
 ```
+
+Unknown accounts or invalid roles fail with one clean error line and change no data. Revocation and role changes only affect requests that authenticate after the change commits; sessions authenticated before the commit, and already admitted jobs, are not retroactively cancelled.
 
 Sessions expire absolutely after `SESSION_SECONDS` (default 28800, maximum 8 hours), without sliding renewal. Logout revokes the server session. The browser holds CSRF authority in memory, never localStorage; only theme preference and the separate simulation use localStorage. A 401 removes protected query data, closes pending dialogs and requires sign-in at the same internal route. Mutations are not retried or replayed automatically.
 
