@@ -1,6 +1,10 @@
 import io
 import re
+import secrets
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 
 import pytest
 from sqlalchemy import func, select
@@ -13,7 +17,10 @@ from cloudops.features.access.service import (
     provision,
     revoke_sessions,
     set_role,
+    token_hash,
 )
+from cloudops.shared.config import settings
+from cloudops.shared.database import database_now, sessions
 from cloudops.shared.errors import DomainError
 
 PASSWORD = "local-test-password"
@@ -245,3 +252,68 @@ def test_cli_legacy_account_reset_still_works(db, monkeypatch, capsys):
     with pytest.raises(DomainError) as err:
         login(db, "viewer", PASSWORD, None)
     assert err.value.status == 401
+
+
+def pending_login(db, user_id):
+    """Connection 1's login-shaped sequence: lock the user row, add a session, keep the transaction open."""
+    db.execute(select(User).where(User.username == "operator").with_for_update())
+    token = secrets.token_urlsafe(32)
+    db.add(
+        LoginSession(
+            token_hash=token_hash(token),
+            user_id=user_id,
+            csrf_token=secrets.token_urlsafe(32),
+            expires_at=database_now(db) + timedelta(seconds=settings().session_seconds),
+        )
+    )
+    db.flush()
+    return token
+
+
+def test_role_change_serializes_with_concurrent_login(db):
+    # Boundary: post-commit authentication only; no retroactive cancellation is claimed.
+    provision(db, "operator", PASSWORD, "operator")
+    before_hash, before_id, _ = account_state(db, "operator")
+
+    with sessions()() as login_db:
+        token = pending_login(login_db, before_id)
+
+        def change_role():
+            with sessions()() as other:
+                set_role(other, "operator", "viewer")
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(change_role)
+            time.sleep(0.5)
+            # The role change waits for connection 1 to commit instead of racing it.
+            assert not future.done()
+            login_db.commit()
+            future.result(timeout=30)
+
+    assert account_state(db, "operator") == (before_hash, before_id, "viewer")
+    assert_expired(db, token)
+    assert sessions_for(db, "operator") == 0
+
+
+def test_revoke_sessions_serializes_with_concurrent_login(db):
+    # Boundary: post-commit authentication only; no retroactive cancellation is claimed.
+    provision(db, "operator", PASSWORD, "operator")
+    _, user_id, _ = account_state(db, "operator")
+
+    with sessions()() as login_db:
+        token = pending_login(login_db, user_id)
+
+        def revoke():
+            with sessions()() as other:
+                revoke_sessions(other, "operator")
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(revoke)
+            time.sleep(0.5)
+            # Revocation waits for connection 1 to commit, then destroys the durable session.
+            assert not future.done()
+            login_db.commit()
+            future.result(timeout=30)
+
+    assert_expired(db, token)
+    assert sessions_for(db, "operator") == 0
