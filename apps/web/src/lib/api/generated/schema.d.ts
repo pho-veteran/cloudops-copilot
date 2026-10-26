@@ -400,6 +400,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workloads/scope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Scope */
+        get: operations["list_workload_scope"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workloads/{workload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Workload */
+        get: operations["get_workload"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workloads/{workload_id}/baseline": {
         parameters: {
             query?: never;
@@ -1064,6 +1098,47 @@ export interface components {
              */
             state: "queued" | "collecting" | "insufficient_evidence" | "failed";
         };
+        /** ScopePage */
+        ScopePage: {
+            /** Items */
+            items: components["schemas"]["ScopeTargetView"][];
+            /** Next Offset */
+            next_offset: number | null;
+        };
+        /** ScopeTargetView */
+        ScopeTargetView: {
+            /** Cluster */
+            cluster: string;
+            /** Configured */
+            configured: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Last Attempt At
+             * Format: date-time
+             */
+            last_attempt_at: string;
+            /** Last Success At */
+            last_success_at: string | null;
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Reason */
+            reason: ("not_found" | "permission_denied" | "cluster_unavailable" | "budget_exhausted") | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "current" | "missing" | "unavailable" | "removed";
+            /** Uid */
+            uid?: string | null;
+            /** Workload Id */
+            workload_id: string | null;
+        };
         /** SessionView */
         SessionView: {
             /** Csrf Token */
@@ -1113,6 +1188,8 @@ export interface components {
             name: string;
             /** Namespace */
             namespace: string;
+            /** Retirement Reason */
+            retirement_reason?: ("removed" | "deleted" | "replaced") | null;
             /**
              * Source
              * @default development_fixture
@@ -3187,6 +3264,160 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkloadPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_workload_scope: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                removed?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScopePage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_workload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkloadView"];
                 };
             };
             /** @description Unauthorized */

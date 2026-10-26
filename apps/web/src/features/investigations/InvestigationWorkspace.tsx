@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Failure, Loading } from "@/app/Feedback";
 import { IncidentActivity } from "@/features/incidents/IncidentActivity";
 import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
+import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
 
 export function InvestigationWorkspace({
   id,
@@ -66,6 +67,7 @@ export function InvestigationWorkspace({
       {incident.data.description && (
         <p className="whitespace-pre-wrap">{incident.data.description}</p>
       )}
+      <WorkloadIdentity workload={incident.data.workload} />
       <div className="foundation-actions">
         {canMutate ? (
           <Button
@@ -84,7 +86,7 @@ export function InvestigationWorkspace({
         )}
         {!incident.data.workload.active && (
           <p className="muted">
-            Workload removed from configured scope. History remains readable.
+            This workload identity no longer admits new work. Its history remains readable; inspect the identity for its retirement status.
           </p>
         )}
       </div>

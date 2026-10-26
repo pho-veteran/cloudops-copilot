@@ -32,6 +32,8 @@ Open `https://localhost:8443` after accepting this lab's CA through normal local
 
 ## Consumer behavior
 
+Versioned name-based live identity reconciliation, failure semantics and its read-only UI are documented in [Host-configured workload scope](workload-scope.md). The bootstrap's legacy UID-pinned representation remains supported; do not overwrite an approved v2 scope with freshly generated legacy files.
+
 - Workloads expose selected image/resource baseline candidates from two matching healthy observations at least five seconds apart, valid for five minutes. Confirmation saves UID/digest/actor/time metadata and never patches Kubernetes. Referenced configuration and Secrets are explicitly outside the snapshot.
 - Incident notes and acknowledge/resolve/reopen use the existing principal. Resolution captures an immutable stored handoff; later notes/reopen cannot rewrite that export. Queued/executing recovery blocks resolution and reinvestigation. An unknown execution may remain visible in a resolved incident and retains its lock until trusted proof.
 - Connection checks have fixed `cluster`, `database` and `worker` destinations. Results are persisted observations; no request accepts an endpoint or credential.
