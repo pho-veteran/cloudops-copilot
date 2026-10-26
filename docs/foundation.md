@@ -124,6 +124,84 @@ The implemented operation families are session/login/logout, workload inventory,
 - Errors use `{error: {code, message}}`: 401 for anonymous/expired session, 403 for Viewer/Origin/CSRF denial, 404 for missing or mismatched records, 409 for conflicting admission/active work/capacity, 422 for invalid fields/scope and 503 for database unavailability.
 - Run states in this slice are `queued`, `collecting`, `insufficient_evidence`, `failed`. Successful synthetic collection ends `insufficient_evidence` with diagnosis/recovery unavailable, never completed RCA. Terminal runs are immutable; explicit retry creates a new run. There are no plan/execution or live collection endpoints.
 
+## Available-operation authorization checks
+
+The test-only inventory in `services/backend/tests/permission_inventory.py` classifies
+the operations actually served by the application. `permission_cases.py` provides
+feature-specific valid requests and success assertions; `test_permissions.py` runs
+every classified operation with anonymous, expired, Viewer and Operator sessions.
+Authentication, cookies, role dependencies and PostgreSQL persistence remain real;
+these tests do not override the principal or permission dependencies.
+
+| Classification | Current operation IDs | Required behavior |
+|---|---|---|
+| Protected reads | `get_session`, `list_workloads`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
+| Operator domain mutations | `create_incident`, `create_run` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
+| Session self-service | `logout` | Either authenticated role may sign out its own session with valid Origin/CSRF |
+| Account entry | `login` | Valid credentials and configured Origin admit either account role; incorrect credentials return `401 invalid_credentials` |
+| Public probes | `liveness`, `readiness` | Public status only; readiness returns sanitized `503 database_not_ready` when unavailable |
+
+OpenAPI and generated docs (`/openapi.json`, `/docs`, `/docs/oauth2-redirect`,
+`/redoc`) are separate, explicitly public framework routes. Their actual GET/HEAD
+definitions are inventoried; unknown routes do not inherit an exemption. A schema
+describing a password input field is distinct from exposing a password value.
+
+The inventory uses the pinned FastAPI route-context API to traverse included and
+nested routers with their effective prefixes, including operations excluded from
+OpenAPI. Each application operation needs an explicit unique ID, one method/path,
+a classification and executable request/outcome fixtures. Missing/stale entries,
+unknown classifications, duplicate IDs, unsupported mounts/WebSockets and
+unclassified non-API routes fail the guard. The live OpenAPI document is compared
+with schema-visible routes. Unit tests deliberately introduce these mistakes to
+prove detection. Callable checks cannot judge assertion quality; reviewers must
+inspect feature fixtures as well as inventory results.
+
+For a new operation, its feature owner must:
+
+1. Define its permission semantics in the owning EPIC using the existing principal.
+2. Register its actual operation ID, method, path and classification in the inventory.
+3. Supply valid existing-record/body/header fixtures and meaningful success assertions.
+4. Run all four actor states through the real request path and assert domain-specific
+   denial side effects. Do not use a missing record, invalid body or mocked principal
+   as authorization evidence.
+5. Regenerate transport artifacts if necessary, run checks and record the tested
+   commit/environment and remaining integration gates in E01's evidence ledger.
+
+Focused checks, from the repository root:
+
+```sh
+# No database or runtime credentials required:
+uv run --project services/backend pytest -q services/backend/tests_unit/test_operation_inventory.py
+# Requires a dedicated TEST_DATABASE_URL ending in _test; clears that database:
+uv run --project services/backend pytest -q services/backend/tests/test_permissions.py
+```
+
+Permission fixtures create incidents through the API and complete the synthetic
+development collector before testing another run admission. Denials compare fresh
+committed snapshots of domain records, admissions, jobs, evidence, attempts and
+account/session state. Tests inspect a persisted attempt lease sentinel to verify
+it is absent from run responses. Password/session secrets are forbidden in response
+bodies; the session's own CSRF field and evidence SHA-256 remain permitted outputs.
+Existing workspace records are shared between application roles; this does not
+introduce tenant or per-user record ownership. A run must still belong to its URL's
+incident. Background worker processes must not target the disposable test database.
+
+Future integration receipts remain with the feature owners:
+
+| Owner | Operations requiring their own request-level evidence |
+|---|---|
+| E02 | Known-good baseline confirmation: Operator-only, with baseline validation and no change on denial |
+| E03 | Notes and acknowledge/resolve/reopen: Operator-only, preserving lifecycle/state rules |
+| E04 | Any new run controls: explicit semantics, run/job transition and denial evidence |
+| E07 | Approval/rejection: Operator-only with current plan/state and fresh action; expired approval requires sign-in, plan refetch and no automatic replay |
+| E08 | New report generation: Operator-only; Viewer may read/export existing permitted reports |
+| E09 | New connection checks: Operator-only; Viewer may read existing permitted results |
+| E01/E07/E10 | Maintenance recovery: trusted host authority and actual proof/provenance, never application role alone |
+
+No absent operation is counted as verified. Current-route permission tests neither
+close E01's future integration gates nor demonstrate a real HTTPS proxy, browser
+SameSite behavior, cluster/model integration or deployment security.
+
 ## Focused checks
 
 The Compose path is `./scripts/check-backend.sh`. It creates/reuses `cloudops_test`, applies migrations and clears that disposable database between tests. It never drops the normal application database.

@@ -23,6 +23,7 @@ packages = ["src/cloudops"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests_unit", "tests"]
+pythonpath = ["tests"]
 
 [tool.ruff]
 line-length = 100
