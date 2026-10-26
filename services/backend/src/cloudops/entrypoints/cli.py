@@ -4,7 +4,12 @@ from getpass import getpass
 
 from pydantic import ValidationError
 
-from cloudops.features.access.service import provision, revoke_sessions, set_role
+from cloudops.features.access.service import (
+    provision,
+    revoke_all_sessions,
+    revoke_sessions,
+    set_role,
+)
 from cloudops.features.workloads.service import sync_config
 from cloudops.shared.database import BACKEND_ROOT, require_schema, sessions
 from cloudops.shared.errors import DomainError
@@ -36,6 +41,10 @@ def main():
     account_role.add_argument("role", choices=["viewer", "operator"])
     revoke = sub.add_parser("revoke-sessions", help="Revoke all active sessions of one user.")
     revoke.add_argument("username")
+    sub.add_parser(
+        "revoke-all-sessions",
+        help="Trusted restore step: discard every restored browser session before starting the API.",
+    )
     args = parser.parse_args()
     try:
         run(args)
@@ -72,6 +81,11 @@ def run(args):
         elif args.command == "account-role":
             set_role(db, args.username, args.role)
             print("Account role updated; previous sessions revoked.")
+        elif args.command == "revoke-all-sessions":
+            revoke_all_sessions(db)
+            print(
+                "All browser sessions revoked; users must sign in and read current protected state again."
+            )
         else:
             revoke_sessions(db, args.username)
             print("Sessions revoked.")

@@ -10,6 +10,7 @@ from cloudops.entrypoints.api import create_app
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = (Path("contracts/openapi.json"), Path("apps/web/src/lib/api/generated/schema.d.ts"))
+TOOL_CLI = ROOT / "tools/contracts/node_modules/openapi-typescript/bin/cli.js"
 
 
 def main():
@@ -18,22 +19,30 @@ def main():
         "--write", action="store_true", help="Update committed artifacts; default checks for drift."
     )
     args = parser.parse_args()
-    cli = ROOT / "tools/contracts/node_modules/openapi-typescript/bin/cli.js"
+    cli = TOOL_CLI
     if not cli.is_file():
         parser.error("Run npm ci --prefix tools/contracts before generating contracts.")
     with tempfile.TemporaryDirectory(prefix="cloudops-contract-") as folder:
         temporary = Path(folder)
         schema = temporary / "openapi.json"
         types = temporary / "schema.d.ts"
-        schema.write_text(json.dumps(create_app().openapi(), indent=2, sort_keys=True) + "\n")
+        schema.write_text(
+            json.dumps(create_app().openapi(), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
         subprocess.run(["node", str(cli), str(schema), "--output", str(types)], check=True)
         drift = []
         for relative, generated in zip(ARTIFACTS, (schema, types), strict=True):
             destination = ROOT / relative
             if args.write:
                 destination.parent.mkdir(parents=True, exist_ok=True)
-                destination.write_bytes(generated.read_bytes())
-            elif not destination.is_file() or destination.read_bytes() != generated.read_bytes():
+                destination.write_text(
+                    generated.read_text(encoding="utf-8"), encoding="utf-8", newline="\n"
+                )
+            elif not destination.is_file() or destination.read_text(
+                encoding="utf-8"
+            ) != generated.read_text(encoding="utf-8"):
                 drift.append(str(relative))
         if drift:
             raise SystemExit(

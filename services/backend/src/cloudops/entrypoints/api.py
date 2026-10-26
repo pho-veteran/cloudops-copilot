@@ -37,8 +37,24 @@ def create_app():
     from cloudops.features.incidents.api import router as incidents
     from cloudops.features.investigations.api import router as investigations
     from cloudops.features.workloads.api import router as workloads
+    from cloudops.features.workloads.baselines import router as baselines
+    from cloudops.features.incidents.lifecycle import router as lifecycle
+    from cloudops.features.connections.api import router as connections
+    from cloudops.features.recommendations.api import router as recommendations
+    from cloudops.features.recovery.api import router as recovery
 
-    for router in (health, access, workloads, incidents, investigations):
+    for router in (
+        health,
+        access,
+        workloads,
+        incidents,
+        investigations,
+        baselines,
+        lifecycle,
+        connections,
+        recommendations,
+        recovery,
+    ):
         app.include_router(router)
 
     @app.middleware("http")

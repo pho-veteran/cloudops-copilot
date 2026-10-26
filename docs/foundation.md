@@ -65,7 +65,7 @@ SESSION_SECONDS=28800
 
 E10 must provide TLS and a same-origin frontend plus `/api` reverse proxy preserving API paths, cookie headers, the browser Origin and CSRF header. Keep the backend reachable only through the intended internal path; configure trusted proxy peers at deployment rather than treating arbitrary forwarded headers as authority. Check proxy/application logging rules so Cookie, Set-Cookie, CSRF and credentials are not logged.
 
-E10's browser-through-proxy acceptance must demonstrate login, Secure host-only cookie round trip, session read, an authorized mutation, denial without the correct Origin/CSRF, and logout followed by unauthenticated session access. Inspect cookie scope/flags and verify the session token is not persisted in browser storage or URLs. The existing Compose/Vite path is local HTTP tooling, not this release proxy stack.
+E10's browser-through-proxy acceptance must demonstrate login, Secure host-only cookie round trip, session read, an authorized mutation, denial without the correct Origin/CSRF, and logout followed by unauthenticated session access. Inspect cookie scope/flags and verify the session token is not persisted in browser storage or URLs. The default Compose/Vite path remains HTTP development tooling. The local HTTPS exercise below supplies a real TLS/proxy request path; trusted-browser and release-topology checks still require their own evidence.
 
 The configuration unit suite and `tests/test_access_browser_security.py` cover isolated parsing/startup and PostgreSQL-backed HTTPS TestClient behavior, including cookie set/delete attributes, token replay, session expiry, cross-session CSRF and denied-write counts. TestClient is API/fixture evidence; its cookie jar does not prove all browser SameSite/HttpOnly behavior, real TLS, proxy forwarding or deployment logging. Those remain E10 gates.
 
@@ -87,7 +87,53 @@ Unknown accounts fail with one `error:` line and change no data; an invalid role
 
 Sessions expire absolutely after `SESSION_SECONDS` (default 28800, maximum 8 hours), without sliding renewal. Logout revokes the server session. The browser holds CSRF authority in memory, never localStorage; only theme preference and the separate simulation use localStorage. A 401 removes protected query data, closes pending dialogs and requires sign-in at the same internal route. Mutations are not retried or replayed automatically.
 
+### Browser navigation and account boundaries
+
+Return navigation accepts only `#/queue`, `#/workloads`, `#/connections`, `#/reports`, and `#/incidents/<UUID>` with an optional `?run=<UUID>`. Unknown paths, external targets and additional parameters fall back to the queue. Signing in reads the selected saved records again; it does not retain a pending action.
+
+Logout, expiry and account changes discard protected queries, mutation state and dialogs. The transport rejects responses from an earlier authentication generation, including a body that finishes parsing after a new account signs in. A late 401 from an old generation cannot end a new session. A current authenticated 403 shows the permission/CSRF error and does not sign the user out or retry the action.
+
+Leaving a tab suspends its authority and clears protected views. Returning through focus, visibility or page restoration checks `/api/session` before rendering protected data or mutation controls. Failed connectivity shows an explicit retry state. The tab checks authority against the server; no cookie, CSRF token or principal is sent through localStorage or cross-tab messages. The sign-in username receives keyboard focus; Viewer access explains the unavailable incident/investigation actions.
+
+The E07 consumer discards dialog input and pending approval intent at the same boundary. After sign-in it fetches the immutable plan/version, its live validity and a new session-bound review receipt, then requires a new explicit decision. The server rejects the pre-sign-in receipt even if its plan is still current. Changing the displayed plan/digest/validity closes the old approval intent. The [integration lab](e01-local-lab.md) verifies the actual approval, writer and maintenance paths; the default collector remains synthetic.
+
+### Local HTTPS exercise
+
+Use an isolated Compose project and a URL-safe `POSTGRES_PASSWORD` in `.env` as in README. The override fixes its origin to `https://localhost:8443` and enables Secure cookies for API, worker and migration. It removes the host API port, serves the compiled frontend through Caddy and leaves the Vite development service inactive. Only loopback port 8443 is published. PostgreSQL and CA material use project-specific named volumes; no cluster/model/executor is enabled.
+
+```sh
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml up -d --build --wait --wait-timeout 120 api worker https
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml exec api python -m cloudops.entrypoints.cli account operator --role operator
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml exec api python -m cloudops.entrypoints.cli account viewer --role viewer
+mkdir -p tmp
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml cp https:/data/caddy/pki/authorities/local/root.crt tmp/local-https-root.crt
+uv run --project services/backend python scripts/smoke-https.py --ca tmp/local-https-root.crt
+```
+
+PowerShell users can create `tmp` with `New-Item -ItemType Directory -Force tmp`. Use Docker Compose v2.24.4 or newer for the override. The smoke script prompts for the two account passwords, creates one labeled persisted incident and records only incident/run IDs in `tmp/https-smoke.json`. Automation may pass `--password-stdin` with Operator and Viewer passwords on separate stdin lines. No passwords belong in command arguments, output artifacts or source control.
+
+The script validates the local certificate chain and hostname using the exported CA, then checks static frontend delivery, anonymous denial, configured Origin, CSRF denial without admission, Operator admission, Viewer reads/denials, cookie scope, logout and old-token replay. CI runs the same exercise with disposable accounts/database. The proxy's container health check establishes that its local CA exists; the smoke request establishes the actual TLS/API path.
+
+For browser testing, open `https://localhost:8443` only after trusting this lab's root certificate through your normal development certificate setup. Trust is a separate local setup choice; the commands above do not alter OS/browser trust or disable certificate validation. Caddy access logging is disabled; its default runtime logs do not include request bodies or session headers. Do not enable request/header logging of credentials. This local TLS receipt does not establish browser SameSite/HttpOnly enforcement or a deployed release endpoint.
+
+```sh
+# Stop without losing local records or CA material.
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml down
+```
+
+No Kubernetes lab or E07 proof provider is created by this exercise. Maintenance recovery remains unavailable until the actual proof/current-state and trusted-channel integration is implemented and verified.
+
+### E01 initial HTTP browser receipts
+
+The 2026-10-26 exercise used the running PostgreSQL/API/worker with a separate loopback HTTP browser origin. Operator sign-in opened a saved incident and selected run. Signing out in another tab caused protected polling to return 401, closed the open creation dialog, displayed the expired-session message and retained the selected IDs. Keyboard sign-in as Viewer returned to fresh saved records with a read-only explanation and no mutation controls. Invalid credentials and intentional sign-out displayed distinct messages; refresh retained the selected run.
+
+The 320px and 390px layouts were checked with actual browser device metrics and no horizontal document overflow. [Expired session](evidence/e01-expired-session.jpg), [invalid login at 320px](evidence/e01-login-320.jpg), [Viewer at 320px in dark mode](evidence/e01-viewer-320-dark.jpg) and [Viewer at 390px in dark mode](evidence/e01-viewer-390-dark.jpg) capture those states. Transport/query tests separately hold old responses and body parsing across account replacement, including late 401/403, and exercise focus/visibility authority checks and network retry. The browser's observed cross-tab expiry was driven by an actual rejected protected request; it is not claimed as isolated browser focus-event proof.
+
+The HTTPS request exercise used certificate/hostname validation through the real local Caddy proxy. Browser screenshots use the separate HTTP development origin; no browser certificate warning was bypassed, OS trust changed, real cluster contacted or recovery proof claimed. Tested source commits, checks and remaining full-E01 gates are recorded in the PR and E01 tracker.
+
 ## Failure exercises
+
+The initial HTTP screenshots above precede the [trusted HTTPS/K3s consumer exercise](e01-local-lab.md#reproduce-the-local-receipts), which now records the actual approval expiry/refetch, browser cookie/SameSite, Viewer export and maintenance integration receipts. Its temporary CA trust was explicitly approved and removed after verification.
 
 Run these only against the local development stack after creating an incident. Existing records should remain readable throughout worker failures.
 
@@ -113,10 +159,13 @@ For interruption, set `COLLECTOR_DELAY_SECONDS=60` on the worker with the same e
 |---|---|---|
 | E00 | `shared/config.py`, `shared/database.py`, Alembic and contract harness; `lib/api` transport | All implemented feature modules |
 | E01 | `features/access`: principal/session/permission and account provisioning | Every protected API; application shell |
-| E02 | `features/workloads`: configured stable identity and active allowlist | Admission, collection identity and Workloads UI |
-| E03 | `features/incidents`: manual admission coordinator and incident reads | Work queue and investigation workspace |
+| E02 | `features/workloads`: configured stable identity, allowlist and known-good metadata | Admission, baseline preparation and Workloads UI |
+| E03 | `features/incidents`: manual admission, notes/lifecycle and stored handoff | Work queue and investigation workspace |
 | E04 | `features/investigations` and shared job mechanics | Worker composition and run/evidence UI |
-| E09 | `features/health`: classified observations | Connections UI |
+| E07 | `features/recovery`: immutable manual plans, session-bound review, isolated executor and proof | Recovery UI, worker and trusted maintenance CLI |
+| E08 | `features/recommendations`: bounded KRR jobs and stored reports | Report UI/export, worker and pinned read-only runner |
+| E09 | `features/health` and `features/connections`: classified observations and fixed checks | Connections UI |
+| E10 | `compose.integration.yaml`, scoped lab credentials and HTTPS/recovery handoff | Local runtime and integration probes |
 
 HTTP handlers handle request/response/authentication; feature services own rules and transaction boundaries. Incident admission passes one SQLAlchemy session into E04, so partial incident/run/job admission cannot commit. Shared job code accepts feature handlers and never imports feature policy. Entrypoints register all persistence mappings before independent worker/CLI use. Network/synthetic collection work happens outside database transactions; fenced publication and job completion commit together.
 
@@ -142,7 +191,10 @@ these tests do not override the principal or permission dependencies.
 | Classification | Current operation IDs | Required behavior |
 |---|---|---|
 | Protected reads | `get_session`, `list_workloads`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
-| Operator domain mutations | `create_incident`, `create_run` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
+| Operator domain mutations | `create_incident`, `create_run`, `confirm_baseline`, `add_incident_note`, `transition_incident`, `create_connection_check`, `create_recommendation_report`, `propose_plan`, `decide_plan` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
+| Protected feature reads/exports | `list_baselines`, `list_incident_activity`, `export_incident_handoff`, `list_connection_checks`, `list_recommendation_reports`, `get_recommendation_report`, `export_recommendation_report`, `list_plans`, `list_executions` | Both roles inspect persisted records; no domain mutation |
+| Protected observation | `get_baseline_candidate` | Both roles may save a bounded live observation; it cannot confirm a baseline or write to Kubernetes |
+| Protected review | `read_plan` | Both roles read current validity and receive a session-bound read receipt; a receipt grants no decision permission |
 | Session self-service | `logout` | Either authenticated role may sign out its own session with valid Origin/CSRF |
 | Account entry | `login` | Valid credentials and configured Origin admit either account role; incorrect credentials return `401 invalid_credentials` |
 | Public probes | `liveness`, `readiness` | Public status only; readiness returns sanitized `503 database_not_ready` when unavailable |
@@ -192,7 +244,7 @@ Existing workspace records are shared between application roles; this does not
 introduce tenant or per-user record ownership. A run must still belong to its URL's
 incident. Background worker processes must not target the disposable test database.
 
-Future integration receipts remain with the feature owners:
+Implemented consumer boundaries and their continuing feature owners:
 
 | Owner | Operations requiring their own request-level evidence |
 |---|---|
@@ -202,11 +254,9 @@ Future integration receipts remain with the feature owners:
 | E07 | Approval/rejection: Operator-only with current plan/state and fresh action; expired approval requires sign-in, plan refetch and no automatic replay |
 | E08 | New report generation: Operator-only; Viewer may read/export existing permitted reports |
 | E09 | New connection checks: Operator-only; Viewer may read existing permitted results |
-| E01/E07/E10 | Maintenance recovery: trusted host authority and actual proof/provenance, never application role alone |
+| E01/E07/E10 | Isolated Linux executor maintenance: SO_PEERCRED deployment-root identity, durable request/proof provenance and actual UID/resourceVersion fence, never application role alone |
 
-No absent operation is counted as verified. Current-route permission tests neither
-close E01's future integration gates nor demonstrate a real HTTPS proxy, browser
-SameSite behavior, cluster/model integration or deployment security.
+No absent operation is counted as verified. Permission tests use real auth/PostgreSQL with explicitly controlled source observations. The separate [local lab receipts](e01-local-lab.md) cover actual TLS, K3s, KRR, writer fencing and restore. Current acceptance and any remaining browser/deployment gates live in E01 and the owning feature EPICs; these checks do not establish model integration or production deployment security.
 
 ## Focused checks
 
@@ -270,6 +320,6 @@ results; failed collection leaves `last_success_at` unset. All 35 frontend tests
 16 PostgreSQL tests, build, Python lint/format and contract/drift checks passed after
 these changes.
 
-Live Kubernetes/Prometheus packs, Alertmanager intake, notes/lifecycle/handoff, run comparison, runbooks, model analysis, plans/execution, KRR and deployment/recovery tooling remain in E01–E10 as applicable. No E00 fixture result satisfies those acceptance gates. The local worker cannot write to Kubernetes, and an application role does not grant maintenance/executor authority.
+The optional E01 lab now supplies notes/lifecycle/handoff, live known-good metadata, bounded connection checks, persisted KRR jobs, exact-plan scale approval and proof-backed maintenance. The worker has only a private dispatch capability; the separate executor alone holds the scoped Kubernetes writer credential. Live investigation packs, Alertmanager intake, comparison/runbooks, model analysis, additional recovery templates, qualified KRR history and release deployment remain in their feature EPICs. No E00 fixture result satisfies those gates, and no application role grants maintenance authority.
 
 Fresh package audits are recorded with the tested PR commit. Existing web development-tool advisories remain an E10 release-tooling gate; a zero production-package audit is not a container/OS vulnerability scan or a complete security assessment. Only one maintainer has reviewed producer/consumer integration so far.

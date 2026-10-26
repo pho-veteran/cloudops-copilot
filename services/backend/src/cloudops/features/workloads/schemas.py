@@ -11,6 +11,7 @@ class DevelopmentWorkload(BaseModel):
     namespace: str = Field(min_length=1, max_length=100)
     name: str = Field(min_length=1, max_length=100)
     uid: str = Field(min_length=1, max_length=100)
+    source: Literal["development_fixture", "live_kubernetes"] = "development_fixture"
 
 
 class WorkloadView(View):
@@ -20,7 +21,7 @@ class WorkloadView(View):
     name: str
     uid: str
     active: bool
-    source: Literal["development_fixture"] = "development_fixture"
+    source: Literal["development_fixture", "live_kubernetes"] = "development_fixture"
     health: Literal["unavailable"] = "unavailable"
 
 

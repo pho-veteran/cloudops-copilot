@@ -15,7 +15,7 @@ vi.mock("@/lib/api/client", async (importOriginal) => {
   return {
     ...original,
     api: { GET: mocks.get, POST: mocks.post },
-    transport: { setCsrfToken: mocks.csrf },
+    transport: { setCsrfToken: mocks.csrf, clearSession: () => mocks.csrf(null) },
   };
 });
 vi.mock("@/features/incidents/WorkQueue", () => ({

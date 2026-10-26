@@ -6,11 +6,17 @@ from sqlalchemy.dialects.postgresql import insert
 
 from cloudops.entrypoints import metadata  # noqa: F401
 from cloudops.features.investigations.collector import CollectionHandler, collect, prepare
+from cloudops.features.recommendations.worker import ReportHandler, generate
+from cloudops.features.recovery.service import ExecutionHandler, execute
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, require_schema, sessions
 from cloudops.shared.jobs import claim_next, finish, renew
 
-HANDLERS = {"development_collection_v1": CollectionHandler()}
+HANDLERS = {
+    "development_collection_v1": CollectionHandler(),
+    "recommendation_report_v1": ReportHandler(),
+    "recovery_execution_v1": ExecutionHandler(),
+}
 logger = logging.getLogger(__name__)
 
 
@@ -44,11 +50,20 @@ def run_once() -> bool:
     keeper = threading.Thread(target=keep_lease, daemon=True)
     keeper.start()
     try:
-        result = collect(prepare(claim.subject_id))
+        if claim.kind == "development_collection_v1":
+            result = collect(prepare(claim.subject_id))
+        elif claim.kind == "recommendation_report_v1":
+            result = generate(claim.subject_id)
+        else:
+            result = execute(claim.subject_id)
         if not finish(claim, HANDLERS[claim.kind], result=result):
-            logger.info("Obsolete collection result rejected.")
+            logger.info("Obsolete job result rejected.")
     except Exception:
-        finish(claim, HANDLERS[claim.kind], error="Development fixture collection failed.")
+        finish(
+            claim,
+            HANDLERS[claim.kind],
+            error="Bounded job attempt failed; inspect its recorded feature outcome.",
+        )
     finally:
         stopped.set()
         keeper.join(timeout=2)

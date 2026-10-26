@@ -10,6 +10,20 @@ from cloudops.shared.jobs import Job, JobAttempt
 
 
 def admit_run(db: Session, incident_id: UUID, actor_id: UUID) -> InvestigationRun:
+    from cloudops.features.recovery.models import ActionPlan, Execution
+    from cloudops.features.recovery.service import invalidate
+
+    if db.scalar(
+        select(Execution.id)
+        .join(ActionPlan)
+        .where(ActionPlan.incident_id == incident_id, Execution.state.in_(["queued", "executing"]))
+    ):
+        raise DomainError(
+            409,
+            "execution_active",
+            "An active execution must reach a recorded outcome before a new investigation.",
+        )
+    invalidate(db, incident_id)
     active = db.scalar(
         select(InvestigationRun.id).where(
             InvestigationRun.incident_id == incident_id,

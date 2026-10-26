@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useWorkloads } from "./queries";
 import { WorkloadIdentity } from "./WorkloadIdentity";
+import { Baselines } from "./Baselines";
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +20,9 @@ export function Workloads({
       <div className="eyebrow">CONFIGURED SCOPE</div>
       <h1>Workloads</h1>
       <p className="muted">
-        Development identities only. Live health and known-good baselines are
-        unavailable.
+        Configured identities only. Inspect a fresh live candidate before
+        confirming a known-good baseline; synthetic workloads cannot establish
+        one.
       </p>
       {query.isPending ? (
         <Loading />
@@ -34,13 +36,20 @@ export function Workloads({
           <div className="foundation-grid">
             {query.data.items.map((w) => (
               <article key={w.id} className="foundation-panel">
-                <Badge variant="outline">Development fixture</Badge>
+                <Badge variant="outline">
+                  {w.source === "live_kubernetes"
+                    ? "Live Kubernetes identity"
+                    : "Development fixture"}
+                </Badge>
                 <h2>
                   {w.namespace}/{w.name}
                 </h2>
                 <p>Cluster: {w.cluster}</p>
                 <p className="muted">Live health unavailable</p>
                 <WorkloadIdentity workload={w} />
+                {w.source === "live_kubernetes" && (
+                  <Baselines id={w.id} canMutate={canMutate} />
+                )}
                 {canMutate ? (
                   <Button onClick={() => onInvestigate(w.id)}>
                     Investigate workload

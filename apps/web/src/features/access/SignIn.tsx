@@ -43,6 +43,7 @@ export function SignIn({
         <Label htmlFor="username">Username</Label>
         <Input
           id="username"
+          autoFocus
           autoComplete="username"
           required
           maxLength={64}

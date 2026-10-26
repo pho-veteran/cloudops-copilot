@@ -27,9 +27,51 @@ OPERATIONS = {
     "create_run": Operation("POST", "/api/incidents/{incident_id}/runs", "operator_mutation"),
     "liveness": Operation("GET", "/api/health/live", "public_probe"),
     "readiness": Operation("GET", "/api/health/ready", "public_probe"),
+    "get_baseline_candidate": Operation(
+        "GET", "/api/workloads/{workload_id}/baseline-candidate", "protected_observation"
+    ),
+    "confirm_baseline": Operation(
+        "POST", "/api/workloads/{workload_id}/baseline", "operator_mutation"
+    ),
+    "list_baselines": Operation("GET", "/api/workloads/{workload_id}/baselines", "protected_read"),
+    "add_incident_note": Operation(
+        "POST", "/api/incidents/{incident_id}/notes", "operator_mutation"
+    ),
+    "transition_incident": Operation(
+        "POST", "/api/incidents/{incident_id}/lifecycle", "operator_mutation"
+    ),
+    "list_incident_activity": Operation(
+        "GET", "/api/incidents/{incident_id}/activity", "protected_read"
+    ),
+    "export_incident_handoff": Operation(
+        "GET", "/api/incidents/{incident_id}/handoff", "protected_read"
+    ),
+    "create_connection_check": Operation("POST", "/api/connection-checks", "operator_mutation"),
+    "list_connection_checks": Operation("GET", "/api/connection-checks", "protected_read"),
+    "create_recommendation_report": Operation(
+        "POST", "/api/recommendation-reports", "operator_mutation"
+    ),
+    "list_recommendation_reports": Operation(
+        "GET", "/api/recommendation-reports", "protected_read"
+    ),
+    "get_recommendation_report": Operation(
+        "GET", "/api/recommendation-reports/{report_id}", "protected_read"
+    ),
+    "export_recommendation_report": Operation(
+        "GET", "/api/recommendation-reports/{report_id}/export", "protected_read"
+    ),
+    "propose_plan": Operation("POST", "/api/incidents/{incident_id}/plans", "operator_mutation"),
+    "list_plans": Operation("GET", "/api/incidents/{incident_id}/plans", "protected_read"),
+    "read_plan": Operation("GET", "/api/plans/{plan_id}", "protected_review"),
+    "decide_plan": Operation("POST", "/api/plans/{plan_id}/decision", "operator_mutation"),
+    "list_executions": Operation(
+        "GET", "/api/incidents/{incident_id}/executions", "protected_read"
+    ),
 }
 
 CATEGORIES = {
+    "protected_observation",
+    "protected_review",
     "protected_read",
     "operator_mutation",
     "session_self_service",

@@ -1,0 +1,489 @@
+{
+  "collected_at": "2026-10-26T06:10:20.167789+00:00",
+  "environment": {
+    "project": "cloudops-e01-https",
+    "docker": "29.8.0",
+    "compose": "5.5.1",
+    "kubernetes": "v1.37.1+k3s1",
+    "postgresql": "17.11",
+    "python_container": "3.13.11",
+    "caddy": "2.10.2",
+    "krr": "1.31.1",
+    "origin": "https://localhost:8443",
+    "scope": "Disposable local K3s; no external cluster/model or release endpoint."
+  },
+  "receipts": {
+    "consumers": {
+      "incident_id": "3f95b828-fa6e-4586-8560-2e93e38f331f",
+      "run_id": "778a971b-8242-4ecb-b9ba-28d8830a7948",
+      "workload_id": "c106584f-fa4c-4f38-8c91-6bdf3f52cd11",
+      "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+      "report_id": "8ee2e7ad-b94d-487a-b6b3-b88c60d6fc3c",
+      "plan_id": "385fe283-83bd-4cb7-a240-b633add5cee9",
+      "execution_id": "f0ee2f27-9114-4615-bbd6-f88bf4bbdcb3",
+      "report_receipt": {
+        "state": "insufficient_data",
+        "result": {
+          "source": "live_krr",
+          "coverage": null,
+          "limitations": "No qualified representative history; no apply operation or savings estimate.",
+          "tool_version": "1.31.1",
+          "workload_uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+          "output_sha256": "0c12677c09540727be108aaf91fb40d8d815e478d4f17699a1186ace7601afad",
+          "tool_exit_code": 0,
+          "observed_window": null,
+          "recommendations": null,
+          "requested_hours": 6
+        }
+      },
+      "execution_outcome": {
+        "reason": "Kubernetes acknowledged the conditional replica change. Application traffic/metric coverage is unavailable; verify manually.",
+        "outcome": "acknowledged",
+        "replicas": 2,
+        "verification": "inconclusive",
+        "resource_version": "2820"
+      },
+      "baseline_candidate_digest": "b5a5965d8238617faca9d832efb4c737a114c0dc03e74a159bc4c60f4330bd0f"
+    },
+    "late_writer": {
+      "execution_id": "1da09077-031c-432a-bf88-d24fef9fbca6",
+      "execution_created_at": "2026-10-26T05:52:50.175131+00:00",
+      "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+      "dispatch": {
+        "outcome": "outcome_unknown",
+        "verification": "inconclusive",
+        "reason": "The admitted write has no durable acknowledgement yet."
+      },
+      "maintenance": {
+        "status": "applied",
+        "operation": "release_uncertain_target",
+        "proofs": {
+          "941260e8-5c27-4fc0-b2b8-2ae90e34962d": {
+            "provider": "resource_version_fence_v1",
+            "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+            "nonce": "e403662e-177a-4911-abc7-71fd92d19d10",
+            "resource_version": "3076",
+            "observed_at": "2026-10-26T05:52:50.689855+00:00",
+            "excluded_attempts": [
+              "1da09077-031c-432a-bf88-d24fef9fbca6"
+            ],
+            "snapshot": {
+              "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+              "replicas": 2,
+              "containers": [
+                {
+                  "name": "checkout",
+                  "image": "python:3.13.11-slim-bookworm",
+                  "resources": {
+                    "limits": {
+                      "cpu": "100m",
+                      "memory": "64Mi"
+                    },
+                    "requests": {
+                      "cpu": "10m",
+                      "memory": "32Mi"
+                    }
+                  }
+                }
+              ],
+              "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured."
+            }
+          }
+        },
+        "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
+        "request_id": "0a9ae867-bbe1-4592-a82b-9e1c7d8fefd4",
+        "actor": {
+          "uid": 0,
+          "pid": 409,
+          "account": "root",
+          "channel": "local_unix_peer_credentials",
+          "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+        }
+      },
+      "late_patch": "target_changed",
+      "replicas_unchanged": 2,
+      "retired_epoch_denied": true,
+      "late_worker_preserved_unknown": true
+    },
+    "restore": {
+      "restored_database": "disposable cloudops-e01-https/cloudops",
+      "old_cookie_denied": true,
+      "restored_unlocked_application_state_did_not_enable_gateway": true,
+      "historical_unknown_retained": "1da09077-031c-432a-bf88-d24fef9fbca6",
+      "enter": {
+        "status": "applied",
+        "operation": "enter_recovery",
+        "reason": "All configured targets quarantined independently of application database contents.",
+        "request_id": "9902fcd4-4afe-447d-8b70-89820ec78b6a",
+        "actor": {
+          "uid": 0,
+          "pid": 647,
+          "account": "root",
+          "channel": "local_unix_peer_credentials",
+          "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+        }
+      },
+      "enable": {
+        "status": "applied",
+        "operation": "enable_target",
+        "proofs": {
+          "941260e8-5c27-4fc0-b2b8-2ae90e34962d": {
+            "provider": "resource_version_fence_v1",
+            "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+            "nonce": "38d6f6c3-ad52-4a22-a4da-c0755008cffe",
+            "resource_version": "3119",
+            "observed_at": "2026-10-26T05:54:23.333575+00:00",
+            "excluded_attempts": [],
+            "snapshot": {
+              "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+              "replicas": 2,
+              "containers": [
+                {
+                  "name": "checkout",
+                  "image": "python:3.13.11-slim-bookworm",
+                  "resources": {
+                    "limits": {
+                      "cpu": "100m",
+                      "memory": "64Mi"
+                    },
+                    "requests": {
+                      "cpu": "10m",
+                      "memory": "32Mi"
+                    }
+                  }
+                }
+              ],
+              "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured."
+            }
+          }
+        },
+        "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
+        "request_id": "b4c95409-1369-4599-9670-ceec7373b15e",
+        "actor": {
+          "uid": 0,
+          "pid": 691,
+          "account": "root",
+          "channel": "local_unix_peer_credentials",
+          "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+        }
+      },
+      "exit": {
+        "status": "applied",
+        "operation": "exit_recovery_mode",
+        "proofs": {
+          "941260e8-5c27-4fc0-b2b8-2ae90e34962d": {
+            "provider": "resource_version_fence_v1",
+            "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+            "nonce": "fe689cc9-109c-4bb7-9d05-0ce34c706fb4",
+            "resource_version": "3122",
+            "observed_at": "2026-10-26T05:54:23.796663+00:00",
+            "excluded_attempts": [],
+            "snapshot": {
+              "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+              "replicas": 2,
+              "containers": [
+                {
+                  "name": "checkout",
+                  "image": "python:3.13.11-slim-bookworm",
+                  "resources": {
+                    "limits": {
+                      "cpu": "100m",
+                      "memory": "64Mi"
+                    },
+                    "requests": {
+                      "cpu": "10m",
+                      "memory": "32Mi"
+                    }
+                  }
+                }
+              ],
+              "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured."
+            }
+          }
+        },
+        "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
+        "request_id": "1a42abc6-5ed4-4034-bc5f-7b0a84db7dec",
+        "actor": {
+          "uid": 0,
+          "pid": 698,
+          "account": "root",
+          "channel": "local_unix_peer_credentials",
+          "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+        }
+      },
+      "fresh_proposal_then_explicit_reject": "f289eb7e-e5b9-47a0-9b88-9f6c1c18db72"
+    },
+    "maintenance_denials": {
+      "untrusted_peer": {
+        "status": "denied",
+        "code": "maintenance_actor_denied",
+        "reason": "A trusted deployment-root invocation is required; app credentials grant no maintenance authority.",
+        "request_id": "75e75187-1b49-47e1-b070-bf5945588743",
+        "actor": {
+          "uid": 10001,
+          "pid": 754,
+          "account": "untrusted",
+          "channel": "local_unix_peer_credentials",
+          "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+        }
+      },
+      "invalid_fields": [
+        {
+          "status": "denied",
+          "code": "maintenance_request_invalid",
+          "reason": "Reason, evidence references and configured target identities are required.",
+          "request_id": "a2fea378-5a68-43b4-b030-355e4855d11c",
+          "actor": {
+            "uid": 0,
+            "pid": 761,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        },
+        {
+          "status": "denied",
+          "code": "maintenance_request_invalid",
+          "reason": "Reason, evidence references and configured target identities are required.",
+          "request_id": "6d88f832-2dcc-4d5e-ac5f-4bad7fe5b999",
+          "actor": {
+            "uid": 0,
+            "pid": 768,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        },
+        {
+          "status": "denied",
+          "code": "maintenance_request_invalid",
+          "reason": "Reason, evidence references and configured target identities are required.",
+          "request_id": "b312adb3-b8a2-4a68-a8d0-a5f3c3510745",
+          "actor": {
+            "uid": 0,
+            "pid": 775,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        }
+      ],
+      "unavailable_proof": [
+        {
+          "status": "denied",
+          "code": "maintenance_proof_required",
+          "reason": "No supported safety proof provider is configured.",
+          "request_id": "9a2382b3-b280-470e-b9bc-4c6185355b66",
+          "actor": {
+            "uid": 0,
+            "pid": 15,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        },
+        {
+          "status": "denied",
+          "code": "maintenance_proof_required",
+          "reason": "No supported safety proof provider is configured.",
+          "request_id": "e60963d0-e400-4db7-b9b9-b99d0d861a17",
+          "actor": {
+            "uid": 0,
+            "pid": 22,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        },
+        {
+          "status": "denied",
+          "code": "maintenance_proof_required",
+          "reason": "No supported safety proof provider is configured.",
+          "request_id": "ea734887-7792-4863-9f32-562fd3bc0b09",
+          "actor": {
+            "uid": 0,
+            "pid": 29,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        }
+      ],
+      "fresh_enable_exit": [
+        {
+          "status": "applied",
+          "operation": "enable_target",
+          "proofs": {
+            "941260e8-5c27-4fc0-b2b8-2ae90e34962d": {
+              "provider": "resource_version_fence_v1",
+              "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+              "nonce": "571aa8c2-608b-4e6e-b4cf-e584613354c2",
+              "resource_version": "3146",
+              "observed_at": "2026-10-26T05:54:47.572880+00:00",
+              "excluded_attempts": [],
+              "snapshot": {
+                "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+                "replicas": 1,
+                "containers": [
+                  {
+                    "name": "checkout",
+                    "image": "python:3.13.11-slim-bookworm",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "64Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "32Mi"
+                      }
+                    }
+                  }
+                ],
+                "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured."
+              }
+            }
+          },
+          "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
+          "request_id": "8797049a-1d3d-4eea-bc55-8dd63d91cbdb",
+          "actor": {
+            "uid": 0,
+            "pid": 15,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        },
+        {
+          "status": "applied",
+          "operation": "exit_recovery_mode",
+          "proofs": {
+            "941260e8-5c27-4fc0-b2b8-2ae90e34962d": {
+              "provider": "resource_version_fence_v1",
+              "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+              "nonce": "9b6d9463-85a7-4d7c-92b1-fdba6f9091ec",
+              "resource_version": "3151",
+              "observed_at": "2026-10-26T05:54:48.177463+00:00",
+              "excluded_attempts": [],
+              "snapshot": {
+                "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+                "replicas": 1,
+                "containers": [
+                  {
+                    "name": "checkout",
+                    "image": "python:3.13.11-slim-bookworm",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "64Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "32Mi"
+                      }
+                    }
+                  }
+                ],
+                "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured."
+              }
+            }
+          },
+          "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
+          "request_id": "8097478c-5007-4d35-8332-b008f8e5370b",
+          "actor": {
+            "uid": 0,
+            "pid": 22,
+            "account": "root",
+            "channel": "local_unix_peer_credentials",
+            "deployment_id": "60b60138-b87a-4f23-b062-d53b2862a449"
+          }
+        }
+      ]
+    },
+    "expired_approval": {
+      "incident_id": "3f95b828-fa6e-4586-8560-2e93e38f331f",
+      "plan_id": "0edee283-57fd-430e-8b38-bbee1123f2e7",
+      "execution_id": "65575b28-78ac-48b3-b28f-a0b934f045bb",
+      "decision_statuses": [
+        401,
+        409,
+        200,
+        409
+      ],
+      "fresh_review_required": true,
+      "one_execution_only": true,
+      "outcome": {
+        "reason": "Kubernetes acknowledged the conditional replica change. Application traffic/metric coverage is unavailable; verify manually.",
+        "outcome": "acknowledged",
+        "replicas": 1,
+        "verification": "inconclusive",
+        "resource_version": "3128"
+      }
+    },
+    "credential_boundaries": {
+      "mounts": {
+        "api": {
+          "/run/cloudops-reader/client.json": true,
+          "/run/cloudops-writer/client.json": false,
+          "/var/lib/cloudops-executor/maintenance.sock": false,
+          "/run/cloudops-dispatch/key": false
+        },
+        "worker": {
+          "/run/cloudops-reader/client.json": true,
+          "/run/cloudops-writer/client.json": false,
+          "/var/lib/cloudops-executor/maintenance.sock": false,
+          "/run/cloudops-dispatch/key": true
+        }
+      },
+      "reader_denials": {
+        "secret_read": 403,
+        "deployment_patch": 403
+      },
+      "writer_denials": {
+        "secret_read": 403,
+        "other_target_patch": 403
+      }
+    },
+    "live_prerequisite_denials": {
+      "actual_hpa_denied_plan": {
+        "error": {
+          "code": "controller_conflict",
+          "message": "A workload controller owns this target. Manual review is required."
+        }
+      },
+      "plan_records_unchanged": true,
+      "actual_reader_rejected_stale_uid": {
+        "code": "target_changed",
+        "status": 409
+      }
+    }
+  },
+  "browser_https": {
+    "state": "passed",
+    "receipt": "e01-browser-https.json",
+    "tested_source": "cfc131b0bbfde65a9289b1cb589cb8105064775c",
+    "temporary_ca_approved": true,
+    "temporary_ca_removed": true,
+    "warning_bypassed": false,
+    "remaining_e01_browser_gate": null
+  },
+  "implementation_commit": "6886a93f632bde675de4c201bfea7caacb6ca7e0",
+  "checks": {
+    "backend_full_linux": {
+      "passed": 410,
+      "database": "Separate disposable PostgreSQL cloudops_test",
+      "warning": "Existing Starlette/httpx deprecation"
+    },
+    "frontend": {
+      "passed": 64,
+      "build": "TypeScript and Vite passed"
+    },
+    "contracts": "Backend/OpenAPI/TypeScript match; deliberate drift rejected",
+    "lint_format": "Ruff passed for backend, scripts and KRR runner",
+    "https_requests": "Certificate/hostname, Secure cookie, Origin/CSRF, persisted admission, Viewer denial, logout and replay passed",
+    "production_package_audit": {
+      "vulnerabilities": 0,
+      "limit": "npm production packages only; existing development-tool advisories and container/OS/release validation remain E10 scope"
+    }
+  }
+}

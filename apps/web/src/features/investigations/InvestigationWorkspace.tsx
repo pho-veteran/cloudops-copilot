@@ -6,6 +6,8 @@ import { runKeys, useRun, useRuns } from "./queries";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Failure, Loading } from "@/app/Feedback";
+import { IncidentActivity } from "@/features/incidents/IncidentActivity";
+import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 
 export function InvestigationWorkspace({
   id,
@@ -157,7 +159,8 @@ export function InvestigationWorkspace({
                 <p className="mono">{current.data.id}</p>
                 <p>{current.data.reason}</p>
                 <p className="muted">
-                  AI diagnosis unavailable · Recovery unavailable
+                  AI diagnosis unavailable. Live manual recovery, when
+                  configured, is reviewed separately below.
                 </p>
                 {current.data.state === "collecting" && (
                   <p className="muted">
@@ -245,6 +248,16 @@ export function InvestigationWorkspace({
           )}
         </div>
       </div>
+      <IncidentActivity
+        id={id}
+        state={incident.data.state}
+        canMutate={canMutate}
+      />
+      <RecoveryPlans
+        id={id}
+        canMutate={canMutate}
+        live={incident.data.workload.source === "live_kubernetes"}
+      />
     </section>
   );
 }

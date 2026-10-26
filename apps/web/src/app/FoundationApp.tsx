@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   QueryClient,
   QueryClientProvider,
@@ -22,9 +22,11 @@ import { CreateIncident } from "@/features/incidents/CreateIncident";
 import { Workloads } from "@/features/workloads/Workloads";
 import { InvestigationWorkspace } from "@/features/investigations/InvestigationWorkspace";
 import { Connections } from "@/features/connections/Connections";
+import { Reports } from "@/features/recommendations/Reports";
 import { Failure, Loading } from "./Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { readRoute } from "./routes";
 import {
   Dialog,
   DialogContent,
@@ -33,23 +35,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-function readRoute() {
-  const [path, search = ""] = window.location.hash
-    .replace(/^#\/?/, "")
-    .split("?");
-  const parts = path.split("/");
-  return {
-    page: parts[0] || "queue",
-    id: parts[1] || "",
-    run: new URLSearchParams(search).get("run") || "",
-  };
-}
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (count, error) =>
         !(
-          error instanceof ApiError && [401, 403, 404].includes(error.status)
+          error instanceof ApiError &&
+          [401, 403, 404, 409].includes(error.status)
         ) && count < 1,
     },
     mutations: { retry: false },
@@ -63,18 +55,34 @@ export function Workspace() {
   >(null);
   const [route, setRoute] = useState(readRoute);
   const [creating, setCreating] = useState<{ workload?: string } | null>(null);
+  const [authorityReady, setAuthorityReady] = useState(false);
+  const active = useRef(true);
+  const identity = useRef<string | null>(null);
+  const clearProtected = () => {
+    void cache.cancelQueries({ predicate: (q) => q.queryKey[0] !== "session" });
+    cache.removeQueries({ predicate: (q) => q.queryKey[0] !== "session" });
+    cache.getMutationCache().clear();
+    logout.reset();
+    setCreating(null);
+  };
   const [dark, setDark] = useState(
     () => localStorage.getItem("cloudops-theme") === "dark",
   );
   const session = useQuery({
     queryKey: ["session"],
-    queryFn: async () => {
-      const result = unwrap(await api.GET("/api/session"));
+    queryFn: async ({ signal }) => {
+      const result = unwrap(await api.GET("/api/session", { signal }));
       transport.setCsrfToken(result.csrf_token);
+      const next = `${result.principal.id}:${result.principal.role}:${result.csrf_token}`;
+      if (identity.current !== null && identity.current !== next)
+        clearProtected();
+      identity.current = next;
+      setAuthorityReady(active.current);
       return result;
     },
     retry: false,
     refetchInterval: 60000,
+    refetchOnWindowFocus: false,
     enabled: signInReason === null,
   });
   useEffect(() => {
@@ -87,17 +95,55 @@ export function Workspace() {
   }, []);
   useEffect(() => {
     const listener = () => {
+      transport.clearSession();
+      setAuthorityReady(false);
       setCreating(null);
       setSignInReason("expired");
       void cache.cancelQueries();
       cache.removeQueries({
         predicate: (query) => query.queryKey[0] !== "session",
       });
+      cache.removeQueries({ queryKey: ["session"] });
+      cache.getMutationCache().clear();
+      logout.reset();
     };
     window.addEventListener("cloudops:session-expired", listener);
     return () =>
       window.removeEventListener("cloudops:session-expired", listener);
   }, [cache]);
+  useEffect(() => {
+    if (signInReason !== null) return;
+    const suspend = () => {
+      active.current = false;
+      transport.clearSession();
+      setAuthorityReady(false);
+      setCreating(null);
+      void cache.cancelQueries();
+      cache.removeQueries({ predicate: (q) => q.queryKey[0] !== "session" });
+      cache.getMutationCache().clear();
+      logout.reset();
+    };
+    const resume = () => {
+      if (document.visibilityState === "hidden") return;
+      active.current = true;
+      setAuthorityReady(false);
+      void session.refetch();
+    };
+    const visibility = () =>
+      document.visibilityState === "hidden" ? suspend() : resume();
+    window.addEventListener("blur", suspend);
+    window.addEventListener("focus", resume);
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("pagehide", suspend);
+    document.addEventListener("visibilitychange", visibility);
+    return () => {
+      window.removeEventListener("blur", suspend);
+      window.removeEventListener("focus", resume);
+      window.removeEventListener("pageshow", resume);
+      window.removeEventListener("pagehide", suspend);
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, [cache, signInReason, session.refetch]);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     localStorage.setItem("cloudops-theme", dark ? "dark" : "light");
@@ -108,12 +154,11 @@ export function Workspace() {
   const logout = useMutation({
     mutationFn: async () => unwrap(await api.POST("/api/logout")),
     onSuccess: () => {
-      transport.setCsrfToken(null);
+      transport.clearSession();
+      setAuthorityReady(false);
       setSignInReason("signed_out");
-      setCreating(null);
-      cache.removeQueries({
-        predicate: (query) => query.queryKey[0] !== "session",
-      });
+      clearProtected();
+      cache.removeQueries({ queryKey: ["session"] });
     },
   });
   if (
@@ -124,13 +169,14 @@ export function Workspace() {
   ) {
     return (
       <SignIn
-        reason={signInReason}
+        reason={signInReason ?? (identity.current ? "expired" : null)}
         onSuccess={(result) => {
-          cache.removeQueries({
-            predicate: (query) => query.queryKey[0] !== "session",
-          });
+          clearProtected();
           transport.setCsrfToken(result.csrf_token);
+          identity.current = `${result.principal.id}:${result.principal.role}:${result.csrf_token}`;
           cache.setQueryData(["session"], result);
+          active.current = true;
+          setAuthorityReady(true);
           setSignInReason(null);
         }}
       />
@@ -149,6 +195,16 @@ export function Workspace() {
         <p>
           <a href="/?simulation=1">Open the fixture simulation</a>
         </p>
+      </main>
+    );
+  if (
+    !authorityReady ||
+    identity.current !==
+      `${session.data.principal.id}:${session.data.principal.role}:${session.data.csrf_token}`
+  )
+    return (
+      <main className="foundation-login">
+        <p role="status">Checking your session before showing saved work…</p>
       </main>
     );
   const canMutate = session.data.principal.role === "operator";
@@ -187,6 +243,7 @@ export function Workspace() {
               { path: "queue", label: "Work queue", icon: ListTodo },
               { path: "workloads", label: "Workloads", icon: Boxes },
               { path: "connections", label: "Connections", icon: Plug },
+              { path: "reports", label: "Resource reports", icon: ListTodo },
             ].map((n) => (
               <a
                 key={n.path}
@@ -213,7 +270,8 @@ export function Workspace() {
         <main className="foundation-main" id="main-content">
           <div className="foundation-notice">
             <span>
-              Development collector · AI diagnosis and recovery unavailable
+              Synthetic investigation collector · AI diagnosis unavailable ·
+              Live manual plans require an enabled scoped target
             </span>
             {canMutate && (
               <Button size="sm" onClick={() => setCreating({})}>
@@ -221,6 +279,12 @@ export function Workspace() {
               </Button>
             )}
           </div>
+          {!canMutate && (
+            <p className="muted">
+              Viewer access: inspect saved work. An Operator account is required
+              to create incidents or start investigations.
+            </p>
+          )}
           {logout.isError && <Failure error={logout.error} />}
           {route.page === "queue" ? (
             <WorkQueue />
@@ -230,7 +294,9 @@ export function Workspace() {
               onInvestigate={(workload) => setCreating({ workload })}
             />
           ) : route.page === "connections" ? (
-            <Connections />
+            <Connections canMutate={canMutate} />
+          ) : route.page === "reports" ? (
+            <Reports canMutate={canMutate} />
           ) : route.page === "incidents" && route.id ? (
             <InvestigationWorkspace
               key={route.id}

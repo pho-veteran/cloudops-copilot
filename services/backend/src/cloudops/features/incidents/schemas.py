@@ -31,7 +31,7 @@ class IncidentView(View):
     workload_id: UUID
     title: str
     description: str
-    state: Literal["open"]
+    state: Literal["open", "acknowledged", "resolved"]
     created_by: UUID
     created_at: datetime
 
