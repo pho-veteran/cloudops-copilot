@@ -220,7 +220,9 @@ export function RecoveryPlans({
           <h3>Execution · {e.state.replaceAll("_", " ")}</h3>
           <p>
             {e.holds_lock
-              ? "Target lock retained. Trusted deployment maintenance and safety proof are required; no application role can override it."
+              ? e.state === "outcome_unknown"
+                ? "Target lock retained after an unknown outcome. Trusted deployment maintenance and safety proof are required; no application role can override it."
+                : "Execution is active. Wait for its recorded outcome before proposing another change."
               : "No active application target lock."}
           </p>
           <pre>{JSON.stringify(e.result, null, 2)}</pre>
