@@ -88,3 +88,22 @@ def provision(db: Session, username: str, password: str, role: str):
             user.password_hash, user.role = encoded, role
         else:
             db.add(User(username=username, password_hash=encoded, role=role))
+
+
+def set_role(db: Session, username: str, role: str) -> None:
+    if role not in {"viewer", "operator"}:
+        raise DomainError(422, "invalid_role", "Role must be viewer or operator.")
+    with db.begin():
+        user = db.scalar(select(User).where(User.username == username).with_for_update())
+        if not user:
+            raise DomainError(404, "account_not_found", "Account does not exist.")
+        user.role = role
+        db.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+
+
+def revoke_sessions(db: Session, username: str) -> None:
+    with db.begin():
+        user = db.scalar(select(User).where(User.username == username).with_for_update())
+        if not user:
+            raise DomainError(404, "account_not_found", "Account does not exist.")
+        db.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
