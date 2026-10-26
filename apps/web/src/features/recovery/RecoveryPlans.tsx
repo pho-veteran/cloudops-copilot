@@ -241,8 +241,9 @@ export function RecoveryPlans({
               and approved explicitly.
             </DialogDescription>
           </DialogHeader>
-          <p className="mono">{approval?.plan.digest}</p>
+          <p className="mono break-all">{approval?.plan.digest}</p>
           <Button
+            className="h-auto w-full whitespace-normal py-2"
             disabled={
               !available ||
               decide.isPending ||
