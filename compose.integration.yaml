@@ -1,0 +1,78 @@
+services:
+  k3s:
+    image: rancher/k3s:v1.37.1-k3s1@sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d
+    privileged: true
+    command: [server, --node-name, cloudops-local, --tls-san, k3s, --disable, traefik, --disable, servicelb, --cluster-cidr, 10.244.0.0/16, --service-cidr, 10.245.0.0/16]
+    tmpfs: [/run, /var/run]
+    volumes: [k3s_data:/var/lib/rancher/k3s]
+    ports: ['127.0.0.1:6445:6443']
+    healthcheck:
+      test: [CMD, /bin/kubectl, get, --raw, /readyz]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+  migrate:
+    environment: &integration-env
+      WORKLOADS_FILE: /run/cloudops-reader/workloads.json
+      KUBE_READ_CONFIG: /run/cloudops-reader/client.json
+      EXECUTOR_URL: http://executor:8081
+      KRR_RUNNER_URL: http://krr:8082
+    volumes:
+      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+  api:
+    environment: *integration-env
+    volumes:
+      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+  worker:
+    environment:
+      <<: *integration-env
+      EXECUTOR_DISPATCH_KEY: /run/cloudops-dispatch/key
+      KRR_RUNNER_KEY: /run/cloudops-krr/key
+    volumes:
+      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+      - ./tmp/e01-integration/dispatcher:/run/cloudops-dispatch:ro
+      - ./tmp/e01-integration/krr:/run/cloudops-krr:ro
+  executor:
+    image: cloudops-local-backend
+    build:
+      context: .
+      dockerfile: services/backend/Dockerfile
+    command: [python, -m, cloudops.features.recovery.gateway]
+    healthcheck:
+      test: [CMD, python, -c, "import json,os,urllib.request; uid=json.load(open(os.environ['EXECUTOR_ALLOWLIST']))[0]['uid']; urllib.request.urlopen('http://localhost:8081/targets/'+uid)"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    environment:
+      DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/cloudops
+      WEB_ORIGIN: https://localhost:8443
+      COOKIE_SECURE: "true"
+      EXECUTOR_ROOT: /var/lib/cloudops-executor
+      EXECUTOR_KUBE_CONFIG: /run/cloudops-writer/client.json
+      EXECUTOR_ALLOWLIST: /run/cloudops-writer/workloads.json
+      EXECUTOR_DISPATCH_KEY: /run/cloudops-dispatch/key
+      EXECUTOR_PROOF_PROVIDER: ${EXECUTOR_PROOF_PROVIDER:-resource_version_fence_v1}
+    volumes:
+      - executor_authority:/var/lib/cloudops-executor
+      - ./tmp/e01-integration/writer:/run/cloudops-writer:ro
+      - ./tmp/e01-integration/dispatcher:/run/cloudops-dispatch
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      k3s:
+        condition: service_healthy
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    volumes:
+      - ./config/lab/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+  krr:
+    build:
+      context: .
+      dockerfile: services/krr/Dockerfile
+    volumes:
+      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+      - ./tmp/e01-integration/krr:/run/cloudops-krr:ro
+    depends_on: [prometheus, k3s]
+volumes:
+  k3s_data:
+  executor_authority:

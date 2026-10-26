@@ -23,9 +23,10 @@ def sync_config(db: Session):
     with db.begin():
         db.execute(update(Workload).values(active=False))
         for entry in entries:
-            row = db.scalar(select(Workload).filter_by(**entry.model_dump()))
+            row = db.scalar(select(Workload).filter_by(**entry.model_dump(exclude={"source"})))
             if row:
                 row.active = True
+                row.source = entry.source
             else:
                 db.add(Workload(**entry.model_dump()))
 

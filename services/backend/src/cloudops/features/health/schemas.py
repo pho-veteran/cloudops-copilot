@@ -10,7 +10,7 @@ class HealthObservation(BaseModel):
     observed_at: datetime
     last_success_at: datetime | None
     reason: str
-    source: Literal["runtime", "development_fixture", "unimplemented"]
+    source: Literal["runtime", "development_fixture", "unimplemented", "live_gateway"]
 
 
 class HealthView(BaseModel):

@@ -202,6 +202,12 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
   window.history.replaceState(null, "", `/#/incidents/${id}?run=${run}`);
   const fixture = (r: RequestInfo | URL) => {
     const url = path(r);
+    if (
+      url.endsWith("/plans") ||
+      url.endsWith("/executions") ||
+      url.endsWith("/activity")
+    )
+      return [];
     if (url === "/api/session" || url === "/api/login") return a;
     if (url.endsWith(`/runs/${run}`))
       return {
@@ -245,4 +251,93 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
   expect(
     requests.filter((r) => path(r) === `/api/incidents/${id}`),
   ).toHaveLength(2);
+});
+
+it("discards an expired approval intent and requires a fresh plan read and explicit approval after sign-in", async () => {
+  const id = "74483c3e-adc2-4d05-93a6-c218afc6ebe7";
+  const planId = "00000000-0000-4000-8000-000000000004";
+  window.history.replaceState(null, "", `/#/incidents/${id}`);
+  let signedInAgain = false;
+  let decisions = 0;
+  const plan = {
+    id: planId,
+    version: 1,
+    digest: "a".repeat(64),
+    state: "proposed",
+    expires_at: new Date(Date.now() + 300_000).toISOString(),
+    content: { replicas: 2, source: "controlled_ui_fixture" },
+  };
+  network.fetch.mockImplementation(async (r) => {
+    const request = r as Request;
+    const url = path(r);
+    if (url === "/api/login") signedInAgain = true;
+    if (url === "/api/session" || url === "/api/login")
+      return Response.json(
+        signedInAgain ? { ...a, csrf_token: "new-session-csrf" } : a,
+      );
+    if (url.endsWith("/decision")) {
+      decisions++;
+      return decisions === 1
+        ? expired()
+        : Response.json({ ...plan, state: "approved" });
+    }
+    if (url === `/api/plans/${planId}`)
+      return Response.json({
+        plan,
+        valid: true,
+        reason: "Controlled live-provider fixture",
+        review_token: signedInAgain ? "fresh-plan-receipt" : "old-plan-receipt",
+      });
+    if (url.endsWith("/plans")) return Response.json([plan]);
+    if (url.endsWith("/activity") || url.endsWith("/executions"))
+      return Response.json([]);
+    if (url.endsWith("/runs"))
+      return Response.json({ items: [], next_offset: null });
+    return Response.json({
+      id,
+      title: "Approval session fixture",
+      state: "open",
+      workload: {
+        active: true,
+        namespace: "demo",
+        name: "checkout",
+        source: "live_kubernetes",
+      },
+    });
+  });
+  mount();
+  const user = userEvent.setup();
+  await user.click(
+    await screen.findByRole("button", { name: "Review approval" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Approve this version and dispatch" }),
+  );
+  await screen.findByRole("heading", { name: "Sign in to your workspace" });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(decisions).toBe(1);
+  await user.type(screen.getByLabelText("Username"), "operator");
+  await user.type(screen.getByLabelText("Password"), "local-test-password");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  await screen.findByRole("heading", { name: "Approval session fixture" });
+  expect(decisions).toBe(1);
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(window.location.hash).toBe(`#/incidents/${id}`);
+  await user.click(
+    await screen.findByRole("button", { name: "Review approval" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Approve this version and dispatch" }),
+  );
+  await waitFor(() => expect(decisions).toBe(2));
+  const requests = network.fetch.mock.calls
+    .map(([r]) => r as Request)
+    .filter((r) => path(r).endsWith("/decision"));
+  expect((await requests[0].clone().json()).review_token).toBe(
+    "old-plan-receipt",
+  );
+  expect((await requests[1].clone().json()).review_token).toBe(
+    "fresh-plan-receipt",
+  );
+  expect(requests[1].headers.get("X-CSRF-Token")).toBe("new-session-csrf");
 });

@@ -10,9 +10,12 @@ describe("safe return navigation", () => {
       run: id,
     });
   });
-  it.each(["queue", "workloads", "connections"])("retains %s", (page) => {
-    expect(safeRoute(`#/${page}`).page).toBe(page);
-  });
+  it.each(["queue", "workloads", "connections", "reports"])(
+    "retains %s",
+    (page) => {
+      expect(safeRoute(`#/${page}`).page).toBe(page);
+    },
+  );
   it.each([
     "https://foreign.test",
     "#//foreign.test",

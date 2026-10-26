@@ -2,7 +2,7 @@
 
 Kubernetes incident investigation and bounded recovery for a small operations team.
 
-**Current implementation:** a local interactive foundation with a React/Vite UI, FastAPI API, PostgreSQL, server-side sessions and a durable collection worker. Operators create manual incidents and investigations; Viewers inspect saved records. The development collector saves **labeled synthetic evidence**. Live Kubernetes/Prometheus collection, AI diagnosis and recovery are unavailable.
+**Current implementation:** a local React/FastAPI/PostgreSQL application with server-side sessions, Operator/Viewer permissions and durable jobs. Operators manage incidents, baseline metadata, scoped connection checks, KRR jobs and exact-plan decisions; Viewers inspect and export stored records. The default investigation collector saves **labeled synthetic evidence**. The optional [E01 integration lab](docs/e01-local-lab.md) adds real K3s observations, a separate conditional scale executor and trusted maintenance. Synthetic evidence never authorizes a cluster write. AI diagnosis, qualified resource recommendations and automatic remediation verification remain unavailable.
 
 Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. The foundation consumer integration exercise is self-verified in PR #16; it does not require a second contributor.
 
@@ -21,7 +21,7 @@ docker compose exec api python -m cloudops.entrypoints.cli account operator --ro
 docker compose exec api python -m cloudops.entrypoints.cli account viewer --role viewer
 ```
 
-Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. A separate [local HTTPS exercise](docs/foundation.md#local-https-exercise) serves the production web build and API through one proxy. Release deployment and executor credentials remain E10/E07 work.
+Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. A separate [local HTTPS exercise](docs/foundation.md#local-https-exercise) serves the compiled web build and API through one proxy; the [K3s integration overlay](docs/e01-local-lab.md) supplies scoped lab credentials without changing the host kubeconfig. Release deployment remains E10 work.
 
 `WEB_ORIGIN` must use the browser's exact origin spelling, with no trailing slash, credentials, path, query, fragment or explicit default port. HTTP requires exactly `localhost` or `127.0.0.1` and `COOKIE_SECURE=false`; HTTPS requires `COOKIE_SECURE=true`. Contradictory configurations fail at startup. See the [browser session configuration and HTTPS handoff](docs/foundation.md#browser-session-configuration-and-https-handoff) for accepted examples and the remaining E10 proxy checks.
 
@@ -51,7 +51,7 @@ docker compose run --rm migrate      # explicit migration and configured-workloa
 
 After editing workload configuration or backend source, rebuild/start with `docker compose up -d --build`. Removed workload identities remain in incident history but cannot admit new work. Changing a Deployment UID creates a different persisted identity.
 
-If `migrate` fails, API/worker do not start ready. Inspect `docker compose logs migrate`, correct configuration or the migration failure, then rerun the explicit migration command and `docker compose up -d`. Do not mark a revision as applied or delete the database to bypass a failed migration. The current migrations add tables without rewriting existing application data; rerunning upgrade preserves records. Downgrade removes the affected tables and is only exercised on the disposable test database. Future data migrations must document recovery separately.
+If `migrate` fails, API/worker do not start ready. Inspect `docker compose logs migrate`, correct configuration or the migration failure, then rerun the explicit migration command and `docker compose up -d`. Do not mark a revision as applied or delete the database to bypass a failed migration. Migration `0003_e01_consumers` preserves prior accounts/workloads/incidents and labels prior workloads as development fixtures. It adds consumer/recovery tables and expands incident states. Downgrade destroys new feature data and does not make expanded lifecycle values compatible with an older app. For the integration lab, use the [quarantined backup/restore procedure](docs/e01-local-lab.md#restore-and-restart), revoke restored browser sessions through the CLI, and establish fresh writer proof before enabling targets.
 
 If the worker stops during collection, a restarted worker reclaims the job after its 30-second lease. Heartbeats renew the lease every 5 seconds. At most three attempts run; older tokens cannot publish. Failed collection publishes no successful evidence. The Operator can explicitly create a new investigation after failure. Reads may be repeated; no exactly-once external call guarantee is made.
 

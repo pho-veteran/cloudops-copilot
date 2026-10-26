@@ -2,7 +2,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function safeRoute(hash: string) {
   const fallback = { page: "queue", id: "", run: "" };
-  const match = /^#\/(queue|workloads|connections)$/.exec(hash);
+  const match = /^#\/(queue|workloads|connections|reports)$/.exec(hash);
   if (match) return { ...fallback, page: match[1] };
   const incident = /^#\/incidents\/([^/?#]+)(?:\?run=([^&#]+))?$/.exec(hash);
   if (

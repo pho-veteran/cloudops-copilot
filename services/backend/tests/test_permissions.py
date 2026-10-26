@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi.testclient import TestClient
 from permission_cases import CASES
+from consumer_cases import CONSUMER_MODELS, seed as seed_consumers
 from permission_inventory import FRAMEWORK_ROUTES, OPERATIONS, verify_inventory
 from sqlalchemy import select, update
 
@@ -25,7 +26,7 @@ from cloudops.shared.jobs import Job, JobAttempt
 
 ORIGIN = "http://localhost:5173"
 ACTORS = ("anonymous", "expired", "viewer", "operator")
-DOMAIN_MODELS = (Incident, InvestigationRun, Job, Admission, Evidence, JobAttempt)
+DOMAIN_MODELS = (Incident, InvestigationRun, Job, Admission, Evidence, JobAttempt, *CONSUMER_MODELS)
 
 
 @dataclass
@@ -167,7 +168,11 @@ def permission_context(seeded, monkeypatch):
             secrets.update(db.scalars(select(LoginSession.token_hash)))
             secrets.update(str(value) for value in db.scalars(select(JobAttempt.lease_token)))
             assert db.scalar(select(JobAttempt.lease_token)) is not None
-        yield Context(app, actors, workload["id"], ids["incident_id"], ids["run_id"], body, secrets)
+        context = Context(
+            app, actors, workload["id"], ids["incident_id"], ids["run_id"], body, secrets
+        )
+        seed_consumers(context, monkeypatch)
+        yield context
 
 
 def test_available_route_inventory():
@@ -197,7 +202,15 @@ def test_operation_role_matrix(permission_context, operation_id, actor_name):
         assert snapshot() == before
         assert snapshot((User, LoginSession)) == accounts_before
     elif category == "operator_mutation":
-        assert_admission(context, operation_id, response, before)
+        if operation_id in {"create_incident", "create_run"}:
+            assert_admission(context, operation_id, response, before)
+        assert snapshot((User, LoginSession)) == accounts_before
+    elif category in {"protected_observation", "protected_review"}:
+        allowed = "baseline_candidates" if category == "protected_observation" else "plan_reviews"
+        after = snapshot()
+        assert {k: v for k, v in after.items() if k != allowed} == {
+            k: v for k, v in before.items() if k != allowed
+        }
         assert snapshot((User, LoginSession)) == accounts_before
     elif category == "session_self_service":
         assert snapshot() == before

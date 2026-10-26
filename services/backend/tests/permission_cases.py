@@ -153,3 +153,7 @@ CASES = {
     "liveness": RequestCase(session_request, probe_check),
     "readiness": RequestCase(session_request, probe_check),
 }
+
+from consumer_cases import CASES as CONSUMER_CASES  # noqa: E402
+
+CASES.update(CONSUMER_CASES)

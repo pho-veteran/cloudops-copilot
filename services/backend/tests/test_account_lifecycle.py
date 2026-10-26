@@ -155,6 +155,19 @@ def run_cli(monkeypatch, argv, stdin=""):
     main()
 
 
+def test_cli_restore_revokes_all_sessions_without_changing_accounts(db, monkeypatch, capsys):
+    tokens, before = {}, {}
+    for name in ("operator", "viewer"):
+        provision(db, name, PASSWORD, name)
+        tokens[name], _ = login(db, name, PASSWORD, None)
+        before[name] = account_state(db, name)
+    run_cli(monkeypatch, ["revoke-all-sessions"])
+    assert "All browser sessions revoked" in capsys.readouterr().out
+    for name, token in tokens.items():
+        assert_expired(db, token)
+        assert account_state(db, name) == before[name]
+
+
 def test_cli_account_role_updates_role_and_output(db, monkeypatch, capsys):
     provision(db, "operator", PASSWORD, "operator")
     first, _ = login(db, "operator", PASSWORD, None)

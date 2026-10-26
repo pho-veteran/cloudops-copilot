@@ -1,4 +1,7 @@
+import os
+
 from fastapi import APIRouter, Depends
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session
@@ -6,6 +9,8 @@ from cloudops.features.health.schemas import HealthObservation, HealthView
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, get_db, require_schema
 from cloudops.shared.errors import ERROR_RESPONSES, DomainError
+from cloudops.features.workloads.models import Workload
+from cloudops.features.recovery.client import target
 
 router = APIRouter()
 
@@ -44,6 +49,29 @@ def observations(db: Session = Depends(get_db)):
     now = database_now(db)
     beat = db.get(WorkerHeartbeat, "collector")
     stale = not beat or (now - beat.observed_at).total_seconds() > settings().worker_stale_seconds
+    executor_status, executor_source, executor_reason = (
+        "unavailable",
+        "unimplemented",
+        "No isolated executor is configured; application roles cannot enable product writes.",
+    )
+    if os.environ.get("EXECUTOR_URL"):
+        executor_source, executor_reason = (
+            "live_gateway",
+            "Executor target authority is unavailable or quarantined. Use trusted deployment maintenance, not application credentials.",
+        )
+        row = db.scalar(
+            select(Workload).where(Workload.active, Workload.source == "live_kubernetes").limit(1)
+        )
+        if row:
+            try:
+                authority = target(row.uid)
+                if authority["enabled"] and not authority["recovery_mode"]:
+                    executor_status, executor_reason = (
+                        "available",
+                        "The scoped target is enabled. Each manual plan still requires live prerequisites and explicit approval; application-metric verification remains manual.",
+                    )
+            except DomainError:
+                pass
 
     def observation(component, status, source, reason, last_success=None):
         return HealthObservation(
@@ -74,8 +102,8 @@ def observations(db: Session = Depends(get_db)):
                 "available",
                 "development_fixture",
                 "Synthetic collector adapter configured; availability does not indicate collection "
-                "success. Inspect investigation attempts for results. Live Kubernetes/Prometheus "
-                "unavailable.",
+                "success. Inspect investigation attempts for results. This collector has no live "
+                "Kubernetes/Prometheus telemetry pack; separate lab reads/checks do not change its evidence source.",
             ),
             observation(
                 "diagnosis",
@@ -85,9 +113,9 @@ def observations(db: Session = Depends(get_db)):
             ),
             observation(
                 "executor",
-                "unavailable",
-                "unimplemented",
-                "Recovery is unavailable until E07; executor boundary disabled.",
+                executor_status,
+                executor_source,
+                executor_reason,
             ),
         ]
     )

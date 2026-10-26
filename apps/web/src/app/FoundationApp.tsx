@@ -22,6 +22,7 @@ import { CreateIncident } from "@/features/incidents/CreateIncident";
 import { Workloads } from "@/features/workloads/Workloads";
 import { InvestigationWorkspace } from "@/features/investigations/InvestigationWorkspace";
 import { Connections } from "@/features/connections/Connections";
+import { Reports } from "@/features/recommendations/Reports";
 import { Failure, Loading } from "./Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -242,6 +243,7 @@ export function Workspace() {
               { path: "queue", label: "Work queue", icon: ListTodo },
               { path: "workloads", label: "Workloads", icon: Boxes },
               { path: "connections", label: "Connections", icon: Plug },
+              { path: "reports", label: "Resource reports", icon: ListTodo },
             ].map((n) => (
               <a
                 key={n.path}
@@ -268,7 +270,8 @@ export function Workspace() {
         <main className="foundation-main" id="main-content">
           <div className="foundation-notice">
             <span>
-              Development collector · AI diagnosis and recovery unavailable
+              Synthetic investigation collector · AI diagnosis unavailable ·
+              Live manual plans require an enabled scoped target
             </span>
             {canMutate && (
               <Button size="sm" onClick={() => setCreating({})}>
@@ -291,7 +294,9 @@ export function Workspace() {
               onInvestigate={(workload) => setCreating({ workload })}
             />
           ) : route.page === "connections" ? (
-            <Connections />
+            <Connections canMutate={canMutate} />
+          ) : route.page === "reports" ? (
+            <Reports canMutate={canMutate} />
           ) : route.page === "incidents" && route.id ? (
             <InvestigationWorkspace
               key={route.id}

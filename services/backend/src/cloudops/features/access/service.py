@@ -31,6 +31,12 @@ def token_hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+def revoke_all_sessions(db: Session):
+    """Trusted deployment restore step; never exposed through the application API."""
+    with db.begin():
+        db.execute(delete(LoginSession))
+
+
 def view(user: User, session: LoginSession) -> SessionView:
     return SessionView(
         principal=Principal(id=user.id, username=user.username, role=user.role),
