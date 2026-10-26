@@ -37,9 +37,10 @@ def create_incident(
 def list_incidents(
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0, le=100000),
+    workload_uuid: UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return service.list_incidents(db, limit, offset)
+    return service.list_incidents(db, limit, offset, workload_uuid=workload_uuid)
 
 
 @router.get(

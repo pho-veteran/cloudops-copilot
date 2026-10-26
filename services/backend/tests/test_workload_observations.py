@@ -14,6 +14,7 @@ from cloudops.entrypoints.observer import observe_claim, run_once
 from cloudops.features.access.dependencies import COOKIE
 from cloudops.features.access.models import LoginSession, User
 from cloudops.features.access.service import token_hash
+from cloudops.features.incidents.models import Incident
 from cloudops.features.workloads.models import (
     Workload,
     WorkloadObservation,
@@ -460,6 +461,72 @@ def test_observer_does_not_claim_stale_lease(seeded):
     with sessions()() as db:
         assert db.scalar(select(func.count()).select_from(WorkloadObservation)) == 0
     assert observe_claim(replacement, FakeReader(payload=make_payload())) is True
+
+
+def add_incident(workload_id, title="Related incident"):
+    with sessions()() as db, db.begin():
+        actor = db.scalar(select(User.id).where(User.username == "operator"))
+        row = Incident(workload_id=workload_id, title=title, description="", created_by=actor)
+        db.add(row)
+        db.flush()
+        return row.id
+
+
+def related_page(client, workload_id, limit=25, offset=0):
+    response = client.get(
+        "/api/incidents",
+        params={"workload_uuid": str(workload_id), "limit": limit, "offset": offset},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_related_incidents_filter_by_uuid_before_pagination(seeded):
+    first = create_workload(name="first")
+    second = create_workload(name="second")
+    for index in range(3):
+        add_incident(first, f"First {index}")
+    add_incident(second, "Second")
+    with TestClient(create_app()) as client:
+        login(client, "viewer")
+        page = related_page(client, first, limit=2)
+        assert len(page["items"]) == 2
+        assert {item["workload_id"] for item in page["items"]} == {str(first)}
+        assert page["next_offset"] == 2
+        tail = related_page(client, first, limit=2, offset=2)
+        assert len(tail["items"]) == 1
+        assert tail["next_offset"] is None
+
+
+def test_replacement_uid_incidents_are_excluded(seeded):
+    old = create_workload(uid="uid-old", name="same-name")
+    new = create_workload(uid="uid-new", name="same-name")
+    old_incident = add_incident(old, "Old identity")
+    new_incident = add_incident(new, "New identity")
+    with TestClient(create_app()) as client:
+        login(client, "viewer")
+        page = related_page(client, new)
+    ids = {item["id"] for item in page["items"]}
+    assert str(new_incident) in ids
+    assert str(old_incident) not in ids
+
+
+def test_historical_incidents_for_same_uuid_remain_visible(seeded):
+    workload_id = create_workload()
+    first = add_incident(workload_id, "Historical one")
+    second = add_incident(workload_id, "Historical two")
+    with TestClient(create_app()) as client:
+        login(client, "viewer")
+        page = related_page(client, workload_id)
+    assert {item["id"] for item in page["items"]} == {str(first), str(second)}
+
+
+def test_empty_related_incident_page_has_null_next_offset(seeded):
+    workload_id = create_workload()
+    with TestClient(create_app()) as client:
+        login(client, "viewer")
+        page = related_page(client, workload_id)
+    assert page == {"items": [], "next_offset": None}
 
 
 def test_observer_mounts_only_reader_credentials():

@@ -98,10 +98,14 @@ def get_incident(db: Session, incident_id: UUID):
     )
 
 
-def list_incidents(db: Session, limit: int, offset: int):
+def list_incidents(db: Session, limit: int, offset: int, workload_uuid: UUID | None = None):
+    query = select(Incident)
+    if workload_uuid is not None:
+        # Filter on the exact persisted workload UUID before pagination so
+        # replacement identities never leak into related-incident pages.
+        query = query.where(Incident.workload_id == workload_uuid)
     rows = db.scalars(
-        select(Incident)
-        .order_by(Incident.created_at.desc(), Incident.id.desc())
+        query.order_by(Incident.created_at.desc(), Incident.id.desc())
         .limit(limit + 1)
         .offset(offset)
     ).all()
