@@ -2,12 +2,18 @@
 
 from datetime import timedelta
 from pathlib import Path
+from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import func, select
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select, update
 
-from cloudops.features.access.models import User
+from cloudops.entrypoints.api import create_app
+from cloudops.entrypoints.observer import observe_claim, run_once
+from cloudops.features.access.dependencies import COOKIE
+from cloudops.features.access.models import LoginSession, User
+from cloudops.features.access.service import token_hash
 from cloudops.features.workloads.models import (
     Workload,
     WorkloadObservation,
@@ -22,8 +28,13 @@ from cloudops.features.workloads.observations import (
     read_observation,
     request_refresh,
 )
-from cloudops.features.workloads.schemas import WorkloadObservationPayload
+from cloudops.features.workloads.schemas import (
+    ObservationRefreshView,
+    WorkloadObservationPayload,
+    WorkloadObservationView,
+)
 from cloudops.shared.database import database_now, engine, sessions
+from cloudops.shared.errors import DomainError
 
 BACKEND = Path(__file__).resolve().parents[1]
 
@@ -275,3 +286,199 @@ def test_restart_does_not_relabel_observation_fresh(seeded):
     engine().dispose()
     with sessions()() as db:
         assert read_observation(db, workload_id, database_now(db)).freshness == "stale"
+
+
+def login(client, username="operator"):
+    response = client.post(
+        "/api/login",
+        json={"username": username, "password": "local-test-password"},
+        headers={"Origin": "http://localhost:5173"},
+    )
+    assert response.status_code == 200, response.text
+    return {
+        "Origin": "http://localhost:5173",
+        "X-CSRF-Token": response.json()["csrf_token"],
+    }
+
+
+class FakeReader:
+    def __init__(self, payload=None, error=None):
+        self.payload = payload
+        self.error = error
+
+    def observe(self, workload, previous_payload=None):
+        if self.error is not None:
+            raise self.error
+        return self.payload
+
+
+class ExplodingReader:
+    def observe(self, workload, previous_payload=None):
+        raise AssertionError("Observer must not read fixture workloads")
+
+
+def publish_one(workload_id, uid="dep-1"):
+    claim = next_claim(workload_id)
+    with sessions()() as db:
+        assert publish_success(db, claim, make_payload(uid=uid)) is True
+
+
+def test_viewer_and_operator_can_read_observation(seeded):
+    workload_id = create_workload()
+    publish_one(workload_id)
+    with TestClient(create_app()) as client:
+        for role in ("viewer", "operator"):
+            login(client, role)
+            response = client.get(f"/api/workloads/{workload_id}/observation")
+            assert response.status_code == 200, response.text
+            view = WorkloadObservationView.model_validate(response.json())
+            assert view.availability == "available"
+            assert view.observation.status == "healthy"
+            history = client.get(f"/api/workloads/{workload_id}/observations")
+            assert history.status_code == 200, history.text
+            assert len(history.json()["items"]) == 1
+
+
+def test_anonymous_expired_and_revoked_sessions_cannot_read(seeded):
+    workload_id = create_workload()
+    with TestClient(create_app()) as client:
+        assert client.get(f"/api/workloads/{workload_id}/observation").status_code == 401
+        login(client, "viewer")
+        assert client.get(f"/api/workloads/{workload_id}/observation").status_code == 200
+        cookie = client.cookies[COOKIE]
+        with sessions()() as db, db.begin():
+            db.execute(
+                update(LoginSession)
+                .where(LoginSession.token_hash == token_hash(cookie))
+                .values(expires_at=database_now(db) - timedelta(seconds=1))
+            )
+        assert client.get(f"/api/workloads/{workload_id}/observation").status_code == 401
+        headers = login(client, "viewer")
+        assert client.post("/api/logout", headers=headers).status_code == 204
+        assert client.get(f"/api/workloads/{workload_id}/observation").status_code == 401
+
+
+def test_only_operator_can_request_refresh(seeded):
+    workload_id = create_workload()
+    with TestClient(create_app()) as client:
+        viewer = login(client, "viewer")
+        response = client.post(f"/api/workloads/{workload_id}/observation-refresh", headers=viewer)
+        assert response.status_code == 403, response.text
+        assert response.json()["error"]["code"] == "permission_denied"
+        operator = login(client, "operator")
+        response = client.post(
+            f"/api/workloads/{workload_id}/observation-refresh", headers=operator
+        )
+        assert response.status_code == 202, response.text
+        assert ObservationRefreshView.model_validate(response.json()).status == "pending"
+
+
+def test_unknown_workload_cannot_be_observed_or_refreshed(seeded):
+    missing = uuid4()
+    with TestClient(create_app()) as client:
+        operator = login(client, "operator")
+        response = client.get(f"/api/workloads/{missing}/observation")
+        assert response.status_code == 404, response.text
+        response = client.post(f"/api/workloads/{missing}/observation-refresh", headers=operator)
+        assert response.status_code == 404, response.text
+
+
+def test_retired_workload_history_remains_readable_but_refresh_is_rejected(seeded):
+    workload_id = create_workload()
+    publish_one(workload_id)
+    with sessions()() as db, db.begin():
+        db.get(Workload, workload_id).active = False
+    with TestClient(create_app()) as client:
+        operator = login(client, "operator")
+        response = client.get(f"/api/workloads/{workload_id}/observation")
+        assert response.status_code == 200, response.text
+        view = WorkloadObservationView.model_validate(response.json())
+        assert view.workload_active is False
+        assert view.availability == "available"
+        response = client.post(
+            f"/api/workloads/{workload_id}/observation-refresh", headers=operator
+        )
+        assert response.status_code == 422, response.text
+        assert response.json()["error"]["code"] == "workload_unavailable"
+
+
+def test_refresh_request_returns_pending_without_calling_kubernetes_in_api(seeded, monkeypatch):
+    workload_id = create_workload()
+
+    def explode(*args, **kwargs):
+        raise AssertionError("The API must not read Kubernetes during refresh")
+
+    monkeypatch.setattr("cloudops.entrypoints.observer.Kubernetes", explode)
+    with TestClient(create_app()) as client:
+        operator = login(client, "operator")
+        response = client.post(
+            f"/api/workloads/{workload_id}/observation-refresh", headers=operator
+        )
+        assert response.status_code == 202, response.text
+        assert response.json()["status"] == "pending"
+
+
+def test_observer_publishes_success_or_sanitized_failure(seeded):
+    workload_id = create_workload()
+    claim = next_claim(workload_id)
+    assert observe_claim(claim, FakeReader(payload=make_payload())) is True
+    with sessions()() as db:
+        assert read_observation(db, workload_id, database_now(db)).availability == "available"
+
+    failure = next_claim(workload_id)
+    error = DomainError(503, "cluster_unavailable", "provider-body-sentinel")
+    assert observe_claim(failure, FakeReader(error=error)) is True
+    with sessions()() as db:
+        view = read_observation(db, workload_id, database_now(db))
+        attempt = db.scalar(
+            select(WorkloadObservationAttempt).where(
+                WorkloadObservationAttempt.workload_id == workload_id
+            )
+        )
+    assert view.last_attempt_state == "failed"
+    assert view.last_attempt_reason == "cluster_unavailable"
+    assert "provider-body-sentinel" not in repr(attempt.reason)
+
+
+def test_observer_never_claims_fixture_health(seeded):
+    create_workload(name="fixture", source="development_fixture")
+    assert run_once(kube=ExplodingReader()) == 0
+    with sessions()() as db:
+        assert db.scalar(select(func.count()).select_from(WorkloadObservation)) == 0
+
+
+def test_observer_does_not_claim_stale_lease(seeded):
+    workload_id = create_workload()
+    original = next_claim(workload_id)
+    with sessions()() as db, db.begin():
+        now = database_now(db)
+        state = db.get(WorkloadObservationState, workload_id)
+        state.lease_until = now - timedelta(seconds=1)
+        state.due_at = now - timedelta(seconds=1)
+    replacement = next_claim(workload_id)
+    assert observe_claim(original, FakeReader(payload=make_payload())) is False
+    with sessions()() as db:
+        assert db.scalar(select(func.count()).select_from(WorkloadObservation)) == 0
+    assert observe_claim(replacement, FakeReader(payload=make_payload())) is True
+
+
+def test_observer_mounts_only_reader_credentials():
+    root = Path(__file__).resolve().parents[3]
+    text = (root / "compose.integration.yaml").read_text(encoding="utf-8")
+    lines = text.splitlines()
+    start = lines.index("  observer:")
+    block = []
+    for line in lines[start + 1 :]:
+        if line.startswith("  ") and not line.startswith("    ") and line.strip():
+            break
+        block.append(line)
+    observer = "\n".join(block)
+    assert "/run/cloudops-reader" in observer
+    for forbidden in (
+        "cloudops-writer",
+        "cloudops-dispatch",
+        "cloudops-krr",
+        "EXECUTOR_DISPATCH_KEY",
+        "KRR_RUNNER_KEY",
+    ):
+        assert forbidden not in observer

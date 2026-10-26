@@ -70,6 +70,8 @@ class Settings:
     queue_limit: int = 100
     collector_delay_seconds: float = 2
     collector_fail: bool = False
+    observation_poll_seconds: int = 30
+    observation_concurrency: int = 8
 
 
 @lru_cache
@@ -88,6 +90,17 @@ def settings() -> Settings:
         raise RuntimeError(
             "SESSION_SECONDS must be 1..28800; COLLECTOR_DELAY_SECONDS must be 0..300."
         )
+    try:
+        poll = int(os.environ.get("OBSERVATION_POLL_SECONDS", "30"))
+        concurrency = int(os.environ.get("OBSERVATION_CONCURRENCY", "8"))
+    except ValueError:
+        raise RuntimeError(
+            "OBSERVATION_POLL_SECONDS and OBSERVATION_CONCURRENCY must be integers."
+        ) from None
+    if not 5 <= poll <= 300 or not 1 <= concurrency <= 16:
+        raise RuntimeError(
+            "OBSERVATION_POLL_SECONDS must be 5..300; OBSERVATION_CONCURRENCY must be 1..16."
+        )
     return Settings(
         database_url=database_url,
         web_origin=origin,
@@ -96,4 +109,6 @@ def settings() -> Settings:
         workloads_file=Path(os.environ.get("WORKLOADS_FILE", "config/development-workloads.json")),
         collector_delay_seconds=delay,
         collector_fail=os.environ.get("COLLECTOR_FAIL", "false").lower() == "true",
+        observation_poll_seconds=poll,
+        observation_concurrency=concurrency,
     )

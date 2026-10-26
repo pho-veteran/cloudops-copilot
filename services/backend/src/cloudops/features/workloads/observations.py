@@ -252,6 +252,17 @@ def prune_history(db: Session, workload_id: UUID, now: datetime):
     )
 
 
+def latest_payload(db: Session, workload_id: UUID) -> dict | None:
+    """Read the prior successful payload for restart-delta comparison."""
+    row = db.scalar(
+        select(WorkloadObservation)
+        .where(WorkloadObservation.workload_id == workload_id)
+        .order_by(WorkloadObservation.observed_at.desc(), WorkloadObservation.id.desc())
+        .limit(1)
+    )
+    return row.payload if row else None
+
+
 def read_observation(db: Session, workload_id: UUID, now: datetime) -> WorkloadObservationView:
     workload = db.get(Workload, workload_id)
     if not workload:

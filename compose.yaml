@@ -12,6 +12,8 @@ x-backend: &backend
     WORKLOADS_FILE: /workspace/config/development-workloads.json
     COLLECTOR_DELAY_SECONDS: ${COLLECTOR_DELAY_SECONDS:-2}
     COLLECTOR_FAIL: ${COLLECTOR_FAIL:-false}
+    OBSERVATION_POLL_SECONDS: ${OBSERVATION_POLL_SECONDS:-30}
+    OBSERVATION_CONCURRENCY: ${OBSERVATION_CONCURRENCY:-8}
   depends_on:
     db:
       condition: service_healthy
@@ -45,6 +47,12 @@ services:
   worker:
     <<: *backend
     command: [python, -m, cloudops.entrypoints.worker]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  observer:
+    <<: *backend
+    command: [python, -m, cloudops.entrypoints.observer]
     depends_on:
       migrate:
         condition: service_completed_successfully

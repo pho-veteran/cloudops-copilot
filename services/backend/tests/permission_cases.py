@@ -8,7 +8,12 @@ from cloudops.features.access.schemas import SessionView
 from cloudops.features.health.schemas import HealthView
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
 from cloudops.features.investigations.schemas import RunPage, RunView
-from cloudops.features.workloads.schemas import WorkloadPage
+from cloudops.features.workloads.schemas import (
+    ObservationRefreshView,
+    WorkloadObservationPage,
+    WorkloadObservationView,
+    WorkloadPage,
+)
 
 
 @dataclass(frozen=True)
@@ -138,6 +143,32 @@ def probe_check(response, context, actor):
     assert response.json() == {"status": "available"}
 
 
+def observation_request(context):
+    return {"path_params": {"workload_id": context.consumer.workload_id}}
+
+
+def observation_check(response, context, actor):
+    assert response.status_code == 200, response.text
+    view = validated(WorkloadObservationView, response)
+    assert str(view.workload_id) == context.consumer.workload_id
+    assert view.availability in {"available", "unavailable"}
+    assert view.source == "live_kubernetes"
+
+
+def observation_history_check(response, context, actor):
+    assert response.status_code == 200, response.text
+    page = validated(WorkloadObservationPage, response)
+    assert page.next_offset is None
+
+
+def refresh_check(response, context, actor):
+    assert response.status_code == 202, response.text
+    view = ObservationRefreshView.model_validate(response.json())
+    assert view.model_dump(mode="json") == response.json()
+    assert view.status == "pending"
+    assert str(view.workload_id) == context.consumer.workload_id
+
+
 CASES = {
     "get_session": RequestCase(session_request, session_check),
     "list_workloads": RequestCase(session_request, workload_check),
@@ -152,6 +183,9 @@ CASES = {
     "login": RequestCase(login_request, login_check),
     "liveness": RequestCase(session_request, probe_check),
     "readiness": RequestCase(session_request, probe_check),
+    "get_workload_observation": RequestCase(observation_request, observation_check),
+    "list_workload_observations": RequestCase(observation_request, observation_history_check),
+    "request_workload_observation_refresh": RequestCase(observation_request, refresh_check),
 }
 
 from consumer_cases import CASES as CONSUMER_CASES  # noqa: E402

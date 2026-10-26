@@ -34,6 +34,15 @@ OPERATIONS = {
         "POST", "/api/workloads/{workload_id}/baseline", "operator_mutation"
     ),
     "list_baselines": Operation("GET", "/api/workloads/{workload_id}/baselines", "protected_read"),
+    "get_workload_observation": Operation(
+        "GET", "/api/workloads/{workload_id}/observation", "protected_read"
+    ),
+    "list_workload_observations": Operation(
+        "GET", "/api/workloads/{workload_id}/observations", "protected_read"
+    ),
+    "request_workload_observation_refresh": Operation(
+        "POST", "/api/workloads/{workload_id}/observation-refresh", "operator_mutation"
+    ),
     "add_incident_note": Operation(
         "POST", "/api/incidents/{incident_id}/notes", "operator_mutation"
     ),

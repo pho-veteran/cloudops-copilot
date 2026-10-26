@@ -32,6 +32,13 @@ services:
       - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
       - ./tmp/e01-integration/dispatcher:/run/cloudops-dispatch:ro
       - ./tmp/e01-integration/krr:/run/cloudops-krr:ro
+  observer:
+    # Reader-only: no dispatch key, writer kubeconfig or KRR credential is mounted.
+    environment:
+      WORKLOADS_FILE: /run/cloudops-reader/workloads.json
+      KUBE_READ_CONFIG: /run/cloudops-reader/client.json
+    volumes:
+      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
   executor:
     image: cloudops-local-backend
     build:
