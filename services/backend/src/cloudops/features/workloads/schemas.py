@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -83,3 +84,37 @@ class WorkloadObservationPayload(BaseModel):
     template_fields: dict
     config_references: list[ConfigReference]
     application_telemetry: Literal["unverified"] = "unverified"
+
+
+class WorkloadObservationView(BaseModel):
+    workload_id: UUID
+    workload_active: bool
+    source: Literal["development_fixture", "live_kubernetes"]
+    availability: Literal["available", "unavailable"]
+    freshness: Literal["fresh", "stale", "unavailable"]
+    observation: WorkloadObservationPayload | None
+    observed_at: datetime | None
+    last_attempt_at: datetime | None
+    last_attempt_state: Literal["succeeded", "failed"] | None
+    last_attempt_reason: str | None
+    pending_refresh: bool
+
+
+class WorkloadObservationHistoryItem(BaseModel):
+    id: UUID
+    workload_id: UUID
+    deployment_uid: str
+    status: ObservationStatus
+    observed_at: datetime
+    payload: WorkloadObservationPayload
+
+
+class WorkloadObservationPage(BaseModel):
+    items: list[WorkloadObservationHistoryItem]
+    next_offset: int | None
+
+
+class ObservationRefreshView(BaseModel):
+    workload_id: UUID
+    status: Literal["pending"] = "pending"
+    requested_at: datetime
