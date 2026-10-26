@@ -4,12 +4,14 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
 from cloudops.shared.errors import DomainError, domain_error_handler, validation_error_handler
 
 
 @asynccontextmanager
 async def lifespan(app):
+    settings()
     require_schema()
     yield
 
