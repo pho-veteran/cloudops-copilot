@@ -123,7 +123,7 @@ docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml down
 
 No Kubernetes lab or E07 proof provider is created by this exercise. Maintenance recovery remains unavailable until the actual proof/current-state and trusted-channel integration is implemented and verified.
 
-### E01 local browser receipts
+### E01 initial HTTP browser receipts
 
 The 2026-10-26 exercise used the running PostgreSQL/API/worker with a separate loopback HTTP browser origin. Operator sign-in opened a saved incident and selected run. Signing out in another tab caused protected polling to return 401, closed the open creation dialog, displayed the expired-session message and retained the selected IDs. Keyboard sign-in as Viewer returned to fresh saved records with a read-only explanation and no mutation controls. Invalid credentials and intentional sign-out displayed distinct messages; refresh retained the selected run.
 
@@ -132,6 +132,8 @@ The 320px and 390px layouts were checked with actual browser device metrics and 
 The HTTPS request exercise used certificate/hostname validation through the real local Caddy proxy. Browser screenshots use the separate HTTP development origin; no browser certificate warning was bypassed, OS trust changed, real cluster contacted or recovery proof claimed. Tested source commits, checks and remaining full-E01 gates are recorded in the PR and E01 tracker.
 
 ## Failure exercises
+
+The initial HTTP screenshots above precede the [trusted HTTPS/K3s consumer exercise](e01-local-lab.md#reproduce-the-local-receipts), which now records the actual approval expiry/refetch, browser cookie/SameSite, Viewer export and maintenance integration receipts. Its temporary CA trust was explicitly approved and removed after verification.
 
 Run these only against the local development stack after creating an incident. Existing records should remain readable throughout worker failures.
 

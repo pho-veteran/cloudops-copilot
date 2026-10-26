@@ -1,0 +1,133 @@
+{
+  "tested_source": "cfc131b0bbfde65a9289b1cb589cb8105064775c",
+  "observed_at": "2026-10-26T06:53:55.592Z",
+  "browser": "ChatGPT in-app Chromium browser",
+  "origin": "https://localhost:8443",
+  "tls": {
+    "security_state": "secure",
+    "protocol": "TLS 1.3",
+    "issuer": "Caddy Local Authority - ECC Intermediate",
+    "certificate_validation_disabled": false,
+    "warning_bypassed": false
+  },
+  "cookie": {
+    "name": "cloudops_session",
+    "secure": true,
+    "http_only": true,
+    "same_site": "Lax",
+    "domain": "localhost",
+    "path": "/"
+  },
+  "same_site": {
+    "test_origin": "http://127.0.0.1:8774",
+    "iframe_status": 401,
+    "blocked_reasons": [
+      "SchemefulSameSiteLax"
+    ],
+    "authenticated_top_level_get_status": 200,
+    "network_metadata": [
+      {
+        "method": "Network.requestWillBeSentExtraInfo",
+        "cookies": [
+          {
+            "name": "cloudops_session",
+            "blockedReasons": [
+              "SchemefulSameSiteLax"
+            ]
+          }
+        ]
+      },
+      {
+        "method": "Network.responseReceived",
+        "url": "https://localhost:8443/api/workloads",
+        "status": 401
+      }
+    ],
+    "top_level_reload": [
+      {
+        "url": "https://localhost:8443/api/workloads",
+        "status": 200,
+        "security_state": "secure"
+      },
+      {
+        "url": "https://localhost:8443/favicon.ico",
+        "status": 200,
+        "security_state": "secure"
+      }
+    ]
+  },
+  "approval": {
+    "session_seconds": 45,
+    "incident_id": "3f95b828-fa6e-4586-8560-2e93e38f331f",
+    "run_id": "778a971b-8242-4ecb-b9ba-28d8830a7948",
+    "plan_id": "8678ed6a-7d36-42f8-b611-46c722739ca9",
+    "execution_id": "c94a4fcd-d7be-42f7-ac83-ebcdadd26d25",
+    "dialog_observed_before_expiry": true,
+    "expiry_protected_request_status": 401,
+    "dialog_cleared": true,
+    "username_focused_after_expiry": true,
+    "route_preserved": true,
+    "decision_posts_before_reauthentication": 0,
+    "decision_posts_after_reauthentication_before_explicit_action": 0,
+    "fresh_plan_read": true,
+    "form_input_discarded": true,
+    "execution_count_before_explicit_action": 0,
+    "execution_count_after_explicit_action": 1,
+    "fresh_explicit_confirmation_approved": true,
+    "result": {
+      "outcome": "acknowledged",
+      "replicas": 3,
+      "verification": "inconclusive"
+    },
+    "network_capture_limit": "Later decision events were evicted from the bounded debugger buffer; their outcomes were observed in the UI and persisted server state. Initial expiry/no-replay, fresh read and export windows were captured separately.",
+    "stale_review_receipt_denied": true
+  },
+  "viewer": {
+    "same_saved_incident_run_readable": true,
+    "mutation_controls_present": 0,
+    "handoff_export_status": 200,
+    "stored_report_export_status": 200,
+    "invalid_credentials_message_observed": true,
+    "intentional_signout_message_observed": true,
+    "cross_tab_signout_first_tab_status": 401
+  },
+  "responsive": [
+    {
+      "css_width": 320,
+      "scroll_width": 320,
+      "states": [
+        "expired session light",
+        "invalid login light",
+        "fresh approval light",
+        "Viewer dark"
+      ]
+    },
+    {
+      "css_width": 390,
+      "scroll_width": 390,
+      "states": [
+        "Viewer dark"
+      ]
+    }
+  ],
+  "screenshots": [
+    "e01-https-expired-320.jpg",
+    "e01-https-invalid-login-320.jpg",
+    "e01-https-approval-320.jpg",
+    "e01-https-viewer-320-dark.png",
+    "e01-https-viewer-390-dark.png"
+  ],
+  "temporary_ca": {
+    "sha1": "91A6CE38F9DC02B109F06F65D86A038A4DA7A3E6",
+    "explicit_user_approval": true,
+    "store": "CurrentUser/Root",
+    "preexisting": false,
+    "removed_after_testing": true
+  },
+  "limitations": [
+    "Local disposable K3s and local CA; no public release endpoint or external cluster/model.",
+    "Kubernetes acknowledgement is not application remediation verification.",
+    "Cross-tab sign-out was observed through a real protected request, not isolated as a focus-event-only proof."
+  ],
+  "capture_notes": "Native browser screenshots are JPEG; explicit responsive CDP captures are PNG. Both 320/390 CSS layouts were measured without horizontal overflow."
+}

@@ -63,6 +63,12 @@ Migration `0003_e01_consumers` adds eight feature tables plus a source column; p
 
 ## Reproduce the local receipts
 
+The final browser exercise served source `cfc131b0bbfde65a9289b1cb589cb8105064775c` through the actual Caddy HTTPS origin. After explicit user approval, the lab CA was temporarily installed in the current-user root store; the browser reported a secure TLS 1.3 connection. No certificate warning or validation setting was bypassed. The exact temporary CA was removed after testing, and normal eight-hour API sessions were restored.
+
+The browser observed Secure/HttpOnly/Lax cookie attributes. A controlled cross-site iframe received 401 with Chromium `SchemefulSameSiteLax` cookie blocking; an authenticated top-level safe GET received 200. A real 45-second session expired with an approval dialog open, cleared the intent, focused sign-in and preserved the incident/run URL. Signing in fetched the plan again and sent no decision automatically. A held stale review receipt was denied; a new explicit confirmation admitted exactly one execution, acknowledged by Kubernetes with application verification still inconclusive. Viewers inspected the same saved records, exported handoff/KRR results and had no mutation controls. Second-tab sign-out caused the first tab's protected request to return 401.
+
+The [sanitized browser receipt](evidence/e01-browser-https.json) distinguishes captured network windows from UI/persistence observations, including bounded debugger-buffer eviction. Actual 320/390 CSS layouts had no horizontal document overflow. Screenshots: [expiry at 320](evidence/e01-https-expired-320.jpg), [invalid login](evidence/e01-https-invalid-login-320.jpg), [fresh approval](evidence/e01-https-approval-320.jpg), [Viewer dark at 320](evidence/e01-https-viewer-320-dark.png) and [Viewer dark at 390](evidence/e01-https-viewer-390-dark.png). A subsequent copy correction distinguishes an ordinary active execution lock from an unknown outcome that needs trusted maintenance; access/protocol behavior is unchanged.
+
 ```sh
 uv run --project services/backend python scripts/smoke-https.py --ca tmp/local-https-root.crt
 uv run --project services/backend python scripts/smoke-e01-consumers.py --ca tmp/local-https-root.crt

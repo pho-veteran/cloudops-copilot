@@ -459,9 +459,13 @@
     }
   },
   "browser_https": {
-    "state": "pending_workstation_ca_trust",
-    "os_trust_changed": false,
-    "remaining": "Trusted-browser HTTPS approval expiry/refetch/explicit-action and cookie/SameSite inspection. Existing screenshots cover the prior HTTP development browser journey."
+    "state": "passed",
+    "receipt": "e01-browser-https.json",
+    "tested_source": "cfc131b0bbfde65a9289b1cb589cb8105064775c",
+    "temporary_ca_approved": true,
+    "temporary_ca_removed": true,
+    "warning_bypassed": false,
+    "remaining_e01_browser_gate": null
   },
   "implementation_commit": "6886a93f632bde675de4c201bfea7caacb6ca7e0",
   "checks": {
