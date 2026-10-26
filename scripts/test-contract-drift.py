@@ -14,7 +14,6 @@ def main():
     root = harness.ROOT
     with tempfile.TemporaryDirectory(prefix="cloudops-drift-proof-") as folder:
         temporary = Path(folder)
-        (temporary / "tools").symlink_to(root / "tools", target_is_directory=True)
         for artifact in harness.ARTIFACTS:
             (temporary / artifact).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(root / artifact, temporary / artifact)

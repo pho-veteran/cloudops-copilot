@@ -80,3 +80,20 @@ jobs:
         run: |
           uv run --project services/backend python scripts/contracts.py
           uv run --project services/backend python scripts/test-contract-drift.py
+      - name: Verify sessions through the local HTTPS proxy
+        env:
+          POSTGRES_PASSWORD: https-ci-local-only
+          LOCAL_TEST_PASSWORD: https-ci-test-password
+        run: |
+          compose=(docker compose -p cloudops-https-ci -f compose.yaml -f compose.https.yaml)
+          "${compose[@]}" up -d --build --wait --wait-timeout 120 api worker https
+          mkdir -p tmp
+          "${compose[@]}" cp https:/data/caddy/pki/authorities/local/root.crt tmp/local-https-root.crt
+          printf '%s\n' "$LOCAL_TEST_PASSWORD" | "${compose[@]}" exec -T api python -m cloudops.entrypoints.cli account operator --role operator --password-stdin
+          printf '%s\n' "$LOCAL_TEST_PASSWORD" | "${compose[@]}" exec -T api python -m cloudops.entrypoints.cli account viewer --role viewer --password-stdin
+          printf '%s\n%s\n' "$LOCAL_TEST_PASSWORD" "$LOCAL_TEST_PASSWORD" | uv run --project services/backend python scripts/smoke-https.py --ca tmp/local-https-root.crt --password-stdin
+      - name: Stop the disposable HTTPS stack
+        if: always()
+        env:
+          POSTGRES_PASSWORD: https-ci-local-only
+        run: docker compose -p cloudops-https-ci -f compose.yaml -f compose.https.yaml down --volumes

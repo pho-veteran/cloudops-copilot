@@ -21,7 +21,7 @@ docker compose exec api python -m cloudops.entrypoints.cli account operator --ro
 docker compose exec api python -m cloudops.entrypoints.cli account viewer --role viewer
 ```
 
-Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. HTTPS deployment, reverse proxy and executor credentials remain E10/E07 work.
+Open [http://localhost:5173](http://localhost:5173). Use that exact origin: login and mutations validate `WEB_ORIGIN`. The default configuration explicitly permits non-Secure cookies only on loopback HTTP. Keep the local services on loopback. A separate [local HTTPS exercise](docs/foundation.md#local-https-exercise) serves the production web build and API through one proxy. Release deployment and executor credentials remain E10/E07 work.
 
 `WEB_ORIGIN` must use the browser's exact origin spelling, with no trailing slash, credentials, path, query, fragment or explicit default port. HTTP requires exactly `localhost` or `127.0.0.1` and `COOKIE_SECURE=false`; HTTPS requires `COOKIE_SECURE=true`. Contradictory configurations fail at startup. See the [browser session configuration and HTTPS handoff](docs/foundation.md#browser-session-configuration-and-https-handoff) for accepted examples and the remaining E10 proxy checks.
 

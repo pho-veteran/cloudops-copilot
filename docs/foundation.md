@@ -65,7 +65,7 @@ SESSION_SECONDS=28800
 
 E10 must provide TLS and a same-origin frontend plus `/api` reverse proxy preserving API paths, cookie headers, the browser Origin and CSRF header. Keep the backend reachable only through the intended internal path; configure trusted proxy peers at deployment rather than treating arbitrary forwarded headers as authority. Check proxy/application logging rules so Cookie, Set-Cookie, CSRF and credentials are not logged.
 
-E10's browser-through-proxy acceptance must demonstrate login, Secure host-only cookie round trip, session read, an authorized mutation, denial without the correct Origin/CSRF, and logout followed by unauthenticated session access. Inspect cookie scope/flags and verify the session token is not persisted in browser storage or URLs. The existing Compose/Vite path is local HTTP tooling, not this release proxy stack.
+E10's browser-through-proxy acceptance must demonstrate login, Secure host-only cookie round trip, session read, an authorized mutation, denial without the correct Origin/CSRF, and logout followed by unauthenticated session access. Inspect cookie scope/flags and verify the session token is not persisted in browser storage or URLs. The default Compose/Vite path remains HTTP development tooling. The local HTTPS exercise below supplies a real TLS/proxy request path; trusted-browser and release-topology checks still require their own evidence.
 
 The configuration unit suite and `tests/test_access_browser_security.py` cover isolated parsing/startup and PostgreSQL-backed HTTPS TestClient behavior, including cookie set/delete attributes, token replay, session expiry, cross-session CSRF and denied-write counts. TestClient is API/fixture evidence; its cookie jar does not prove all browser SameSite/HttpOnly behavior, real TLS, proxy forwarding or deployment logging. Those remain E10 gates.
 
@@ -86,6 +86,50 @@ docker compose run --rm migrate
 Unknown accounts fail with one `error:` line and change no data; an invalid role is rejected by argument parsing with a nonzero exit before anything runs. A committed role change or revocation makes later requests carrying a revoked session fail with 401. Requests already authenticated, and already admitted jobs, are not cancelled.
 
 Sessions expire absolutely after `SESSION_SECONDS` (default 28800, maximum 8 hours), without sliding renewal. Logout revokes the server session. The browser holds CSRF authority in memory, never localStorage; only theme preference and the separate simulation use localStorage. A 401 removes protected query data, closes pending dialogs and requires sign-in at the same internal route. Mutations are not retried or replayed automatically.
+
+### Browser navigation and account boundaries
+
+Return navigation accepts only `#/queue`, `#/workloads`, `#/connections`, and `#/incidents/<UUID>` with an optional `?run=<UUID>`. Unknown paths, external targets and additional parameters fall back to the queue. Signing in reads the selected saved records again; it does not retain a pending action.
+
+Logout, expiry and account changes discard protected queries, mutation state and dialogs. The transport rejects responses from an earlier authentication generation, including a body that finishes parsing after a new account signs in. A late 401 from an old generation cannot end a new session. A current authenticated 403 shows the permission/CSRF error and does not sign the user out or retry the action.
+
+Leaving a tab suspends its authority and clears protected views. Returning through focus, visibility or page restoration checks `/api/session` before rendering protected data or mutation controls. Failed connectivity shows an explicit retry state. The tab checks authority against the server; no cookie, CSRF token or principal is sent through localStorage or cross-tab messages. The sign-in username receives keyboard focus; Viewer access explains the unavailable incident/investigation actions.
+
+E07 approval consumers must discard dialog input and pending approval intent at the same boundary. After sign-in they must fetch the exact plan/version, display its current validity, and require a new explicit decision. Expired/stale plans require a new investigation under E07 rules. The current app has no plan/approval API; these session tests do not establish that future consumer's integration.
+
+### Local HTTPS exercise
+
+Use an isolated Compose project and a URL-safe `POSTGRES_PASSWORD` in `.env` as in README. The override fixes its origin to `https://localhost:8443` and enables Secure cookies for API, worker and migration. It removes the host API port, serves the compiled frontend through Caddy and leaves the Vite development service inactive. Only loopback port 8443 is published. PostgreSQL and CA material use project-specific named volumes; no cluster/model/executor is enabled.
+
+```sh
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml up -d --build --wait --wait-timeout 120 api worker https
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml exec api python -m cloudops.entrypoints.cli account operator --role operator
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml exec api python -m cloudops.entrypoints.cli account viewer --role viewer
+mkdir -p tmp
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml cp https:/data/caddy/pki/authorities/local/root.crt tmp/local-https-root.crt
+uv run --project services/backend python scripts/smoke-https.py --ca tmp/local-https-root.crt
+```
+
+PowerShell users can create `tmp` with `New-Item -ItemType Directory -Force tmp`. Use Docker Compose v2.24.4 or newer for the override. The smoke script prompts for the two account passwords, creates one labeled persisted incident and records only incident/run IDs in `tmp/https-smoke.json`. Automation may pass `--password-stdin` with Operator and Viewer passwords on separate stdin lines. No passwords belong in command arguments, output artifacts or source control.
+
+The script validates the local certificate chain and hostname using the exported CA, then checks static frontend delivery, anonymous denial, configured Origin, CSRF denial without admission, Operator admission, Viewer reads/denials, cookie scope, logout and old-token replay. CI runs the same exercise with disposable accounts/database. The proxy's container health check establishes that its local CA exists; the smoke request establishes the actual TLS/API path.
+
+For browser testing, open `https://localhost:8443` only after trusting this lab's root certificate through your normal development certificate setup. Trust is a separate local setup choice; the commands above do not alter OS/browser trust or disable certificate validation. Caddy access logging is disabled; its default runtime logs do not include request bodies or session headers. Do not enable request/header logging of credentials. This local TLS receipt does not establish browser SameSite/HttpOnly enforcement or a deployed release endpoint.
+
+```sh
+# Stop without losing local records or CA material.
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml down
+```
+
+No Kubernetes lab or E07 proof provider is created by this exercise. Maintenance recovery remains unavailable until the actual proof/current-state and trusted-channel integration is implemented and verified.
+
+### E01 local browser receipts
+
+The 2026-10-26 exercise used the running PostgreSQL/API/worker with a separate loopback HTTP browser origin. Operator sign-in opened a saved incident and selected run. Signing out in another tab caused protected polling to return 401, closed the open creation dialog, displayed the expired-session message and retained the selected IDs. Keyboard sign-in as Viewer returned to fresh saved records with a read-only explanation and no mutation controls. Invalid credentials and intentional sign-out displayed distinct messages; refresh retained the selected run.
+
+The 320px and 390px layouts were checked with actual browser device metrics and no horizontal document overflow. [Expired session](evidence/e01-expired-session.jpg), [invalid login at 320px](evidence/e01-login-320.jpg), [Viewer at 320px in dark mode](evidence/e01-viewer-320-dark.jpg) and [Viewer at 390px in dark mode](evidence/e01-viewer-390-dark.jpg) capture those states. Transport/query tests separately hold old responses and body parsing across account replacement, including late 401/403, and exercise focus/visibility authority checks and network retry. The browser's observed cross-tab expiry was driven by an actual rejected protected request; it is not claimed as isolated browser focus-event proof.
+
+The HTTPS request exercise used certificate/hostname validation through the real local Caddy proxy. Browser screenshots use the separate HTTP development origin; no browser certificate warning was bypassed, OS trust changed, real cluster contacted or recovery proof claimed. Tested source commits, checks and remaining full-E01 gates are recorded in the PR and E01 tracker.
 
 ## Failure exercises
 
