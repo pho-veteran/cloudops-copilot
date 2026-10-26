@@ -20,6 +20,7 @@
     "production_npm_audit": {"vulnerabilities": 0},
     "populated_scope_upgrade_repeat_upgrade_and_single_head": "passed in backend suite",
     "live_k3s_https_scope_probe": "passed; see scope26-live.json",
+    "https_foundation_smoke": "passed: certificate/hostname, Secure cookie, Origin/CSRF, persisted admission, Viewer denials, logout and token replay",
     "browser_journey": "passed; see scope26-browser.json"
   },
   "limits": [

@@ -42,7 +42,7 @@ Versioned name-based live identity reconciliation, failure semantics and its rea
 - Reading a plan returns live validity and a receipt tied to the current session, expiring within sixty seconds. Approval/rejection requires its exact version/digest and a fresh explicit action. Reauthentication invalidates old receipts. The UI binds the confirmation dialog to the reviewed plan and discards intent when authority or the displayed plan changes. No mutation is replayed automatically.
 - An acknowledged Kubernetes patch is **not** verified remediation. Results remain `manual_intervention`/`inconclusive`; rollout, application metrics and any subsequent change require manual assessment. There is no automatic rollback.
 
-Viewers read/export these records and log out their own session. All nine Operator mutation operations reject a valid Viewer request before any committed domain/job change. Anonymous/expired requests cannot read observations, review receipts or stored records. The actual 31-operation inventory and executable role cases are in `services/backend/tests`; provider fixtures are explicitly separate from the live probes.
+Viewers read/export these records and log out their own session. All nine Operator mutation operations reject a valid Viewer request before any committed domain/job change. Anonymous/expired requests cannot read observations, review receipts or stored records. The current operation inventory and executable role cases, including the additional scope/history reads, are in `services/backend/tests`; provider fixtures are explicitly separate from the live probes.
 
 ## Writer and maintenance protocol
 
