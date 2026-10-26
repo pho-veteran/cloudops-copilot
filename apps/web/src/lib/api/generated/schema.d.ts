@@ -451,6 +451,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workloads/{workload_id}/observation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Workload Observation */
+        get: operations["get_workload_observation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workloads/{workload_id}/observation-refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Workload Observation Refresh */
+        post: operations["request_workload_observation_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workloads/{workload_id}/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workload Observations */
+        get: operations["list_workload_observations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -612,6 +663,18 @@ export interface components {
              * @enum {string}
              */
             status: "available" | "unavailable" | "stale";
+        };
+        /** ConfigReference */
+        ConfigReference: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "config_map" | "secret" | "service_account";
+            /** Name */
+            name: string;
+            /** Source */
+            source: string;
         };
         /** ConfirmBaseline */
         ConfirmBaseline: {
@@ -865,6 +928,58 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** ObservationCoverage */
+        ObservationCoverage: {
+            /** Complete */
+            complete: boolean;
+            /** Missing Sources */
+            missing_sources: string[];
+        };
+        /** ObservationRefreshView */
+        ObservationRefreshView: {
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /**
+             * Status
+             * @default pending
+             * @constant
+             */
+            status: "pending";
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
+        /** ObservedContainer */
+        ObservedContainer: {
+            /** Init */
+            init: boolean;
+            /** Name */
+            name: string;
+            /** Ready */
+            ready: boolean;
+            /** Restart Count */
+            restart_count: number;
+            /** Waiting Reason */
+            waiting_reason?: string | null;
+        };
+        /** ObservedPod */
+        ObservedPod: {
+            /** Containers */
+            containers: components["schemas"]["ObservedContainer"][];
+            /** Name */
+            name: string;
+            /** Phase */
+            phase: string | null;
+            /** Ready */
+            ready: boolean;
+            /** Uid */
+            uid: string;
+        };
         /** PlanRequest */
         PlanRequest: {
             /** Rationale */
@@ -1084,6 +1199,129 @@ export interface components {
             action: "acknowledge" | "resolve" | "reopen";
             /** Reason */
             reason: string;
+        };
+        /** WorkloadObservationHistoryItem */
+        WorkloadObservationHistoryItem: {
+            /** Deployment Uid */
+            deployment_uid: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            payload: components["schemas"]["WorkloadObservationPayload"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
+        /** WorkloadObservationPage */
+        WorkloadObservationPage: {
+            /** Items */
+            items: components["schemas"]["WorkloadObservationHistoryItem"][];
+            /** Next Offset */
+            next_offset: number | null;
+        };
+        /**
+         * WorkloadObservationPayload
+         * @description Sanitized direct observation; never carries provider text or environment literals.
+         */
+        WorkloadObservationPayload: {
+            /**
+             * Application Telemetry
+             * @default unverified
+             * @constant
+             */
+            application_telemetry: "unverified";
+            /** Available Replicas */
+            available_replicas: number;
+            /** Config References */
+            config_references: components["schemas"]["ConfigReference"][];
+            coverage: components["schemas"]["ObservationCoverage"];
+            /** Deployment Uid */
+            deployment_uid: string;
+            /** Desired Replicas */
+            desired_replicas: number;
+            /** Generation */
+            generation: number;
+            /** Observed Generation */
+            observed_generation: number | null;
+            /** Pods */
+            pods: components["schemas"]["ObservedPod"][];
+            /** Ready Containers */
+            ready_containers: number;
+            /** Ready Replicas */
+            ready_replicas: number;
+            /** Reasons */
+            reasons: string[];
+            /** Resource Version */
+            resource_version: string;
+            /** Restart Delta */
+            restart_delta?: number | null;
+            /** Restart Total */
+            restart_total: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
+            /** Template Fields */
+            template_fields: {
+                [key: string]: unknown;
+            };
+            /** Total Containers */
+            total_containers: number;
+            /** Total Replicas */
+            total_replicas: number;
+            /** Updated Replicas */
+            updated_replicas: number;
+        };
+        /** WorkloadObservationView */
+        WorkloadObservationView: {
+            /**
+             * Availability
+             * @enum {string}
+             */
+            availability: "available" | "unavailable";
+            /**
+             * Freshness
+             * @enum {string}
+             */
+            freshness: "fresh" | "stale" | "unavailable";
+            /** Last Attempt At */
+            last_attempt_at: string | null;
+            /** Last Attempt Reason */
+            last_attempt_reason: string | null;
+            /** Last Attempt State */
+            last_attempt_state: ("succeeded" | "failed") | null;
+            observation: components["schemas"]["WorkloadObservationPayload"] | null;
+            /** Observed At */
+            observed_at: string | null;
+            /** Pending Refresh */
+            pending_refresh: boolean;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "development_fixture" | "live_kubernetes";
+            /** Workload Active */
+            workload_active: boolean;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
         };
         /** WorkloadPage */
         WorkloadPage: {
@@ -1462,6 +1700,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
+                workload_uuid?: string | null;
             };
             header?: never;
             path?: never;
@@ -3421,6 +3660,239 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BaselineView"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_workload_observation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkloadObservationView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    request_workload_observation_refresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationRefreshView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_workload_observations: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkloadObservationPage"];
                 };
             };
             /** @description Unauthorized */

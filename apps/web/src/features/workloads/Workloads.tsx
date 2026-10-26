@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useWorkloads } from "./queries";
 import { WorkloadIdentity } from "./WorkloadIdentity";
+import { Observations } from "./Observations";
 import { Baselines } from "./Baselines";
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
@@ -45,8 +46,8 @@ export function Workloads({
                   {w.namespace}/{w.name}
                 </h2>
                 <p>Cluster: {w.cluster}</p>
-                <p className="muted">Live health unavailable</p>
                 <WorkloadIdentity workload={w} />
+                <Observations id={w.id} canMutate={canMutate} />
                 {w.source === "live_kubernetes" && (
                   <Baselines id={w.id} canMutate={canMutate} />
                 )}

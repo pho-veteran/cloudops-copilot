@@ -5,7 +5,11 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Workloads } from "./Workloads";
 import { WorkloadIdentity } from "./WorkloadIdentity";
-import { workloadFixture } from "./fixtures";
+import {
+  observationFixture,
+  observationHistoryFixture,
+  workloadFixture,
+} from "./fixtures";
 
 const fixtureHttp = vi.hoisted(() => ({ fetch: vi.fn<typeof globalThis.fetch>() }));
 vi.mock("@/lib/api/client", async importOriginal => {
@@ -21,9 +25,20 @@ function mount(canMutate = false, onInvestigate = vi.fn()) {
 beforeEach(() => {
   fixtureHttp.fetch.mockReset();
   fixtureHttp.fetch.mockImplementation(async request => {
-    expect(new URL((request as Request).url).pathname).toBe("/api/workloads");
-    expect((request as Request).method).toBe("GET");
-    return Response.json(workloadFixture);
+    const url = new URL((request as Request).url);
+    if (url.pathname === "/api/workloads") {
+      expect((request as Request).method).toBe("GET");
+      return Response.json(workloadFixture);
+    }
+    if (url.pathname === `/api/workloads/${workloadFixture.items[0].id}/observation`)
+      return Response.json(observationFixture);
+    if (url.pathname === `/api/workloads/${workloadFixture.items[0].id}/observations`)
+      return Response.json(observationHistoryFixture);
+    if (url.pathname === "/api/incidents")
+      return Response.json({ items: [], next_offset: null });
+    throw new Error(
+      `Unexpected request ${(request as Request).method} ${url.pathname}`,
+    );
   });
 });
 afterEach(() => { cleanup(); caches.splice(0).forEach(cache => cache.clear()); });
@@ -33,11 +48,19 @@ describe("feature-local workload identity consumer", () => {
     mount();
     await screen.findByRole("heading", { name: "demo/checkout" });
     await userEvent.setup().click(screen.getByText("Inspect workload identity"));
-    expect(screen.getByText(workloadFixture.items[0].id)).toBeTruthy();
-    expect(screen.getByText(workloadFixture.items[0].uid)).toBeTruthy();
-    expect(screen.getByText("Unavailable", { exact: true })).toBeTruthy();
+    const details = screen
+      .getByText("Inspect workload identity")
+      .closest("details")!;
+    expect(within(details).getByText(workloadFixture.items[0].id)).toBeTruthy();
+    expect(within(details).getByText(workloadFixture.items[0].uid)).toBeTruthy();
+    expect(within(details).getByText("Development fixture")).toBeTruthy();
+    expect(within(details).getByText("Unavailable")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Investigate workload" })).toBeNull();
-    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(1);
+    expect(
+      fixtureHttp.fetch.mock.calls.some(
+        ([input]) => new URL((input as Request).url).pathname === "/api/workloads",
+      ),
+    ).toBe(true);
   });
   it("keeps inspection read-only while retaining the existing Operator investigation action", async () => {
     const investigate = vi.fn();
@@ -48,7 +71,6 @@ describe("feature-local workload identity consumer", () => {
     expect(investigate).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Investigate workload" }));
     expect(investigate).toHaveBeenCalledWith(workloadFixture.items[0].id);
-    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(1);
   });
   it("shows the API failure and retries the same consumer without inventing identity data", async () => {
     fixtureHttp.fetch.mockResolvedValueOnce(Response.json({ error: { code: "database_unavailable", message: "Application database unavailable." } }, { status: 503 }));
@@ -57,7 +79,24 @@ describe("feature-local workload identity consumer", () => {
     expect(screen.queryByText(workloadFixture.items[0].uid)).toBeNull();
     await userEvent.setup().click(screen.getByRole("button", { name: "Retry" }));
     await screen.findByRole("heading", { name: "demo/checkout" });
-    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(2);
+    expect(
+      fixtureHttp.fetch.mock.calls.filter(
+        ([input]) => new URL((input as Request).url).pathname === "/api/workloads",
+      ),
+    ).toHaveLength(2);
+  });
+  it("labels a live Kubernetes identity without inventing live health", async () => {
+    render(
+      <WorkloadIdentity
+        workload={{ ...workloadFixture.items[0], source: "live_kubernetes" }}
+      />,
+    );
+    await userEvent.setup().click(screen.getByText("Inspect workload identity"));
+    const details = screen
+      .getByText("Inspect workload identity")
+      .closest("details")!;
+    expect(within(details).getByText("Live Kubernetes")).toBeTruthy();
+    expect(within(details).getByText("See observed health")).toBeTruthy();
   });
   it("preserves the original identity and removed-scope explanation in historical consumers", async () => {
     render(<WorkloadIdentity workload={{ ...workloadFixture.items[0], active: false }} />);

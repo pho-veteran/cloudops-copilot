@@ -287,6 +287,34 @@
         "title": "CheckView",
         "type": "object"
       },
+      "ConfigReference": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "config_map",
+              "secret",
+              "service_account"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "source"
+        ],
+        "title": "ConfigReference",
+        "type": "object"
+      },
       "ConfirmBaseline": {
         "additionalProperties": false,
         "properties": {
@@ -803,6 +831,136 @@
         "title": "NoteBody",
         "type": "object"
       },
+      "ObservationCoverage": {
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "missing_sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "complete",
+          "missing_sources"
+        ],
+        "title": "ObservationCoverage",
+        "type": "object"
+      },
+      "ObservationRefreshView": {
+        "properties": {
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "status": {
+            "const": "pending",
+            "default": "pending",
+            "title": "Status",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id",
+          "requested_at"
+        ],
+        "title": "ObservationRefreshView",
+        "type": "object"
+      },
+      "ObservedContainer": {
+        "properties": {
+          "init": {
+            "title": "Init",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "restart_count": {
+            "minimum": 0.0,
+            "title": "Restart Count",
+            "type": "integer"
+          },
+          "waiting_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Waiting Reason"
+          }
+        },
+        "required": [
+          "name",
+          "init",
+          "ready",
+          "restart_count"
+        ],
+        "title": "ObservedContainer",
+        "type": "object"
+      },
+      "ObservedPod": {
+        "properties": {
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedContainer"
+            },
+            "title": "Containers",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "phase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "name",
+          "phase",
+          "ready",
+          "containers"
+        ],
+        "title": "ObservedPod",
+        "type": "object"
+      },
       "PlanRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1260,6 +1418,341 @@
           "reason"
         ],
         "title": "TransitionBody",
+        "type": "object"
+      },
+      "WorkloadObservationHistoryItem": {
+        "properties": {
+          "deployment_uid": {
+            "title": "Deployment Uid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/WorkloadObservationPayload"
+          },
+          "status": {
+            "enum": [
+              "healthy",
+              "progressing",
+              "degraded",
+              "scaled_to_zero",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workload_id",
+          "deployment_uid",
+          "status",
+          "observed_at",
+          "payload"
+        ],
+        "title": "WorkloadObservationHistoryItem",
+        "type": "object"
+      },
+      "WorkloadObservationPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkloadObservationHistoryItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          }
+        },
+        "required": [
+          "items",
+          "next_offset"
+        ],
+        "title": "WorkloadObservationPage",
+        "type": "object"
+      },
+      "WorkloadObservationPayload": {
+        "description": "Sanitized direct observation; never carries provider text or environment literals.",
+        "properties": {
+          "application_telemetry": {
+            "const": "unverified",
+            "default": "unverified",
+            "title": "Application Telemetry",
+            "type": "string"
+          },
+          "available_replicas": {
+            "title": "Available Replicas",
+            "type": "integer"
+          },
+          "config_references": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigReference"
+            },
+            "title": "Config References",
+            "type": "array"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/ObservationCoverage"
+          },
+          "deployment_uid": {
+            "title": "Deployment Uid",
+            "type": "string"
+          },
+          "desired_replicas": {
+            "title": "Desired Replicas",
+            "type": "integer"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "observed_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Generation"
+          },
+          "pods": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedPod"
+            },
+            "title": "Pods",
+            "type": "array"
+          },
+          "ready_containers": {
+            "minimum": 0.0,
+            "title": "Ready Containers",
+            "type": "integer"
+          },
+          "ready_replicas": {
+            "title": "Ready Replicas",
+            "type": "integer"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "resource_version": {
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "restart_delta": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restart Delta"
+          },
+          "restart_total": {
+            "minimum": 0.0,
+            "title": "Restart Total",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "healthy",
+              "progressing",
+              "degraded",
+              "scaled_to_zero",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "template_fields": {
+            "additionalProperties": true,
+            "title": "Template Fields",
+            "type": "object"
+          },
+          "total_containers": {
+            "minimum": 0.0,
+            "title": "Total Containers",
+            "type": "integer"
+          },
+          "total_replicas": {
+            "title": "Total Replicas",
+            "type": "integer"
+          },
+          "updated_replicas": {
+            "title": "Updated Replicas",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deployment_uid",
+          "generation",
+          "resource_version",
+          "observed_generation",
+          "desired_replicas",
+          "ready_replicas",
+          "available_replicas",
+          "updated_replicas",
+          "total_replicas",
+          "status",
+          "reasons",
+          "coverage",
+          "pods",
+          "restart_total",
+          "ready_containers",
+          "total_containers",
+          "template_fields",
+          "config_references"
+        ],
+        "title": "WorkloadObservationPayload",
+        "type": "object"
+      },
+      "WorkloadObservationView": {
+        "properties": {
+          "availability": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "freshness": {
+            "enum": [
+              "fresh",
+              "stale",
+              "unavailable"
+            ],
+            "title": "Freshness",
+            "type": "string"
+          },
+          "last_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt At"
+          },
+          "last_attempt_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt Reason"
+          },
+          "last_attempt_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "succeeded",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt State"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkloadObservationPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "pending_refresh": {
+            "title": "Pending Refresh",
+            "type": "boolean"
+          },
+          "source": {
+            "enum": [
+              "development_fixture",
+              "live_kubernetes"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "workload_active": {
+            "title": "Workload Active",
+            "type": "boolean"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id",
+          "workload_active",
+          "source",
+          "availability",
+          "freshness",
+          "observation",
+          "observed_at",
+          "last_attempt_at",
+          "last_attempt_state",
+          "last_attempt_reason",
+          "pending_refresh"
+        ],
+        "title": "WorkloadObservationView",
         "type": "object"
       },
       "WorkloadPage": {
@@ -1774,6 +2267,23 @@
               "minimum": 0,
               "title": "Offset",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workload_uuid",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workload Uuid"
             }
           }
         ],
@@ -4548,6 +5058,340 @@
         "summary": "Baselines",
         "tags": [
           "baselines"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/observation": {
+      "get": {
+        "operationId": "get_workload_observation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkloadObservationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Workload Observation",
+        "tags": [
+          "workloads"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/observation-refresh": {
+      "post": {
+        "operationId": "request_workload_observation_refresh",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationRefreshView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Request Workload Observation Refresh",
+        "tags": [
+          "workloads"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/observations": {
+      "get": {
+        "operationId": "list_workload_observations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkloadObservationPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "List Workload Observations",
+        "tags": [
+          "workloads"
         ]
       }
     }

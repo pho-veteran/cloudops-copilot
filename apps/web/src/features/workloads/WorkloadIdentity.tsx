@@ -5,6 +5,7 @@ export function WorkloadIdentity({
 }: {
   workload: components["schemas"]["WorkloadView"];
 }) {
+  const live = workload.source === "live_kubernetes";
   return (
     <details>
       <summary>Inspect workload identity</summary>
@@ -22,9 +23,9 @@ export function WorkloadIdentity({
         <dt>Scope</dt>
         <dd>{workload.active ? "Configured" : "Removed from configured scope"}</dd>
         <dt>Source</dt>
-        <dd>Development fixture</dd>
+        <dd>{live ? "Live Kubernetes" : "Development fixture"}</dd>
         <dt>Live health</dt>
-        <dd>Unavailable</dd>
+        <dd>{live ? "See observed health" : "Unavailable"}</dd>
       </dl>
       <p className="muted">
         The saved record ID and Deployment UID identify this workload. A

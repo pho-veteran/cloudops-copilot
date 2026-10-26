@@ -15,3 +15,22 @@ export const workloadFixture = {
   ],
   next_offset: null,
 } satisfies components["schemas"]["WorkloadPage"];
+
+export const observationFixture = {
+  workload_id: workloadFixture.items[0].id,
+  workload_active: true,
+  source: "development_fixture",
+  availability: "unavailable",
+  freshness: "unavailable",
+  observation: null,
+  observed_at: null,
+  last_attempt_at: null,
+  last_attempt_state: null,
+  last_attempt_reason: null,
+  pending_refresh: false,
+} satisfies components["schemas"]["WorkloadObservationView"];
+
+export const observationHistoryFixture = {
+  items: [],
+  next_offset: null,
+} satisfies components["schemas"]["WorkloadObservationPage"];
