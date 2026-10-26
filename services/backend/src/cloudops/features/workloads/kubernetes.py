@@ -7,10 +7,39 @@ import ssl
 from decimal import Decimal, DecimalException
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from urllib.request import Request, build_opener, HTTPSHandler, ProxyHandler
 
+from cloudops.features.workloads.schemas import (
+    ConfigReference,
+    ObservedContainer,
+    ObservedPod,
+    ObservationCoverage,
+    WorkloadObservationPayload,
+)
 from cloudops.shared.errors import DomainError
+
+SAFE_WAITING_REASONS = frozenset(
+    {
+        "CrashLoopBackOff",
+        "ImagePullBackOff",
+        "ErrImagePull",
+        "ContainerCreating",
+        "PodInitializing",
+        "CreateContainerConfigError",
+        "RunContainerError",
+        "InvalidImageName",
+        "Completed",
+    }
+)
+FAILURE_WAITING_REASONS = {
+    "CrashLoopBackOff": "container_crash_loop",
+    "ImagePullBackOff": "container_image_pull",
+    "ErrImagePull": "container_image_pull",
+    "InvalidImageName": "container_image_pull",
+    "CreateContainerConfigError": "container_config_error",
+    "RunContainerError": "container_config_error",
+}
 
 
 class Kubernetes:
@@ -81,6 +110,220 @@ class Kubernetes:
                 "Deployment UID changed. Synchronize scope; historical identities remain separate.",
             )
         return value
+
+    def observe(self, workload, previous_payload=None):
+        """Read one bounded, UID-owned observation without exposing provider text."""
+        deployment = self.deployment(workload)
+        metadata = deployment.get("metadata") or {}
+        spec = deployment.get("spec") or {}
+        status = deployment.get("status")
+        desired = spec.get("replicas", 1)
+        generation = metadata.get("generation", 0)
+        template = spec.get("template") or {}
+        selector = (spec.get("selector") or {}).get("matchLabels") or {}
+        namespace = quote(workload.namespace, safe="")
+
+        missing: list[str] = []
+        # A scaled-to-zero Deployment has no rollout generation to observe; any
+        # present status is sufficient coverage. Live rollouts need the field.
+        if not isinstance(status, dict) or (desired > 0 and "observedGeneration" not in status):
+            add_missing(missing, "deployment_status")
+
+        replicasets, replicasets_truncated = self.collection(
+            f"/apis/apps/v1/namespaces/{namespace}/replicasets", selector, 100
+        )
+        if replicasets_truncated:
+            add_missing(missing, "pagination")
+        current = None
+        if not replicasets_truncated:
+            candidates = [
+                item
+                for item in replicasets
+                if owned_by(item, metadata.get("uid")) and template_matches(item, template)
+            ]
+            if len(candidates) == 1:
+                current = candidates[0]
+        if current is None:
+            add_missing(missing, "current_replicaset")
+
+        pods = []
+        if current is not None:
+            pod_selector = ((current.get("spec") or {}).get("selector") or {}).get(
+                "matchLabels"
+            ) or selector
+            items, pods_truncated = self.collection(
+                f"/api/v1/namespaces/{namespace}/pods", pod_selector, 200
+            )
+            if pods_truncated:
+                add_missing(missing, "pagination")
+            current_uid = (current.get("metadata") or {}).get("uid")
+            pods = [
+                item
+                for item in items
+                if owned_by(item, current_uid) and not terminating(item) and not terminal(item)
+            ]
+            if len(pods) < desired:
+                add_missing(missing, "pods")
+
+        observed_pods: list[ObservedPod] = []
+        reasons: set[str] = set()
+        restart_total = 0
+        ready_containers = 0
+        total_containers = 0
+        for pod in pods:
+            pod_status = pod.get("status")
+            if not isinstance(pod_status, dict):
+                add_missing(missing, "pod_status")
+                continue
+            pod_spec = pod.get("spec") or {}
+            regular = pod_status.get("containerStatuses")
+            init = pod_status.get("initContainerStatuses") or []
+            if not isinstance(regular, list) or not isinstance(init, list):
+                add_missing(missing, "container_status")
+                continue
+            if {item.get("name") for item in regular} != {
+                container.get("name") for container in pod_spec.get("containers", [])
+            } or {item.get("name") for item in init} != {
+                container.get("name") for container in pod_spec.get("initContainers", [])
+            }:
+                add_missing(missing, "container_status")
+
+            containers = []
+            for item in regular:
+                name = item.get("name")
+                if not isinstance(name, str):
+                    add_missing(missing, "container_status")
+                    continue
+                restarts = restart_count(item)
+                restart_total += restarts
+                total_containers += 1
+                ready = bool(item.get("ready"))
+                ready_containers += int(ready)
+                waiting = waiting_reason(item)
+                if waiting in FAILURE_WAITING_REASONS:
+                    reasons.add(FAILURE_WAITING_REASONS[waiting])
+                if nonzero_termination(item):
+                    reasons.add("container_terminated_nonzero")
+                containers.append(
+                    ObservedContainer(
+                        name=name,
+                        init=False,
+                        ready=ready,
+                        restart_count=restarts,
+                        waiting_reason=waiting,
+                    )
+                )
+            for item in init:
+                name = item.get("name")
+                if not isinstance(name, str):
+                    add_missing(missing, "container_status")
+                    continue
+                restarts = restart_count(item)
+                restart_total += restarts
+                waiting = waiting_reason(item)
+                if waiting in FAILURE_WAITING_REASONS:
+                    reasons.add(FAILURE_WAITING_REASONS[waiting])
+                if nonzero_termination(item):
+                    reasons.add("container_terminated_nonzero")
+                containers.append(
+                    ObservedContainer(
+                        name=name,
+                        init=True,
+                        ready=bool(item.get("ready")),
+                        restart_count=restarts,
+                        waiting_reason=waiting,
+                    )
+                )
+
+            conditions = {
+                condition.get("type"): condition
+                for condition in pod_status.get("conditions", [])
+                if isinstance(condition, dict)
+            }
+            scheduled = conditions.get("PodScheduled") or {}
+            if scheduled.get("status") == "False" and scheduled.get("reason") == "Unschedulable":
+                reasons.add("pod_unschedulable")
+            observed_pods.append(
+                ObservedPod(
+                    uid=(pod.get("metadata") or {}).get("uid", ""),
+                    name=(pod.get("metadata") or {}).get("name", ""),
+                    phase=pod_status.get("phase"),
+                    ready=(conditions.get("Ready") or {}).get("status") == "True",
+                    containers=containers,
+                )
+            )
+
+        if isinstance(status, dict):
+            for condition in status.get("conditions", []) or []:
+                if (
+                    condition.get("type") == "Progressing"
+                    and condition.get("status") == "False"
+                    and condition.get("reason") == "ProgressDeadlineExceeded"
+                ):
+                    reasons.add("progress_deadline_exceeded")
+
+        deployment_ready = (
+            isinstance(status, dict)
+            and desired > 0
+            and status.get("observedGeneration", -1) >= generation
+            and all(
+                status.get(field, 0) == desired
+                for field in ("readyReplicas", "availableReplicas", "updatedReplicas", "replicas")
+            )
+        )
+        complete = not missing
+        if desired == 0:
+            state = "scaled_to_zero"
+        elif reasons:
+            state = "degraded"
+        elif "deployment_status" in missing:
+            state = "unknown"
+        elif (
+            complete
+            and deployment_ready
+            and ready_containers == total_containers
+            and all(pod.ready for pod in observed_pods)
+        ):
+            state = "healthy"
+        else:
+            state = "progressing"
+        if state == "progressing":
+            reasons.add("rollout_incomplete")
+
+        return WorkloadObservationPayload(
+            deployment_uid=metadata.get("uid", ""),
+            generation=generation,
+            resource_version=metadata.get("resourceVersion", ""),
+            observed_generation=status.get("observedGeneration")
+            if isinstance(status, dict)
+            else None,
+            desired_replicas=desired,
+            ready_replicas=status_count(status, "readyReplicas"),
+            available_replicas=status_count(status, "availableReplicas"),
+            updated_replicas=status_count(status, "updatedReplicas"),
+            total_replicas=status_count(status, "replicas"),
+            status=state,
+            reasons=sorted(reasons),
+            coverage=ObservationCoverage(complete=complete, missing_sources=missing),
+            pods=observed_pods,
+            restart_total=restart_total,
+            restart_delta=restart_delta(previous_payload, observed_pods),
+            ready_containers=ready_containers,
+            total_containers=total_containers,
+            template_fields=template_fields(template),
+            config_references=config_references(template),
+        )
+
+    def collection(self, prefix, selector, limit):
+        query = {"limit": limit}
+        labels = selector_text(selector)
+        if labels:
+            query["labelSelector"] = labels
+        value = self.request(f"{prefix}?{urlencode(query)}")
+        items = value.get("items")
+        if not isinstance(items, list):
+            return [], True
+        return items, bool((value.get("metadata") or {}).get("continue"))
 
     def controllers(self, workload):
         ns = quote(workload.namespace, safe="")
@@ -257,3 +500,146 @@ def snapshot(deployment):
         ],
         "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
     }
+
+
+def add_missing(missing, code):
+    if code not in missing:
+        missing.append(code)
+
+
+def selector_text(labels):
+    return ",".join(f"{key}={value}" for key, value in sorted((labels or {}).items()))
+
+
+def owned_by(item, uid):
+    return bool(uid) and any(
+        reference.get("uid") == uid and reference.get("controller") is True
+        for reference in (item.get("metadata") or {}).get("ownerReferences", [])
+    )
+
+
+def template_matches(replicaset, template):
+    expected = normalized_template(template)
+    return normalized_template((replicaset.get("spec") or {}).get("template") or {}) == expected
+
+
+def normalized_template(template):
+    labels = dict((template.get("metadata") or {}).get("labels") or {})
+    labels.pop("pod-template-hash", None)
+    return {"labels": labels, "spec": template.get("spec") or {}}
+
+
+def terminating(pod):
+    return bool((pod.get("metadata") or {}).get("deletionTimestamp"))
+
+
+def terminal(pod):
+    return (pod.get("status") or {}).get("phase") in ("Succeeded", "Failed")
+
+
+def restart_count(container):
+    value = container.get("restartCount", 0)
+    return value if isinstance(value, int) and value >= 0 else 0
+
+
+def waiting_reason(container):
+    waiting = ((container.get("state") or {}).get("waiting") or {}).get("reason")
+    if waiting is None:
+        return None
+    return waiting if waiting in SAFE_WAITING_REASONS else "Unknown"
+
+
+def nonzero_termination(container):
+    for state in (container.get("state"), container.get("lastState")):
+        terminated = (state or {}).get("terminated") or {}
+        code = terminated.get("exitCode")
+        if isinstance(code, int) and code != 0:
+            return True
+    return False
+
+
+def status_count(status, field):
+    value = status.get(field, 0) if isinstance(status, dict) else 0
+    return value if isinstance(value, int) and value >= 0 else 0
+
+
+def restart_delta(previous_payload, pods):
+    previous = (
+        previous_payload.model_dump()
+        if hasattr(previous_payload, "model_dump")
+        else previous_payload
+    )
+    if not isinstance(previous, dict):
+        return None
+    prior = {}
+    for pod in previous.get("pods", []):
+        for container in pod.get("containers", []):
+            prior[(pod.get("uid"), container.get("name"))] = container.get("restart_count", 0)
+    current = {}
+    for pod in pods:
+        for container in pod.containers:
+            current[(pod.uid, container.name)] = container.restart_count
+    return sum(max(0, value - prior.get(key, value)) for key, value in current.items())
+
+
+def template_fields(template):
+    spec = template.get("spec") or {}
+    return {
+        "service_account_name": spec.get("serviceAccountName"),
+        "containers": [container_fields(item) for item in spec.get("containers", [])],
+        "init_containers": [container_fields(item) for item in spec.get("initContainers", [])],
+    }
+
+
+def container_fields(container):
+    resources = container.get("resources") or {}
+    return {
+        "name": container.get("name"),
+        "image": container.get("image"),
+        "image_pull_policy": container.get("imagePullPolicy"),
+        "env": [entry.get("name") for entry in container.get("env", []) if entry.get("name")],
+        "resources": {
+            kind: {
+                name: value
+                for name, value in (resources.get(kind) or {}).items()
+                if name in {"cpu", "memory"}
+            }
+            for kind in ("requests", "limits")
+        },
+        "ports": [
+            {"name": port.get("name"), "container_port": port.get("containerPort")}
+            for port in container.get("ports", [])
+        ],
+    }
+
+
+def config_references(template):
+    spec = template.get("spec") or {}
+    references = []
+    seen = set()
+
+    def add(kind, name, source):
+        key = (kind, name, source)
+        if isinstance(name, str) and name and key not in seen:
+            seen.add(key)
+            references.append(ConfigReference(kind=kind, name=name, source=source))
+
+    for container in [*spec.get("containers", []), *spec.get("initContainers", [])]:
+        for item in container.get("envFrom", []) or []:
+            config_map = item.get("configMapRef") or {}
+            secret = item.get("secretRef") or {}
+            add("config_map", config_map.get("name"), "env_from")
+            add("secret", secret.get("name"), "env_from")
+        for entry in container.get("env", []) or []:
+            value_from = entry.get("valueFrom") or {}
+            secret = value_from.get("secretKeyRef") or {}
+            config_map = value_from.get("configMapKeyRef") or {}
+            add("secret", secret.get("name"), "env")
+            add("config_map", config_map.get("name"), "env")
+    for volume in spec.get("volumes", []) or []:
+        secret = volume.get("secret") or {}
+        config_map = volume.get("configMap") or {}
+        add("secret", secret.get("secretName"), "volume")
+        add("config_map", config_map.get("name"), "volume")
+    add("service_account", spec.get("serviceAccountName"), "pod_spec")
+    return references
