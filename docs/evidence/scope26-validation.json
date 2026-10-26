@@ -1,0 +1,32 @@
+{
+  "implementation_commit": "1ef3983e8b90d1821f7b4a7e8f82642dd0c8e4a6",
+  "environment": {
+    "platform": "Linux containers on Docker Desktop",
+    "python": "3.13.11",
+    "uv": "0.9.26",
+    "node": "24.21.0",
+    "postgresql": "17.11",
+    "k3s": "v1.37.1-k3s1",
+    "caddy": "2.10.2"
+  },
+  "checks": {
+    "backend_unit_and_postgresql_tests": {"passed": 488, "failed": 0, "skipped": 0},
+    "frontend_tests": {"passed": 68, "failed": 0, "files": 9},
+    "frontend_typecheck_and_vite_build": "passed",
+    "python_ruff_check": "passed",
+    "python_ruff_format_check": "passed",
+    "generated_contract_check": "passed",
+    "deliberate_contract_drift_rejection_and_regeneration": "passed",
+    "production_npm_audit": {"vulnerabilities": 0},
+    "populated_scope_upgrade_repeat_upgrade_and_single_head": "passed in backend suite",
+    "live_k3s_https_scope_probe": "passed; see scope26-live.json",
+    "browser_journey": "passed; see scope26-browser.json"
+  },
+  "limits": [
+    "Local backend validation used a cached image containing the pinned Python/uv toolchain, replaced runtime/test source and ran uv sync --frozen; local access to the original GHCR uv image was denied. This is not a clean Dockerfile build receipt.",
+    "The frontend suite/build used Node 24.21.0 with a fresh npm ci against the unchanged lockfile.",
+    "The existing Starlette/httpx TestClient deprecation warning remains.",
+    "Full npm audit reports one existing high-severity development-only transitive body-parser advisory; production audit is zero. Dependency manifests and lockfiles are unchanged.",
+    "These receipts do not complete E02 integrated acceptance, health/baseline-v1 work or E10 release qualification."
+  ]
+}

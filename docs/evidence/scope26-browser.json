@@ -1,0 +1,37 @@
+{
+  "source": "actual_chromium_browser_with_local_development_origin",
+  "implementation_commit": "1ef3983e8b90d1821f7b4a7e8f82642dd0c8e4a6",
+  "runtime_sources_sha256": "b27c6f5f47e49fd9f4c498a1b72b0738b97c74b896775be1681ba99a877e2bc7",
+  "origin": "http://localhost:5176",
+  "backend": "Separate loopback development API using the same real lab PostgreSQL data; runtime source hashes matched the implementation working tree.",
+  "checks": {
+    "viewer_reads_current_and_removed_scope": true,
+    "exact_saved_identity_inspection": {
+      "workload_id": "85778568-22be-4aa1-bfd4-a6b24c08d5ff",
+      "uid": "743782f9-6b66-4058-a772-35c3680555f2",
+      "retirement_reason": "removed",
+      "source_label": "Live Kubernetes identity"
+    },
+    "missing_target_has_no_invented_identity_or_mutation_controls": true,
+    "operator_investigation_controls_only_for_resolved_identity": true,
+    "revoked_session_removes_protected_scope_and_preserves_workloads_route": true,
+    "revoked_session_focuses_username": true,
+    "keyboard_shift_tab_returns_from_identity_summary_to_inspection_button": true,
+    "layouts": [
+      {"viewport_width": 320, "document_width": 320, "theme": "light", "horizontal_overflow": false},
+      {"viewport_width": 390, "document_width": 390, "theme": "dark", "horizontal_overflow": false},
+      {"viewport_width": 1280, "document_width": 1265, "theme": "light", "horizontal_overflow": false}
+    ]
+  },
+  "screenshots": [
+    "scope26-history-320.jpg",
+    "scope26-missing-390-dark.jpg",
+    "scope26-viewer-missing.jpg"
+  ],
+  "limits": [
+    "These browser receipts use the supported HTTP loopback development cookie/Origin contract; they are not HTTPS-browser acceptance.",
+    "The separate scope26-live.json receipt uses certificate-validated HTTPS requests and real Kubernetes reads.",
+    "Workload health remains unavailable until E02 task B implements its observer.",
+    "Viewport overrides were reset; no workstation certificate trust or security settings were changed."
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "source": "live_local_k3s_https",
+  "implementation_commit": "1ef3983e8b90d1821f7b4a7e8f82642dd0c8e4a6",
+  "runtime_sources_sha256": "b27c6f5f47e49fd9f4c498a1b72b0738b97c74b896775be1681ba99a877e2bc7",
+  "cluster_fingerprint": "40942d708678a24453a07ab617b582e33efffb234d9e2b69c6760a604054f8ec",
+  "checks": {
+    "allowlisted_only": true,
+    "wrong_fingerprint_no_publication": true,
+    "other_readable_cluster_without_matching_names_rejected": true,
+    "replacement_history_and_denied_old_admission": {
+      "old_uuid": "ad714534-e069-43d7-8b5e-5249919143e4",
+      "old_uid": "b342e9e0-e46e-42b2-a0b6-9ebd9028630a",
+      "new_uuid": "85778568-22be-4aa1-bfd4-a6b24c08d5ff",
+      "new_uid": "743782f9-6b66-4058-a772-35c3680555f2",
+      "baseline_id": "36cc435a-637c-4cae-9164-b1329a65b32c",
+      "incident_id": "b7092185-3911-412d-aebf-9f0b8fe813e9"
+    },
+    "real_403_retains_admission": true,
+    "read_recovery": true,
+    "restart_preserves_baseline": true,
+    "viewer_history_and_scope": true,
+    "reader_patch_denied": true,
+    "original_checkout_and_writer_allowlist_unchanged": true
+  },
+  "limits": [
+    "Investigation collection is synthetic.",
+    "This scope receipt does not validate E02 health or baseline v1.",
+    "No executor was enabled by this probe."
+  ]
+}
