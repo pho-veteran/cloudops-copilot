@@ -35,6 +35,40 @@ The images document local behavior. They do not prove live source collection, mo
 
 Compose reads `.env`; see the committed `.env.example`. Use a URL-safe database password because the Compose connection URL interpolates it. Keep the exact loopback `WEB_ORIGIN` consistent with the browser URL. `COOKIE_SECURE=false` is an explicit HTTP-loopback exception; the default settings outside this file use Secure cookies. No CORS origin wildcard or public registration is enabled.
 
+### Browser session configuration and HTTPS handoff
+
+The API validates browser configuration before its database startup check and before serving requests. `WEB_ORIGIN` is one exact browser-serialized origin; requests must match it literally. The supported configuration pairs are:
+
+| Origin example | `COOKIE_SECURE` | Use |
+|---|---|---|
+| `http://localhost:5173` | `false` | Local HTTP development |
+| `http://127.0.0.1:5173` | `false` | Local HTTP development; also change the browser URL to this origin |
+| `https://cloudops.example.com` | `true` | HTTPS deployment |
+| `https://cloudops.example.com:8443` | `true` | HTTPS on a non-default port |
+| `https://[2001:db8::1]:8443` | `true` | HTTPS with canonical bracketed IPv6 |
+
+HTTP with Secure enabled is rejected by application policy, including on loopback. HTTPS with Secure disabled and non-loopback HTTP are rejected. `0.0.0.0`, LAN addresses, `*.localhost` and IPv6 loopback do not receive the HTTP exception. `COOKIE_SECURE` accepts only `true` or `false`, case-insensitively. There is no whitespace trimming or fallback for unrecognized values.
+
+Use lowercase ASCII DNS names (IDNs in ASCII/Punycode form), canonical dotted-decimal IPv4 or compressed lowercase bracketed IPv6, and decimal ports from 1 through 65535. Omit explicit default ports (`:80` for HTTP, `:443` for HTTPS); browsers omit them in Origin. DNS labels must contain letters/digits/hyphens, have no leading/trailing hyphen, and fit DNS length bounds. A DNS trailing dot, when configured, remains part of the exact origin. Credentials, paths (including `/`), query/fragment (even empty `?`/`#`), percent escapes, backslashes, whitespace/control characters, alternate numeric IP spellings and multiple origins fail validation. Invalid input is not echoed in startup errors.
+
+Session cookies are opaque, HttpOnly, host-only (no Domain), SameSite=Lax and Path=/. HTTPS sets Secure. `SESSION_SECONDS` is an absolute lifetime of 1..28800 seconds, default 28800; reading a session does not renew it. Logout deletes the server session and clears the cookie with matching scope/security attributes. Replaying a saved cookie after logout does not restore access. Session cookies belong only in HTTP cookie headers; session-bound CSRF tokens belong in the response and in-memory client state, then the `X-CSRF-Token` header. Do not put either authority in URLs or persistent browser storage, or include passwords/tokens/cookie headers in diagnostics.
+
+Login requires exactly one configured Origin header. Authenticated mutations additionally require exactly one matching session-bound CSRF header. Missing/foreign/`null`/duplicate Origin yields `403 origin_denied`; missing/wrong/cross-session/duplicate CSRF yields `403 csrf_denied`. Missing or expired sessions on protected operations yield `401 session_expired`. These are checked before domain writes; rejected logout does not revoke a valid session. Host and forwarded headers do not select the trusted Origin or cookie flags. Reads do not require an Origin or CSRF header and remain session-authenticated.
+
+For E10, configure for example:
+
+```dotenv
+WEB_ORIGIN=https://cloudops.example.com
+COOKIE_SECURE=true
+SESSION_SECONDS=28800
+```
+
+E10 must provide TLS and a same-origin frontend plus `/api` reverse proxy preserving API paths, cookie headers, the browser Origin and CSRF header. Keep the backend reachable only through the intended internal path; configure trusted proxy peers at deployment rather than treating arbitrary forwarded headers as authority. Check proxy/application logging rules so Cookie, Set-Cookie, CSRF and credentials are not logged.
+
+E10's browser-through-proxy acceptance must demonstrate login, Secure host-only cookie round trip, session read, an authorized mutation, denial without the correct Origin/CSRF, and logout followed by unauthenticated session access. Inspect cookie scope/flags and verify the session token is not persisted in browser storage or URLs. The existing Compose/Vite path is local HTTP tooling, not this release proxy stack.
+
+The configuration unit suite and `tests/test_access_browser_security.py` cover isolated parsing/startup and PostgreSQL-backed HTTPS TestClient behavior, including cookie set/delete attributes, token replay, session expiry, cross-session CSRF and denied-write counts. TestClient is API/fixture evidence; its cookie jar does not prove all browser SameSite/HttpOnly behavior, real TLS, proxy forwarding or deployment logging. Those remain E10 gates.
+
 `config/development-workloads.json` contains at most 100 configured identities. Bootstrap validates the complete file before changing the active allowlist. Sync is transactional; removed rows become inactive rather than deleting incident history. A UID replacement cannot reuse the old persisted workload identity. The collector never reads cluster state or Secret contents.
 
 ```sh
@@ -96,6 +130,84 @@ The implemented operation families are session/login/logout, workload inventory,
 - Errors use `{error: {code, message}}`: 401 for anonymous/expired session, 403 for Viewer/Origin/CSRF denial, 404 for missing or mismatched records, 409 for conflicting admission/active work/capacity, 422 for invalid fields/scope and 503 for database unavailability.
 - Run states in this slice are `queued`, `collecting`, `insufficient_evidence`, `failed`. Successful synthetic collection ends `insufficient_evidence` with diagnosis/recovery unavailable, never completed RCA. Terminal runs are immutable; explicit retry creates a new run. There are no plan/execution or live collection endpoints.
 
+## Available-operation authorization checks
+
+The test-only inventory in `services/backend/tests/permission_inventory.py` classifies
+the operations actually served by the application. `permission_cases.py` provides
+feature-specific valid requests and success assertions; `test_permissions.py` runs
+every classified operation with anonymous, expired, Viewer and Operator sessions.
+Authentication, cookies, role dependencies and PostgreSQL persistence remain real;
+these tests do not override the principal or permission dependencies.
+
+| Classification | Current operation IDs | Required behavior |
+|---|---|---|
+| Protected reads | `get_session`, `list_workloads`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
+| Operator domain mutations | `create_incident`, `create_run` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
+| Session self-service | `logout` | Either authenticated role may sign out its own session with valid Origin/CSRF |
+| Account entry | `login` | Valid credentials and configured Origin admit either account role; incorrect credentials return `401 invalid_credentials` |
+| Public probes | `liveness`, `readiness` | Public status only; readiness returns sanitized `503 database_not_ready` when unavailable |
+
+OpenAPI and generated docs (`/openapi.json`, `/docs`, `/docs/oauth2-redirect`,
+`/redoc`) are separate, explicitly public framework routes. Their actual GET/HEAD
+definitions are inventoried; unknown routes do not inherit an exemption. A schema
+describing a password input field is distinct from exposing a password value.
+
+The inventory uses the pinned FastAPI route-context API to traverse included and
+nested routers with their effective prefixes, including operations excluded from
+OpenAPI. Each application operation needs an explicit unique ID, one method/path,
+a classification and executable request/outcome fixtures. Missing/stale entries,
+unknown classifications, duplicate IDs, unsupported mounts/WebSockets and
+unclassified non-API routes fail the guard. The live OpenAPI document is compared
+with schema-visible routes. Unit tests deliberately introduce these mistakes to
+prove detection. Callable checks cannot judge assertion quality; reviewers must
+inspect feature fixtures as well as inventory results.
+
+For a new operation, its feature owner must:
+
+1. Define its permission semantics in the owning EPIC using the existing principal.
+2. Register its actual operation ID, method, path and classification in the inventory.
+3. Supply valid existing-record/body/header fixtures and meaningful success assertions.
+4. Run all four actor states through the real request path and assert domain-specific
+   denial side effects. Do not use a missing record, invalid body or mocked principal
+   as authorization evidence.
+5. Regenerate transport artifacts if necessary, run checks and record the tested
+   commit/environment and remaining integration gates in E01's evidence ledger.
+
+Focused checks, from the repository root:
+
+```sh
+# No database or runtime credentials required:
+uv run --project services/backend pytest -q services/backend/tests_unit/test_operation_inventory.py
+# Requires a dedicated TEST_DATABASE_URL ending in _test; clears that database:
+uv run --project services/backend pytest -q services/backend/tests/test_permissions.py
+```
+
+Permission fixtures create incidents through the API and complete the synthetic
+development collector before testing another run admission. Denials compare fresh
+committed snapshots of domain records, admissions, jobs, evidence, attempts and
+account/session state. Tests inspect a persisted attempt lease sentinel to verify
+it is absent from run responses. Password/session secrets are forbidden in response
+bodies; the session's own CSRF field and evidence SHA-256 remain permitted outputs.
+Existing workspace records are shared between application roles; this does not
+introduce tenant or per-user record ownership. A run must still belong to its URL's
+incident. Background worker processes must not target the disposable test database.
+
+Future integration receipts remain with the feature owners:
+
+| Owner | Operations requiring their own request-level evidence |
+|---|---|
+| E02 | Known-good baseline confirmation: Operator-only, with baseline validation and no change on denial |
+| E03 | Notes and acknowledge/resolve/reopen: Operator-only, preserving lifecycle/state rules |
+| E04 | Any new run controls: explicit semantics, run/job transition and denial evidence |
+| E07 | Approval/rejection: Operator-only with current plan/state and fresh action; expired approval requires sign-in, plan refetch and no automatic replay |
+| E08 | New report generation: Operator-only; Viewer may read/export existing permitted reports |
+| E09 | New connection checks: Operator-only; Viewer may read existing permitted results |
+| E01/E07/E10 | Maintenance recovery: trusted host authority and actual proof/provenance, never application role alone |
+
+No absent operation is counted as verified. Current-route permission tests neither
+close E01's future integration gates nor demonstrate a real HTTPS proxy, browser
+SameSite behavior, cluster/model integration or deployment security.
+
 ## Focused checks
 
 The Compose path is `./scripts/check-backend.sh`. It creates/reuses `cloudops_test`, applies migrations and clears that disposable database between tests. It never drops the normal application database.
@@ -105,12 +217,14 @@ For host backend tests against an already provisioned dedicated PostgreSQL datab
 ```sh
 uv sync --project services/backend --frozen
 # Set TEST_DATABASE_URL to your own PostgreSQL psycopg URL ending in /cloudops_test.
-uv run --project services/backend pytest -q services/backend/tests
+uv run --project services/backend pytest -q services/backend/tests_unit services/backend/tests
 uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend scripts
 uv run --project services/backend ruff format --check --config services/backend/pyproject.toml services/backend scripts
 ```
 
 Tests reject a missing or non-test database URL before clearing tables. Do not use a production or shared database whose name merely happens to end in `_test`. The worker-interruption test makes the backend suite take at least 35 seconds.
+
+For isolated browser configuration checks without PostgreSQL, run `uv run --project services/backend pytest -q services/backend/tests_unit`. Both CI and the Compose test service include this suite as well as the PostgreSQL suite.
 
 ```sh
 npm ci --prefix tools/contracts

@@ -22,7 +22,8 @@ build-backend = "hatchling.build"
 packages = ["src/cloudops"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests_unit", "tests"]
+pythonpath = ["tests"]
 
 [tool.ruff]
 line-length = 100
