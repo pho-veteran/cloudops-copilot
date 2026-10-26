@@ -1,0 +1,126 @@
+{
+  "schema": "e02-workload-observations-evidence/v1",
+  "collected_at": "2026-10-26T15:07:53Z",
+  "status": "partial_live_lab_deferred",
+  "source_commit": "ab3aa6c23409af19b3af12dab9af11ea9fee2a23",
+  "capture_scope": "Working tree on top of source_commit. Task 6 bounds tests, the payload-UID rejection fix, documentation and this receipt are committed after capture.",
+  "environment": {
+    "host": "Windows implementation host",
+    "python": "3.13.1",
+    "node": "24.22.1",
+    "npm": "11.6.2",
+    "postgresql": "18 disposable cluster at 127.0.0.1:55432, database cloudops_test",
+    "docker": "unavailable",
+    "kubernetes": "not exercised"
+  },
+  "evidence_kind": {
+    "unit_and_postgresql": true,
+    "fixture": true,
+    "live_kubernetes": false,
+    "browser": false
+  },
+  "bounds": {
+    "configured_live_workloads_max": 100,
+    "poll_seconds": 30,
+    "stale_seconds": 60,
+    "lease_seconds": 45,
+    "default_concurrency": 8,
+    "concurrency_range": [1, 16],
+    "history_rows_per_workload": 100,
+    "history_days": 7,
+    "migration_head": "0004_workload_observations",
+    "scope_exhaustion_receipt": {
+      "configured_workloads": 100,
+      "cycle_budget": 4,
+      "fresh_after_cycle": 4,
+      "stale_after_cycle": 96,
+      "result": "Unclaimed due work stayed explicitly stale with its prior successful values; no health was fabricated."
+    },
+    "observer_isolation_receipt": {
+      "scenario": "One observer thread blocked inside a cluster read",
+      "job_admission_while_blocked": true,
+      "job_execution_claim_while_blocked": true,
+      "result": "The observer held no database transaction during the read and did not consume shared job admission or execution capacity."
+    }
+  },
+  "checks": {
+    "backend_observation_suite": {
+      "command": "TEST_DATABASE_URL=..._test uv run --project services/backend pytest -q services/backend/tests/test_workload_observations.py",
+      "result": "27 passed",
+      "duration_seconds": 10.65
+    },
+    "backend_full_suite": {
+      "command": "TEST_DATABASE_URL=..._test uv run --project services/backend pytest -q",
+      "result": "463 passed, 9 skipped",
+      "duration_seconds": 244.09
+    },
+    "ruff_check": {
+      "command": "uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend scripts",
+      "result": "All checks passed"
+    },
+    "ruff_format_check": {
+      "command": "uv run --project services/backend ruff format --check --config services/backend/pyproject.toml services/backend scripts",
+      "result": "79 files already formatted"
+    },
+    "contracts": {
+      "command": "uv run --project services/backend python scripts/contracts.py",
+      "result": "Contract artifacts match backend models"
+    },
+    "contract_drift": {
+      "command": "uv run --project services/backend python scripts/test-contract-drift.py",
+      "result": "Deliberate backend schema drift rejected; synchronized artifacts accepted; working tree untouched"
+    },
+    "web_tests": {
+      "command": "npm --prefix apps/web test",
+      "result": "71 passed"
+    },
+    "web_build": {
+      "command": "npm --prefix apps/web run build",
+      "result": "tsc --noEmit and vite build passed"
+    },
+    "check_backend_script": {
+      "command": "./scripts/check-backend.sh",
+      "result": "not run",
+      "reason": "The script starts PostgreSQL through Docker Compose; Docker is unavailable. Equivalent PostgreSQL tests ran against the disposable _test database instead."
+    }
+  },
+  "covered_cases": [
+    "single migration head and populated upgrade preservation",
+    "one lease per workload and stale-lease publication rejection",
+    "retired workload and changed workload UID publication rejection",
+    "payload deployment UID mismatch rejection",
+    "refresh request deduplication and Operator-only authorization",
+    "59/61 second freshness boundary",
+    "bounded 100-row and seven-day success/attempt retention",
+    "failed refresh or timeout keeps the last success labeled historical",
+    "restart keeps stale status and sanitized failure reason",
+    "100 configured workloads with a four-request cycle leave 96 explicitly stale",
+    "blocked observer does not hold a transaction or block shared Job admission/execution",
+    "observer never claims fixture workloads and mounts only reader credentials",
+    "sanitized failure codes exclude provider bodies and environment values",
+    "exact workload UUID incident filtering before pagination and replacement-UID exclusion",
+    "web states: available, partial, progressing, degraded, stale, unavailable, pending refresh, fixture",
+    "web refresh is Operator-only and refetches the persisted projection",
+    "related incidents use the exact returned incident ID for navigation"
+  ],
+  "live_lab": {
+    "captured": false,
+    "deferred_reason": "The Docker daemon is not available on the implementation host, so the isolated Compose/K3s lab and browser walkthrough could not be started.",
+    "required_cases": [
+      "ready workload observed fresh",
+      "unready workload observed progressing or degraded",
+      "container restart reflected in restart delta",
+      "reader denial records a sanitized reason",
+      "observer stop makes the prior success stale after 60 seconds",
+      "refresh timeout preserves the prior success as historical",
+      "replacement Deployment UID is rejected and old incidents stay with the retired identity",
+      "related incident navigation opens the exact returned UUID"
+    ],
+    "remaining_gate": "Run docs/e01-local-lab.md with the observer service, capture commit/config/environment/poll measurements, and record the scoped K3s and browser receipts in this file.",
+    "non_claims": [
+      "No fixture or unit result is presented as live cluster health.",
+      "No browser screenshot or K3s observation was captured for this slice.",
+      "No application telemetry, diagnosis, execution or remediation success is claimed."
+    ]
+  }
+}

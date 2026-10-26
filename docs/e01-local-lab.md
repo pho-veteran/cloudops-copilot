@@ -8,7 +8,7 @@ Use Docker Desktop/Engine with Linux containers, Compose 2.24.4 or newer, and th
 
 ```sh
 uv run --project services/backend python scripts/bootstrap-integration.py
-docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml up -d --build --wait --wait-timeout 240 api worker executor krr https
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml up -d --build --wait --wait-timeout 240 api worker observer executor krr https
 docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml exec api python -m cloudops.entrypoints.cli account operator --role operator
 docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml exec api python -m cloudops.entrypoints.cli account viewer --role viewer
 docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml cp https:/data/caddy/pki/authorities/local/root.crt tmp/local-https-root.crt
@@ -40,7 +40,31 @@ Open `https://localhost:8443` after accepting this lab's CA through normal local
 - Reading a plan returns live validity and a receipt tied to the current session, expiring within sixty seconds. Approval/rejection requires its exact version/digest and a fresh explicit action. Reauthentication invalidates old receipts. The UI binds the confirmation dialog to the reviewed plan and discards intent when authority or the displayed plan changes. No mutation is replayed automatically.
 - An acknowledged Kubernetes patch is **not** verified remediation. Results remain `manual_intervention`/`inconclusive`; rollout, application metrics and any subsequent change require manual assessment. There is no automatic rollback.
 
-Viewers read/export these records and log out their own session. All nine Operator mutation operations reject a valid Viewer request before any committed domain/job change. Anonymous/expired requests cannot read observations, review receipts or stored records. The actual 31-operation inventory and executable role cases are in `services/backend/tests`; provider fixtures are explicitly separate from the live probes.
+Viewers read/export these records and log out their own session. All ten Operator mutation operations reject a valid Viewer request before any committed domain/job change. Anonymous/expired requests cannot read observations, review receipts or stored records. The actual 34-operation inventory and executable role cases are in `services/backend/tests`; provider fixtures are explicitly separate from the live probes.
+
+## Observed workload health
+
+The dedicated `observer` service runs `cloudops.entrypoints.observer` every `OBSERVATION_POLL_SECONDS` (default 30 seconds). It is separate from the collection worker and the shared `jobs` queue: it never claims, renews or completes an application Job, so a slow or unavailable cluster read cannot consume admission or recovery execution capacity. Each configured live workload has at most one observation lease (45 seconds); a stale lease or a changed Deployment UID cannot publish.
+
+```sh
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml ps observer
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml logs --tail 100 observer
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml restart observer
+```
+
+The integration overlay mounts only `./tmp/e01-integration/reader` at `/run/cloudops-reader` in the observer. It has no writer kubeconfig, dispatch key, KRR credential or Docker socket. The API still mounts the reader connection only for the protected read routes; the worker keeps its separate private dispatch/KRR credentials.
+
+Workloads shows the persisted projection, never a request-time Kubernetes read:
+
+- **Fresh** means the last successful observation is at most 60 seconds old. **Stale** means it is older than 60 seconds; the prior values remain visible and are labeled historical, not healthy. **Unavailable** means no successful observation has been stored.
+- Status is one of Healthy, Progressing, Degraded, Scaled to zero or Unknown. Partial coverage names the missing sources (for example `deployment_status`). Observed reasons are sanitized codes such as `rollout_incomplete` or `progress_deadline_exceeded`.
+- The panel shows observed/attempt times, readiness, restart total and measured restart delta, generation, whitelisted template fields (image, pull policy, environment **names**, CPU/memory, ports), configuration reference names and observed Pod readiness. It never shows environment values, Secret data, Pod messages or provider response bodies. Application telemetry remains explicitly unverified.
+- **Request observation refresh** is Operator-only. The API records a pending request and returns `202`; it does not call Kubernetes. The observer performs the read on its next cycle and deduplicates stacked requests. A Viewer sees the saved projection without a refresh control.
+- Related incidents use the exact saved workload UUID before pagination and link to that incident ID. A replacement Deployment UID creates a different workload record, so old incidents remain with the retired identity.
+
+If the observer is stopped, existing values become **Stale** after 60 seconds; nothing is relabeled fresh by restarting the API or worker. Restart the observer, check its logs for sanitized cycle failures, and use an Operator refresh if the next poll is not soon enough. A cluster read denial records a sanitized failure code such as `cluster_unavailable`; it does not expose the provider message. If the observer cannot be started, the last success stays historical and no new health is claimed.
+
+Migration `0004_workload_observations` adds the projection/lease/history tables. Observation history is bounded to 100 successful rows and 100 attempt rows per workload, and to seven days. These lab notes and the focused tests are fixture/unit evidence unless a real scoped K3s browser receipt is captured; see `docs/evidence/e02-workload-observations.json`.
 
 ## Writer and maintenance protocol
 
@@ -59,7 +83,7 @@ Use `--request-id <UUID>` to retrieve an exact maintenance request's durable rec
 3. Restart the executor/API in independent quarantine. Inspect actual target state, retained unknown attribution and root audit receipts. Do not infer readiness from restored application rows.
 4. Establish current UID/fence/health proof, explicitly enable each target, explicitly exit recovery mode, and only then resume workers/product writes. Users sign in and read current records/plans again. Previously admitted old-epoch work cannot authorize a new write.
 
-Migration `0003_e01_consumers` adds eight feature tables plus a source column; populated upgrade preserves existing foundation records and assigns old workloads `development_fixture`. Repeat upgrade and metadata drift checks are tested. Downgrade removes new feature data and does not undo lifecycle values or Kubernetes effects; use a quarantined backup recovery rather than an application rollback assumption.
+Migration `0003_e01_consumers` adds eight feature tables plus a source column; populated upgrade preserves existing foundation records and assigns old workloads `development_fixture`. `0004_workload_observations` then adds the observation projection, lease, success history and attempt history tables; it chains from `0003_e01_consumers` as the single head. Repeat upgrade and metadata drift checks are tested. Downgrade removes new feature data and does not undo lifecycle values or Kubernetes effects; use a quarantined backup recovery rather than an application rollback assumption.
 
 ## Reproduce the local receipts
 

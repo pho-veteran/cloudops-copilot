@@ -141,6 +141,9 @@ def publish_success(
         state = locked_state(db, claim)
         if state is None:
             return False
+        if payload.deployment_uid != claim.workload_uid:
+            # A replaced target must never be published under the retired identity.
+            return False
         now = database_now(db)
         db.add(
             WorkloadObservation(

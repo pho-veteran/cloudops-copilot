@@ -12,6 +12,7 @@ The integrated UI first landed in `47f09ff`; the verification/hardening wave in 
 | Access | Provision/reset CLI, scrypt passwords, server-side opaque cookie sessions, Origin/CSRF and backend Viewer denial | PostgreSQL API tests; Operator/Viewer browser sign-in |
 | Admission | Atomic incident/run/job; actor-bound idempotency key; bounded pending queue; one active run per incident | Concurrent duplicate admission, queue-full and rollback tests |
 | Collection | 30-second token lease, 5-second renewals, three attempts, atomic evidence/result publication | Real process kill and lease expiry; concurrent claims, stale/duplicate result rejection and failed publication rollback |
+| Observed workload health | Dedicated read-only observer, 30-second poll, 60-second stale threshold, UID-scoped projection, bounded history and exact related incidents | PostgreSQL lease/publication/retention/bounds tests; workload UI tests; live K3s/browser receipt explicitly deferred when Docker is unavailable |
 | UI | Queue, configured workloads, manual intake, selected run URL, immutable evidence and attempt history | Navigate/back/refresh and database/API/worker restart; read-only Viewer; light/dark and narrow layouts |
 | Contract | Backend-owned OpenAPI, generated TypeScript, shared typed transport and feature-owned queries/fixtures | Drift detection with a deliberate extra route, synchronized regeneration, schema-checked typed fixture and consumer query test |
 
@@ -30,6 +31,8 @@ A clean archive of `abdcd65` was built in an isolated Compose project with an em
 The failed-collection browser exercise created run `86719204-70a7-4497-a4b7-f1bc23bc1a85`, recorded three failed attempts, published no evidence and retained the earlier run. Ordinary worker configuration was restored afterward.
 
 The images document local behavior. They do not prove live source collection, model quality, recovery safety or independent review.
+
+The observed workload health slice adds a dedicated read-only observer and a persisted, UID-scoped projection. It polls every 30 seconds, marks a success stale after 60 seconds, keeps one lease per workload, bounds success/attempt history to 100 rows and seven days each, and filters related incidents by exact workload UUID before pagination. The observer never claims the shared `jobs` queue, so cluster-read saturation cannot delay collection or recovery execution. Fixture workloads never claim live health. Live scoped K3s and browser receipts remain deferred on hosts without a Docker daemon; focused PostgreSQL and web tests are recorded in `docs/evidence/e02-workload-observations.json`.
 
 ## Configuration and account operations
 
@@ -159,7 +162,7 @@ For interruption, set `COLLECTOR_DELAY_SECONDS=60` on the worker with the same e
 |---|---|---|
 | E00 | `shared/config.py`, `shared/database.py`, Alembic and contract harness; `lib/api` transport | All implemented feature modules |
 | E01 | `features/access`: principal/session/permission and account provisioning | Every protected API; application shell |
-| E02 | `features/workloads`: configured stable identity, allowlist and known-good metadata | Admission, baseline preparation and Workloads UI |
+| E02 | `features/workloads`: configured stable identity, allowlist, known-good metadata, bounded observation projection/leases and dedicated observer | Admission, baseline preparation, Workloads UI and exact related-incident links |
 | E03 | `features/incidents`: manual admission, notes/lifecycle and stored handoff | Work queue and investigation workspace |
 | E04 | `features/investigations` and shared job mechanics | Worker composition and run/evidence UI |
 | E07 | `features/recovery`: immutable manual plans, session-bound review, isolated executor and proof | Recovery UI, worker and trusted maintenance CLI |
@@ -171,7 +174,7 @@ HTTP handlers handle request/response/authentication; feature services own rules
 
 Transport shapes live in feature Pydantic schemas, `contracts/openapi.json` and generated TypeScript. No hand-maintained DTO or second SDK is required. Only explicitly selected response fields reach the UI; password hashes, cookie tokens and job lease tokens are never response fields.
 
-The implemented operation families are session/login/logout, workload inventory, manual incident create/list/detail, incident run create/list/detail and health observations. Use the generated artifact or the running [API documentation](http://localhost:8000/docs) for exact operations and field shapes.
+The implemented operation families are session/login/logout, workload inventory, workload observation/history/refresh, manual incident create/list/detail, incident run create/list/detail and health observations. Use the generated artifact or the running [API documentation](http://localhost:8000/docs) for exact operations and field shapes.
 
 - IDs are UUIDs; timestamps are UTC RFC3339. Synthetic evidence includes its schema version, source, workload UID, observed/collected time, payload and SHA-256 of canonical JSON (sorted keys, compact separators).
 - List APIs use `limit` 1..100 (default 25), `offset` 0..100000 and `next_offset`. Incident/run order is creation time descending with UUID tie-break; workload order is UUID ascending. Concurrent inserts can shift offset pages; this foundation does not promise snapshot pagination.
@@ -190,8 +193,8 @@ these tests do not override the principal or permission dependencies.
 
 | Classification | Current operation IDs | Required behavior |
 |---|---|---|
-| Protected reads | `get_session`, `list_workloads`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
-| Operator domain mutations | `create_incident`, `create_run`, `confirm_baseline`, `add_incident_note`, `transition_incident`, `create_connection_check`, `create_recommendation_report`, `propose_plan`, `decide_plan` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
+| Protected reads | `get_session`, `list_workloads`, `get_workload_observation`, `list_workload_observations`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
+| Operator domain mutations | `create_incident`, `create_run`, `confirm_baseline`, `request_workload_observation_refresh`, `add_incident_note`, `transition_incident`, `create_connection_check`, `create_recommendation_report`, `propose_plan`, `decide_plan` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
 | Protected feature reads/exports | `list_baselines`, `list_incident_activity`, `export_incident_handoff`, `list_connection_checks`, `list_recommendation_reports`, `get_recommendation_report`, `export_recommendation_report`, `list_plans`, `list_executions` | Both roles inspect persisted records; no domain mutation |
 | Protected observation | `get_baseline_candidate` | Both roles may save a bounded live observation; it cannot confirm a baseline or write to Kubernetes |
 | Protected review | `read_plan` | Both roles read current validity and receive a session-bound read receipt; a receipt grants no decision permission |
@@ -308,6 +311,14 @@ npm --prefix apps/web run build
 
 Then follow README startup/account setup, open Workloads and choose **Inspect workload identity** with each role. The same query and component run against fixtures and the API without a second DTO or feature-policy edit. The implementation commit and final CI results are recorded in PR #16 and E00. No child issue is required for this single-PR delivery.
 
+### Observed workload health verification
+
+The observation slice extends the same consumer with generated `WorkloadObservationView`, `WorkloadObservationPage` and `ObservationRefreshView` fields. It renders fresh, stale, partial, progressing/degraded, unavailable, pending-refresh and fixture states; keeps a failed refresh's prior success labeled historical; shows observed/attempt times, coverage, readiness, restart deltas, whitelisted template fields and application telemetry as unverified; restricts refresh to Operators; and links related incidents by exact returned UUID. Fixture workloads never claim live health.
+
+The focused PostgreSQL suite covers the single migration head, one lease per workload, stale-lease and retired/changed-UID publication rejection (including a mismatched payload UID), refresh deduplication, freshness at 59/61 seconds, bounded success/attempt retention, sanitized reasons across restart, 100-workload scope exhaustion under a four-request budget, and an observer blocked in a cluster read while shared Job admission and execution continue. Web tests cover available/partial/stale/unavailable, historical last success, fixture unavailability, Operator-only refresh and projection refetch, and exact related-incident query/navigation.
+
+Live scoped K3s and browser receipts for ready, unready, restart, read-denial, stale/timeout, replacement-UID and exact related-incident navigation were not captured on the implementation host because no Docker daemon was available. They remain the outstanding evidence gate and are recorded as deferred in `docs/evidence/e02-workload-observations.json`; no fixture result is presented as live cluster evidence.
+
 ## Remaining operational boundaries
 
 The final foundation polish separates deliberate sign-out from session expiry. An isolated
@@ -316,9 +327,9 @@ browser check signed in, opened Connections, signed out, confirmed the
 Connections route. The [Connections view](evidence/foundation-connections.jpg) clarifies
 that collector availability describes the configured synthetic adapter, not a successful
 collection or live source health. Attempt history remains the source for collection
-results; failed collection leaves `last_success_at` unset. All 35 frontend tests,
-16 PostgreSQL tests, build, Python lint/format and contract/drift checks passed after
-these changes.
+results; failed collection leaves `last_success_at` unset. All 71 frontend tests, the
+full backend suite (463 passed, 9 skipped), build, Python lint/format and contract/drift
+checks passed after the observation slice.
 
 The optional E01 lab now supplies notes/lifecycle/handoff, live known-good metadata, bounded connection checks, persisted KRR jobs, exact-plan scale approval and proof-backed maintenance. The worker has only a private dispatch capability; the separate executor alone holds the scoped Kubernetes writer credential. Live investigation packs, Alertmanager intake, comparison/runbooks, model analysis, additional recovery templates, qualified KRR history and release deployment remain in their feature EPICs. No E00 fixture result satisfies those gates, and no application role grants maintenance authority.
 

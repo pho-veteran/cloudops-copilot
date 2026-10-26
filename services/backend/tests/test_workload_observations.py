@@ -1,7 +1,10 @@
 """PostgreSQL evidence for bounded observation state, leases, freshness and retention."""
 
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from uuid import uuid4
 
 from alembic import command
@@ -36,6 +39,7 @@ from cloudops.features.workloads.schemas import (
 )
 from cloudops.shared.database import database_now, engine, sessions
 from cloudops.shared.errors import DomainError
+from cloudops.shared.jobs import Job, claim_next
 
 BACKEND = Path(__file__).resolve().parents[1]
 
@@ -173,6 +177,17 @@ def test_retired_or_uid_changed_workload_rejects_publication(seeded):
         db.get(Workload, changed).uid = "dep-2-replaced"
     with sessions()() as db:
         assert publish_success(db, changed_claim, make_payload(uid="dep-2")) is False
+
+
+def test_payload_for_replaced_uid_is_rejected(seeded):
+    workload_id = create_workload(uid="dep-1")
+    claim = next_claim(workload_id)
+    with sessions()() as db:
+        assert publish_success(db, claim, make_payload(uid="dep-replaced")) is False
+    with sessions()() as db:
+        assert db.scalar(select(func.count()).select_from(WorkloadObservation)) == 0
+        state = db.get(WorkloadObservationState, workload_id)
+        assert state.last_attempt_state is None
 
 
 def test_failed_attempt_preserves_labeled_last_success(seeded):
@@ -549,3 +564,165 @@ def test_observer_mounts_only_reader_credentials():
         "KRR_RUNNER_KEY",
     ):
         assert forbidden not in observer
+
+
+class UidReader:
+    """Reads the exact claimed identity so each publication stays UID-scoped."""
+
+    def observe(self, workload, previous_payload=None):
+        return make_payload(uid=workload.uid)
+
+
+class BlockingReader:
+    def __init__(self, entered: threading.Event, release: threading.Event):
+        self.entered = entered
+        self.release = release
+
+    def observe(self, workload, previous_payload=None):
+        self.entered.set()
+        assert self.release.wait(timeout=10), "Test did not release the observer"
+        return make_payload(uid=workload.uid)
+
+
+class ProbeHandler:
+    """Minimal shared-Job handler proving admission and execution stay independent."""
+
+    def started(self, db, subject_id):
+        pass
+
+    def failed(self, db, subject_id, reason, terminal):
+        pass
+
+    def publish(self, db, subject_id, result):
+        pass
+
+
+def test_100_workload_scope_exhaustion_reports_stale_coverage(seeded, monkeypatch):
+    with sessions()() as db, db.begin():
+        now = database_now(db)
+        identities = []
+        for index in range(100):
+            row = Workload(
+                cluster="lab",
+                namespace="demo",
+                name=f"scope-{index}",
+                uid=f"scope-{index}",
+                source="live_kubernetes",
+                active=True,
+            )
+            db.add(row)
+            db.flush()
+            identities.append((row.id, row.uid))
+        for workload_id, uid in identities:
+            db.add(
+                WorkloadObservation(
+                    workload_id=workload_id,
+                    deployment_uid=uid,
+                    status="healthy",
+                    payload=make_payload(uid=uid).model_dump(mode="json"),
+                    observed_at=now - timedelta(seconds=61),
+                )
+            )
+            db.add(
+                WorkloadObservationState(
+                    workload_id=workload_id,
+                    due_at=now - timedelta(seconds=1),
+                    last_success_at=now - timedelta(seconds=61),
+                    last_attempt_at=now - timedelta(seconds=61),
+                    last_attempt_state="succeeded",
+                )
+            )
+
+    monkeypatch.setattr(
+        "cloudops.entrypoints.observer.settings",
+        lambda: SimpleNamespace(observation_concurrency=4),
+    )
+    assert run_once(kube=UidReader()) == 4
+
+    with sessions()() as db:
+        read_at = database_now(db)
+        views = [read_observation(db, workload_id, read_at) for workload_id, _ in identities]
+    assert sum(view.freshness == "fresh" for view in views) == 4
+    assert sum(view.freshness == "stale" for view in views) == 96
+    assert all(view.availability == "available" for view in views)
+    assert all(view.observation.status == "healthy" for view in views)
+    with sessions()() as db:
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(WorkloadObservation)
+                .where(WorkloadObservation.observed_at >= read_at - timedelta(seconds=60))
+            )
+            == 4
+        )
+
+
+def test_blocked_observer_does_not_consume_job_admission_or_execution(seeded):
+    workload_id = create_workload()
+    claim = next_claim(workload_id)
+    entered = threading.Event()
+    release = threading.Event()
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(observe_claim, claim, BlockingReader(entered, release))
+        try:
+            assert entered.wait(timeout=10), "Observer never started its cluster read"
+            with sessions()() as db, db.begin():
+                db.add(Job(kind="observation_isolation_probe", subject_id=uuid4()))
+            admitted = claim_next({"observation_isolation_probe": ProbeHandler()})
+            assert admitted is not None
+            assert not future.done(), "Observer must still be blocked on the read"
+        finally:
+            release.set()
+        assert future.result(timeout=10) is True
+    with sessions()() as db:
+        assert read_observation(db, workload_id, database_now(db)).availability == "available"
+
+
+def test_refresh_timeout_preserves_last_success_as_historical(seeded):
+    workload_id = create_workload()
+    success = next_claim(workload_id)
+    with sessions()() as db:
+        assert publish_success(db, success, make_payload()) is True
+    timeout = next_claim(workload_id)
+    with sessions()() as db:
+        assert publish_failure(db, timeout, "timeout") is True
+    with sessions()() as db:
+        view = read_observation(db, workload_id, database_now(db))
+        history = list_observations(db, workload_id, 25, 0)
+    assert view.observation is not None and view.observation.status == "healthy"
+    assert view.observed_at is not None and view.last_attempt_at is not None
+    assert view.last_attempt_at > view.observed_at
+    assert view.last_attempt_state == "failed"
+    assert view.last_attempt_reason == "timeout"
+    assert view.pending_refresh is False
+    assert [item.status for item in history.items] == ["healthy"]
+
+
+def test_restart_preserves_stale_status_and_sanitized_reason(seeded):
+    workload_id = create_workload()
+    success = next_claim(workload_id)
+    with sessions()() as db:
+        assert publish_success(db, success, make_payload()) is True
+    failure = next_claim(workload_id)
+    with sessions()() as db:
+        assert publish_failure(db, failure, "provider-body-sentinel") is True
+    with sessions()() as db, db.begin():
+        observation = db.scalar(
+            select(WorkloadObservation).where(WorkloadObservation.workload_id == workload_id)
+        )
+        observation.observed_at = database_now(db) - timedelta(seconds=61)
+        attempt = db.scalar(
+            select(WorkloadObservationAttempt).where(
+                WorkloadObservationAttempt.workload_id == workload_id
+            )
+        )
+        assert attempt.reason == "observation_failed"
+        assert "provider-body-sentinel" not in repr(attempt.reason)
+    engine().dispose()
+    with sessions()() as db:
+        view = read_observation(db, workload_id, database_now(db))
+    assert view.availability == "available"
+    assert view.observation is not None and view.observation.status == "healthy"
+    assert view.freshness == "stale"
+    assert view.last_attempt_state == "failed"
+    assert view.last_attempt_reason == "observation_failed"
