@@ -24,6 +24,7 @@ def kubectl(*args, body=None):
         text=True,
         capture_output=True,
         check=True,
+        timeout=120,
         cwd=ROOT,
     ).stdout.strip()
 
