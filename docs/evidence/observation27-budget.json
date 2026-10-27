@@ -1,0 +1,86 @@
+{
+  "source_head": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+  "sampled_at": "2026-10-27T04:05:48.284359+00:00",
+  "environment": "Real scoped K3s with PostgreSQL 17.11; host observer at current source, with a separately recorded concurrent Compose exercise",
+  "active_live_scope": 100,
+  "current_mix": {
+    "ready": 1,
+    "unready": 1,
+    "zero_replicas": 98
+  },
+  "latest_outcomes": {
+    "complete": 99,
+    "partial": 1,
+    "failed": 0,
+    "running": 0
+  },
+  "last_complete_within_60_seconds": 99,
+  "retained_current_epoch_complete_windows": {
+    "count": 3143,
+    "p50_seconds": 0.124145,
+    "p95_seconds": 0.172302,
+    "max_seconds": 0.311207,
+    "population": "Retained complete windows at the current authority epoch; includes bounded fixture/init fault exercises, excludes failed and partial attempts."
+  },
+  "max_retained_complete_rows_per_identity": 86,
+  "observation_created_product_jobs": 0,
+  "measurements_are_not_slos": true,
+  "not_100_healthy_workloads": true,
+  "compose_process_isolation": {
+    "runtime_commit": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+    "environment": "Actual Compose observation profile and integration overlay with read-only current-source/migration mounts over cached pinned backend image; standard clean production build is verified separately by CI. Shared real K3s and PostgreSQL, concurrently with the host observer.",
+    "command": [
+      "python",
+      "-m",
+      "cloudops.entrypoints.observer"
+    ],
+    "no_public_ports": true,
+    "writer_dispatcher_authority_docker_socket_absent": true,
+    "forbidden_environment_keys_absent": true,
+    "credential_mount_targets": [
+      "/run/cloudops-reader"
+    ],
+    "concurrent_observer_processes": 2,
+    "sampling_seconds": 11.115768199999366,
+    "peak_scheduled_leases": 3,
+    "scheduled_global_cap": 3,
+    "product_job_count_unchanged": true
+  },
+  "blocked_transport_and_actual_approved_recovery": {
+    "runtime_commit": "0b7bde552221d6c76c7e4f6eac285adc91693446",
+    "observed_at": "2026-10-27T03:08:45.421273+00:00",
+    "configured_live_scope": 100,
+    "observation_transport": "Controlled real local TLS drip-feed server; default 12-second deadline, three scheduled observations. Not a live Kubernetes health source.",
+    "product_transport": "Actual scoped K3s, real API/session/PostgreSQL/product worker and conditional scale executor; existing checkout allowlist only.",
+    "limits": {
+      "queue_limit": 100,
+      "scheduled_slots": 3,
+      "global_slots": 4
+    },
+    "execution": {
+      "id": "0921b3c9-317a-497b-be8f-2baeb7bc8317",
+      "plan_id": "5f523edb-6d2d-4877-9dd9-db900e9edc19",
+      "incident_id": "7826edc7-4935-45f7-a63f-7030de970925",
+      "state": "manual_intervention",
+      "outcome": "acknowledged",
+      "application_verification": "inconclusive; not remediation success",
+      "live_observation_leases_at_completion": 3,
+      "pending_product_jobs_at_completion": 0,
+      "manual_admission_seconds": 0.04397140000037325,
+      "two_product_jobs_seconds": 0.23917320000055042
+    },
+    "observation_outcomes": [
+      "attempt_timeout",
+      "attempt_timeout",
+      "attempt_timeout"
+    ],
+    "stalled_connections_closed": 3,
+    "explicit_restoration": {
+      "plan_id": "ab7c9a9b-d384-4cff-ba45-fa84eaa000a1",
+      "execution_id": "bdb0e56f-e7a8-4865-a655-6d1ace599a29",
+      "outcome": "acknowledged",
+      "replicas": 1
+    },
+    "original_checkout_uid_spec_writer_allowlist_restored": true
+  }
+}

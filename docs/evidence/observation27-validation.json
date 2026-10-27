@@ -1,0 +1,34 @@
+{
+  "source_head": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+  "ci": {
+    "run_id": 40445019625,
+    "url": "https://github.com/pho-veteran/cloudops-copilot/actions/runs/40445019625",
+    "head": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+    "status": "success",
+    "backend_tests": 475,
+    "backend_skipped": 0,
+    "frontend_tests": 72,
+    "web_build": true,
+    "ruff_check_and_format": true,
+    "postgresql_upgrade_repeat_upgrade_and_metadata": true,
+    "populated_baseline_session_incident_preservation": true,
+    "generated_contract_and_deliberate_drift_checks": true,
+    "standard_clean_docker_and_https_proxy_smoke": true,
+    "https_scope": "Certificate/hostname validation, Secure cookie, Origin/CSRF, persisted admission, Viewer denials, logout/token replay; not a new-feature HTTPS-browser receipt.",
+    "warning": "Existing pinned Starlette TestClient HTTPX deprecation warning."
+  },
+  "runtime_only_dependency_check": {
+    "python": "3.13.11",
+    "httpx": "0.28.1",
+    "frozen_no_dev_install": true,
+    "observer_imported": true,
+    "pytest_absent": true
+  },
+  "live_receipts": [
+    "observation27-live.json",
+    "observation27-budget.json",
+    "observation27-browser.json"
+  ],
+  "local_build_limit": "Direct local standard build could not pull the pinned uv image due to GHCR denial. The standard clean Dockerfile and HTTPS build passed on CI; cached source-mounted live containers are labeled separately.",
+  "release_boundary": "Issue #27 implementation for current main legacy UID records; #28/#29 and full E02 integrated release acceptance remain open. PR review/merge remains pending."
+}

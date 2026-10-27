@@ -59,6 +59,21 @@ On database failure, attempts back off without logging connection strings or pro
 
 Unknown, inactive and fixture identities return classified failures without an attempt or network read, including when observation capacity is full. These are not busy/retryable live targets. Optional declared CPU/memory fields remain absent in serialized extraction when undeclared; no null or zero quantity is invented.
 
+Consumer example (input acquisition only, not baseline confirmation):
+
+```python
+from cloudops.features.workloads.observation_service import observe_direct
+
+
+async def read_candidate_input(workload_id):
+    result = await observe_direct(workload_id, purpose="baseline_candidate")
+    if result.outcome != "complete" or result.observation is None:
+        return None, result.reason
+    return result.observation, None
+```
+
+The [typed schemas](../services/backend/src/cloudops/features/workloads/observation_schemas.py) and [controlled examples](../services/backend/tests/observation_fixtures.py) define fields independently of the public display DTO. The caller still must enforce healthy/complete identity and the two-observation stability/confirmation policy owned by #28. Database availability errors propagate to the composing entrypoint's existing error handling; they never authorize a cached candidate.
+
 The version-1 DTO contains identity/epoch, read window, opaque Deployment/collection resourceVersions, generation/counters, current ReplicaSet and owned Pod/regular/init evidence, whitelisted `template_fields`, `config_references`, coverage, health, reasons and limitations. Sanitization precedes persistence, internal return and comparison. Environment literals, command/args, annotations, provider/Pod/Event messages, Secret/ConfigMap contents and credentials are excluded. Reference extraction preserves source identities and quantity strings; unsupported reference forms explicitly limit coverage.
 
 #28 owns canonical baseline envelopes/digests, fresh candidate/confirm checks and read-only recovery handoff. It must copy the two required immutable summaries into its baseline rather than depend on history that expires. It must not implement another extractor, use cached UI health as stability evidence, change `snapshot()`/`healthy()` for E07, or turn v0 baselines into v1 by relabeling them.
@@ -93,3 +108,20 @@ uv run --project services/backend python scripts/probe-workload-observation.py c
 ```
 
 The probe prepares labeled `scope27-*` Deployments only, using one ready, one unready and remaining zero-replica targets. It preserves the original checkout UID/spec and writer policy; cleanup verifies them and removes only matching fixture names. It refreshes only existing reader/default service-account tokens for the local test. Keep tokens and raw inspection output out of receipts. Record final commit/environment, measured budget, actual browser journeys and remaining gates separately from fixture tests.
+
+## Verified implementation candidate
+
+[PR #32](https://github.com/pho-veteran/cloudops-copilot/pull/32) contains this implementation. Receipts identify the source commit actually exercised; later test/evidence-only commits do not imply that a different runtime was tested.
+
+| Evidence | Covered behavior |
+|---|---|
+| [Live observations and persistence](evidence/observation27-live.json) | Owned Pod exclusion, restart/replacement, denied reads, selected-field/reference changes, absent quantities, sanitization, normal/native init containers, same-UID authority fencing, UID history and actual database/K3s restart |
+| [Budget and process isolation](evidence/observation27-budget.json) | Real 100-workload mixed scope, measured read windows, concurrent host/Compose observers, reader-only mounts and actual approved recovery while three TLS reads were blocked |
+| [Browser journeys](evidence/observation27-browser.json) | Exact page-two preselection, related pagination and selected run, original human input, stale/recovered views, revoked-session intent clearing, Viewer controls, keyboard focus and 320/390/1280 layouts |
+| [Validation](evidence/observation27-validation.json) | Source-bound Linux CI, PostgreSQL/migrations, contracts/drift, standard production-image HTTPS smoke and runtime-only dependency import |
+
+Screenshots: [fresh recovered context at 390](evidence/observation27-fresh-390.jpg), [stale historical context at 390](evidence/observation27-stale-390.jpg) and [Viewer dark at 320](evidence/observation27-viewer-320-dark.jpg). The 1280px check records DOM overflow geometry; its scaled in-app capture was omitted.
+
+The budget population is retained complete windows, including bounded fixture exercises; failed/partial reads are reported separately. It does not establish an availability SLO or 100 healthy applications. The blocking observer transport was a controlled real TLS server; product recovery used the actual K3s executor, explicit plan approval and a separately approved restoration. The original checkout UID/spec and writer policy were preserved, and the executor was quarantined afterward. Kubernetes acknowledgement remained manual/inconclusive application verification.
+
+Browser receipts use loopback HTTP. HTTPS protocol smoke and the standard Dockerfile build passed on CI; no new-feature HTTPS-browser or AWS deployment is claimed. Local Compose live execution used a cached pinned image with read-only current-source mounts and is distinguished from the clean CI build. Full E02 integrated baseline/recovery acceptance remains with #28/#29 and the parent EPIC.

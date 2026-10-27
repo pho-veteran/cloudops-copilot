@@ -187,6 +187,24 @@ def test_retention_bounds_failure_only_history_and_dead_observer(live_workloads)
     with sessions()() as db, db.begin():
         now = database_now(db)
         for index in range(110):
+            moment = now - timedelta(seconds=index + 1)
+            historical = value.model_copy(
+                update={
+                    "observation_id": uuid4(),
+                    "started_at": moment,
+                    "observed_at": moment,
+                }
+            )
+            db.add(
+                WorkloadObservation(
+                    id=historical.observation_id,
+                    workload_id=live_workloads[0],
+                    epoch=historical.identity.epoch,
+                    observed_at=moment,
+                    payload=historical.model_dump(mode="json"),
+                    comparison={},
+                )
+            )
             db.add(
                 ObservationAttempt(
                     id=uuid4(),
@@ -209,6 +227,14 @@ def test_retention_bounds_failure_only_history_and_dead_observer(live_workloads)
         )
         db.flush()
         cleanup(db, live_workloads[0], now)
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(WorkloadObservation)
+                .where(WorkloadObservation.workload_id == live_workloads[0])
+            )
+            == 100
+        )
         assert (
             db.scalar(
                 select(func.count())
@@ -249,6 +275,20 @@ def test_observation_errors_preserve_classified_failure_and_no_jobs(live_workloa
         state = db.get(ObservationState, live_workloads[0])
         assert state.last_success_at is None and state.next_due_at > state.last_attempt_at
         assert db.scalar(select(func.count()).select_from(Job)) == 0
+
+
+def test_history_cursor_does_not_repeat_or_shift_when_a_new_observation_arrives(live_workloads):
+    oldest = succeed(live_workloads[0])
+    newer = succeed(live_workloads[0])
+    with sessions()() as db:
+        first = history(db, live_workloads[0], 1, None)
+    newest = succeed(live_workloads[0])
+    with sessions()() as db:
+        following = history(db, live_workloads[0], 1, first.next_cursor)
+    assert first.items[0].observation_id == newer.observation_id
+    assert following.items[0].observation_id == oldest.observation_id
+    assert following.items[0].observation_id != newest.observation_id
+    assert following.next_cursor is None
 
 
 def test_direct_admission_classifies_invalid_scope_even_when_capacity_is_full(
