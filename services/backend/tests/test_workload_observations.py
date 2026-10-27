@@ -498,6 +498,21 @@ def test_observer_does_not_claim_stale_lease(seeded):
     assert observe_claim(replacement, FakeReader(payload=make_payload())) is True
 
 
+def test_repeating_observations_never_enqueue_shared_jobs(seeded):
+    workload_id = create_workload()
+    for _ in range(3):
+        with sessions()() as db, db.begin():
+            state = db.get(WorkloadObservationState, workload_id)
+            if state:
+                state.due_at = database_now(db) - timedelta(seconds=1)
+        assert run_once(kube=FakeReader(payload=make_payload(uid="dep-1"))) == 1
+    with sessions()() as db:
+        # Repeating observation cycles create no Job rows and cannot violate
+        # the shared Job kind/subject uniqueness.
+        assert db.scalar(select(func.count()).select_from(Job)) == 0
+        assert db.scalar(select(func.count()).select_from(WorkloadObservation)) == 3
+
+
 def add_incident(workload_id, title="Related incident"):
     with sessions()() as db, db.begin():
         actor = db.scalar(select(User.id).where(User.username == "operator"))
