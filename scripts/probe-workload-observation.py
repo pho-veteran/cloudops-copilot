@@ -249,6 +249,16 @@ def verify():
             },
         },
     }
+    previous_job = kubectl(
+        "get", "job", "scope27-unrelated", "-n", "demo", "-o", "json", "--ignore-not-found"
+    )
+    if previous_job:
+        if (
+            json.loads(previous_job)["metadata"].get("labels", {}).get("cloudops-probe")
+            != "observation27"
+        ):
+            raise RuntimeError("Refusing to replace a Job outside this labeled probe.")
+        kubectl("delete", "job", "scope27-unrelated", "-n", "demo", "--wait=true", "--timeout=30s")
     kubectl("apply", "-f", "-", body=json.dumps(job))
     kubectl(
         "wait",

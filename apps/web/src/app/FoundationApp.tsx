@@ -327,7 +327,7 @@ export function Workspace() {
           <DialogHeader>
             <DialogTitle>Start a manual investigation</DialogTitle>
             <DialogDescription>
-              Create a saved incident for a configured development workload.
+              Create a saved incident for a configured workload.
             </DialogDescription>
           </DialogHeader>
           {creating && (

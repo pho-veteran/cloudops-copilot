@@ -13,6 +13,8 @@ def test_owned_health_and_whitelist_exclude_sensitive_sources():
     assert value.current_replicaset_uid == "rs-uid"
     assert value.pods[0].uid == "pod-uid"
     assert value.template_fields[0].requests.cpu == "100m"
+    assert value.template_fields[0].requests.model_dump() == {"cpu": "100m"}
+    assert value.template_fields[0].limits.model_dump() == {}
     assert all(
         sentinel not in value.model_dump_json()
         for sentinel in (

@@ -57,8 +57,8 @@ class Identity(SafeModel):
 
 
 class Resources(SafeModel):
-    cpu: Value | None = None
-    memory: Value | None = None
+    cpu: Value | None = Field(default=None, exclude_if=lambda value: value is None)
+    memory: Value | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class TemplateContainer(SafeModel):
