@@ -85,6 +85,8 @@ uv run --project services/backend python scripts/probe-workload-observation.py p
 # Host reader and legacy scope files are written under ignored tmp/observation27/.
 # Set KUBE_READ_CONFIG and WORKLOADS_FILE to those files for the isolated host lab.
 # Start the observer, API and browser using the documented locked runtime.
+# Stop scheduled polling before the bounded mutation probe so comparisons are deterministic.
+uv run --project services/backend python scripts/probe-workload-observation.py verify
 uv run --project services/backend python scripts/probe-workload-observation.py cleanup
 ```
 

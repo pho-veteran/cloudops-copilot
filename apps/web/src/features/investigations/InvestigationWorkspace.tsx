@@ -66,6 +66,10 @@ export function InvestigationWorkspace({
       {incident.data.description && (
         <p className="whitespace-pre-wrap">{incident.data.description}</p>
       )}
+      <p className="muted">
+        Workload rollout observations are tracked separately from this investigation evidence.{" "}
+        <a href={`#/workloads?workload=${incident.data.workload.id}`}>View workload context</a>
+      </p>
       <div className="foundation-actions">
         {canMutate ? (
           <Button
