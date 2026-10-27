@@ -23,10 +23,26 @@ from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.jobs import Job, JobAttempt
+from cloudops.features.workloads.observation_models import (
+    ObservationState,
+    WorkloadObservation,
+    ObservationAttempt,
+)
 
 ORIGIN = "http://localhost:5173"
 ACTORS = ("anonymous", "expired", "viewer", "operator")
-DOMAIN_MODELS = (Incident, InvestigationRun, Job, Admission, Evidence, JobAttempt, *CONSUMER_MODELS)
+DOMAIN_MODELS = (
+    Incident,
+    InvestigationRun,
+    Job,
+    Admission,
+    Evidence,
+    JobAttempt,
+    ObservationState,
+    WorkloadObservation,
+    ObservationAttempt,
+    *CONSUMER_MODELS,
+)
 
 
 @dataclass

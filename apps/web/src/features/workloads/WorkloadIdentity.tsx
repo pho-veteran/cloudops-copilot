@@ -1,10 +1,12 @@
 import type { components } from "@/lib/api/generated/schema";
+import { useAgedObservation } from "./WorkloadHealth";
 
 export function WorkloadIdentity({
   workload,
 }: {
   workload: components["schemas"]["WorkloadView"];
 }) {
+  const aged = useAgedObservation(workload.observation);
   return (
     <details>
       <summary>Inspect workload identity</summary>
@@ -22,9 +24,9 @@ export function WorkloadIdentity({
         <dt>Scope</dt>
         <dd>{workload.active ? "Configured" : "Removed from configured scope"}</dd>
         <dt>Source</dt>
-        <dd>Development fixture</dd>
+        <dd>{workload.source === "live_kubernetes" ? "Live Kubernetes" : "Development fixture"}</dd>
         <dt>Live health</dt>
-        <dd>Unavailable</dd>
+        <dd>{aged.health.replaceAll("_", " ")}</dd>
       </dl>
       <p className="muted">
         The saved record ID and Deployment UID identify this workload. A

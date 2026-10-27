@@ -2,6 +2,8 @@
 
 The local foundation stores application state and runs collection jobs. External evidence is synthetic. Scope and acceptance stay in [E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) and the linked feature EPICs, rather than a second repository backlog.
 
+Configured live workload health/context uses the separate [read-only workload observer](workload-observation.md). These rollout observations do not change the synthetic investigation collector or authorize remediation.
+
 ## Delivered behavior and evidence
 
 The integrated UI first landed in `47f09ff`; the verification/hardening wave in the same PR adds current contract checks, setup evidence and patched runtime dependencies. The PR and E00 record the final tested commit. These delivery notes include the completed F4 consumer verification; the maintainer directed that it be performed by the active implementer. No second contributor is required.

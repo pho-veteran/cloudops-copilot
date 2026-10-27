@@ -18,6 +18,7 @@ class Workload(Base):
     uid: Mapped[str] = mapped_column(String(100))
     active: Mapped[bool] = mapped_column(default=True)
     source: Mapped[str] = mapped_column(String(32), default="development_fixture")
+    observation_epoch: Mapped[int] = mapped_column(default=0, server_default="0")
 
 
 class BaselineCandidate(Base):

@@ -98,10 +98,13 @@ def get_incident(db: Session, incident_id: UUID):
     )
 
 
-def list_incidents(db: Session, limit: int, offset: int):
+def list_incidents(db: Session, limit: int, offset: int, workload_id: UUID | None = None):
+    query = select(Incident)
+    if workload_id is not None:
+        identity(db, workload_id)
+        query = query.where(Incident.workload_id == workload_id)
     rows = db.scalars(
-        select(Incident)
-        .order_by(Incident.created_at.desc(), Incident.id.desc())
+        query.order_by(Incident.created_at.desc(), Incident.id.desc())
         .limit(limit + 1)
         .offset(offset)
     ).all()

@@ -10,6 +10,9 @@ describe("safe return navigation", () => {
       run: id,
     });
   });
+  it("retains an exact workload identity for read-only navigation", () => {
+    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "" });
+  });
   it.each(["queue", "workloads", "connections", "reports"])(
     "retains %s",
     (page) => {
@@ -27,6 +30,8 @@ describe("safe return navigation", () => {
     "#/incidents/not-a-uuid",
     `#/incidents/${id}?run=raw-evidence`,
     `#/incidents/${id}?run=${id}&next=bad`,
+    "#/workloads?workload=not-a-uuid",
+    `#/workloads?workload=${id}&next=https://foreign.test`,
   ])("falls back safely for %s", (hash) => {
     expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "" });
   });

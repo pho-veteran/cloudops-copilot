@@ -35,7 +35,7 @@ describe("feature-local workload identity consumer", () => {
     await userEvent.setup().click(screen.getByText("Inspect workload identity"));
     expect(screen.getByText(workloadFixture.items[0].id)).toBeTruthy();
     expect(screen.getByText(workloadFixture.items[0].uid)).toBeTruthy();
-    expect(screen.getByText("Unavailable", { exact: true })).toBeTruthy();
+    expect(screen.getByText("unknown", { exact: true })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Investigate workload" })).toBeNull();
     expect(fixtureHttp.fetch).toHaveBeenCalledTimes(1);
   });

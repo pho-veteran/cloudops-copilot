@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from cloudops.shared.schemas import View
+from cloudops.features.workloads.observation_schemas import Health, ObservationSummary
 
 
 class DevelopmentWorkload(BaseModel):
@@ -22,7 +23,8 @@ class WorkloadView(View):
     uid: str
     active: bool
     source: Literal["development_fixture", "live_kubernetes"] = "development_fixture"
-    health: Literal["unavailable"] = "unavailable"
+    health: Health = "unknown"
+    observation: ObservationSummary | None = None
 
 
 class WorkloadPage(BaseModel):

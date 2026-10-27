@@ -1,0 +1,91 @@
+# Workload observation
+
+The dedicated observer reads configured live Deployment identities through the host-configured Kubernetes reader and persists sanitized rollout observations. Inventory, detail and history APIs read PostgreSQL only. **Refresh displayed data** refetches that saved projection; it does not issue Kubernetes requests. Viewer and Operator can inspect the same evidence. Only Operator can start the existing manual investigation.
+
+This implementation targets [E02 task #27](https://github.com/pho-veteran/cloudops-copilot/issues/27). Active requirements and baseline-profile decisions remain in [E02 #5](https://github.com/pho-veteran/cloudops-copilot/issues/5). It does not implement baseline v1 confirmation (#28), application/Prometheus health or new recovery actions. Existing baseline v0 and E07 scale semantics remain unchanged.
+
+## Start and stop
+
+Use the existing [local lab](e01-local-lab.md) to establish the scoped reader. Never mount writer, dispatcher, KRR or executor-authority material into the observer. With the integration overlay configured:
+
+```sh
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml --profile observation up -d --build api worker https observer
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml logs --tail 50 observer
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml stop observer
+```
+
+The optional `observation` profile leaves the fixture-only base stack runnable without Kubernetes. The observer has no inbound port. Its only operational dependencies are PostgreSQL, the configured scope and the fixed read-only connection. Missing/expired reader configuration produces classified unavailable observations and bounded backoff; it does not make the API unready or turn fixtures into live data.
+
+Stop the stack when it is unused and preserve named database/K3s/authority volumes. Starting it again does not refresh old observation timestamps. API and UI age the previous evidence before a new successful poll. Any later AWS deployment remains on-demand in `us-east-1`; this feature provisions no cloud resources or model service.
+
+## Health, coverage and age
+
+Health describes Kubernetes rollout evidence: `healthy`, `progressing`, `degraded`, `scaled_to_zero` or `unknown`. Application traffic, referenced configuration contents and external effects remain unverified. A complete collection can be degraded or progressing; a successful collection is not proof of a healthy application.
+
+Pods count only after controller-owner traversal from Pod to ReplicaSet to the expected Deployment UID. Labels alone are insufficient. The current ReplicaSet must match the full Deployment PodTemplate, ignoring only the controller-added `pod-template-hash` label. Typed list items may omit their own TypeMeta; the reader validates the enclosing list kind/version. Terminal/terminating Pods are excluded from positive coverage, and active old-ReplicaSet Pods prevent healthy rollout. Regular/init containers, native sidecars, missing status and known current failures are evaluated separately. Scaled-to-zero cannot establish a healthy baseline.
+
+Missing counters/status are nullable and may yield partial coverage, including Kubernetes responses that omit zero-valued Deployment counters. Inspect the owned Pod evidence rather than interpreting an unknown Deployment count as zero. A read-window change, incomplete pagination or ambiguous current ReplicaSet cannot establish healthy state.
+
+Freshness is separate from health. Last complete success at age **<=60 seconds** is fresh; **>60 seconds** is stale. A newer denied/partial/failed refresh immediately makes effective current health unknown even while the prior success is young. It remains historical until a later complete observation. A pending retry does not revive health invalidated by a previous failure. Pending reads lose positive health at their persisted deadline, including when a process dies. Browser badges also age and downgrade without waiting for another server response.
+
+Last attempt, success and failure are separate timestamps. `permission_denied`, `target_changed`, `attempt_timeout`, `lease_expired`, `coverage_changed`, `status_missing`, `budget_exhausted` and other allowlisted codes are safe classifications, not provider messages or root-cause diagnoses. An observation 404 never retires or adopts an identity: scope synchronization owns admission. Historical UUIDs remain readable and cannot create new investigations after retirement.
+
+## Bounds and recovery
+
+| Bound | Policy |
+|---|---|
+| Scope | At most 100 configured live identities; fixtures/inactive rows are not polled |
+| Poll / stale | 30-second due interval / stale after 60 seconds |
+| Concurrent leases | Global maximum 4 across processes, at most 3 scheduled; one per workload, one slot reserved for direct consumers |
+| Attempt / lease | 12-second read deadline / 15-second lease; no unbounded renewal |
+| HTTP | GET only, fixed HTTPS host and paths, trusted CA, no proxy inheritance or redirects, 4-second phase timeout within total deadline |
+| Collection | Page size 100, at most 200 ReplicaSets and 500 Pods per namespace/read window; at most 9 GETs |
+| Payload | 2 MB per response, no compressed responses; sanitized observation <=64 KiB; at most 100 owned Pods/32 containers each |
+| Failure retry | 30, 60, 120 seconds plus at most 3 seconds jitter; no recurring product Job |
+| Retention | At most 100 complete observations and 100 attempt records per workload, also limited to 7 days; one bounded latest partial payload |
+| Database | Separate observer pool of 2, no overflow; 3-second connect, 2-second pool/statement and 1-second lock timeout |
+
+These are policy settings, not measured availability SLOs. Namespace lists that exceed the bounds produce incomplete coverage. Overdue scheduling is visible as poll lag/budget exhaustion. The scheduler does not stamp unattempted workloads fresh. Startup spreads initial due times within 30 seconds and subsequent selection favors oldest due identities.
+
+Claims and publication use short independent transactions; no HTTP runs under a database transaction. SQL runs off the async HTTP cancellation loop. A database advisory lock enforces global lease admission separately from incident admission. Final publication checks the current active identity, source, observation epoch, token, sequence and deadline. Scope sync advances the epoch even for same-UID re-add, preventing a late read from an earlier authority window. A late token cannot clear another producer's lease.
+
+Legacy UID-pinned records work without scope-reconciliation migrations. The reader verifies continuity of the host server/CA configuration around a read; this continuity hash is **not** an operator-established v2 cluster fingerprint. Integrating a v2 scope policy must reuse that policy's independently established pin and advance epochs in its publication paths. Coordinate shared scope files and the migration chain with #26/PR #30 before merging both slices; neither branch may silently discard the other's authority checks. The observation migration currently descends from `0003_e01_consumers`, because #30 is unmerged.
+
+On database failure, attempts back off without logging connection strings or provider bodies. Expired leases lose publication authority and are swept. Shutdown cancels active HTTP; an interrupted claim/transaction can leave a lease that expires normally. Count/age cleanup also handles failure-only and retired histories. API reads suppress out-of-retention payloads even while the observer is stopped. Minimal timestamps/reasons may survive expired full evidence.
+
+## Direct observation consumer
+
+`features.workloads.observation_service.observe_direct(workload_id, purpose)` is the internal async entry point for `baseline_candidate` and `baseline_confirm`. It acquires a real lease and performs fresh reads through the same reader/evaluator. Busy returns `budget_exhausted`; unavailable/partial results do not fall back to dashboard cache. No public endpoint accepts a destination or raw query.
+
+The version-1 DTO contains identity/epoch, read window, opaque Deployment/collection resourceVersions, generation/counters, current ReplicaSet and owned Pod/regular/init evidence, whitelisted `template_fields`, `config_references`, coverage, health, reasons and limitations. Sanitization precedes persistence, internal return and comparison. Environment literals, command/args, annotations, provider/Pod/Event messages, Secret/ConfigMap contents and credentials are excluded. Reference extraction preserves source identities and quantity strings; unsupported reference forms explicitly limit coverage.
+
+#28 owns canonical baseline envelopes/digests, fresh candidate/confirm checks and read-only recovery handoff. It must copy the two required immutable summaries into its baseline rather than depend on history that expires. It must not implement another extractor, use cached UI health as stability evidence, change `snapshot()`/`healthy()` for E07, or turn v0 baselines into v1 by relabeling them.
+
+Restart deltas require comparable Pod UID/container kind/name sets and nondecreasing counters. Replacement or missing sets return `coverage_changed` and a null delta. Observed changes compare the same sanitized fields/references and label compared IDs, times and generations. They do not assert unobserved rollout history, unchanged referenced content or a diagnosis.
+
+## APIs and browser journey
+
+- `GET /api/workloads` and `GET /api/workloads/{workload_id}` include one shared freshness-aware summary; inventory batches state/evidence reads.
+- `GET /api/workloads/{workload_id}/observation` returns the persisted current/partial projection, labeled historical evidence and last-complete comparison. Private template/reference extraction is excluded from public detail.
+- `GET /api/workloads/{workload_id}/observations?limit=25&cursor=...` returns retained complete summaries ordered by observation time/UUID with a bounded cursor.
+- `GET /api/incidents?workload_id=<UUID>&limit=25&offset=0` filters exact identity before pagination. Omitting the filter retains the existing queue behavior. Offset pagination is not an insertion-stable snapshot.
+
+All reads reuse E01 authentication and session isolation. Unknown UUIDs return 404, malformed IDs/cursors return validation errors. A replacement UID never inherits the old UUID's incidents or baselines. Workload context deep links use only `#/workloads?workload=<UUID>`. Related incidents open persisted incident IDs, and investigation pages retain the existing exact run selector. Manual intake preloads an exact selected workload even outside the first inventory page; a retired selection cannot be submitted or replaced silently.
+
+## Migration and verification
+
+The additive observation migration creates three feature tables and a default-zero workload observation epoch. It does not backfill health or rewrite incident/session/baseline data. Repeat upgrade and metadata checks are required; coordinate a single head against current main. Downgrade removes observation history/state/attempts and the epoch, so retain a backup if that evidence is needed. Do not use downgrade to bypass a failed upgrade.
+
+Run the repository's locked backend PostgreSQL suite, Ruff checks, generated-contract/drift checks and web tests/build. Tests use a separate database ending in `_test`. Controlled reader/clock fixtures prove policy cases; real TLS cancellation tests use OpenSSL and a local drip-feed server. They do not replace K3s, browser or production-image evidence.
+
+For the fixed lab probe, create a separate `cloudops27_lab` database, configure host `DATABASE_URL`, loopback `WEB_ORIGIN`/`COOKIE_SECURE`, and start the existing K3s service. Then run:
+
+```sh
+uv run --project services/backend python scripts/probe-workload-observation.py prepare --scope-size 100
+# Host reader and legacy scope files are written under ignored tmp/observation27/.
+# Set KUBE_READ_CONFIG and WORKLOADS_FILE to those files for the isolated host lab.
+# Start the observer, API and browser using the documented locked runtime.
+uv run --project services/backend python scripts/probe-workload-observation.py cleanup
+```
+
+The probe prepares labeled `scope27-*` Deployments only, using one ready, one unready and remaining zero-replica targets. It preserves the original checkout UID/spec and writer policy; cleanup verifies them and removes only matching fixture names. It refreshes only existing reader/default service-account tokens for the local test. Keep tokens and raw inspection output out of receipts. Record final commit/environment, measured budget, actual browser journeys and remaining gates separately from fixture tests.

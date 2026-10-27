@@ -48,6 +48,13 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+  observer:
+    <<: *backend
+    profiles: [observation]
+    command: [python, -m, cloudops.entrypoints.observer]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
   web:
     build:
       context: .

@@ -9,10 +9,11 @@ dependencies = [
   "sqlalchemy==2.0.44",
   "alembic==1.17.0",
   "psycopg[binary]==3.2.12",
+  "httpx==0.28.1",
 ]
 
 [dependency-groups]
-dev = ["pytest==9.1.1", "httpx==0.28.1", "ruff==0.14.2"]
+dev = ["pytest==9.1.1", "ruff==0.14.2"]
 
 [build-system]
 requires = ["hatchling==1.27.0"]
