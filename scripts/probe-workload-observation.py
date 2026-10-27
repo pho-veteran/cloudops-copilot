@@ -275,7 +275,7 @@ def verify():
             "--",
             "python",
             "-c",
-            "import os; os.kill(1, 9)",
+            "import os, signal; os.kill(1, signal.SIGINT)",
         )
     except subprocess.CalledProcessError as error:
         if error.returncode != 137:
