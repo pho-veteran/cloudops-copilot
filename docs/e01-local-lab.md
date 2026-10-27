@@ -44,7 +44,7 @@ Viewers read/export these records and log out their own session. All ten Operato
 
 ## Observed workload health
 
-The dedicated `observer` service runs `cloudops.entrypoints.observer` every `OBSERVATION_POLL_SECONDS` (default 30 seconds). It is separate from the collection worker and the shared `jobs` queue: it never claims, renews or completes an application Job, so a slow or unavailable cluster read cannot consume admission or recovery execution capacity. Each configured live workload has at most one observation lease (45 seconds); a stale lease or a changed Deployment UID cannot publish.
+The dedicated `observer` service runs `cloudops.entrypoints.observer` every `OBSERVATION_POLL_SECONDS` (default 30 seconds). It is separate from the collection worker and the shared `jobs` queue: it never claims, renews or completes an application Job, so a slow or unavailable cluster read cannot consume admission or recovery execution capacity. Each configured live workload has at most one observation lease (45 seconds); a stale lease or a changed Deployment UID cannot publish. Each sweep claims every due workload in the configured scope (up to 100) and reads them with `OBSERVATION_CONCURRENCY` workers, then sleeps only the remainder of the poll interval; a successful publication releases the lease immediately, so the next due time still holds the 30-second cadence.
 
 ```sh
 docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml ps observer
@@ -58,7 +58,7 @@ Workloads shows the persisted projection, never a request-time Kubernetes read:
 
 - **Fresh** means the last successful observation is at most 60 seconds old. **Stale** means it is older than 60 seconds; the prior values remain visible and are labeled historical, not healthy. **Unavailable** means no successful observation has been stored.
 - Status is one of Healthy, Progressing, Degraded, Scaled to zero or Unknown. Partial coverage names the missing sources (for example `deployment_status`). Observed reasons are sanitized codes such as `rollout_incomplete` or `progress_deadline_exceeded`.
-- The panel shows observed/attempt times, readiness, restart total and measured restart delta, generation, whitelisted template fields (image, pull policy, environment **names**, CPU/memory, ports), configuration reference names and observed Pod readiness. It never shows environment values, Secret data, Pod messages or provider response bodies. Application telemetry remains explicitly unverified.
+- The panel shows observed/attempt times, readiness, restart total and a restart delta that is only measured for the same Pod UID and container set; a replaced Pod set reports the delta as unavailable instead of zero. It also shows generation, whitelisted template fields (image, pull policy, environment **names**, CPU/memory, ports), configuration reference names and observed Pod readiness. It never shows environment values, Secret data, Pod messages or provider response bodies. Application telemetry remains explicitly unverified.
 - **Request observation refresh** is Operator-only. The API records a pending request and returns `202`; it does not call Kubernetes. The observer performs the read on its next cycle and deduplicates stacked requests. A Viewer sees the saved projection without a refresh control.
 - Related incidents use the exact saved workload UUID before pagination and link to that incident ID. A replacement Deployment UID creates a different workload record, so old incidents remain with the retired identity.
 

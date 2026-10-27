@@ -400,7 +400,8 @@ def test_restart_delta_requires_matching_pod_and_container():
         previous_payload=previous,
     )
     assert replacement.restart_total == 5
-    assert replacement.restart_delta == 0
+    # A replaced Pod set has no comparable baseline: the delta is not measured.
+    assert replacement.restart_delta is None
     same_pod = observe(
         FakeCluster(
             make_deployment(replicas=1), [make_replicaset()], [make_pod("pod-old", restarts=7)]
@@ -507,7 +508,7 @@ def test_direct_payload_excludes_literals_and_provider_messages():
     rendered = repr(payload.model_dump())
     assert "env-literal-sentinel" not in rendered
     assert "provider-message-sentinel" not in rendered
-    assert payload.template_fields["containers"][0]["env"][0] == "PASSWORD"
+    assert payload.template_fields.containers[0].env[0] == "PASSWORD"
     references = {(item.kind, item.name) for item in payload.config_references}
     assert ("secret", "app-secret") in references
     assert ("config_map", "app-config") in references

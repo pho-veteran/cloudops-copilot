@@ -14,10 +14,14 @@ from sqlalchemy import func, select, update
 
 from cloudops.entrypoints.api import create_app
 from cloudops.entrypoints.observer import observe_claim, run_once
+from cloudops.entrypoints.worker import HANDLERS
 from cloudops.features.access.dependencies import COOKIE
 from cloudops.features.access.models import LoginSession, User
 from cloudops.features.access.service import token_hash
 from cloudops.features.incidents.models import Incident
+from cloudops.features.incidents.schemas import ManualIncidentRequest
+from cloudops.features.incidents.service import admit
+from cloudops.features.investigations.collector import collect, prepare
 from cloudops.features.workloads.models import (
     Workload,
     WorkloadObservation,
@@ -37,9 +41,10 @@ from cloudops.features.workloads.schemas import (
     WorkloadObservationPayload,
     WorkloadObservationView,
 )
+from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, engine, sessions
 from cloudops.shared.errors import DomainError
-from cloudops.shared.jobs import Job, claim_next
+from cloudops.shared.jobs import Job, claim_next, finish
 
 BACKEND = Path(__file__).resolve().parents[1]
 
@@ -188,6 +193,18 @@ def test_payload_for_replaced_uid_is_rejected(seeded):
         assert db.scalar(select(func.count()).select_from(WorkloadObservation)) == 0
         state = db.get(WorkloadObservationState, workload_id)
         assert state.last_attempt_state is None
+
+
+def test_read_does_not_present_a_retired_identity_as_current(seeded):
+    workload_id = create_workload(uid="dep-1")
+    publish_one(workload_id, uid="dep-1")
+    with sessions()() as db, db.begin():
+        db.get(Workload, workload_id).uid = "dep-2"
+    with sessions()() as db:
+        view = read_observation(db, workload_id, database_now(db))
+    assert view.availability == "unavailable"
+    assert view.freshness == "unavailable"
+    assert view.observation is None
 
 
 def test_failed_attempt_preserves_labeled_last_success(seeded):
@@ -424,6 +441,9 @@ def test_refresh_request_returns_pending_without_calling_kubernetes_in_api(seede
     def explode(*args, **kwargs):
         raise AssertionError("The API must not read Kubernetes during refresh")
 
+    # Patch the definition site and the observer binding so any construction of
+    # the reader fails, not just the one symbol the observer imported.
+    monkeypatch.setattr("cloudops.features.workloads.kubernetes.Kubernetes", explode)
     monkeypatch.setattr("cloudops.entrypoints.observer.Kubernetes", explode)
     with TestClient(create_app()) as client:
         operator = login(client, "operator")
@@ -566,13 +586,6 @@ def test_observer_mounts_only_reader_credentials():
         assert forbidden not in observer
 
 
-class UidReader:
-    """Reads the exact claimed identity so each publication stays UID-scoped."""
-
-    def observe(self, workload, previous_payload=None):
-        return make_payload(uid=workload.uid)
-
-
 class BlockingReader:
     def __init__(self, entered: threading.Event, release: threading.Event):
         self.entered = entered
@@ -584,17 +597,16 @@ class BlockingReader:
         return make_payload(uid=workload.uid)
 
 
-class ProbeHandler:
-    """Minimal shared-Job handler proving admission and execution stay independent."""
+class PartialUidReader:
+    """Fails selected workloads so stale coverage stays explicit under full scope."""
 
-    def started(self, db, subject_id):
-        pass
+    def __init__(self, failing: set[str]):
+        self.failing = failing
 
-    def failed(self, db, subject_id, reason, terminal):
-        pass
-
-    def publish(self, db, subject_id, result):
-        pass
+    def observe(self, workload, previous_payload=None):
+        if workload.name in self.failing:
+            raise DomainError(503, "cluster_unavailable", "provider-body-sentinel")
+        return make_payload(uid=workload.uid)
 
 
 def test_100_workload_scope_exhaustion_reports_stale_coverage(seeded, monkeypatch):
@@ -637,15 +649,25 @@ def test_100_workload_scope_exhaustion_reports_stale_coverage(seeded, monkeypatc
         "cloudops.entrypoints.observer.settings",
         lambda: SimpleNamespace(observation_concurrency=4),
     )
-    assert run_once(kube=UidReader()) == 4
+    # The whole due scope is claimed in one cycle; concurrency bounds the reads,
+    # not the number of workloads the observer accepts per sweep.
+    assert run_once(kube=PartialUidReader({f"scope-{index}" for index in range(10)})) == 100
 
     with sessions()() as db:
         read_at = database_now(db)
         views = [read_observation(db, workload_id, read_at) for workload_id, _ in identities]
-    assert sum(view.freshness == "fresh" for view in views) == 4
-    assert sum(view.freshness == "stale" for view in views) == 96
+        failed_attempts = db.scalars(
+            select(WorkloadObservationAttempt).where(WorkloadObservationAttempt.state == "failed")
+        ).all()
+    assert sum(view.freshness == "fresh" for view in views) == 90
+    assert sum(view.freshness == "stale" for view in views) == 10
     assert all(view.availability == "available" for view in views)
     assert all(view.observation.status == "healthy" for view in views)
+    # Failed reads keep the previous success stale instead of fabricating health.
+    stale = [view for view in views if view.freshness == "stale"]
+    assert all(view.last_attempt_reason == "cluster_unavailable" for view in stale)
+    assert len(failed_attempts) == 10
+    assert all("provider-body-sentinel" not in repr(row.reason) for row in failed_attempts)
     with sessions()() as db:
         assert (
             db.scalar(
@@ -653,29 +675,50 @@ def test_100_workload_scope_exhaustion_reports_stale_coverage(seeded, monkeypatc
                 .select_from(WorkloadObservation)
                 .where(WorkloadObservation.observed_at >= read_at - timedelta(seconds=60))
             )
-            == 4
+            == 90
         )
 
 
-def test_blocked_observer_does_not_consume_job_admission_or_execution(seeded):
-    workload_id = create_workload()
-    claim = next_claim(workload_id)
+def test_blocked_observer_does_not_consume_job_admission_or_execution(seeded, monkeypatch):
+    monkeypatch.setenv("COLLECTOR_DELAY_SECONDS", "0")
+    settings.cache_clear()
+    live_id = create_workload()
+    fixture_id = create_workload(uid="fixture-uid", name="fixture", source="development_fixture")
+    claim = next_claim(live_id)
     entered = threading.Event()
     release = threading.Event()
     with ThreadPoolExecutor(max_workers=1) as pool:
         future = pool.submit(observe_claim, claim, BlockingReader(entered, release))
         try:
             assert entered.wait(timeout=10), "Observer never started its cluster read"
-            with sessions()() as db, db.begin():
-                db.add(Job(kind="observation_isolation_probe", subject_id=uuid4()))
-            admitted = claim_next({"observation_isolation_probe": ProbeHandler()})
-            assert admitted is not None
+            with sessions()() as db:
+                actor = db.scalar(select(User.id).where(User.username == "operator"))
+            with sessions()() as db:
+                admitted = admit(
+                    db,
+                    actor,
+                    uuid4(),
+                    body=ManualIncidentRequest(
+                        workload_id=fixture_id,
+                        title="Isolation probe",
+                        description="Admission must not wait for the observer.",
+                    ),
+                )
+            assert admitted.run_id is not None
+            # The blocked observer must not enqueue work in the shared Job queue.
+            with sessions()() as db:
+                assert db.scalar(select(func.count()).select_from(Job)) == 1
+            queued = claim_next(HANDLERS)
+            assert queued is not None, "Incident collection was not claimable"
+            assert queued.kind == "development_collection_v1"
+            result = collect(prepare(queued.subject_id))
+            assert finish(queued, HANDLERS[queued.kind], result=result)
             assert not future.done(), "Observer must still be blocked on the read"
         finally:
             release.set()
         assert future.result(timeout=10) is True
     with sessions()() as db:
-        assert read_observation(db, workload_id, database_now(db)).availability == "available"
+        assert read_observation(db, live_id, database_now(db)).availability == "available"
 
 
 def test_refresh_timeout_preserves_last_success_as_historical(seeded):

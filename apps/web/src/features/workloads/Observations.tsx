@@ -28,23 +28,7 @@ const FRESHNESS_LABELS: Record<ObservationView["freshness"], string> = {
   unavailable: "Unavailable",
 };
 
-type ContainerField = {
-  name?: string | null;
-  image?: string | null;
-  image_pull_policy?: string | null;
-  env?: string[];
-  resources?: {
-    requests?: Record<string, unknown>;
-    limits?: Record<string, unknown>;
-  };
-  ports?: { name?: string | null; container_port?: number | null }[];
-};
-
-type TemplateFields = {
-  service_account_name?: string | null;
-  containers?: ContainerField[];
-  init_containers?: ContainerField[];
-};
+type ContainerField = components["schemas"]["ObservedContainerFields"];
 
 function time(value: string) {
   return new Date(value).toLocaleString();
@@ -108,7 +92,7 @@ function ContainerFields({ container }: { container: ContainerField }) {
 
 function ObservationBody({ view }: { view: ObservationView }) {
   const observation = view.observation!;
-  const template = observation.template_fields as TemplateFields;
+  const template = observation.template_fields;
   const historical = Boolean(
     view.last_attempt_state === "failed" &&
     view.last_attempt_at &&
@@ -123,7 +107,7 @@ function ObservationBody({ view }: { view: ObservationView }) {
   const restartDelta =
     observation.restart_delta === null ||
     observation.restart_delta === undefined
-      ? null
+      ? "Restart delta unavailable · no comparable previous Pod set"
       : observation.restart_delta > 0
         ? `+${observation.restart_delta} since the previous successful observation`
         : "No new restarts since the previous successful observation";
@@ -166,8 +150,7 @@ function ObservationBody({ view }: { view: ObservationView }) {
         </dd>
         <dt>Restarts</dt>
         <dd>
-          {observation.restart_total} total
-          {restartDelta ? ` · ${restartDelta}` : ""}
+          {observation.restart_total} total · {restartDelta}
         </dd>
         <dt>Generation</dt>
         <dd>
@@ -370,7 +353,7 @@ export function Observations({
                 </p>
               )}
               {refresh.isError && <Failure error={refresh.error} />}
-              {(observation.data.pending_refresh || refresh.isSuccess) && (
+              {observation.data.pending_refresh && (
                 <p role="status">
                   Refresh pending · waiting for the observer.
                 </p>

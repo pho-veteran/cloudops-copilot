@@ -31,6 +31,8 @@ export function useWorkloads(offset = 0) {
 export function observationQueryOptions(id: string, client = api) {
   return queryOptions({
     queryKey: workloadKeys.observation(id),
+    // The 60-second stale policy is only visible if the projection is re-read.
+    refetchInterval: 20_000,
     queryFn: async () =>
       unwrap(
         await client.GET("/api/workloads/{workload_id}/observation", {
@@ -51,6 +53,7 @@ export function observationHistoryQueryOptions(
 ) {
   return queryOptions({
     queryKey: workloadKeys.observations(id),
+    refetchInterval: 30_000,
     queryFn: async () =>
       unwrap(
         await client.GET("/api/workloads/{workload_id}/observations", {

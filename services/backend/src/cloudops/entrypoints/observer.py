@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from cloudops.entrypoints import metadata  # noqa: F401
 from cloudops.features.workloads.kubernetes import Kubernetes
 from cloudops.features.workloads.observations import (
+    OBSERVATION_SCOPE_LIMIT,
     claim_due,
     latest_payload,
     publish_failure,
@@ -54,7 +55,9 @@ def run_once(kube=None) -> int:
     with sessions()() as db:
         now = database_now(db)
     with sessions()() as db:
-        claims = claim_due(db, now, settings().observation_concurrency)
+        # Claim the whole configured scope; concurrency bounds parallel reads,
+        # not how many due workloads one sweep accepts.
+        claims = claim_due(db, now, OBSERVATION_SCOPE_LIMIT)
     if not claims:
         return 0
     reader = kube or Kubernetes()
@@ -67,6 +70,7 @@ def main():
     require_schema()
     logging.basicConfig(level=logging.INFO)
     while True:
+        started = time.monotonic()
         try:
             run_once()
         except Exception as exc:
@@ -76,7 +80,8 @@ def main():
                 type(exc).__name__,
             )
             time.sleep(5)
-        time.sleep(settings().observation_poll_seconds)
+        elapsed = time.monotonic() - started
+        time.sleep(max(0.0, settings().observation_poll_seconds - elapsed))
 
 
 if __name__ == "__main__":

@@ -918,6 +918,102 @@
         "title": "ObservedContainer",
         "type": "object"
       },
+      "ObservedContainerFields": {
+        "properties": {
+          "env": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Env",
+            "type": "array"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
+          "image_pull_policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Pull Policy"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "ports": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedContainerPort"
+            },
+            "title": "Ports",
+            "type": "array"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ObservedContainerResources"
+          }
+        },
+        "title": "ObservedContainerFields",
+        "type": "object"
+      },
+      "ObservedContainerPort": {
+        "properties": {
+          "container_port": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Container Port"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "ObservedContainerPort",
+        "type": "object"
+      },
+      "ObservedContainerResources": {
+        "properties": {
+          "limits": {
+            "$ref": "#/components/schemas/ObservedResourceValues"
+          },
+          "requests": {
+            "$ref": "#/components/schemas/ObservedResourceValues"
+          }
+        },
+        "title": "ObservedContainerResources",
+        "type": "object"
+      },
       "ObservedPod": {
         "properties": {
           "containers": {
@@ -959,6 +1055,65 @@
           "containers"
         ],
         "title": "ObservedPod",
+        "type": "object"
+      },
+      "ObservedResourceValues": {
+        "properties": {
+          "cpu": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpu"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory"
+          }
+        },
+        "title": "ObservedResourceValues",
+        "type": "object"
+      },
+      "ObservedTemplateFields": {
+        "properties": {
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedContainerFields"
+            },
+            "title": "Containers",
+            "type": "array"
+          },
+          "init_containers": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedContainerFields"
+            },
+            "title": "Init Containers",
+            "type": "array"
+          },
+          "service_account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Account Name"
+          }
+        },
+        "title": "ObservedTemplateFields",
         "type": "object"
       },
       "PlanRequest": {
@@ -1597,9 +1752,7 @@
             "type": "string"
           },
           "template_fields": {
-            "additionalProperties": true,
-            "title": "Template Fields",
-            "type": "object"
+            "$ref": "#/components/schemas/ObservedTemplateFields"
           },
           "total_containers": {
             "minimum": 0.0,

@@ -27,6 +27,7 @@ from cloudops.shared.errors import DomainError
 OBSERVATION_INTERVAL_SECONDS = 30
 OBSERVATION_STALE_SECONDS = 60
 OBSERVATION_LEASE_SECONDS = 45
+OBSERVATION_SCOPE_LIMIT = 100
 HISTORY_LIMIT = 100
 HISTORY_DAYS = 7
 
@@ -273,7 +274,11 @@ def read_observation(db: Session, workload_id: UUID, now: datetime) -> WorkloadO
     state = db.get(WorkloadObservationState, workload_id)
     latest = db.scalar(
         select(WorkloadObservation)
-        .where(WorkloadObservation.workload_id == workload_id)
+        .where(
+            WorkloadObservation.workload_id == workload_id,
+            # Never present a retired identity's values under the current one.
+            WorkloadObservation.deployment_uid == workload.uid,
+        )
         .order_by(WorkloadObservation.observed_at.desc(), WorkloadObservation.id.desc())
         .limit(1)
     )

@@ -967,6 +967,32 @@ export interface components {
             /** Waiting Reason */
             waiting_reason?: string | null;
         };
+        /** ObservedContainerFields */
+        ObservedContainerFields: {
+            /** Env */
+            env?: string[];
+            /** Image */
+            image?: string | null;
+            /** Image Pull Policy */
+            image_pull_policy?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Ports */
+            ports?: components["schemas"]["ObservedContainerPort"][];
+            resources?: components["schemas"]["ObservedContainerResources"];
+        };
+        /** ObservedContainerPort */
+        ObservedContainerPort: {
+            /** Container Port */
+            container_port?: number | null;
+            /** Name */
+            name?: string | null;
+        };
+        /** ObservedContainerResources */
+        ObservedContainerResources: {
+            limits?: components["schemas"]["ObservedResourceValues"];
+            requests?: components["schemas"]["ObservedResourceValues"];
+        };
         /** ObservedPod */
         ObservedPod: {
             /** Containers */
@@ -979,6 +1005,22 @@ export interface components {
             ready: boolean;
             /** Uid */
             uid: string;
+        };
+        /** ObservedResourceValues */
+        ObservedResourceValues: {
+            /** Cpu */
+            cpu?: string | null;
+            /** Memory */
+            memory?: string | null;
+        };
+        /** ObservedTemplateFields */
+        ObservedTemplateFields: {
+            /** Containers */
+            containers?: components["schemas"]["ObservedContainerFields"][];
+            /** Init Containers */
+            init_containers?: components["schemas"]["ObservedContainerFields"][];
+            /** Service Account Name */
+            service_account_name?: string | null;
         };
         /** PlanRequest */
         PlanRequest: {
@@ -1276,10 +1318,7 @@ export interface components {
              * @enum {string}
              */
             status: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
-            /** Template Fields */
-            template_fields: {
-                [key: string]: unknown;
-            };
+            template_fields: components["schemas"]["ObservedTemplateFields"];
             /** Total Containers */
             total_containers: number;
             /** Total Replicas */

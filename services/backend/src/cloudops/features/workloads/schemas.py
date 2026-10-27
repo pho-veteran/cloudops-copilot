@@ -61,6 +61,36 @@ class ConfigReference(BaseModel):
     source: str
 
 
+class ObservedResourceValues(BaseModel):
+    cpu: str | None = None
+    memory: str | None = None
+
+
+class ObservedContainerResources(BaseModel):
+    requests: ObservedResourceValues = Field(default_factory=ObservedResourceValues)
+    limits: ObservedResourceValues = Field(default_factory=ObservedResourceValues)
+
+
+class ObservedContainerPort(BaseModel):
+    name: str | None = None
+    container_port: int | None = None
+
+
+class ObservedContainerFields(BaseModel):
+    name: str | None = None
+    image: str | None = None
+    image_pull_policy: str | None = None
+    env: list[str] = Field(default_factory=list)
+    resources: ObservedContainerResources = Field(default_factory=ObservedContainerResources)
+    ports: list[ObservedContainerPort] = Field(default_factory=list)
+
+
+class ObservedTemplateFields(BaseModel):
+    service_account_name: str | None = None
+    containers: list[ObservedContainerFields] = Field(default_factory=list)
+    init_containers: list[ObservedContainerFields] = Field(default_factory=list)
+
+
 class WorkloadObservationPayload(BaseModel):
     """Sanitized direct observation; never carries provider text or environment literals."""
 
@@ -81,7 +111,7 @@ class WorkloadObservationPayload(BaseModel):
     restart_delta: int | None = Field(default=None, ge=0)
     ready_containers: int = Field(ge=0)
     total_containers: int = Field(ge=0)
-    template_fields: dict
+    template_fields: ObservedTemplateFields
     config_references: list[ConfigReference]
     application_telemetry: Literal["unverified"] = "unverified"
 

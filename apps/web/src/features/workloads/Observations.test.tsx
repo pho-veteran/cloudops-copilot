@@ -274,6 +274,37 @@ describe("observed workload health consumer", () => {
     ).toBeTruthy();
   });
 
+  it("test_observation_polling_re_reads_the_projection", async () => {
+    vi.useFakeTimers();
+    try {
+      let reads = 0;
+      fixtureHttp.fetch.mockImplementation(async request => {
+        const url = new URL((request as Request).url);
+        if (url.pathname === `/api/workloads/${WORKLOAD_ID}/observation`) {
+          reads += 1;
+          return Response.json(view());
+        }
+        if (url.pathname === `/api/workloads/${WORKLOAD_ID}/observations`)
+          return Response.json({ items: [], next_offset: null });
+        if (url.pathname === "/api/incidents")
+          return Response.json({ items: [], next_offset: null });
+        return Response.json(
+          { error: { code: "not_found", message: "Not found." } },
+          { status: 404 },
+        );
+      });
+
+      mount(<Observations id={WORKLOAD_ID} canMutate={false} />);
+      await vi.advanceTimersByTimeAsync(10);
+      expect(reads).toBe(1);
+      // The 60-second stale policy is only visible if the projection is re-read.
+      await vi.advanceTimersByTimeAsync(20_100);
+      expect(reads).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("test_failed_refresh_keeps_prior_values_labeled_historical", async () => {
     route({
       views: {

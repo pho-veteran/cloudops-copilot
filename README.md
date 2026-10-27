@@ -27,6 +27,8 @@ Open [http://localhost:5173](http://localhost:5173). Use that exact origin: logi
 
 `migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Provisioning an existing username resets its password/role and revokes its sessions. To change only the role or revoke all sessions without touching the stored password, use `account-role <username> <viewer|operator>` or `revoke-sessions <username>`. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
 
+The `observer` service runs the dedicated read-only workload observer separately from the collection worker. It claims no shared `jobs` work, polls configured live workloads every `OBSERVATION_POLL_SECONDS` (default 30), and marks the last success stale after 60 seconds. Observation tables arrive in migration `0004_workload_observations`. Synthetic `development_fixture` workloads never claim live health; the [local lab](docs/e01-local-lab.md#observed-workload-health) covers the scoped K3s reader and operator runbook.
+
 ## First interactive journey
 
 1. Sign in as the Operator. Open **Workloads** and choose **Investigate workload** on `demo/checkout`.
@@ -43,7 +45,7 @@ See [foundation operation and contributor handoff](docs/foundation.md) for failu
 
 ```sh
 docker compose ps
-docker compose logs --tail 100 api worker migrate
+docker compose logs --tail 100 api worker observer migrate
 docker compose down                  # stops services; preserves the database volume
 docker compose up -d --build         # reapplies migrations/config sync; preserves records
 docker compose run --rm migrate      # explicit migration and configured-workload sync

@@ -262,15 +262,7 @@ class Kubernetes:
                 ):
                     reasons.add("progress_deadline_exceeded")
 
-        deployment_ready = (
-            isinstance(status, dict)
-            and desired > 0
-            and status.get("observedGeneration", -1) >= generation
-            and all(
-                status.get(field, 0) == desired
-                for field in ("readyReplicas", "availableReplicas", "updatedReplicas", "replicas")
-            )
-        )
+        deployment_ready = isinstance(status, dict) and healthy(deployment)
         complete = not missing
         if desired == 0:
             state = "scaled_to_zero"
@@ -571,8 +563,15 @@ def restart_delta(previous_payload, pods):
     )
     if not isinstance(previous, dict):
         return None
+    prior_pods = previous.get("pods", [])
+    prior_uids = {pod.get("uid") for pod in prior_pods}
+    current_uids = {pod.uid for pod in pods}
+    if prior_uids != current_uids:
+        # Restart counts are only comparable for the same Pod UID set; a
+        # replaced or partial Pod set has no measured baseline.
+        return None
     prior = {}
-    for pod in previous.get("pods", []):
+    for pod in prior_pods:
         for container in pod.get("containers", []):
             prior[(pod.get("uid"), container.get("name"))] = container.get("restart_count", 0)
     current = {}
