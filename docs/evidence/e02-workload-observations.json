@@ -1,9 +1,9 @@
 {
   "schema": "e02-workload-observations-evidence/v1",
-  "collected_at": "2026-10-27T02:01:53Z",
+  "collected_at": "2026-10-27T03:07:02Z",
   "status": "partial_live_lab_deferred",
-  "source_commit": "530e0463cc6d65d543c93f18375dae1c9d538c17",
-  "capture_scope": "Working tree on top of source_commit after the whole-branch review fixes. This receipt is committed after capture.",
+  "source_commit": "738532dbae514f56e2f402b52530fb1b7a8631c4",
+  "capture_scope": "Working tree on top of source_commit after the whole-branch review and the issue #27 acceptance cross-check. This receipt is committed after capture.",
   "environment": {
     "host": "Windows implementation host",
     "python": "3.13.1",
@@ -25,7 +25,10 @@
     "stale_seconds": 60,
     "lease_seconds": 45,
     "default_concurrency": 8,
-    "concurrency_range": [1, 16],
+    "concurrency_range": [
+      1,
+      16
+    ],
     "history_rows_per_workload": 100,
     "history_days": 7,
     "scope_claim_limit": 100,
@@ -50,8 +53,8 @@
   "checks": {
     "backend_observation_suite": {
       "command": "TEST_DATABASE_URL=..._test uv run --project services/backend pytest -q services/backend/tests/test_workload_observations.py",
-      "result": "28 passed",
-      "duration_seconds": 25.31
+      "result": "29 passed",
+      "duration_seconds": 29.54
     },
     "backend_full_suite": {
       "command": "TEST_DATABASE_URL=..._test pytest -q services/backend/tests services/backend/tests_unit (test_permissions.py ran on a second disposable _test database)",
@@ -110,7 +113,9 @@
     "exact workload UUID incident filtering before pagination and replacement-UID exclusion",
     "web states: available, partial, progressing, degraded, stale, unavailable, pending refresh, fixture",
     "web refresh is Operator-only and refetches the persisted projection",
-    "related incidents use the exact returned incident ID for navigation"
+    "related incidents use the exact returned incident ID for navigation",
+    "missing Deployment status renders not reported instead of zero replica counts",
+    "repeated observation sweeps create no shared Job rows"
   ],
   "review_round": {
     "reviewer": "read-only general subagent against e76e33b..d00adaa",
@@ -127,7 +132,9 @@
     "fixed_minor": [
       "refresh-pending clears from server state",
       "retired UID is not presented as current",
-      "observation health reuses the shared healthy() predicate"
+      "observation health reuses the shared healthy() predicate",
+      "missing Deployment status renders not reported instead of zero",
+      "repeated sweeps prove zero shared Job rows"
     ],
     "deferred_minor": [
       "successful attempts are not persisted as attempt rows; the model docstring still says success/failure",
