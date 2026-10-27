@@ -66,6 +66,13 @@ def claim(workload_id, purpose, factory=None):
         transaction_limits(db)
         # Distinct from incident admission. All processes share these finite slots.
         db.execute(text("SELECT pg_advisory_xact_lock(742027)"))
+        workload = db.scalar(select(Workload).where(Workload.id == workload_id).with_for_update())
+        if workload is None:
+            raise ObservationError("target_changed")
+        if not workload.active:
+            raise ObservationError("inactive")
+        if workload.source != "live_kubernetes":
+            raise ObservationError("fixture")
         now = database_now(db)
         live = ObservationState.lease_until > now
         total = db.scalar(select(func.count()).select_from(ObservationState).where(live))
@@ -77,9 +84,6 @@ def claim(workload_id, purpose, factory=None):
         if total >= POLICY.global_slots or (
             purpose == "scheduled" and scheduled >= POLICY.scheduled_slots
         ):
-            return None
-        workload = db.scalar(select(Workload).where(Workload.id == workload_id).with_for_update())
-        if workload is None or not workload.active or workload.source != "live_kubernetes":
             return None
         state = db.get(ObservationState, workload_id, with_for_update=True)
         if state is None:
@@ -246,7 +250,10 @@ def finalize(captured, observation=None, reason=None, factory=None):
 
 async def observe_direct(workload_id, purpose="baseline_candidate", *, factory=None, reader=None):
     captured_binding = reader_binding() if reader is None else None
-    captured = await database_call(claim, workload_id, purpose, factory)
+    try:
+        captured = await database_call(claim, workload_id, purpose, factory)
+    except ObservationError as error:
+        return DirectOutcome(outcome="failed", reason=error.code)
     if captured is None:
         return DirectOutcome(outcome="busy", reason="budget_exhausted")
     try:

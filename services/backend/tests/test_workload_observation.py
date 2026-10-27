@@ -251,6 +251,32 @@ def test_observation_errors_preserve_classified_failure_and_no_jobs(live_workloa
         assert db.scalar(select(func.count()).select_from(Job)) == 0
 
 
+def test_direct_admission_classifies_invalid_scope_even_when_capacity_is_full(
+    seeded, live_workloads
+):
+    with sessions()() as db, db.begin():
+        fixture = db.scalar(
+            select(Workload.id).where(Workload.source == "development_fixture").limit(1)
+        )
+        db.get(Workload, live_workloads[0]).active = False
+    for identity in live_workloads[1:5]:
+        assert claim(identity, "baseline_candidate")
+
+    class ForbiddenReader:
+        async def read(self, *_):
+            raise AssertionError("Invalid scope must not issue an external read")
+
+    for identity, reason in (
+        (uuid4(), "target_changed"),
+        (live_workloads[0], "inactive"),
+        (fixture, "fixture"),
+    ):
+        result = asyncio.run(observe_direct(identity, reader=ForbiddenReader()))
+        assert result.outcome == "failed" and result.reason == reason
+    with sessions()() as db:
+        assert db.scalar(select(func.count()).select_from(ObservationAttempt)) == 4
+
+
 def test_incident_filter_is_applied_before_pagination_and_preserves_replaced_identity(
     client, live_workloads
 ):
