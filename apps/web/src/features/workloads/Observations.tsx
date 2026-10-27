@@ -104,6 +104,8 @@ function ObservationBody({ view }: { view: ObservationView }) {
     : `Coverage partial — missing: ${
         observation.coverage.missing_sources.join(", ") || "unknown sources"
       }`;
+  const statusMissing =
+    observation.coverage.missing_sources.includes("deployment_status");
   const restartDelta =
     observation.restart_delta === null ||
     observation.restart_delta === undefined
@@ -139,10 +141,9 @@ function ObservationBody({ view }: { view: ObservationView }) {
         <dd>{coverage}</dd>
         <dt>Replicas</dt>
         <dd>
-          Ready {observation.ready_replicas}/{observation.desired_replicas} ·{" "}
-          {observation.available_replicas} available ·{" "}
-          {observation.updated_replicas} updated ·{" "}
-          {observation.total_replicas} total
+          {statusMissing
+            ? "Not reported (Deployment status missing)"
+            : `Ready ${observation.ready_replicas}/${observation.desired_replicas} · ${observation.available_replicas} available · ${observation.updated_replicas} updated · ${observation.total_replicas} total`}
         </dd>
         <dt>Containers</dt>
         <dd>

@@ -215,12 +215,16 @@ describe("observed workload health consumer", () => {
         [PARTIAL_ID]: view({
           workload_id: PARTIAL_ID,
           observation: payload({
-            status: "progressing",
+            status: "unknown",
+            available_replicas: 0,
+            ready_replicas: 0,
+            total_replicas: 0,
+            updated_replicas: 0,
             coverage: {
               complete: false,
               missing_sources: ["deployment_status"],
             },
-            reasons: ["rollout_incomplete"],
+            reasons: [],
           }),
         }),
         [STALE_ID]: view({
@@ -260,12 +264,17 @@ describe("observed workload health consumer", () => {
     expect(within(healthy).getByText("Healthy")).toBeTruthy();
     expect(within(healthy).getByText("Fresh")).toBeTruthy();
     expect(within(healthy).getByText("Coverage complete")).toBeTruthy();
-    expect(within(partial).getByText("Progressing")).toBeTruthy();
+    expect(within(partial).getByText("Unknown")).toBeTruthy();
     expect(
       within(partial).getByText(
         "Coverage partial — missing: deployment_status",
       ),
     ).toBeTruthy();
+    // Missing Deployment status is unknown, never a measured zero.
+    expect(
+      within(partial).getByText("Not reported (Deployment status missing)"),
+    ).toBeTruthy();
+    expect(within(partial).queryByText(/Ready 0\//)).toBeNull();
     expect(within(stale).getByText("Degraded")).toBeTruthy();
     expect(within(stale).getByText("Stale")).toBeTruthy();
     expect(within(unavailable).getByText("Observation unavailable")).toBeTruthy();
