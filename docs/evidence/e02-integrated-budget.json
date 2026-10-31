@@ -1,0 +1,19 @@
+{
+  "runtime_commit": "b541be0eb89efeb89a7c6d55b210810ce2dd7552",
+  "scope": 100,
+  "mix": {
+    "original_checkout": 1,
+    "disposable_running": 3,
+    "disposable_scaled_to_zero": 96
+  },
+  "all_100_complete_within_seconds": 38.564,
+  "max_complete_read_seconds": 0.283061,
+  "retained_complete_windows": 105,
+  "max_success_age_at_all_complete_seconds": 34.438441,
+  "max_poll_lag_seconds": 4.425786,
+  "deadline_seconds": 12,
+  "freshness_seconds": 60,
+  "fixture_tests": false,
+  "limits": "Local cluster measurement, not a universal availability SLO.",
+  "browser_acceptance": "Pending trusted HTTPS browser execution; this receipt does not close E02."
+}

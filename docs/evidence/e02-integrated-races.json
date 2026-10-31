@@ -1,0 +1,11 @@
+{
+  "runtime_commit": "b541be0eb89efeb89a7c6d55b210810ce2dd7552",
+  "checks": {
+    "same_pod_restart_counter_increase_rejects": true,
+    "replacement_pod_same_deployment_rejects": true,
+    "actual_unsupported_projection_partial_no_healthy_or_candidate": true,
+    "naturally_expired_candidate_rejected": true
+  },
+  "expiry_elapsed_seconds": 303.63351220003096,
+  "browser_acceptance": "Pending trusted HTTPS browser execution; this receipt does not close E02."
+}

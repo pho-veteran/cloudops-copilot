@@ -1,0 +1,12 @@
+{
+  "runtime_commit": "b48c449b7d25916b290655f71fb8ff3698652951",
+  "source": "Actual K3s Deployment with a declared downwardAPI projection not covered by baseline extraction; original fixture restored.",
+  "baseline_id": "fb4352ed-65bf-480a-ad9a-533b3799d807",
+  "reason": "unsupported",
+  "coverage": "partial",
+  "effective_health": "unknown",
+  "execution_eligible": false,
+  "broken_candidate_denied": true,
+  "recovered_healthy_candidate": true,
+  "browser_acceptance": "Pending trusted HTTPS browser execution; this receipt does not close E02."
+}

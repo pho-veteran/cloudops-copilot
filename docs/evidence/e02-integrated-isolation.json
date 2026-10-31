@@ -1,0 +1,20 @@
+{
+  "runtime_commit": "b541be0eb89efeb89a7c6d55b210810ce2dd7552",
+  "observation_transport": "Controlled real TLS drip-feed server inside isolated probe process; three actual scheduled leases, default 12s deadline; not a Kubernetes health source.",
+  "product_transport": "Actual trusted HTTPS API + PostgreSQL + product worker; investigation output explicitly synthetic.",
+  "scheduled_leases_at_product_completion": 3,
+  "fourth_scheduled_denied": true,
+  "reserved_direct_k3s_candidate_succeeded": true,
+  "admission_seconds": 0.024870899971574545,
+  "product_job_completed_seconds": 2.5722284999792464,
+  "reader_outcomes": [
+    "attempt_timeout",
+    "attempt_timeout",
+    "attempt_timeout"
+  ],
+  "stalled_connections_closed": 3,
+  "incident_id": "d7ac71b3-0c30-4a24-8a7c-af1c4be453ce",
+  "run_id": "eaac0812-9c7f-4a07-aec9-bd0376e29639",
+  "no_scale_or_writer_authority_granted": true,
+  "browser_acceptance": "Pending trusted HTTPS browser execution; this receipt does not close E02."
+}

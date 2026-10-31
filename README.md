@@ -6,7 +6,7 @@ Kubernetes incident investigation and bounded recovery for a small operations te
 
 Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. The foundation consumer integration exercise is self-verified in PR #16; it does not require a second contributor.
 
-The optional [workload observer](docs/workload-observation.md) adds persisted UID-owned Kubernetes rollout health, freshness, Pod/restart context and exact related incidents. [Versioned healthy baselines](docs/workload-baselines.md) retain two fresh observations and feed an exact, read-only recovery context. Application traffic health and restore execution remain unavailable.
+The optional [workload observer](docs/workload-observation.md) adds persisted UID-owned Kubernetes rollout health, freshness, Pod/restart context and exact related incidents. [Versioned healthy baselines](docs/workload-baselines.md) retain two fresh observations and feed an exact, read-only recovery context. [Integrated local verification](docs/e02-local-acceptance.md) keeps API receipts and the trusted-browser gate explicit. Application traffic health and restore execution remain unavailable.
 
 ## Quick start
 
