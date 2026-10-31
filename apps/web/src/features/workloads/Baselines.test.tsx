@@ -26,6 +26,18 @@ function responses() {
 }
 
 describe("baseline preparation and explicit selection", () => {
+  it("refetches stale selected context when returning to a cached selection and labels response time", async () => {
+    responses();
+    const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const tree = (selected: string) => <QueryClientProvider client={cache}><Baselines id={id} canMutate selectedBaseline={selected} /></QueryClientProvider>;
+    const view = render(tree(baseline));
+    await screen.findByText(/Context response received/);
+    cache.setQueryData(["recovery-context", id, baseline], cache.getQueryData(["recovery-context", id, baseline]), { updatedAt: Date.now() - 31_000 });
+    view.rerender(tree(id));
+    await waitFor(() => expect(mocks.GET.mock.calls.some(([path, options]) => path.endsWith("recovery-context") && options.params.query.baseline_id === id)).toBe(true));
+    view.rerender(tree(baseline));
+    await waitFor(() => expect(mocks.GET.mock.calls.filter(([path, options]) => path.endsWith("recovery-context") && options.params.query.baseline_id === baseline)).toHaveLength(2));
+  });
   it("starts without selecting the newest baseline and forwards an exact URL selection", async () => {
     responses(); mount(true, baseline);
     await waitFor(() => expect(mocks.GET).toHaveBeenCalledWith("/api/workloads/{workload_id}/recovery-context", { params: { path: { workload_id: id }, query: { baseline_id: baseline } } }));

@@ -36,7 +36,7 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
     queryFn: async () => unwrap(await api.GET("/api/workloads/{workload_id}/recovery-context", {
       params: { path: { workload_id: id }, query: { baseline_id: selectedBaseline } },
     })), retry: false, refetchOnWindowFocus: false, refetchOnReconnect: false,
-    staleTime: 30_000, refetchOnMount: false,
+    staleTime: 30_000, refetchOnMount: true,
   });
   const preview = useMutation({
     mutationFn: async (_generation: number) => unwrap(await api.GET("/api/workloads/{workload_id}/baseline-candidate", {
@@ -85,7 +85,7 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
     {selectedBaseline && <><p className="mono">Selected: {selectedBaseline}</p><Button variant="outline" onClick={() => select()}>Clear selection</Button></>}
     {context.isPending && <p role="status">Checking recovery context…</p>}
     {context.isError && <Failure error={context.error} />}
-    {context.data && !context.isError && <><p role="status">{context.data.state}: {context.data.reason.replaceAll("_", " ")}. Execution unavailable.</p><p>{context.data.limitations}</p><p>Inspect owned health and related incidents above. Investigate or repair manually when this revision is broken or cannot be verified; inspect a fresh healthy candidate after recovery.</p>
+    {context.data && !context.isError && <><p role="status">{context.data.state}: {context.data.reason.replaceAll("_", " ")}. Execution unavailable.</p><p className="muted">Context response received {new Date(context.dataUpdatedAt).toLocaleString()}. Refresh to check current live identity again.</p><p>{context.data.limitations}</p><p>Inspect owned health and related incidents above. Investigate or repair manually when this revision is broken or cannot be verified; inspect a fresh healthy candidate after recovery.</p>
       {context.data.baseline && <details><summary>Selected saved record and provenance</summary><pre>{JSON.stringify(context.data.baseline, null, 2)}</pre></details>}
       {!!context.data.supported_diff?.length && <details open><summary>Declared supported field differences</summary><pre>{JSON.stringify(context.data.supported_diff, null, 2)}</pre></details>}
     </>}
