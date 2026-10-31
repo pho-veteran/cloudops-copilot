@@ -1,10 +1,12 @@
 """Mutation guards for the disposable lab probe; no cluster or database is contacted."""
 
 import importlib.util
+from contextlib import nullcontext
 import json
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -164,3 +166,30 @@ else: raise RuntimeError('Ownership guard was skipped')
 """
     result = subprocess.run([sys.executable, "-O", "-c", code], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_session_probe_restores_prior_setting_after_reconfiguration_failure(probe, monkeypatch):
+    spec = importlib.util.spec_from_file_location(
+        "e02_session_restore_test", Path(probe.__file__).with_name("probe-e02-session.py")
+    )
+    session = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(session)
+    calls = []
+
+    def configure(seconds):
+        calls.append(seconds)
+        if seconds == 12:
+            raise RuntimeError("temporary reconfiguration failed")
+
+    monkeypatch.setattr(session, "arguments", lambda *args: SimpleNamespace())
+    monkeypatch.setattr(session, "password", lambda args: "fixture-only")
+    monkeypatch.setattr(session, "metadata", lambda path: {})
+    monkeypatch.setattr(session, "configure", configure)
+    monkeypatch.setattr(session, "client", lambda args: nullcontext(None))
+    monkeypatch.setattr(session, "wait_ready", lambda connection: None)
+    monkeypatch.setattr(
+        session, "lab", SimpleNamespace(app=lambda script: "120", require=probe.require)
+    )
+    with pytest.raises(RuntimeError, match="temporary reconfiguration failed"):
+        session.main()
+    assert calls == [12, 120]

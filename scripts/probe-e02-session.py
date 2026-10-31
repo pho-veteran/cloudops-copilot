@@ -1,4 +1,4 @@
-"""Expire a real HTTPS baseline session, require fresh explicit review, and restore eight-hour sessions."""
+"""Expire a real HTTPS baseline session, require fresh review, and restore the prior session setting."""
 
 from pathlib import Path
 import os
@@ -24,6 +24,9 @@ def main():
     args = arguments(__doc__, "session-expiry.json")
     secret = password(args)
     report = metadata(Path(__file__))
+    original_seconds = int(
+        lab.app("from cloudops.shared.config import settings; print(settings().session_seconds)")
+    )
     try:
         configure(12)
         with client(args) as connection:
@@ -91,7 +94,7 @@ def main():
                 baseline_id=confirmed.json()["id"],
             )
     finally:
-        configure(28800)
+        configure(original_seconds)
         with client(args) as connection:
             wait_ready(connection)
         restored = int(
@@ -99,7 +102,7 @@ def main():
                 "from cloudops.shared.config import settings; print(settings().session_seconds)"
             )
         )
-        lab.require(restored == 28800, "Normal session configuration was not restored.")
+        lab.require(restored == original_seconds, "Prior session configuration was not restored.")
         report["normal_session_seconds_restored"] = restored
     save(report, args.output)
 

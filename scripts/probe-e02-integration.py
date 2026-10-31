@@ -647,7 +647,7 @@ def verify(args):
         apply_fixture(manifest)
         kube("rollout", "status", "deployment/e02-ready", "-n", "demo", "--timeout=90s")
         assert live_read(workloads["e02-ready"]["id"])["observation"]["health"] == "healthy"
-        # Reference identities change independently of image/resource fields; content stays unverified.
+        # envFrom changes both reference identity and generation; content stays unverified.
         config_manifest = json.loads((folder / "e02-config.json").read_text())
         ensure_fixture(
             {
@@ -672,7 +672,8 @@ def verify(args):
         error_response(confirm("e02-config", body), 409, "candidate_changed")
         result = context("e02-config", baseline_ids["e02-config"])
         assert result["reason"] == "config_unverified" and not result["execution_eligible"]
-        report["checks"]["reference_change_rejects_confirm_and_context_is_manual"] = True
+        report["checks"]["reference_and_generation_change_rejects_confirm"] = True
+        report["checks"]["changed_reference_context_is_config_unverified"] = True
         apply_fixture(config_manifest)
         kube("rollout", "status", "deployment/e02-config", "-n", "demo", "--timeout=90s")
         # Scoped name replacement must never transfer historical identity or authority.
