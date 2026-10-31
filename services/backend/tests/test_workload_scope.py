@@ -70,6 +70,74 @@ def rows():
         return db.scalars(select(Workload).order_by(Workload.uid)).all()
 
 
+@pytest.mark.parametrize(
+    "lookup", [Lookup("unavailable", reason="permission_denied"), Lookup("present", "uid-v1")]
+)
+def test_v2_never_binds_a_colliding_fixture_identity(scope_lab, lookup):
+    _, state, _ = scope_lab
+    with sessions()() as db, db.begin():
+        fixture = Workload(
+            cluster="lab",
+            namespace="demo",
+            name="checkout",
+            uid="fixture-only",
+            source="development_fixture",
+        )
+        db.add(fixture)
+        db.flush()
+        fixture_id = fixture.id
+    state["checkout"] = lookup
+    sync()
+    with sessions()() as db:
+        fixture = db.get(Workload, fixture_id)
+        target = db.scalar(select(ScopeTarget))
+        assert not fixture.active and fixture.retirement_reason == "removed"
+        assert fixture.source == "development_fixture"
+        if lookup.state == "unavailable":
+            assert target.workload_id is None
+        else:
+            assert target.workload_id != fixture_id
+            assert db.get(Workload, target.workload_id).source == "live_kubernetes"
+
+
+def test_v2_rejects_reusing_exact_fixture_uid(scope_lab):
+    _, state, _ = scope_lab
+    with sessions()() as db, db.begin():
+        fixture = Workload(
+            cluster="lab",
+            namespace="demo",
+            name="checkout",
+            uid="uid-v1",
+            source="development_fixture",
+        )
+        db.add(fixture)
+        db.flush()
+        fixture_id = fixture.id
+    with pytest.raises(DomainError, match="fixture identity"):
+        sync()
+    with sessions()() as db:
+        assert db.get(Workload, fixture_id).active
+        assert db.get(Workload, fixture_id).source == "development_fixture"
+        assert db.scalar(select(func.count()).select_from(ScopeTarget)) == 0
+
+
+@pytest.mark.parametrize("change", ["deleted", "replaced", "removed"])
+def test_cli_retirement_count_includes_all_live_retirement_causes(scope_lab, change):
+    policy, state, write = scope_lab
+    sync()
+    if change == "removed":
+        policy["deployments"] = []
+        write()
+    else:
+        state["checkout"] = (
+            Lookup("missing", reason="not_found")
+            if change == "deleted"
+            else Lookup("present", "new-uid")
+        )
+    assert sync().removed == 1
+    assert sync().removed == 0
+
+
 def test_first_missing_unavailable_and_unlisted_are_not_fake_workloads(scope_lab):
     policy, state, write = scope_lab
     policy["deployments"] += [

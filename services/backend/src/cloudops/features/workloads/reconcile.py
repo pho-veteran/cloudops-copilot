@@ -117,6 +117,7 @@ def publish_legacy(db, entries):
         .with_for_update()
         .execution_options(populate_existing=True)
     ).all()
+    previously_active = {row.id for row in rows if row.active}
     identities = {(r.cluster, r.namespace, r.name, r.uid): r for r in rows}
     desired_names = {(e.cluster, e.namespace, e.name) for e in entries}
     for row in rows:
@@ -134,7 +135,9 @@ def publish_legacy(db, entries):
             row.active, row.source, row.retirement_reason = True, entry.source, None
         else:
             db.add(Workload(**entry.model_dump()))
-    return SyncResult(current=len(entries))
+    return SyncResult(
+        current=len(entries), removed=sum(r.id in previously_active and not r.active for r in rows)
+    )
 
 
 def publish_live(db, state, scope, results, rotating):
@@ -163,13 +166,14 @@ def publish_live(db, state, scope, results, rotating):
             conflict(
                 "Rotation requires the same configured scope and successfully verified current UIDs."
             )
-    removed = 0
+    previously_active = {row.id for row in rows if row.active}
     for row in rows:
         if row.active and (
-            row.cluster != scope.cluster.key or (row.namespace, row.name) not in desired
+            row.source != "live_kubernetes"
+            or row.cluster != scope.cluster.key
+            or (row.namespace, row.name) not in desired
         ):
             retire(row, "removed")
-            removed += 1
     for target in targets:
         if target.configured and (
             target.cluster != scope.cluster.key or (target.namespace, target.name) not in desired
@@ -191,7 +195,10 @@ def publish_live(db, state, scope, results, rotating):
             db.add(target)
         # Legacy UID-pinned migration can retain an existing identity even on a failed read.
         matching = [
-            r for r in rows if (r.cluster, r.namespace, r.name) == (scope.cluster.key, *key)
+            r
+            for r in rows
+            if r.source == "live_kubernetes"
+            and (r.cluster, r.namespace, r.name) == (scope.cluster.key, *key)
         ]
         active = [r for r in matching if r.active]
         if len(active) > 1:
@@ -210,6 +217,15 @@ def publish_live(db, state, scope, results, rotating):
                 retire(old, "deleted" if lookup.state == "missing" else "replaced")
         if lookup.state == "missing":
             continue
+        if any(
+            r.source != "live_kubernetes"
+            and (r.cluster, r.namespace, r.name, r.uid)
+            == (scope.cluster.key, item.namespace, item.name, lookup.uid)
+            for r in rows
+        ):
+            conflict(
+                "A fixture identity cannot become live; configure a distinct live cluster key."
+            )
         row = next((r for r in matching if r.uid == lookup.uid), None)
         if row is None:
             row = Workload(
@@ -224,4 +240,5 @@ def publish_live(db, state, scope, results, rotating):
             rows.append(row)
         row.active, row.retirement_reason, row.source = True, None, "live_kubernetes"
         target.workload_id = row.id
-    return SyncResult(counts["present"], counts["missing"], counts["unavailable"], removed)
+    retired = sum(row.id in previously_active and not row.active for row in rows)
+    return SyncResult(counts["present"], counts["missing"], counts["unavailable"], retired)

@@ -186,12 +186,43 @@ def test_lookup_classifies_http_errors(tmp_path, status, state, reason):
     class Opener:
         def open(self, request, timeout):
             assert request.method == "GET" and timeout <= 8
-            raise HTTPError(request.full_url, status, "private-provider-sentinel", {}, None)
+            body = {
+                "kind": "Status",
+                "reason": "NotFound",
+                "details": {"group": "apps", "kind": "deployments", "name": "checkout"},
+            }
+            raise HTTPError(
+                request.full_url,
+                status,
+                "private-provider-sentinel",
+                {},
+                io.BytesIO(json.dumps(body).encode()),
+            )
 
     reader.opener = Opener()
     result = reader.lookup(Target(namespace="demo", name="checkout"), time.monotonic() + 30)
     assert (result.state, result.reason) == (state, reason)
     assert "private-provider-sentinel" not in repr(result)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        b"proxy route missing",
+        b"{}",
+        b'{"kind":"Status","reason":"NotFound","details":{"kind":"pods","name":"checkout"}}',
+    ],
+)
+def test_unverified_proxy_404_does_not_retire_a_deployment(tmp_path, body):
+    reader = make_reader(tmp_path)
+
+    class Opener:
+        def open(self, request, timeout):
+            raise HTTPError(request.full_url, 404, "Not Found", {}, io.BytesIO(body))
+
+    reader.opener = Opener()
+    result = reader.lookup(Target(namespace="demo", name="checkout"), time.monotonic() + 30)
+    assert result.state == "unavailable" and result.reason == "cluster_unavailable"
 
 
 @pytest.mark.parametrize(

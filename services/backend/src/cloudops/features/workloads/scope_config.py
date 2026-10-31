@@ -197,7 +197,21 @@ class ScopeReader:
                 return Lookup("present", uid=uid)
         except HTTPError as error:
             if error.code == 404:
-                return Lookup("missing", reason="not_found")
+                try:
+                    body = error.read(2_000_001)
+                    value = json.loads(body) if len(body) <= 2_000_000 else None
+                    details = value.get("details", {}) if isinstance(value, dict) else {}
+                    if (
+                        isinstance(value, dict)
+                        and value.get("kind") == "Status"
+                        and value.get("reason") == "NotFound"
+                        and details.get("group") == "apps"
+                        and details.get("kind") == "deployments"
+                        and details.get("name") == target.name
+                    ):
+                        return Lookup("missing", reason="not_found")
+                except (OSError, ValueError, TypeError, AttributeError):
+                    pass
             return Lookup(
                 "unavailable",
                 reason="permission_denied" if error.code == 403 else "cluster_unavailable",

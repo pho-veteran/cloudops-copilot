@@ -89,6 +89,14 @@ python -m cloudops.entrypoints.cli sync-workloads --previous-cluster-fingerprint
 
 Rotation requires the same cluster key, the same configured names and a successful read of every currently bound UID. Changed/missing/unreadable UIDs reject the rotation atomically. Do not combine rotation with a scope change or replacement. A different cluster with different UIDs requires a reviewed migration, not this rotation flag. A successful rotation changes the reader binding only; writer policy/authority is not changed.
 
+If startup migration cannot complete after the policy changes, the API may not be running. Run the explicit rotation through the one-off migration service instead of `exec api`:
+
+```sh
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml run --rm migrate python -m cloudops.entrypoints.cli sync-workloads --previous-cluster-fingerprint <exact-old-fingerprint>
+```
+
+Then start the normal services. A generic proxy 404 is unavailable; only a matching Kubernetes Deployment NotFound response closes admission. V2 retires fixture entries as removed and never binds their synthetic UIDs to a live target. An exact fixture/live identity collision rejects the sync; use a distinct live cluster key.
+
 ## API, migration and verification
 
 - `GET /api/workloads` retains its active-workload UUID contract.
