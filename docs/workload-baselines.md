@@ -14,6 +14,16 @@ No history record is selected automatically. Choose one explicitly; successful c
 
 The actual recovery-owned `GET /api/workloads/{workload_id}/recovery-context` accepts optional `baseline_id`. Without it the server returns `manual_only/missing`. With a selection it verifies the stored digest and fresh live identity through the same bounded observation producer. It returns the exact saved record and provenance or explicit missing, legacy, mismatch or unavailable reasons. Read-only observation state/history may be persisted; this route creates no plan, approval, job, execution or writer authority. Both roles can inspect it. Invalid sessions and denied confirmations leave protected domain state unchanged.
 
+Use **Refresh selected recovery context** for another direct read. Automatic focus/reconnect refetch is disabled and cached context has a 30-second stale time. Authentication visibility boundaries still discard protected caches, so returning to the workspace may perform a new bounded read after session validation. Per-workload leases and global reader limits apply; a busy or superseded candidate read gives explicit retry guidance, not a claim of unhealthy rollout. No server cooldown is used to replace current live identity validation.
+
 Configuration-reference differences, unsupported container-set differences and no supported differences remain manual-only. A nonempty supported image/resource difference returns `baseline_context/restore_not_implemented`. Every response has `execution_eligible: false`. Inspect health and related incidents, start an authorized investigation or repair manually, then capture a fresh healthy baseline after recovery. This feature does not implement restore execution; E07 owns that later applicability, approval and write path.
 
 Run the repository PostgreSQL, web, contract/drift and existing scale regression checks. Controlled observations establish policy behavior; real K3s and trusted-browser evidence are recorded separately for the owning task and E02 acceptance.
+
+For the fixed lab, reproduce the healthy producer/consumer check with an exact configured live UUID and the trusted lab CA. The probe prompts for existing Operator/Viewer passwords, creates only baseline/observation records, checks both roles against the actual recovery route and compares the Deployment plus related incident/plan/execution records before and after:
+
+```sh
+uv run --project services/backend python scripts/probe-workload-baseline.py --ca tmp/local-https-root.crt --workload-id <UUID>
+```
+
+Use `--operator`/`--viewer` for differently named lab accounts and opt into `--password-stdin` for automation. Passwords are never command arguments or receipt fields. The generated receipt defaults to ignored `tmp/baseline28-live.json`; keep browser evidence separate. An unrelated target update during this probe invalidates its unchanged-target assertion and requires another bounded run.

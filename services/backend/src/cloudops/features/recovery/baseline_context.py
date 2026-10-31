@@ -122,9 +122,16 @@ async def resolve_restore_baseline(workload_id, baseline_id, binding):
     if isinstance(selected, RestoreContext):
         return selected
     if result.outcome != "complete" or result.observation is None:
+        unsupported = (
+            result.observation is not None and "unsupported_reference" in result.observation.reasons
+        )
         return RestoreContext(
             state="manual_only",
-            reason="mismatch" if result.reason == "target_changed" else "unavailable",
+            reason="mismatch"
+            if result.reason == "target_changed"
+            else "unsupported"
+            if unsupported
+            else "unavailable",
             baseline=selected,
         )
     current = envelope(result.observation)

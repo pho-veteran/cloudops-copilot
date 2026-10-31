@@ -23,6 +23,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ca", required=True)
     parser.add_argument("--password-stdin", action="store_true")
+    parser.add_argument("--operator", default="operator")
+    parser.add_argument("--viewer", default="viewer")
+    parser.add_argument(
+        "--workload-id", help="Exact configured live workload for this scale probe."
+    )
     args = parser.parse_args()
     passwords = (
         [sys.stdin.readline().rstrip("\r\n") for _ in range(2)]
@@ -45,11 +50,15 @@ def main():
             assert response.status_code == 200, "Account sign-in failed"
             return {"Origin": origin, "X-CSRF-Token": response.json()["csrf_token"]}
 
-        oh, vh = login(operator, "operator", passwords[0]), login(viewer, "viewer", passwords[1])
+        oh, vh = (
+            login(operator, args.operator, passwords[0]),
+            login(viewer, args.viewer, passwords[1]),
+        )
         workload = next(
             w
             for w in operator.get("/api/workloads").json()["items"]
             if w["source"] == "live_kubernetes"
+            and (not args.workload_id or w["id"] == args.workload_id)
         )
         wid = workload["id"]
         response = operator.post(
@@ -157,7 +166,11 @@ def main():
         print(
             f"Pinned KRR invocation and actual persisted Viewer export: {report['state']} (tool exit {report['result']['tool_exit_code']}); no qualified recommendations claimed."
         )
-        desired = 2 if candidate.json()["snapshot"]["replicas"] == 1 else 1
+        desired = (
+            2
+            if candidate.json()["snapshot"]["provenance"]["first"]["deployment"]["desired"] == 1
+            else 1
+        )
         response = operator.post(
             f"/api/incidents/{iid}/plans",
             json={

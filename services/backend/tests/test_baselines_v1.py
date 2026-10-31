@@ -292,6 +292,54 @@ def test_history_pagination_retains_legacy_and_selected_identity(permission_cont
     assert client.get(url(c, "baselines"), params={"cursor": "invalid!"}).status_code == 422
 
 
+def test_legacy_pending_and_corrupt_or_foreign_recovery_record_fail_closed(permission_context):
+    c = permission_context
+    with sessions()() as db:
+        legacy = db.get(Baseline, UUID(c.consumer.baseline_id))
+        legacy_body = {"candidate_id": str(legacy.candidate_id), "digest": legacy.digest}
+    before = snapshot()
+    assert confirm(c, legacy_body).status_code == 409
+    assert snapshot() == before
+    saved = confirm(c, preview(c)).json()
+    with sessions()() as db, db.begin():
+        row = db.get(Baseline, UUID(saved["id"]))
+        row.digest = "0" * 64
+    before = snapshot()
+    assert context(c, saved["id"]).json()["reason"] == "mismatch"
+    with sessions()() as db, db.begin():
+        row = db.get(Baseline, UUID(saved["id"]))
+        other = Workload(
+            cluster="other", namespace="demo", name="other", uid="other", source="live_kubernetes"
+        )
+        db.add(other)
+        db.flush()
+        row.workload_id = other.id
+    before = snapshot()
+    assert context(c, saved["id"]).json()["reason"] == "mismatch"
+    assert snapshot() == before
+
+
+@pytest.mark.parametrize(
+    "outcome,code", [("busy", "observation_busy"), ("superseded", "observation_superseded")]
+)
+def test_busy_or_superseded_is_retry_guidance_not_unhealthy(
+    permission_context, monkeypatch, outcome, code
+):
+    c = permission_context
+
+    async def busy(*args):
+        return DirectOutcome(
+            outcome=outcome, reason="budget_exhausted" if outcome == "busy" else "superseded"
+        )
+
+    monkeypatch.setattr(baseline_service, "observe_direct", busy)
+    before = snapshot()
+    response = c.actors["operator"].client.get(url(c, "baseline-candidate"))
+    assert response.status_code == 409 and response.json()["error"]["code"] == code
+    assert "repair manually" not in response.text
+    assert snapshot() == before
+
+
 @pytest.mark.parametrize(
     "condition,reason",
     [
@@ -299,6 +347,7 @@ def test_history_pagination_retains_legacy_and_selected_identity(permission_cont
         ("identity", "mismatch"),
         ("references", "config_unverified"),
         ("containers", "unsupported"),
+        ("unsupported_reference", "unsupported"),
     ],
 )
 def test_actual_recovery_consumer_fails_closed(permission_context, monkeypatch, condition, reason):
@@ -321,7 +370,14 @@ def test_actual_recovery_consumer_fails_closed(permission_context, monkeypatch, 
             obs.config_references = [
                 ConfigReference(path="volumes.config", kind="ConfigMap", name="new-ref")
             ]
-        return DirectOutcome(outcome="complete", observation=obs)
+        if condition == "unsupported_reference":
+            obs.coverage = "partial"
+            obs.health = "unknown"
+            obs.reasons = ["unsupported_reference"]
+        return DirectOutcome(
+            outcome="partial" if condition == "unsupported_reference" else "complete",
+            observation=obs,
+        )
 
     monkeypatch.setattr(baseline_context, "observe_direct", change)
     before = snapshot()

@@ -100,7 +100,11 @@ def main():
             )
             preview = client.get(f"/api/workloads/{workload['id']}/baseline-candidate")
             assert preview.status_code == 200
-            replicas = 2 if preview.json()["snapshot"]["replicas"] == 1 else 1
+            replicas = (
+                2
+                if preview.json()["snapshot"]["provenance"]["first"]["deployment"]["desired"] == 1
+                else 1
+            )
             response = client.post(
                 "/api/incidents",
                 json={

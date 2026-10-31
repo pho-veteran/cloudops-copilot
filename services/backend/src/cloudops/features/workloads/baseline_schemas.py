@@ -15,6 +15,7 @@ from cloudops.features.workloads.observation_schemas import (
 
 PROFILE = "deployment-images-resources/v1"
 LIMITATIONS = "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+LEGACY_LIMITATIONS = "Legacy selected-field metadata without v1 two-observation verification. The original payload and digest are retained. Referenced contents and external effects are unverified. This baseline grants no execution authority."
 
 
 class BaselineIdentity(SafeModel):

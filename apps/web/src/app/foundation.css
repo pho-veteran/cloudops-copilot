@@ -1,6 +1,17 @@
 .foundation-app {
   min-height: 100vh;
 }
+.baseline-preparation button {
+  max-width: 100%;
+  height: auto;
+  min-height: 2rem;
+  white-space: normal;
+}
+.baseline-preparation pre {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .foundation-header {
   display: flex;
   align-items: center;

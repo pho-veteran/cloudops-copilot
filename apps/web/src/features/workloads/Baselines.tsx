@@ -35,7 +35,8 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
     queryKey: ["recovery-context", id, selectedBaseline],
     queryFn: async () => unwrap(await api.GET("/api/workloads/{workload_id}/recovery-context", {
       params: { path: { workload_id: id }, query: { baseline_id: selectedBaseline } },
-    })), retry: false,
+    })), retry: false, refetchOnWindowFocus: false, refetchOnReconnect: false,
+    staleTime: 30_000, refetchOnMount: false,
   });
   const preview = useMutation({
     mutationFn: async (_generation: number) => unwrap(await api.GET("/api/workloads/{workload_id}/baseline-candidate", {
@@ -59,7 +60,7 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
   const now = draft ? Date.parse(draft.value.server_time) + Math.max(clock, draft.received) - draft.received : 0;
   const wait = draft ? Math.max(0, Math.ceil((Date.parse(draft.value.confirm_after) - now) / 1000)) : 0;
   const expired = !!draft && now >= Date.parse(draft.value.expires_at);
-  return <div className="foundation-stack">
+  return <div className="baseline-preparation foundation-stack min-w-0">
     <h3>Known-good preparation</h3>
     <p className="muted">Two fresh complete healthy observations, five seconds to five minutes apart. Save declared image and CPU/memory metadata with provenance. Replicas are context only. Referenced contents, unsupported template fields and application health remain unverified. Preparation creates no execution authority.</p>
     <Button variant="outline" disabled={preview.isPending || confirm.isPending} onClick={() => preview.mutate(++intent.current)}>Inspect live baseline candidate</Button>
@@ -79,6 +80,7 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
     </div>)}
     {saved.hasNextPage && <Button variant="outline" disabled={saved.isFetchingNextPage} onClick={() => void saved.fetchNextPage()}>Load older baselines</Button>}
     <h4>Recovery baseline context</h4>
+    {selectedBaseline && <Button variant="outline" disabled={context.isFetching} onClick={() => void context.refetch()}>Refresh selected recovery context</Button>}
     {!selectedBaseline && <p>No baseline selected. Choose an exact confirmed record; none is selected automatically.</p>}
     {selectedBaseline && <><p className="mono">Selected: {selectedBaseline}</p><Button variant="outline" onClick={() => select()}>Clear selection</Button></>}
     {context.isPending && <p role="status">Checking recovery context…</p>}

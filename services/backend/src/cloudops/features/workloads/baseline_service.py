@@ -10,6 +10,8 @@ from sqlalchemy import select, tuple_
 from cloudops.features.access.models import LoginSession, User
 from cloudops.features.workloads.baseline_schemas import (
     PROFILE,
+    LEGACY_LIMITATIONS,
+    LIMITATIONS,
     BaselineEnvelope,
     BaselinePage,
     BaselinePayload,
@@ -104,10 +106,23 @@ def baseline_view(row, now):
         confirmed_by=row.confirmed_by,
         confirmed_at=row.confirmed_at,
         age_seconds=max(0, (now - row.confirmed_at).total_seconds()),
+        limitations=LIMITATIONS if row.snapshot.get("profile") == PROFILE else LEGACY_LIMITATIONS,
     )
 
 
 def healthy_result(result):
+    if result.outcome == "busy":
+        raise DomainError(
+            409,
+            "observation_busy",
+            "Another bounded observation is running. Wait for it to finish, then inspect a fresh candidate; this attempt did not establish workload health.",
+        )
+    if result.outcome == "superseded":
+        raise DomainError(
+            409,
+            "observation_superseded",
+            "The observation was superseded. Inspect a fresh candidate for the current identity.",
+        )
     if (
         result.outcome != "complete"
         or not result.observation
@@ -117,7 +132,7 @@ def healthy_result(result):
         raise DomainError(
             409,
             "baseline_unavailable",
-            "A fresh, complete healthy rollout is required. This revision cannot be marked healthy; investigate or repair manually.",
+            "A fresh, complete healthy rollout is required. This read could not establish it. Inspect owned health and related incidents, then retry or investigate manually.",
         )
     return result.observation
 
