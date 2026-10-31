@@ -1,6 +1,6 @@
 {
-  "runtime_commit": "90af91eba87c4a9de67107cc621db1660bc3ee32",
-  "recorded_at": "2026-10-31T19:32:10.985924+00:00",
+  "runtime_commit": "0cdaa946fc3410fbb3aa9e93b31b11b9218c5b12",
+  "recorded_at": "2026-10-31T19:59:27.163428+00:00",
   "git_worktree_status": [],
   "source_hash_normalization": "SHA-256 after CRLF to LF normalization; no other whitespace changes",
   "runtime_checkout_git_sources_match": true,
@@ -63,11 +63,11 @@
     "features/workloads/service.py": "5484a38df3e933b3508c7d93e39e0937e8743eebf9fc275c94fd3c9d77491f2f"
   },
   "probe_sources_sha256_lf": {
-    "scripts/e02_observer_stall.py": "c45890671ed54cc2af8424ef596e343854ced0e61c92ec273826ad2d0fbd059f",
     "scripts/probe-e02-isolation.py": "53ca17484cbfa499bb94853fa4c877c9c1d1942f152745bbe19895e1b56896fb",
-    "scripts/probe-e02-integration.py": "86df9138bfcda35e74d78082e44499c05f8236b09b0173cc6c0ae3f7e2859d15",
+    "scripts/e02_probe_support.py": "d7b6671c7879fdcf63f182a96e3141659ca36db937098c71d62874b2d20cfd47",
+    "scripts/e02_observer_stall.py": "c45890671ed54cc2af8424ef596e343854ced0e61c92ec273826ad2d0fbd059f",
     "scripts/local_lab.py": "ad0cc37a0556e21cfc59f28e1969e93bee2890e00fdd932601e3ef34a7eb8fa4",
-    "scripts/e02_probe_support.py": "d7b6671c7879fdcf63f182a96e3141659ca36db937098c71d62874b2d20cfd47"
+    "scripts/probe-e02-integration.py": "d244076be1ba916f20e1dda1176f22635dc42fec98095abb14adbfbf268541a9"
   },
   "scope_policy_sha256": "c94ef7eb9e3fdebc931af9ac8d4c011ba60a5f838ce0053b5568806e57a9bb4d",
   "browser_acceptance": "Pending trusted HTTPS browser execution; API evidence does not close E02.",
@@ -76,16 +76,16 @@
   "scheduled_leases_at_product_completion": 3,
   "fourth_scheduled_denied": true,
   "reserved_direct_k3s_candidate_succeeded": true,
-  "admission_seconds": 0.08321420010179281,
-  "product_job_completed_seconds": 2.249151200056076,
+  "admission_seconds": 0.024925600038841367,
+  "product_job_completed_seconds": 2.371990400017239,
   "reader_outcomes": [
     "attempt_timeout",
     "attempt_timeout",
     "attempt_timeout"
   ],
   "stalled_connections_closed": 3,
-  "incident_id": "a7a14b2d-284a-4c8b-91cb-51358d5462b8",
-  "run_id": "5988c384-398b-4c74-bfc7-f986f9134ff3",
+  "incident_id": "d238d0d0-0cfb-4c72-bfd9-bf34a6e90e7f",
+  "run_id": "78848adc-b919-46c1-85f1-46702a23c555",
   "original_checkout_uid_spec_writer_policy_unchanged": true,
-  "completed_at": "2026-10-31T19:32:49.601367+00:00"
+  "completed_at": "2026-10-31T20:00:14.970634+00:00"
 }

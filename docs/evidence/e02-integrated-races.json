@@ -1,6 +1,6 @@
 {
-  "runtime_commit": "90af91eba87c4a9de67107cc621db1660bc3ee32",
-  "recorded_at": "2026-10-31T19:33:55.711054+00:00",
+  "runtime_commit": "0cdaa946fc3410fbb3aa9e93b31b11b9218c5b12",
+  "recorded_at": "2026-10-31T20:01:20.248027+00:00",
   "git_worktree_status": [],
   "source_hash_normalization": "SHA-256 after CRLF to LF normalization; no other whitespace changes",
   "runtime_checkout_git_sources_match": true,
@@ -63,10 +63,10 @@
     "features/workloads/service.py": "5484a38df3e933b3508c7d93e39e0937e8743eebf9fc275c94fd3c9d77491f2f"
   },
   "probe_sources_sha256_lf": {
-    "scripts/local_lab.py": "ad0cc37a0556e21cfc59f28e1969e93bee2890e00fdd932601e3ef34a7eb8fa4",
-    "scripts/probe-e02-races.py": "978b9cb1bbd0497f04547cb1694fc1c742aae8e614190c32097b27095746e0f9",
     "scripts/e02_probe_support.py": "d7b6671c7879fdcf63f182a96e3141659ca36db937098c71d62874b2d20cfd47",
-    "scripts/probe-e02-integration.py": "86df9138bfcda35e74d78082e44499c05f8236b09b0173cc6c0ae3f7e2859d15"
+    "scripts/probe-e02-races.py": "978b9cb1bbd0497f04547cb1694fc1c742aae8e614190c32097b27095746e0f9",
+    "scripts/local_lab.py": "ad0cc37a0556e21cfc59f28e1969e93bee2890e00fdd932601e3ef34a7eb8fa4",
+    "scripts/probe-e02-integration.py": "d244076be1ba916f20e1dda1176f22635dc42fec98095abb14adbfbf268541a9"
   },
   "scope_policy_sha256": "c94ef7eb9e3fdebc931af9ac8d4c011ba60a5f838ce0053b5568806e57a9bb4d",
   "browser_acceptance": "Pending trusted HTTPS browser execution; API evidence does not close E02.",
@@ -75,7 +75,7 @@
     "replacement_owned_pod_same_deployment_rejects": true,
     "naturally_expired_candidate_rejected": true
   },
-  "expiry_elapsed_seconds": 303.4087971999543,
+  "expiry_elapsed_seconds": 303.3353659999557,
   "original_checkout_uid_spec_writer_policy_unchanged": true,
-  "completed_at": "2026-10-31T19:39:30.159439+00:00"
+  "completed_at": "2026-10-31T20:06:52.200536+00:00"
 }

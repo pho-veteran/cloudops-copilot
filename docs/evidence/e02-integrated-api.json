@@ -1,6 +1,6 @@
 {
-  "runtime_commit": "90af91eba87c4a9de67107cc621db1660bc3ee32",
-  "recorded_at": "2026-10-31T19:25:06.612425+00:00",
+  "runtime_commit": "0cdaa946fc3410fbb3aa9e93b31b11b9218c5b12",
+  "recorded_at": "2026-10-31T19:52:39.691958+00:00",
   "git_worktree_status": [],
   "source_hash_normalization": "SHA-256 after CRLF to LF normalization; no other whitespace changes",
   "runtime_checkout_git_sources_match": true,
@@ -63,7 +63,7 @@
     "features/workloads/service.py": "5484a38df3e933b3508c7d93e39e0937e8743eebf9fc275c94fd3c9d77491f2f"
   },
   "probe_sources_sha256_lf": {
-    "scripts/probe-e02-integration.py": "86df9138bfcda35e74d78082e44499c05f8236b09b0173cc6c0ae3f7e2859d15",
+    "scripts/probe-e02-integration.py": "d244076be1ba916f20e1dda1176f22635dc42fec98095abb14adbfbf268541a9",
     "scripts/local_lab.py": "ad0cc37a0556e21cfc59f28e1969e93bee2890e00fdd932601e3ef34a7eb8fa4"
   },
   "scope_policy_sha256": "c94ef7eb9e3fdebc931af9ac8d4c011ba60a5f838ce0053b5568806e57a9bb4d",
@@ -75,7 +75,8 @@
     "healthy_baselines_before_faults_and_exact_actual_consumer": true,
     "generation_change_rejects_pending": true,
     "actual_crash_refuses_baseline_and_has_manual_guidance": true,
-    "reference_change_rejects_confirm_and_context_is_manual": true,
+    "reference_and_generation_change_rejects_confirm": true,
+    "changed_reference_context_is_config_unverified": true,
     "replacement_no_baseline_or_candidate_inheritance_old_history_retained": true,
     "denied_and_wrong_pin_unknown_without_retirement": true,
     "natural_age_stale_without_fake_zero": true,
@@ -91,18 +92,18 @@
     ]
   },
   "replacement": {
-    "old_workload_id": "bf4379fc-354b-4a32-9c5b-11e0dfad223d",
-    "new_workload_id": "ff658dd3-9608-4b97-b0b1-6f9580b9e1e0",
-    "old_uid": "f6eee354-eb64-47dd-8898-1ce3acbd89de",
-    "new_uid": "66cfa7a9-9968-4fa5-a62c-985fadc65fc4",
-    "old_baseline_id": "c21c910b-96b9-434f-a08d-9242b122100e"
+    "old_workload_id": "ff658dd3-9608-4b97-b0b1-6f9580b9e1e0",
+    "new_workload_id": "49f38257-3df7-4bee-9730-b9d1cfdc8689",
+    "old_uid": "66cfa7a9-9968-4fa5-a62c-985fadc65fc4",
+    "new_uid": "efef7025-5319-415c-b234-308b64d635db",
+    "old_baseline_id": "8ff6170c-9587-4644-838e-7734b4d893e1"
   },
   "legacy_continuity_count": 1,
   "populated_upgrade_scope": "Separate PostgreSQL _test suite; this live case checks repeat-at-head and restart only.",
   "baselines": {
-    "e02-ready": "3ae25c3b-963d-49aa-a936-a88947ec330b",
-    "e02-recreate": "c21c910b-96b9-434f-a08d-9242b122100e",
-    "e02-config": "ff08f8e7-a715-4e2c-a143-5592c3a62cdf"
+    "e02-ready": "6f58c661-4640-49bb-9b2e-cbda54385e44",
+    "e02-recreate": "8ff6170c-9587-4644-838e-7734b4d893e1",
+    "e02-config": "0dd77566-cf9e-4347-a8ed-c8ba0c139537"
   },
-  "completed_at": "2026-10-31T19:28:27.569669+00:00"
+  "completed_at": "2026-10-31T19:55:52.137124+00:00"
 }
