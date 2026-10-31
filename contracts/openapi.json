@@ -287,6 +287,120 @@
         "title": "CheckView",
         "type": "object"
       },
+      "Comparison": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "enum": [
+                "selected_fields_changed",
+                "references_changed",
+                "generation_changed",
+                "replicas_changed"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Changes",
+            "type": "array"
+          },
+          "from_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From At"
+          },
+          "from_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Generation"
+          },
+          "from_observation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Observation Id"
+          },
+          "restart_delta": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restart Delta"
+          },
+          "state": {
+            "default": "not_comparable",
+            "enum": [
+              "comparable",
+              "not_comparable",
+              "coverage_changed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "to_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To At"
+          },
+          "to_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Generation"
+          },
+          "to_observation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Observation Id"
+          }
+        },
+        "title": "Comparison",
+        "type": "object"
+      },
       "ConfirmBaseline": {
         "additionalProperties": false,
         "properties": {
@@ -306,6 +420,132 @@
           "digest"
         ],
         "title": "ConfirmBaseline",
+        "type": "object"
+      },
+      "ContainerObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "exit_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Code"
+          },
+          "kind": {
+            "enum": [
+              "regular",
+              "init"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_observed",
+                  "fixture",
+                  "inactive",
+                  "cluster_unavailable",
+                  "permission_denied",
+                  "target_changed",
+                  "cluster_identity_mismatch",
+                  "coverage_changed",
+                  "budget_exhausted",
+                  "status_missing",
+                  "ownership_invalid",
+                  "current_replicaset_ambiguous",
+                  "read_window_changed",
+                  "attempt_timeout",
+                  "lease_expired",
+                  "superseded",
+                  "payload_limit",
+                  "invalid_response",
+                  "pagination_invalid",
+                  "history_expired",
+                  "progress_deadline_exceeded",
+                  "crash_loop",
+                  "image_pull",
+                  "container_terminated",
+                  "unschedulable",
+                  "rollout_pending",
+                  "unsupported_reference",
+                  "stale"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "restart_count": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restart Count"
+          },
+          "started": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "waiting",
+              "terminated",
+              "unknown"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "ready",
+          "started",
+          "state",
+          "restart_count"
+        ],
+        "title": "ContainerObservation",
         "type": "object"
       },
       "Decision": {
@@ -343,6 +583,113 @@
           "decision"
         ],
         "title": "Decision",
+        "type": "object"
+      },
+      "DeploymentObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available"
+          },
+          "desired": {
+            "maximum": 9.223372036854776e+18,
+            "minimum": 0.0,
+            "title": "Desired",
+            "type": "integer"
+          },
+          "end_resource_version": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "End Resource Version",
+            "type": "string"
+          },
+          "generation": {
+            "maximum": 9.223372036854776e+18,
+            "minimum": 0.0,
+            "title": "Generation",
+            "type": "integer"
+          },
+          "observed_generation": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Generation"
+          },
+          "ready": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready"
+          },
+          "replicas": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replicas"
+          },
+          "resource_version": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "maximum": 9.223372036854776e+18,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          }
+        },
+        "required": [
+          "generation",
+          "resource_version",
+          "end_resource_version",
+          "observed_generation",
+          "desired",
+          "ready",
+          "available",
+          "updated",
+          "replicas"
+        ],
+        "title": "DeploymentObservation",
         "type": "object"
       },
       "ErrorDetail": {
@@ -600,6 +947,102 @@
         "title": "HealthView",
         "type": "object"
       },
+      "HistoryItem": {
+        "additionalProperties": false,
+        "properties": {
+          "coverage": {
+            "enum": [
+              "complete",
+              "partial",
+              "unknown"
+            ],
+            "title": "Coverage",
+            "type": "string"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "health": {
+            "enum": [
+              "healthy",
+              "progressing",
+              "degraded",
+              "scaled_to_zero",
+              "unknown"
+            ],
+            "title": "Health",
+            "type": "string"
+          },
+          "observation_id": {
+            "format": "uuid",
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "observation_id",
+          "observed_at",
+          "generation",
+          "health",
+          "coverage"
+        ],
+        "title": "HistoryItem",
+        "type": "object"
+      },
+      "Identity": {
+        "additionalProperties": false,
+        "properties": {
+          "cluster": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Cluster",
+            "type": "string"
+          },
+          "epoch": {
+            "title": "Epoch",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "namespace": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Namespace",
+            "type": "string"
+          },
+          "uid": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Uid",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id",
+          "cluster",
+          "namespace",
+          "name",
+          "uid",
+          "epoch"
+        ],
+        "title": "Identity",
+        "type": "object"
+      },
       "IncidentDetail": {
         "properties": {
           "created_at": {
@@ -803,6 +1246,319 @@
         "title": "NoteBody",
         "type": "object"
       },
+      "ObservationDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "comparison": {
+            "$ref": "#/components/schemas/Comparison"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "historical": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ObservationSummary"
+          }
+        },
+        "required": [
+          "summary",
+          "comparison"
+        ],
+        "title": "ObservationDetail",
+        "type": "object"
+      },
+      "ObservationPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "ObservationPage",
+        "type": "object"
+      },
+      "ObservationSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Seconds"
+          },
+          "coverage": {
+            "default": "unknown",
+            "enum": [
+              "complete",
+              "partial",
+              "unknown"
+            ],
+            "title": "Coverage",
+            "type": "string"
+          },
+          "desired": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desired"
+          },
+          "effective_health": {
+            "default": "unknown",
+            "enum": [
+              "healthy",
+              "progressing",
+              "degraded",
+              "scaled_to_zero",
+              "unknown"
+            ],
+            "title": "Effective Health",
+            "type": "string"
+          },
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "freshness": {
+            "default": "unknown",
+            "enum": [
+              "fresh",
+              "stale",
+              "unknown"
+            ],
+            "title": "Freshness",
+            "type": "string"
+          },
+          "last_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt At"
+          },
+          "last_failure_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Failure At"
+          },
+          "last_failure_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_observed",
+                  "fixture",
+                  "inactive",
+                  "cluster_unavailable",
+                  "permission_denied",
+                  "target_changed",
+                  "cluster_identity_mismatch",
+                  "coverage_changed",
+                  "budget_exhausted",
+                  "status_missing",
+                  "ownership_invalid",
+                  "current_replicaset_ambiguous",
+                  "read_window_changed",
+                  "attempt_timeout",
+                  "lease_expired",
+                  "superseded",
+                  "payload_limit",
+                  "invalid_response",
+                  "pagination_invalid",
+                  "history_expired",
+                  "progress_deadline_exceeded",
+                  "crash_loop",
+                  "image_pull",
+                  "container_terminated",
+                  "unschedulable",
+                  "rollout_pending",
+                  "unsupported_reference",
+                  "stale"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Failure Reason"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "latest_outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "running",
+                  "complete",
+                  "partial",
+                  "failed",
+                  "expired",
+                  "superseded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Outcome"
+          },
+          "poll_lag_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poll Lag Seconds"
+          },
+          "ready": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready"
+          },
+          "reasons": {
+            "items": {
+              "enum": [
+                "not_observed",
+                "fixture",
+                "inactive",
+                "cluster_unavailable",
+                "permission_denied",
+                "target_changed",
+                "cluster_identity_mismatch",
+                "coverage_changed",
+                "budget_exhausted",
+                "status_missing",
+                "ownership_invalid",
+                "current_replicaset_ambiguous",
+                "read_window_changed",
+                "attempt_timeout",
+                "lease_expired",
+                "superseded",
+                "payload_limit",
+                "invalid_response",
+                "pagination_invalid",
+                "history_expired",
+                "progress_deadline_exceeded",
+                "crash_loop",
+                "image_pull",
+                "container_terminated",
+                "unschedulable",
+                "rollout_pending",
+                "unsupported_reference",
+                "stale"
+              ],
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Reasons",
+            "type": "array"
+          },
+          "refresh_remaining_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Remaining Seconds"
+          },
+          "refreshing": {
+            "default": false,
+            "title": "Refreshing",
+            "type": "boolean"
+          },
+          "stale_after_seconds": {
+            "const": 60,
+            "default": 60,
+            "title": "Stale After Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "evaluated_at"
+        ],
+        "title": "ObservationSummary",
+        "type": "object"
+      },
       "PlanRequest": {
         "additionalProperties": false,
         "properties": {
@@ -940,6 +1696,84 @@
         "title": "PlanView",
         "type": "object"
       },
+      "PodObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/ContainerObservation"
+            },
+            "maxItems": 32,
+            "title": "Containers",
+            "type": "array"
+          },
+          "current": {
+            "title": "Current",
+            "type": "boolean"
+          },
+          "excluded": {
+            "title": "Excluded",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "Pending",
+              "Running",
+              "Succeeded",
+              "Failed",
+              "Unknown"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready"
+          },
+          "replicaset_uid": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Replicaset Uid",
+            "type": "string"
+          },
+          "terminating": {
+            "title": "Terminating",
+            "type": "boolean"
+          },
+          "uid": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "name",
+          "replicaset_uid",
+          "current",
+          "ready",
+          "phase",
+          "terminating",
+          "excluded",
+          "containers"
+        ],
+        "title": "PodObservation",
+        "type": "object"
+      },
       "Principal": {
         "properties": {
           "id": {
@@ -966,6 +1800,136 @@
           "role"
         ],
         "title": "Principal",
+        "type": "object"
+      },
+      "PublicObservation": {
+        "additionalProperties": false,
+        "description": "Public evidence deliberately excludes private template/reference extraction.",
+        "properties": {
+          "coverage": {
+            "enum": [
+              "complete",
+              "partial",
+              "unknown"
+            ],
+            "title": "Coverage",
+            "type": "string"
+          },
+          "current_replicaset_uid": {
+            "anyOf": [
+              {
+                "maxLength": 253,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Replicaset Uid"
+          },
+          "deployment": {
+            "$ref": "#/components/schemas/DeploymentObservation"
+          },
+          "health": {
+            "enum": [
+              "healthy",
+              "progressing",
+              "degraded",
+              "scaled_to_zero",
+              "unknown"
+            ],
+            "title": "Health",
+            "type": "string"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/Identity"
+          },
+          "limitations": {
+            "title": "Limitations",
+            "type": "string"
+          },
+          "observation_id": {
+            "format": "uuid",
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "pods": {
+            "items": {
+              "$ref": "#/components/schemas/PodObservation"
+            },
+            "title": "Pods",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "enum": [
+                "not_observed",
+                "fixture",
+                "inactive",
+                "cluster_unavailable",
+                "permission_denied",
+                "target_changed",
+                "cluster_identity_mismatch",
+                "coverage_changed",
+                "budget_exhausted",
+                "status_missing",
+                "ownership_invalid",
+                "current_replicaset_ambiguous",
+                "read_window_changed",
+                "attempt_timeout",
+                "lease_expired",
+                "superseded",
+                "payload_limit",
+                "invalid_response",
+                "pagination_invalid",
+                "history_expired",
+                "progress_deadline_exceeded",
+                "crash_loop",
+                "image_pull",
+                "container_terminated",
+                "unschedulable",
+                "rollout_pending",
+                "unsupported_reference",
+                "stale"
+              ],
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "unrelated_pods": {
+            "maximum": 9.223372036854776e+18,
+            "minimum": 0.0,
+            "title": "Unrelated Pods",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "observation_id",
+          "identity",
+          "started_at",
+          "observed_at",
+          "deployment",
+          "current_replicaset_uid",
+          "coverage",
+          "health",
+          "reasons",
+          "pods",
+          "unrelated_pods",
+          "limitations"
+        ],
+        "title": "PublicObservation",
         "type": "object"
       },
       "ReportBody": {
@@ -1435,8 +2399,14 @@
             "type": "string"
           },
           "health": {
-            "const": "unavailable",
-            "default": "unavailable",
+            "default": "unknown",
+            "enum": [
+              "healthy",
+              "progressing",
+              "degraded",
+              "scaled_to_zero",
+              "unknown"
+            ],
             "title": "Health",
             "type": "string"
           },
@@ -1452,6 +2422,16 @@
           "namespace": {
             "title": "Namespace",
             "type": "string"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ObservationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "retirement_reason": {
             "anyOf": [
@@ -1924,6 +2904,23 @@
               "minimum": 0,
               "title": "Offset",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workload_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workload Id"
             }
           }
         ],
@@ -4918,6 +5915,232 @@
         "summary": "Baselines",
         "tags": [
           "baselines"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/observation": {
+      "get": {
+        "operationId": "get_workload_observation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Get Workload Observation",
+        "tags": [
+          "workloads"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/observations": {
+      "get": {
+        "operationId": "list_workload_observations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "List Workload Observations",
+        "tags": [
+          "workloads"
         ]
       }
     }

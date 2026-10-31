@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
-import { useWorkloads } from "@/features/workloads/queries";
+import { useWorkloads, useWorkload } from "@/features/workloads/queries";
 import { incidentKeys } from "./queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +16,10 @@ export function CreateIncident({
   initialWorkload?: string;
   onCreated: (id: string, run: string) => void;
 }) {
-  const workloads = useWorkloads();
+  const [offset, setOffset] = useState(0);
+  const workloads = useWorkloads(offset);
   const [workloadId, setWorkloadId] = useState(initialWorkload ?? "");
+  const selected = useWorkload(workloadId || undefined);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   // Keep the same key on an uncertain network retry; edited input gets a new key.
@@ -46,10 +48,10 @@ export function CreateIncident({
     return (
       <Failure error={workloads.error} retry={() => void workloads.refetch()} />
     );
-  if (!workloads.data.items.length)
+  if (!workloads.data.items.length && !workloadId)
     return (
       <p>
-        No development workloads are configured. Run the documented workload
+        No workloads are configured. Run the documented workload
         sync command.
       </p>
     );
@@ -60,10 +62,10 @@ export function CreateIncident({
   return (
     <form onSubmit={submit} className="foundation-stack">
       <p>
-        The worker will save synthetic evidence. AI diagnosis and recovery are
-        unavailable.
+        The investigation worker saves labeled synthetic evidence. Live workload
+        observations remain separate; AI diagnosis is unavailable.
       </p>
-      <Label htmlFor="workload">Development workload</Label>
+      <Label htmlFor="workload">Configured workload</Label>
       <select
         id="workload"
         required
@@ -72,12 +74,22 @@ export function CreateIncident({
         disabled={mutation.isPending}
       >
         <option value="">Select a workload</option>
+        {selected.data && !workloads.data.items.some(w => w.id === selected.data.id) && <option value={selected.data.id}>
+          {selected.data.namespace}/{selected.data.name} · {selected.data.source === "live_kubernetes" ? "live" : "fixture"}{selected.data.active ? "" : " · retired"}
+        </option>}
         {workloads.data.items.map((w) => (
           <option key={w.id} value={w.id}>
-            {w.namespace}/{w.name} · fixture
+            {w.namespace}/{w.name} · {w.source === "live_kubernetes" ? "live" : "fixture"}
           </option>
         ))}
       </select>
+      <div className="foundation-actions">
+        <Button type="button" variant="outline" disabled={offset === 0 || mutation.isPending} onClick={() => setOffset(Math.max(0, offset - 25))}>Previous workloads</Button>
+        <Button type="button" variant="outline" disabled={workloads.data.next_offset === null || mutation.isPending} onClick={() => setOffset(workloads.data.next_offset!)}>Next workloads</Button>
+      </div>
+      {workloadId && selected.isPending && <Loading />}
+      {selected.isError && <Failure error={selected.error} retry={() => void selected.refetch()} />}
+      {selected.data && !selected.data.active && <p role="alert">This identity has left configured scope. Choose an active workload; its history remains available.</p>}
       <Label htmlFor="incident-title">Incident title</Label>
       <Input
         id="incident-title"
@@ -98,7 +110,7 @@ export function CreateIncident({
       {mutation.isError && <Failure error={mutation.error} />}
       <Button
         type="submit"
-        disabled={mutation.isPending || !title.trim() || !workloadId}
+        disabled={mutation.isPending || !title.trim() || !workloadId || selected.isPending || selected.isError || !selected.data?.active}
       >
         {mutation.isPending
           ? "Creating…"

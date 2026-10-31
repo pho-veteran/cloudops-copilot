@@ -50,5 +50,72 @@ def test_consumer_upgrade_preserves_populated_foundation_and_has_one_head():
         ]
         is None
     )
-    assert ScriptDirectory.from_config(config).get_heads() == ["0004_workload_scope"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["0005_workload_observations"]
+    command.check(config)
+
+
+def test_observation_upgrade_preserves_existing_baselines_sessions_and_incidents(client):
+    from conftest import sign_in
+    from cloudops.features.workloads.models import Baseline, BaselineCandidate
+    from cloudops.shared.database import sessions
+
+    headers = sign_in(client)
+    workload = client.get("/api/workloads").json()["items"][0]
+    response = client.post(
+        "/api/incidents",
+        json={"workload_id": workload["id"], "title": "Migration preservation"},
+        headers={**headers, "Idempotency-Key": str(uuid4())},
+    )
+    assert response.status_code == 201
+    with sessions()() as db, db.begin():
+        actor = db.scalar(text("SELECT id FROM users WHERE username='operator'"))
+        candidate = BaselineCandidate(
+            workload_id=__import__("uuid").UUID(workload["id"]),
+            digest="f" * 64,
+            snapshot={"source": "migration_fixture", "quantity": "100m"},
+        )
+        db.add(candidate)
+        db.flush()
+        db.add(
+            Baseline(
+                workload_id=candidate.workload_id,
+                candidate_id=candidate.id,
+                digest=candidate.digest,
+                snapshot=candidate.snapshot,
+                confirmed_by=actor,
+            )
+        )
+
+    def records():
+        with engine().connect() as connection:
+            result = {
+                table: list(
+                    connection.execute(
+                        text(f"SELECT row_to_json(t)::text FROM {table} t ORDER BY 1")
+                    )
+                )
+                for table in (
+                    "users",
+                    "sessions",
+                    "incidents",
+                    "investigation_runs",
+                    "baselines",
+                    "baseline_candidates",
+                )
+            }
+            result["workloads"] = list(
+                connection.execute(
+                    text(
+                        "SELECT id,cluster,namespace,name,uid,active,source FROM workloads ORDER BY id"
+                    )
+                )
+            )
+            return result
+
+    before = records()
+    config = Config(str(BACKEND_ROOT / "alembic.ini"))
+    command.downgrade(config, "0003_e01_consumers")
+    command.upgrade(config, "head")
+    command.upgrade(config, "head")
+    assert records() == before
     command.check(config)

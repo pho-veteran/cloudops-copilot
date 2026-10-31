@@ -10,7 +10,7 @@ export const workloadFixture = {
       uid: "development-checkout-v1",
       active: true,
       source: "development_fixture",
-      health: "unavailable",
+      health: "unknown",
     },
   ],
   next_offset: null,

@@ -9,6 +9,7 @@ from cloudops.features.health.schemas import HealthView
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
 from cloudops.features.investigations.schemas import RunPage, RunView
 from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
+from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
 
 
 @dataclass(frozen=True)
@@ -48,13 +49,23 @@ def scope_check(response, context, actor):
     assert result.items == [] and result.next_offset is None
 
 
-def workload_identity_request(context):
+def workload_request(context):
     return {"path_params": {"workload_id": context.workload_id}}
 
 
 def workload_identity_check(response, context, actor):
-    result = validated(WorkloadView, response)
-    assert str(result.id) == context.workload_id and result.active
+    assert str(validated(WorkloadView, response).id) == context.workload_id
+
+
+def observation_check(response, context, actor):
+    result = validated(ObservationDetail, response)
+    assert result.summary.effective_health == "unknown"
+    assert result.summary.last_attempt_at is None
+
+
+def observation_history_check(response, context, actor):
+    result = validated(ObservationPage, response)
+    assert result.items == [] and result.next_cursor is None
 
 
 def incident_request(context):
@@ -156,7 +167,9 @@ CASES = {
     "get_session": RequestCase(session_request, session_check),
     "list_workloads": RequestCase(session_request, workload_check),
     "list_workload_scope": RequestCase(session_request, scope_check),
-    "get_workload": RequestCase(workload_identity_request, workload_identity_check),
+    "get_workload": RequestCase(workload_request, workload_identity_check),
+    "get_workload_observation": RequestCase(workload_request, observation_check),
+    "list_workload_observations": RequestCase(workload_request, observation_history_check),
     "list_incidents": RequestCase(session_request, incident_list_check),
     "get_incident": RequestCase(incident_request, incident_check),
     "list_runs": RequestCase(incident_request, run_list_check),

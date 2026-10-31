@@ -117,6 +117,9 @@ def publish_legacy(db, entries):
         .with_for_update()
         .execution_options(populate_existing=True)
     ).all()
+    # Every committed scope publication starts a new observation authority window.
+    for row in rows:
+        row.observation_epoch += 1
     previously_active = {row.id for row in rows if row.active}
     identities = {(r.cluster, r.namespace, r.name, r.uid): r for r in rows}
     desired_names = {(e.cluster, e.namespace, e.name) for e in entries}
@@ -149,6 +152,9 @@ def publish_live(db, state, scope, results, rotating):
         .with_for_update()
         .execution_options(populate_existing=True)
     ).all()
+    # Includes unchanged, removed and later re-added UIDs; a stale read cannot publish.
+    for row in rows:
+        row.observation_epoch += 1
     by_name = {(t.namespace, t.name): t for t in targets if t.cluster == scope.cluster.key}
     by_id = {r.id: r for r in rows}
     desired = {(t.namespace, t.name) for t, _ in results}

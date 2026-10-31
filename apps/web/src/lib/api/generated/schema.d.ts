@@ -485,6 +485,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workloads/{workload_id}/observation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Workload Observation */
+        get: operations["get_workload_observation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workloads/{workload_id}/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Workload Observations */
+        get: operations["list_workload_observations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -647,6 +681,31 @@ export interface components {
              */
             status: "available" | "unavailable" | "stale";
         };
+        /** Comparison */
+        Comparison: {
+            /** Changes */
+            changes?: ("selected_fields_changed" | "references_changed" | "generation_changed" | "replicas_changed")[];
+            /** From At */
+            from_at?: string | null;
+            /** From Generation */
+            from_generation?: number | null;
+            /** From Observation Id */
+            from_observation_id?: string | null;
+            /** Restart Delta */
+            restart_delta?: number | null;
+            /**
+             * State
+             * @default not_comparable
+             * @enum {string}
+             */
+            state: "comparable" | "not_comparable" | "coverage_changed";
+            /** To At */
+            to_at?: string | null;
+            /** To Generation */
+            to_generation?: number | null;
+            /** To Observation Id */
+            to_observation_id?: string | null;
+        };
         /** ConfirmBaseline */
         ConfirmBaseline: {
             /**
@@ -656,6 +715,31 @@ export interface components {
             candidate_id: string;
             /** Digest */
             digest: string;
+        };
+        /** ContainerObservation */
+        ContainerObservation: {
+            /** Exit Code */
+            exit_code?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "regular" | "init";
+            /** Name */
+            name: string;
+            /** Ready */
+            ready: boolean | null;
+            /** Reason */
+            reason?: ("not_observed" | "fixture" | "inactive" | "cluster_unavailable" | "permission_denied" | "target_changed" | "cluster_identity_mismatch" | "coverage_changed" | "budget_exhausted" | "status_missing" | "ownership_invalid" | "current_replicaset_ambiguous" | "read_window_changed" | "attempt_timeout" | "lease_expired" | "superseded" | "payload_limit" | "invalid_response" | "pagination_invalid" | "history_expired" | "progress_deadline_exceeded" | "crash_loop" | "image_pull" | "container_terminated" | "unschedulable" | "rollout_pending" | "unsupported_reference" | "stale") | null;
+            /** Restart Count */
+            restart_count: number | null;
+            /** Started */
+            started: boolean | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "running" | "waiting" | "terminated" | "unknown";
         };
         /** Decision */
         Decision: {
@@ -670,6 +754,27 @@ export interface components {
             review_token: string;
             /** Version */
             version: number;
+        };
+        /** DeploymentObservation */
+        DeploymentObservation: {
+            /** Available */
+            available: number | null;
+            /** Desired */
+            desired: number;
+            /** End Resource Version */
+            end_resource_version: string;
+            /** Generation */
+            generation: number;
+            /** Observed Generation */
+            observed_generation: number | null;
+            /** Ready */
+            ready: number | null;
+            /** Replicas */
+            replicas: number | null;
+            /** Resource Version */
+            resource_version: string;
+            /** Updated */
+            updated: number | null;
         };
         /** ErrorDetail */
         ErrorDetail: {
@@ -800,6 +905,49 @@ export interface components {
             /** Observations */
             observations: components["schemas"]["HealthObservation"][];
         };
+        /** HistoryItem */
+        HistoryItem: {
+            /**
+             * Coverage
+             * @enum {string}
+             */
+            coverage: "complete" | "partial" | "unknown";
+            /** Generation */
+            generation: number;
+            /**
+             * Health
+             * @enum {string}
+             */
+            health: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
+            /**
+             * Observation Id
+             * Format: uuid
+             */
+            observation_id: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+        };
+        /** Identity */
+        Identity: {
+            /** Cluster */
+            cluster: string;
+            /** Epoch */
+            epoch: number;
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Uid */
+            uid: string;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
         /** IncidentDetail */
         IncidentDetail: {
             /**
@@ -899,6 +1047,79 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** ObservationDetail */
+        ObservationDetail: {
+            comparison: components["schemas"]["Comparison"];
+            current?: components["schemas"]["PublicObservation"] | null;
+            historical?: components["schemas"]["PublicObservation"] | null;
+            summary: components["schemas"]["ObservationSummary"];
+        };
+        /** ObservationPage */
+        ObservationPage: {
+            /** Items */
+            items: components["schemas"]["HistoryItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** ObservationSummary */
+        ObservationSummary: {
+            /** Age Seconds */
+            age_seconds?: number | null;
+            /**
+             * Coverage
+             * @default unknown
+             * @enum {string}
+             */
+            coverage: "complete" | "partial" | "unknown";
+            /** Desired */
+            desired?: number | null;
+            /**
+             * Effective Health
+             * @default unknown
+             * @enum {string}
+             */
+            effective_health: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
+            /**
+             * Evaluated At
+             * Format: date-time
+             */
+            evaluated_at: string;
+            /**
+             * Freshness
+             * @default unknown
+             * @enum {string}
+             */
+            freshness: "fresh" | "stale" | "unknown";
+            /** Last Attempt At */
+            last_attempt_at?: string | null;
+            /** Last Failure At */
+            last_failure_at?: string | null;
+            /** Last Failure Reason */
+            last_failure_reason?: ("not_observed" | "fixture" | "inactive" | "cluster_unavailable" | "permission_denied" | "target_changed" | "cluster_identity_mismatch" | "coverage_changed" | "budget_exhausted" | "status_missing" | "ownership_invalid" | "current_replicaset_ambiguous" | "read_window_changed" | "attempt_timeout" | "lease_expired" | "superseded" | "payload_limit" | "invalid_response" | "pagination_invalid" | "history_expired" | "progress_deadline_exceeded" | "crash_loop" | "image_pull" | "container_terminated" | "unschedulable" | "rollout_pending" | "unsupported_reference" | "stale") | null;
+            /** Last Success At */
+            last_success_at?: string | null;
+            /** Latest Outcome */
+            latest_outcome?: ("running" | "complete" | "partial" | "failed" | "expired" | "superseded") | null;
+            /** Poll Lag Seconds */
+            poll_lag_seconds?: number | null;
+            /** Ready */
+            ready?: number | null;
+            /** Reasons */
+            reasons?: ("not_observed" | "fixture" | "inactive" | "cluster_unavailable" | "permission_denied" | "target_changed" | "cluster_identity_mismatch" | "coverage_changed" | "budget_exhausted" | "status_missing" | "ownership_invalid" | "current_replicaset_ambiguous" | "read_window_changed" | "attempt_timeout" | "lease_expired" | "superseded" | "payload_limit" | "invalid_response" | "pagination_invalid" | "history_expired" | "progress_deadline_exceeded" | "crash_loop" | "image_pull" | "container_terminated" | "unschedulable" | "rollout_pending" | "unsupported_reference" | "stale")[];
+            /** Refresh Remaining Seconds */
+            refresh_remaining_seconds?: number | null;
+            /**
+             * Refreshing
+             * @default false
+             */
+            refreshing: boolean;
+            /**
+             * Stale After Seconds
+             * @default 60
+             * @constant
+             */
+            stale_after_seconds: 60;
+        };
         /** PlanRequest */
         PlanRequest: {
             /** Rationale */
@@ -965,6 +1186,30 @@ export interface components {
              */
             workload_id: string;
         };
+        /** PodObservation */
+        PodObservation: {
+            /** Containers */
+            containers: components["schemas"]["ContainerObservation"][];
+            /** Current */
+            current: boolean;
+            /** Excluded */
+            excluded: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "Pending" | "Running" | "Succeeded" | "Failed" | "Unknown";
+            /** Ready */
+            ready: boolean | null;
+            /** Replicaset Uid */
+            replicaset_uid: string;
+            /** Terminating */
+            terminating: boolean;
+            /** Uid */
+            uid: string;
+        };
         /** Principal */
         Principal: {
             /**
@@ -979,6 +1224,49 @@ export interface components {
             role: "viewer" | "operator";
             /** Username */
             username: string;
+        };
+        /**
+         * PublicObservation
+         * @description Public evidence deliberately excludes private template/reference extraction.
+         */
+        PublicObservation: {
+            /**
+             * Coverage
+             * @enum {string}
+             */
+            coverage: "complete" | "partial" | "unknown";
+            /** Current Replicaset Uid */
+            current_replicaset_uid: string | null;
+            deployment: components["schemas"]["DeploymentObservation"];
+            /**
+             * Health
+             * @enum {string}
+             */
+            health: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
+            identity: components["schemas"]["Identity"];
+            /** Limitations */
+            limitations: string;
+            /**
+             * Observation Id
+             * Format: uuid
+             */
+            observation_id: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Pods */
+            pods: components["schemas"]["PodObservation"][];
+            /** Reasons */
+            reasons: ("not_observed" | "fixture" | "inactive" | "cluster_unavailable" | "permission_denied" | "target_changed" | "cluster_identity_mismatch" | "coverage_changed" | "budget_exhausted" | "status_missing" | "ownership_invalid" | "current_replicaset_ambiguous" | "read_window_changed" | "attempt_timeout" | "lease_expired" | "superseded" | "payload_limit" | "invalid_response" | "pagination_invalid" | "history_expired" | "progress_deadline_exceeded" | "crash_loop" | "image_pull" | "container_terminated" | "unschedulable" | "rollout_pending" | "unsupported_reference" | "stale")[];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Unrelated Pods */
+            unrelated_pods: number;
         };
         /** ReportBody */
         ReportBody: {
@@ -1175,10 +1463,10 @@ export interface components {
             cluster: string;
             /**
              * Health
-             * @default unavailable
-             * @constant
+             * @default unknown
+             * @enum {string}
              */
-            health: "unavailable";
+            health: "healthy" | "progressing" | "degraded" | "scaled_to_zero" | "unknown";
             /**
              * Id
              * Format: uuid
@@ -1188,6 +1476,7 @@ export interface components {
             name: string;
             /** Namespace */
             namespace: string;
+            observation?: components["schemas"]["ObservationSummary"] | null;
             /** Retirement Reason */
             retirement_reason?: ("removed" | "deleted" | "replaced") | null;
             /**
@@ -1539,6 +1828,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
+                workload_id?: string | null;
             };
             header?: never;
             path?: never;
@@ -3652,6 +3942,161 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BaselineView"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_workload_observation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_workload_observations: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationPage"];
                 };
             };
             /** @description Unauthorized */

@@ -5,13 +5,14 @@ export const incidentKeys = {
   all: ["incidents"] as const,
   detail: (id: string) => ["incidents", id] as const,
 };
-export function useIncidents(offset = 0) {
+export function useIncidents(offset = 0, workloadId?: string) {
   return useQuery({
-    queryKey: [...incidentKeys.all, "page", offset],
-    queryFn: async () =>
+    queryKey: [...incidentKeys.all, "page", offset, workloadId],
+    queryFn: async ({ signal }) =>
       unwrap(
         await api.GET("/api/incidents", {
-          params: { query: { limit: 25, offset } },
+          signal,
+          params: { query: { limit: 25, offset, workload_id: workloadId } },
         }),
       ),
     refetchInterval: 5000,

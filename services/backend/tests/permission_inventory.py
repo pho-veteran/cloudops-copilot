@@ -20,6 +20,12 @@ OPERATIONS = {
     "list_workloads": Operation("GET", "/api/workloads", "protected_read"),
     "list_workload_scope": Operation("GET", "/api/workloads/scope", "protected_read"),
     "get_workload": Operation("GET", "/api/workloads/{workload_id}", "protected_read"),
+    "get_workload_observation": Operation(
+        "GET", "/api/workloads/{workload_id}/observation", "protected_read"
+    ),
+    "list_workload_observations": Operation(
+        "GET", "/api/workloads/{workload_id}/observations", "protected_read"
+    ),
     "list_incidents": Operation("GET", "/api/incidents", "protected_read"),
     "get_incident": Operation("GET", "/api/incidents/{incident_id}", "protected_read"),
     "list_runs": Operation("GET", "/api/incidents/{incident_id}/runs", "protected_read"),

@@ -6,6 +6,8 @@ Kubernetes incident investigation and bounded recovery for a small operations te
 
 Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. The foundation consumer integration exercise is self-verified in PR #16; it does not require a second contributor.
 
+The optional [workload observer](docs/workload-observation.md) adds persisted UID-owned Kubernetes rollout health, freshness, Pod/restart context and exact related incidents. It runs separately from product jobs; application traffic health and baseline v1 remain unavailable.
+
 ## Quick start
 
 Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.

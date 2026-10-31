@@ -1,0 +1,84 @@
+{
+  "source_head": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+  "origin": "http://localhost:5177",
+  "mode": "Actual browser with real API/PostgreSQL/K3s-backed saved observations; loopback HTTP, not HTTPS-browser evidence",
+  "journeys": {
+    "page_two_workload": {
+      "id": "57d1cfc2-7d2a-4ad6-b92d-9767537b8030",
+      "uid": "8a0fa0f0-d1f2-4b24-a936-7da4e9f5d3f6",
+      "name": "demo/checkout"
+    },
+    "related_pages_before_manual_intake": [
+      25,
+      7
+    ],
+    "other_uuid_incidents_excluded": 15,
+    "selected_second_page_incident": "aed784ae-45da-4aab-9be7-976e157e74fd",
+    "exact_selected_run": "621d2541-87d5-4ebd-8d8c-6dc8e5ce8dcb",
+    "manual_intake": {
+      "incident_id": "658a0a81-285d-4b52-a35f-328b68771859",
+      "run_id": "87cdb2dd-5f52-4312-a8ef-4df4d2c13c51",
+      "workload_preselected_outside_first_25": true,
+      "correct_workload_uuid_in_database": true,
+      "original_vietnamese_description_preserved": true,
+      "terminal_state": "insufficient_evidence",
+      "live_rollout_not_promoted_to_rca": true
+    },
+    "stale_then_resumed": {
+      "observer_stopped_old_times_preserved": true,
+      "historical_evidence_labeled": true,
+      "current_health_unknown_while_stale": true,
+      "fresh_healthy_after_real_new_poll": true,
+      "ready_workload_id": "32df58a2-5196-4c1b-887e-dd7be4a8456f",
+      "exact_deep_link_reload_preserved": true
+    }
+  },
+  "session_boundary": {
+    "operator_session_revoked_with_unsubmitted_form": true,
+    "form_and_mutation_intent_cleared": true,
+    "focus_returned_to_sign_in_username": true,
+    "incident_and_run_url_preserved": true,
+    "viewer_sign_in_did_not_replay_intent": true,
+    "pending_intent_incident_rows": 0,
+    "viewer_has_no_incident_or_baseline_confirmation_mutations": true
+  },
+  "keyboard": {
+    "tab_remains_in_dialog": true,
+    "escape_from_deep_link_restores_workloads_heading": true,
+    "keyboard_open_and_escape_restore_original_trigger": true
+  },
+  "responsive": [
+    {
+      "width": 320,
+      "height": 740,
+      "theme": "dark",
+      "document_overflow": false,
+      "dialog_overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "document_overflow": false,
+      "dialog_overflow": false
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "document_overflow": false,
+      "dialog_overflow": false
+    }
+  ],
+  "theme_restored_to_original_light": true,
+  "screenshots": [
+    "observation27-fresh-390.jpg",
+    "observation27-stale-390.jpg",
+    "observation27-viewer-320-dark.jpg"
+  ],
+  "limits": [
+    "New feature browser journeys were loopback HTTP. HTTPS certificate/cookie/Origin/CSRF request smoke is separately verified by CI.",
+    "Delayed-response isolation also has existing E01 transport fixtures; no new live response interception is claimed.",
+    "1280px overflow checks use DOM geometry; the scaled in-app screenshot was omitted because its text was not legible."
+  ]
+}

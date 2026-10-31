@@ -1,0 +1,165 @@
+{
+  "source_head": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+  "scope": "Local scoped Kubernetes rollout observation; not application traffic health or baseline v1",
+  "ownership_restart_replacement_denial": {
+    "runtime_commit": "0b7bde552221d6c76c7e4f6eac285adc91693446",
+    "observed_at": "2026-10-27T03:01:24.237458+00:00",
+    "environment": "Real scoped local K3s over verified TLS and PostgreSQL; host producer",
+    "workload_id": "32df58a2-5196-4c1b-887e-dd7be4a8456f",
+    "before_observation_id": "efaf7b91-b903-4858-8248-4f3eadd4031e",
+    "restart_observation_id": "95a22d4e-347d-4751-a6b1-6dcece3ba63e",
+    "restart_delta": 1,
+    "initial_pod_uid": "9cabb4f9-61a9-410b-a867-5127728e4d34",
+    "replacement_pod_uid": "beeb8cd5-5a72-4562-9c33-54733f9f770f",
+    "replacement_comparison": {
+      "state": "coverage_changed",
+      "from_observation_id": "95a22d4e-347d-4751-a6b1-6dcece3ba63e",
+      "to_observation_id": "6af82d61-7de6-4c7f-994a-1bd0d4a1846f",
+      "from_at": "2026-10-27T03:01:11.963950Z",
+      "to_at": "2026-10-27T03:01:23.799972Z",
+      "from_generation": 1,
+      "to_generation": 1,
+      "restart_delta": null,
+      "changes": []
+    },
+    "read_denial": "permission_denied",
+    "historical_after_denial": "6af82d61-7de6-4c7f-994a-1bd0d4a1846f",
+    "recovery_observation_id": "2c0745c1-eb99-4f85-9133-227c37481bf2",
+    "matching_label_job_excluded": true,
+    "protected_checkout_uid_spec_writer_policy_unchanged": true
+  },
+  "selected_fields_references_sanitization": {
+    "runtime_commit": "a76cf28dcf7317a0f95c1893006c300ffb2976b0",
+    "environment": "Actual zero-replica scope27 fixture on real K3s, verified TLS, direct producer and PostgreSQL",
+    "workload_id": "8bab769a-66d1-4b26-84af-62fa7dc2fecf",
+    "before_observation_id": "de0affe8-c74b-4a4d-9aae-e057603d7e31",
+    "whitelisted_change": {
+      "state": "comparable",
+      "from_observation_id": "de0affe8-c74b-4a4d-9aae-e057603d7e31",
+      "to_observation_id": "b863f130-aee5-4bf8-a6b7-264b16b2b608",
+      "from_at": "2026-10-27T03:32:32.291125Z",
+      "to_at": "2026-10-27T03:32:32.724541Z",
+      "from_generation": 1,
+      "to_generation": 2,
+      "restart_delta": 0,
+      "changes": [
+        "selected_fields_changed",
+        "references_changed",
+        "generation_changed"
+      ]
+    },
+    "reference_identity_only": true,
+    "absent_declared_cpu_preserved": true,
+    "no_sensitive_sentinels_in_direct_or_persisted_payloads": true,
+    "absent_fields_observation_id": "83cf7387-fad8-499d-bd60-1709dbd861f9",
+    "fixture_template_restored": true
+  },
+  "authority_windows_and_uid_history": {
+    "runtime_commit": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+    "environment": "Real local K3s UID lifecycle and trusted legacy scope sync with PostgreSQL; observations remain read-only",
+    "same_uid_retire_readd": {
+      "workload_id": "bd6a242d-9842-4fcb-8b01-d1851030bbfc",
+      "uid": "fc9abd97-41b4-47ff-9042-21edb5236df7",
+      "old_epoch": 1,
+      "late_publication": "superseded",
+      "new_observation_required": true
+    },
+    "replacement_uid": {
+      "old_workload_id": "c75c49f6-71de-4d91-aade-480e840a4034",
+      "new_workload_id": "245aafd7-b629-4239-86e9-9c11dcdc09b0",
+      "old_uid": "8686f14c-0e40-475c-9266-ad4b61722855",
+      "new_uid": "167af2bb-33f5-41b2-b81c-121684522f1e",
+      "observation_404_retired_identity": false,
+      "uid_mismatch_adopted_identity": false,
+      "retirement_by_explicit_scope_sync": true,
+      "old_history_preserved": true,
+      "retired_direct_outcome": "inactive"
+    },
+    "protected_checkout_and_writer_policy_unchanged": true
+  },
+  "regular_init_and_native_sidecar": {
+    "runtime_commit": "77e36101c2913e8a2643b6c7fe8368254fe327fb",
+    "environment": "Actual regular/init/native-sidecar Kubernetes status and restart over verified TLS, direct producer and PostgreSQL",
+    "workload_id": "74e52cf3-e4fc-477c-a898-d13a72abafe6",
+    "before_observation_id": "99bdbc78-3223-4b98-9100-61a063620505",
+    "after_observation_id": "c163437a-a3b6-4b3b-a827-06d13c6b593f",
+    "regular_and_both_init_kinds_covered": true,
+    "recovered_last_state_does_not_force_degraded": true,
+    "comparison": {
+      "state": "comparable",
+      "from_observation_id": "99bdbc78-3223-4b98-9100-61a063620505",
+      "to_observation_id": "c163437a-a3b6-4b3b-a827-06d13c6b593f",
+      "from_at": "2026-10-27T03:53:52.836804Z",
+      "to_at": "2026-10-27T03:53:55.254101Z",
+      "from_generation": 2,
+      "to_generation": 2,
+      "restart_delta": 1,
+      "changes": []
+    },
+    "fixture_template_and_zero_replicas_restored": true
+  },
+  "actual_volume_restart": {
+    "environment": "Actual API stop and PostgreSQL/K3s container restart with existing named volumes; observer remained stopped",
+    "persisted_tables": [
+      "action_plans",
+      "admissions",
+      "baseline_candidates",
+      "baselines",
+      "connection_checks",
+      "evidence",
+      "incident_activity",
+      "incidents",
+      "investigation_runs",
+      "job_attempts",
+      "jobs",
+      "plan_reviews",
+      "recommendation_reports",
+      "recovery_executions",
+      "sessions",
+      "users",
+      "worker_heartbeats",
+      "workload_observation_attempts",
+      "workload_observation_state",
+      "workload_observations",
+      "workloads"
+    ],
+    "table_counts": {
+      "action_plans": 2,
+      "admissions": 48,
+      "baseline_candidates": 0,
+      "baselines": 0,
+      "connection_checks": 0,
+      "evidence": 48,
+      "incident_activity": 0,
+      "incidents": 48,
+      "investigation_runs": 48,
+      "job_attempts": 50,
+      "jobs": 50,
+      "plan_reviews": 2,
+      "recommendation_reports": 0,
+      "recovery_executions": 2,
+      "sessions": 1,
+      "users": 2,
+      "worker_heartbeats": 1,
+      "workload_observation_attempts": 3833,
+      "workload_observation_state": 102,
+      "workload_observations": 3809,
+      "workloads": 102
+    },
+    "all_counts_and_content_digests_preserved": true,
+    "observation_timestamps_and_id_unchanged": true,
+    "projection_before_new_poll": {
+      "workload_id": "32df58a2-5196-4c1b-887e-dd7be4a8456f",
+      "last_attempt_at": "2026-10-27T03:13:25.325051+00:00",
+      "last_success_at": "2026-10-27T03:13:25.440036+00:00",
+      "last_failure_at": "2026-10-27T03:01:23.864146+00:00",
+      "last_success_id": "6f79356d-437e-4596-af19-b35a14dc016f",
+      "effective_health": "unknown",
+      "freshness": "stale"
+    }
+  },
+  "limits": [
+    "Receipts identify the source commit actually exercised.",
+    "The legacy UID scope is independent of the unmerged scope-reconciliation PR; v2 pin integration remains a merge coordination requirement."
+  ]
+}

@@ -290,8 +290,13 @@ export function Workspace() {
             <WorkQueue />
           ) : route.page === "workloads" ? (
             <Workloads
+              selectedWorkload={route.id || undefined}
               canMutate={canMutate}
-              onInvestigate={(workload) => setCreating({ workload })}
+              onInvestigate={(workload) => {
+                window.history.replaceState(null, "", "#/workloads");
+                setRoute(readRoute());
+                setCreating({ workload });
+              }}
             />
           ) : route.page === "connections" ? (
             <Connections canMutate={canMutate} />
@@ -322,7 +327,7 @@ export function Workspace() {
           <DialogHeader>
             <DialogTitle>Start a manual investigation</DialogTitle>
             <DialogDescription>
-              Create a saved incident for a configured development workload.
+              Create a saved incident for a configured workload.
             </DialogDescription>
           </DialogHeader>
           {creating && (

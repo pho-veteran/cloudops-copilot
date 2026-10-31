@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, Query
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session
+from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
+from cloudops.features.workloads.observation_service import detail, history
 from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
 from cloudops.features.workloads.service import identity, inventory, scope_inventory
 from cloudops.shared.database import get_db
@@ -38,3 +41,26 @@ def list_scope(
 @router.get("/{workload_id}", operation_id="get_workload", response_model=WorkloadView)
 def get_workload(workload_id: UUID, db: Session = Depends(get_db)):
     return identity(db, workload_id)
+
+
+@router.get(
+    "/{workload_id}/observation",
+    operation_id="get_workload_observation",
+    response_model=ObservationDetail,
+)
+def get_workload_observation(workload_id: UUID, db: Session = Depends(get_db)):
+    return detail(db, workload_id)
+
+
+@router.get(
+    "/{workload_id}/observations",
+    operation_id="list_workload_observations",
+    response_model=ObservationPage,
+)
+def list_workload_observations(
+    workload_id: UUID,
+    limit: int = Query(25, ge=1, le=100),
+    cursor: str | None = Query(None, min_length=1, max_length=256),
+    db: Session = Depends(get_db),
+):
+    return history(db, workload_id, limit, cursor)

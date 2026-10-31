@@ -21,7 +21,7 @@ describe("workload consumer contract", () => {
     expect(
       validate({
         ...workloadFixture,
-        items: [{ ...workloadFixture.items[0], health: "healthy" }],
+        items: [{ ...workloadFixture.items[0], health: "invented-health" }],
       }),
     ).toBe(false);
   });
@@ -41,7 +41,7 @@ describe("workload consumer contract", () => {
     const data = await cache.fetchQuery(
       workloadsQueryOptions(0, transport.client),
     );
-    expect(data.items[0].health).toBe("unavailable");
+    expect(data.items[0].health).toBe("unknown");
     cache.clear();
   });
 });

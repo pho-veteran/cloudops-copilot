@@ -27,6 +27,7 @@ class Workload(Base):
     active: Mapped[bool] = mapped_column(default=True)
     source: Mapped[str] = mapped_column(String(32), default="development_fixture")
     retirement_reason: Mapped[str | None] = mapped_column(String(32))
+    observation_epoch: Mapped[int] = mapped_column(default=0, server_default="0")
 
 
 class ScopeState(Base):

@@ -21,7 +21,7 @@ export function WorkQueue() {
           {!query.data.items.length && (
             <div className="foundation-panel">
               <h2>No incidents yet</h2>
-              <p>Select a development workload and start an investigation.</p>
+              <p>Select a configured workload and start an investigation.</p>
               <a href="#/workloads">View workloads</a>
             </div>
           )}
