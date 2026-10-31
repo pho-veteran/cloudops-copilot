@@ -245,7 +245,10 @@ def main():
             )
             assert new["uid"] != old["uid"] and new["id"] != old["id"]
             assert api.get(f"/api/workloads/{new['id']}/baselines").json()["items"] == []
-            assert [immutable_baseline(row) for row in api.get(f"/api/workloads/{old['id']}/baselines").json()["items"]] == [saved_baseline]
+            assert [
+                immutable_baseline(row)
+                for row in api.get(f"/api/workloads/{old['id']}/baselines").json()["items"]
+            ] == [saved_baseline]
             denied = api.post(
                 "/api/incidents",
                 json={
@@ -312,7 +315,10 @@ def main():
                 except httpx.TransportError:
                     pass
                 time.sleep(1)
-            assert [immutable_baseline(row) for row in api.get(f"/api/workloads/{old['id']}/baselines").json()["items"]] == [saved_baseline]
+            assert [
+                immutable_baseline(row)
+                for row in api.get(f"/api/workloads/{old['id']}/baselines").json()["items"]
+            ] == [saved_baseline]
             receipt["checks"]["restart_preserves_baseline"] = True
             api.post("/api/logout", headers=headers)
             viewer_login = api.post(

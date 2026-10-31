@@ -14,7 +14,9 @@ import httpx
 
 def baseline_history(client, workload_id):
     page = client.get(f"/api/workloads/{workload_id}/baselines").json()
-    return [{key: value for key, value in row.items() if key != "age_seconds"} for row in page["items"]]
+    return [
+        {key: value for key, value in row.items() if key != "age_seconds"} for row in page["items"]
+    ]
 
 
 def main():
