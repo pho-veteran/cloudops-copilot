@@ -6,6 +6,7 @@ named Docker volumes are retained. This is an integration probe, not a release S
 
 import argparse
 import base64
+from datetime import datetime, timezone
 from getpass import getpass
 import hashlib
 import json
@@ -23,8 +24,89 @@ from local_lab import ROOT as root, COMPOSE
 from cloudops.features.workloads.scope_config import cluster_fingerprint
 
 folder = root / "tmp/e02-baselines"
+reader_folder = folder / "reader"
 origin = "https://localhost:8443"
 compose = [*COMPOSE, "-f", str(folder / "compose.json")]
+FIXTURES = {
+    "Deployment": {"e02-ready", "e02-recreate", "e02-config", "e02-unlisted"}
+    | {f"e02-budget-{i:03}" for i in range(96)},
+    "ConfigMap": {"e02-settings", "e02-settings-new"},
+}
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def lf_hash(value):
+    return hashlib.sha256(value.replace(b"\r\n", b"\n")).hexdigest()
+
+
+def git_bytes(*args):
+    return subprocess.check_output(["git", *args], cwd=root, stdin=subprocess.DEVNULL)
+
+
+def receipt_metadata(*extra_probes):
+    status = git_bytes("status", "--porcelain=v1", "--untracked-files=all").decode("utf-8")
+    require(
+        not status, "Commit the candidate and keep the checkout clean before recording evidence."
+    )
+    head = git_bytes("rev-parse", "HEAD").decode().strip()
+    require(
+        app(
+            "from urllib.parse import urlsplit; from cloudops.shared.config import settings; print(urlsplit(settings().database_url).path == '/cloudops28_lab')"
+        )
+        == "True",
+        "Use only the separate cloudops28_lab application database.",
+    )
+    package = root / "services/backend/src/cloudops"
+    actual = json.loads(
+        app(
+            "import hashlib,json; from pathlib import Path; p=Path('/workspace/services/backend/src/cloudops'); print(json.dumps({str(f.relative_to(p)):hashlib.sha256(f.read_bytes().replace(b'\\r\\n',b'\\n')).hexdigest() for f in p.rglob('*.py')}))"
+        )
+    )
+    checkout = {
+        str(path.relative_to(package)).replace("\\", "/"): lf_hash(path.read_bytes())
+        for path in package.rglob("*.py")
+    }
+    committed = {
+        name: lf_hash(git_bytes("show", f"{head}:services/backend/src/cloudops/{name}"))
+        for name in checkout
+    }
+    require(
+        actual == checkout == committed,
+        "Runtime, checkout and committed backend sources differ after LF normalization.",
+    )
+    probes = {}
+    for path in {
+        Path(__file__).resolve(),
+        root / "scripts/local_lab.py",
+        *(Path(p).resolve() for p in extra_probes),
+    }:
+        name = str(path.relative_to(root)).replace("\\", "/")
+        value = lf_hash(path.read_bytes())
+        require(
+            value == lf_hash(git_bytes("show", f"{head}:{name}")),
+            "Probe source differs from its committed Git blob.",
+        )
+        probes[name] = value
+    policy_hash = hashlib.sha256((reader_folder / "workloads.json").read_bytes()).hexdigest()
+    actual_policy = app(
+        "import hashlib; from cloudops.shared.config import settings; print(hashlib.sha256(settings().workloads_file.read_bytes()).hexdigest())"
+    )
+    require(policy_hash == actual_policy, "Running API uses a different scope policy file.")
+    return {
+        "runtime_commit": head,
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "git_worktree_status": [],
+        "source_hash_normalization": "SHA-256 after CRLF to LF normalization; no other whitespace changes",
+        "runtime_checkout_git_sources_match": True,
+        "source_sha256_lf": committed,
+        "probe_sources_sha256_lf": probes,
+        "scope_policy_sha256": policy_hash,
+        "browser_acceptance": "Pending trusted HTTPS browser execution; API evidence does not close E02.",
+    }
 
 
 def call(*args, input=None):
@@ -59,6 +141,72 @@ def kube(*args, body=None):
         ["docker", "exec", "-i", "cloudops-e01-https-k3s-1", "/bin/kubectl", *args],
         json.dumps(body) if body else None,
     )
+
+
+def fixture_metadata(value):
+    kind, metadata = value["kind"], value["metadata"]
+    name = metadata["name"]
+    require(
+        name in FIXTURES.get(kind, set()) and metadata.get("namespace") == "demo",
+        "Only fixed disposable fixtures in demo may be mutated.",
+    )
+    require(
+        (metadata.get("labels") or {}).get("cloudops-probe") == "e02-baselines",
+        "Refusing a resource outside this probe's ownership.",
+    )
+    return kind, name
+
+
+def read_fixture(kind, name):
+    require(name in FIXTURES.get(kind, set()), "Only fixed disposable fixtures may be mutated.")
+    raw = kube("get", kind, name, "-n", "demo", "-o", "json", "--ignore-not-found")
+    if not raw:
+        return None
+    value = json.loads(raw)
+    require(fixture_metadata(value) == (kind, name), "Fixture identity changed.")
+    return value
+
+
+def create_fixture(value):
+    fixture_metadata(value)
+    # Create fails if a concurrent actor acquired the name; never overwrite it.
+    return kube("create", "-f", "-", body=value)
+
+
+def ensure_fixture(value):
+    kind, name = fixture_metadata(value)
+    if read_fixture(kind, name) is None:
+        create_fixture(value)
+
+
+def apply_fixture(value):
+    kind, name = fixture_metadata(value)
+    current = read_fixture(kind, name)
+    require(current is not None, "Prepared fixture disappeared; inspect before continuing.")
+    body = json.loads(json.dumps(value))
+    for key in ("uid", "resourceVersion"):
+        body["metadata"][key] = current["metadata"][key]
+    return kube("apply", "-f", "-", body=body)
+
+
+def delete_fixture(kind, name):
+    current = read_fixture(kind, name)
+    require(current is not None, "Prepared fixture disappeared; inspect before continuing.")
+    prefix = "/apis/apps/v1" if kind == "Deployment" else "/api/v1"
+    resource = "deployments" if kind == "Deployment" else "configmaps"
+    kube(
+        "delete",
+        "--raw",
+        f"{prefix}/namespaces/demo/{resource}/{name}",
+        "-f",
+        "-",
+        body={
+            "apiVersion": "v1",
+            "kind": "DeleteOptions",
+            "preconditions": {key: current["metadata"][key] for key in ("uid", "resourceVersion")},
+        },
+    )
+    kube("wait", "--for=delete", f"{kind}/{name}", "-n", "demo", "--timeout=45s")
 
 
 def app(code):
@@ -124,8 +272,64 @@ def stable(value):
     return {k: v for k, v in value.items() if k != "age_seconds"}
 
 
+def error_response(response, status, code):
+    require(
+        response.status_code == status and response.json().get("error", {}).get("code") == code,
+        f"Expected {status}/{code}, received {response.status_code}: {response.text}",
+    )
+
+
+def target_snapshot(name):
+    value = read_fixture("Deployment", name)
+    require(value is not None, "Prepared fixture disappeared.")
+    return {key: value["metadata"][key] for key in ("uid", "generation", "resourceVersion")} | {
+        "spec_sha256": hash_value(value["spec"])
+    }
+
+
+def seed_legacy(_args):
+    print(
+        app("""import hashlib,json
+from sqlalchemy import select
+from urllib.parse import urlsplit
+from cloudops.shared.config import settings
+from cloudops.shared.database import sessions,require_schema
+from cloudops.features.access.models import User
+from cloudops.features.workloads.models import Workload,BaselineCandidate,Baseline
+from cloudops.features.incidents.models import Incident
+if urlsplit(settings().database_url).path != '/cloudops28_lab': raise RuntimeError('Use only the separate cloudops28_lab database.')
+require_schema()
+with sessions()() as db,db.begin():
+    actor=db.scalar(select(User).where(User.username=='e02-operator'))
+    if not actor or actor.role!='operator': raise RuntimeError('Provision the named e02-operator test account first.')
+    row=db.scalar(select(Workload).where(Workload.cluster=='legacy-fixture',Workload.namespace=='demo',Workload.name=='legacy-e02-fixture',Workload.uid=='legacy-fixture-uid'))
+    if row and (row.source!='development_fixture' or row.active): raise RuntimeError('Existing fixture identity has unexpected ownership/state.')
+    if row is None:
+        row=Workload(cluster='legacy-fixture',namespace='demo',name='legacy-e02-fixture',uid='legacy-fixture-uid',source='development_fixture',active=False)
+        db.add(row);db.flush()
+    saved=db.scalar(select(Baseline).where(Baseline.workload_id==row.id))
+    if saved is None:
+        value={'uid':'legacy-fixture-uid','replicas':1,'containers':[{'name':'legacy','image':'fixture:legacy','resources':{}}]}
+        digest=hashlib.sha256(json.dumps(value,sort_keys=True).encode()).hexdigest()
+        candidate=BaselineCandidate(workload_id=row.id,digest=digest,snapshot=value);db.add(candidate);db.flush()
+        db.add(Baseline(workload_id=row.id,candidate_id=candidate.id,digest=digest,snapshot=value,confirmed_by=actor.id))
+        db.add(Incident(workload_id=row.id,title='Legacy continuity fixture',description='Controlled unverified v0 history; not healthy-rollout or populated-upgrade proof.',created_by=actor.id))
+    elif saved.snapshot.get('profile') is not None: raise RuntimeError('Expected legacy v0 fixture; existing records were not modified.')
+print('Nonempty legacy continuity fixture retained; no populated-upgrade claim.')""")
+    )
+
+
+def legacy_state():
+    return json.loads(
+        app(
+            "import json; from sqlalchemy import text; from cloudops.shared.database import sessions;\nwith sessions()() as db: print(json.dumps([dict(r) for r in db.execute(text(\"SELECT w.id::text AS workload_id,b.id::text,b.digest,b.snapshot,b.confirmed_by::text,b.confirmed_at::text FROM baselines b JOIN workloads w ON w.id=b.workload_id WHERE w.cluster='legacy-fixture' AND w.name='legacy-e02-fixture'\")).mappings()]))"
+        )
+    )
+
+
 def prepare(args):
     folder.mkdir(parents=True, exist_ok=True)
+    reader_folder.mkdir(parents=True, exist_ok=True)
     checkout = json.loads(kube("get", "deployment", "checkout", "-n", "demo", "-o", "json"))
     protected = {
         "uid": checkout["metadata"]["uid"],
@@ -138,32 +342,14 @@ def prepare(args):
     }
     prior = folder / "protected.json"
     if prior.exists():
-        assert json.loads(prior.read_text()) == protected
+        require(
+            json.loads(prior.read_text()) == protected,
+            "Protected checkout/writer policy changed; inspect before preparation.",
+        )
     else:
         prior.write_text(json.dumps(protected, indent=2))
     for name in ["e02-ready", "e02-recreate", "e02-config", "e02-unlisted"]:
-        existing = subprocess.run(
-            [
-                "docker",
-                "exec",
-                "cloudops-e01-https-k3s-1",
-                "/bin/kubectl",
-                "get",
-                "deployment",
-                name,
-                "-n",
-                "demo",
-                "-o",
-                "json",
-            ],
-            capture_output=True,
-            text=True,
-        )
-        if existing.returncode == 0:
-            assert (
-                json.loads(existing.stdout)["metadata"]["labels"].get("cloudops-probe")
-                == "e02-baselines"
-            )
+        if read_fixture("Deployment", name) is not None:
             continue
         container = {
             "name": "app",
@@ -181,11 +367,8 @@ def prepare(args):
             "env": [{"name": "LITERAL_SENTINEL", "value": "private-literal-e02"}],
         }
         if name == "e02-config":
-            kube(
-                "apply",
-                "-f",
-                "-",
-                body={
+            ensure_fixture(
+                {
                     "apiVersion": "v1",
                     "kind": "ConfigMap",
                     "metadata": {
@@ -194,7 +377,7 @@ def prepare(args):
                         "labels": {"cloudops-probe": "e02-baselines"},
                     },
                     "data": {"MESSAGE": "private-config-e02"},
-                },
+                }
             )
             container["envFrom"] = [{"configMapRef": {"name": "e02-settings"}}]
         manifest = {
@@ -215,7 +398,7 @@ def prepare(args):
             },
         }
         (folder / f"{name}.json").write_text(json.dumps(manifest, indent=2))
-        kube("apply", "-f", "-", body=manifest)
+        create_fixture(manifest)
         kube("rollout", "status", f"deployment/{name}", "-n", "demo", "--timeout=90s")
     ca = call(
         "docker",
@@ -229,7 +412,7 @@ def prepare(args):
         "token": kube("create", "token", "cloudops-reader", "-n", "demo", "--duration=8h"),
         "ca_data": base64.b64encode((ca + "\n").encode()).decode(),
     }
-    (folder / "client.json").write_text(json.dumps(reader))
+    (reader_folder / "client.json").write_text(json.dumps(reader))
     denied = {**reader, "token": kube("create", "token", "default", "-n", "demo", "--duration=8h")}
     (folder / "denied.json").write_text(json.dumps(denied))
     scope = {
@@ -244,7 +427,7 @@ def prepare(args):
             for n in ["checkout", "e02-ready", "e02-recreate", "e02-config"]
         ],
     }
-    (folder / "workloads.json").write_text(json.dumps(scope, indent=2))
+    (reader_folder / "workloads.json").write_text(json.dumps(scope, indent=2))
     dbs = call(
         "docker",
         "exec",
@@ -275,7 +458,7 @@ def prepare(args):
         "environment": {
             "DATABASE_URL": f"postgresql+psycopg://cloudops:{quote(os.environ['POSTGRES_PASSWORD'], safe='')}@db:5432/cloudops28_lab"
         },
-        "volumes": [f"{folder.as_posix()}:/run/cloudops-reader:ro"],
+        "volumes": [f"{reader_folder.as_posix()}:/run/cloudops-reader:ro"],
     }
     override = {"services": {name: backend for name in ["api", "migrate", "worker", "observer"]}}
     override["services"]["https"] = {"image": args.https_image}
@@ -295,36 +478,22 @@ def prepare(args):
 
 def verify(args):
     passwords = passwords_for(args)
-    actual = json.loads(
-        app(
-            "import hashlib,json; from pathlib import Path; p=Path('/workspace/services/backend/src/cloudops'); print(json.dumps({str(f.relative_to(p)):hashlib.sha256(f.read_bytes()).hexdigest() for f in p.rglob('*.py')}))"
-        )
-    )
-    package = root / "services/backend/src/cloudops"
-    expected_sources = {
-        str(path.relative_to(package)).replace("\\", "/"): hashlib.sha256(
-            path.read_bytes()
-        ).hexdigest()
-        for path in package.rglob("*.py")
-    }
-    assert actual == expected_sources, (
-        "Running backend source differs from this checkout; rebuild before collecting evidence."
-    )
     report = {
-        "runtime_commit": command(["git", "rev-parse", "HEAD"]),
+        **receipt_metadata(),
         "environment": "real K3s + PostgreSQL + HTTPS; disposable e02-* Deployments",
         "checks": {},
     }
-    report["source_sha256"] = expected_sources
-    report["probe_source_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     before_protected = protected()
-    assert before_protected == json.loads((folder / "protected.json").read_text())
-    reader = (folder / "client.json").read_bytes()
-    policy = (folder / "workloads.json").read_bytes()
+    require(
+        before_protected == json.loads((folder / "protected.json").read_text()),
+        "Protected original target/writer policy changed.",
+    )
+    reader = (reader_folder / "client.json").read_bytes()
+    policy = (reader_folder / "workloads.json").read_bytes()
     tls = ssl.create_default_context(cafile=str(args.ca))
     with (
-        httpx.Client(base_url=origin, verify=tls, timeout=30) as operator,
-        httpx.Client(base_url=origin, verify=tls, timeout=30) as viewer,
+        httpx.Client(base_url=origin, verify=tls, trust_env=False, timeout=30) as operator,
+        httpx.Client(base_url=origin, verify=tls, trust_env=False, timeout=30) as viewer,
     ):
         deadline = time.monotonic() + 35
         while time.monotonic() < deadline:
@@ -334,7 +503,7 @@ def verify(args):
             except httpx.HTTPError:
                 pass
             time.sleep(1)
-        headers = {}
+        headers, principals = {}, {}
         for role, client in [("operator", operator), ("viewer", viewer)]:
             response = client.post(
                 "/api/login",
@@ -343,12 +512,29 @@ def verify(args):
             )
             assert response.status_code == 200, (response.status_code, response.text)
             headers[role] = {"Origin": origin, "X-CSRF-Token": response.json()["csrf_token"]}
+            principals[role] = response.json()["principal"]["id"]
+        legacy = legacy_state()
+        require(
+            bool(legacy),
+            "Run seed-legacy after provisioning the test accounts; an empty continuity check is invalid.",
+        )
+        for row in legacy:
+            require(
+                row["snapshot"].get("profile") is None, "Legacy continuity fixture must remain v0."
+            )
+            page = viewer.get(f"/api/workloads/{row['workload_id']}/baselines").json()
+            assert any(
+                item["id"] == row["id"] and item["profile"] == "legacy/v0" for item in page["items"]
+            )
 
         def inventory():
             return operator.get("/api/workloads").json()["items"]
 
         workloads = {r["name"]: r for r in inventory()}
         assert "e02-unlisted" not in workloads
+        for name in ("e02-ready", "e02-recreate", "e02-config"):
+            current = read_fixture("Deployment", name)
+            assert current is not None and current["metadata"]["uid"] == workloads[name]["uid"]
 
         def path(name):
             return "/api/workloads/" + workloads[name]["id"]
@@ -374,30 +560,60 @@ def verify(args):
 
         baseline_ids = {}
         initial_domain = domain()
+        before_targets = {
+            name: target_snapshot(name) for name in ("e02-ready", "e02-recreate", "e02-config")
+        }
         for name in ["e02-ready", "e02-recreate", "e02-config"]:
             body = candidate(name)
+            history_before = [
+                stable(row) for row in viewer.get(path(name) + "/baselines").json()["items"]
+            ]
+            error_response(
+                viewer.post(path(name) + "/baseline", json=body, headers=headers["viewer"]),
+                403,
+                "permission_denied",
+            )
+            assert [
+                stable(row) for row in viewer.get(path(name) + "/baselines").json()["items"]
+            ] == history_before
             time.sleep(5.3)
             response = confirm(name, body)
             assert response.status_code == 201, response.text
             saved = response.json()
+            assert (
+                saved["confirmed_by"] == principals["operator"]
+                and saved["profile"] == "deployment-images-resources/v1"
+                and saved["digest"] == body["digest"]
+            )
+            assert (
+                saved["snapshot"]["provenance"]["first"]["health"]
+                == saved["snapshot"]["provenance"]["second"]["health"]
+                == "healthy"
+            )
             baseline_ids[name] = saved["id"]
             selected = context(name, saved["id"])
             assert (
                 stable(selected["baseline"]) == stable(saved) and not selected["execution_eligible"]
             )
+            assert stable(context(name, saved["id"], viewer)["baseline"]) == stable(saved)
         assert domain() == initial_domain
+        assert {name: target_snapshot(name) for name in before_targets} == before_targets
+        report["checks"][
+            "preparation_and_both_role_contexts_preserve_all_target_versions_and_domain"
+        ] = True
+        report["checks"]["viewer_confirmation_denied_with_unchanged_history"] = True
         report["checks"]["healthy_baselines_before_faults_and_exact_actual_consumer"] = True
         # Generation change with exactly the same baseline envelope must invalidate pending confirmation.
         body = candidate("e02-ready")
         manifest = json.loads((folder / "e02-ready.json").read_text())
         changed = json.loads(json.dumps(manifest))
         changed["spec"]["template"]["metadata"]["annotations"] = {"probe": "generation-change"}
-        kube("apply", "-f", "-", body=changed)
+        apply_fixture(changed)
         kube("rollout", "status", "deployment/e02-ready", "-n", "demo", "--timeout=90s")
         time.sleep(5.3)
-        assert confirm("e02-ready", body).status_code == 409
+        error_response(confirm("e02-ready", body), 409, "candidate_changed")
         report["checks"]["generation_change_rejects_pending"] = True
-        kube("apply", "-f", "-", body=manifest)
+        apply_fixture(manifest)
         kube("rollout", "status", "deployment/e02-ready", "-n", "demo", "--timeout=90s")
         # Real fault: use a valid cached image with a crashing command, not registry/network failure.
         broken = json.loads(json.dumps(manifest))
@@ -406,7 +622,7 @@ def verify(args):
             "-c",
             "raise SystemExit(1)",
         ]
-        kube("apply", "-f", "-", body=broken)
+        apply_fixture(broken)
         deadline = time.monotonic() + 100
         fault = None
         while time.monotonic() < deadline:
@@ -416,7 +632,9 @@ def verify(args):
                 break
             time.sleep(1)
         assert fault is not None
-        assert operator.get(path("e02-ready") + "/baseline-candidate").status_code == 409
+        error_response(
+            operator.get(path("e02-ready") + "/baseline-candidate"), 409, "baseline_unavailable"
+        )
         assert context("e02-ready")["reason"] == "missing"
         result = context("e02-ready", baseline_ids["e02-ready"])
         assert result["reason"] == "no_supported_diff" and not result["execution_eligible"]
@@ -426,16 +644,13 @@ def verify(args):
             "coverage": fault["observation"]["coverage"],
             "reasons": fault["observation"]["reasons"],
         }
-        kube("apply", "-f", "-", body=manifest)
+        apply_fixture(manifest)
         kube("rollout", "status", "deployment/e02-ready", "-n", "demo", "--timeout=90s")
         assert live_read(workloads["e02-ready"]["id"])["observation"]["health"] == "healthy"
         # Reference identities change independently of image/resource fields; content stays unverified.
         config_manifest = json.loads((folder / "e02-config.json").read_text())
-        kube(
-            "apply",
-            "-f",
-            "-",
-            body={
+        ensure_fixture(
+            {
                 "apiVersion": "v1",
                 "kind": "ConfigMap",
                 "metadata": {
@@ -444,41 +659,42 @@ def verify(args):
                     "labels": {"cloudops-probe": "e02-baselines"},
                 },
                 "data": {"MESSAGE": "private-config-e02"},
-            },
+            }
         )
         body = candidate("e02-config")
         changed = json.loads(json.dumps(config_manifest))
         changed["spec"]["template"]["spec"]["containers"][0]["envFrom"] = [
             {"configMapRef": {"name": "e02-settings-new"}}
         ]
-        kube("apply", "-f", "-", body=changed)
+        apply_fixture(changed)
         kube("rollout", "status", "deployment/e02-config", "-n", "demo", "--timeout=90s")
         time.sleep(5.3)
-        assert confirm("e02-config", body).status_code == 409
+        error_response(confirm("e02-config", body), 409, "candidate_changed")
         result = context("e02-config", baseline_ids["e02-config"])
         assert result["reason"] == "config_unverified" and not result["execution_eligible"]
         report["checks"]["reference_change_rejects_confirm_and_context_is_manual"] = True
-        kube("apply", "-f", "-", body=config_manifest)
+        apply_fixture(config_manifest)
         kube("rollout", "status", "deployment/e02-config", "-n", "demo", "--timeout=90s")
         # Scoped name replacement must never transfer historical identity or authority.
         old = workloads["e02-recreate"]
         old_path = path("e02-recreate")
         old_history = operator.get(old_path + "/baselines").json()["items"]
         body = candidate("e02-recreate")
-        kube("delete", "deployment", "e02-recreate", "-n", "demo", "--wait=true", "--timeout=45s")
+        delete_fixture("Deployment", "e02-recreate")
         sync()
         assert not operator.get(old_path).json()["active"]
-        kube("apply", "-f", "-", body=json.loads((folder / "e02-recreate.json").read_text()))
+        create_fixture(json.loads((folder / "e02-recreate.json").read_text()))
         kube("rollout", "status", "deployment/e02-recreate", "-n", "demo", "--timeout=90s")
         sync()
         new = next(r for r in inventory() if r["name"] == "e02-recreate" and r["active"])
         assert old["id"] != new["id"] and old["uid"] != new["uid"]
         assert operator.get("/api/workloads/" + new["id"] + "/baselines").json()["items"] == []
-        assert (
+        error_response(
             operator.post(
                 "/api/workloads/" + new["id"] + "/baseline", json=body, headers=headers["operator"]
-            ).status_code
-            == 409
+            ),
+            409,
+            "candidate_changed",
         )
         assert [stable(r) for r in operator.get(old_path + "/baselines").json()["items"]] == [
             stable(r) for r in old_history
@@ -502,7 +718,7 @@ def verify(args):
         workloads["e02-recreate"] = new
         # Denied read and wrong trusted binding remain explicit, without retiring prior admission.
         try:
-            (folder / "client.json").write_bytes((folder / "denied.json").read_bytes())
+            (reader_folder / "client.json").write_bytes((folder / "denied.json").read_bytes())
             read = live_read(workloads["e02-ready"]["id"])
             assert read["outcome"] == "failed" and read["reason"] == "permission_denied"
             observation = operator.get(path("e02-ready") + "/observation").json()
@@ -516,7 +732,7 @@ def verify(args):
             assert {(r["id"], r["active"]) for r in inventory()} == before_inventory
             wrong = json.loads(policy)
             wrong["cluster"]["expected_fingerprint"] = "0" * 64
-            (folder / "workloads.json").write_text(json.dumps(wrong))
+            (reader_folder / "workloads.json").write_text(json.dumps(wrong))
             result = subprocess.run(
                 [
                     *compose,
@@ -531,13 +747,18 @@ def verify(args):
                 capture_output=True,
                 text=True,
                 env=os.environ,
+                cwd=root,
+                stdin=subprocess.DEVNULL,
             )
-            assert result.returncode != 0
+            assert (
+                result.returncode == 1
+                and "Reader server/CA does not match the pinned scope policy." in result.stderr
+            )
             assert {(r["id"], r["active"]) for r in inventory()} == before_inventory
             report["checks"]["denied_and_wrong_pin_unknown_without_retirement"] = True
         finally:
-            (folder / "client.json").write_bytes(reader)
-            (folder / "workloads.json").write_bytes(policy)
+            (reader_folder / "client.json").write_bytes(reader)
+            (reader_folder / "workloads.json").write_bytes(policy)
         sync()
         assert live_read(workloads["e02-ready"]["id"])["observation"]["health"] == "healthy"
         # Stop observer and age naturally; stale is not a database timestamp edit.
@@ -569,10 +790,7 @@ def verify(args):
         )
         assert response.status_code == 403 and domain() == before
         report["checks"]["viewer_investigation_denied_domain_unchanged"] = True
-        # Upgrade is repeatable and stop/start retains both v1 and populated legacy data.
-        legacy = app(
-            "import json; from sqlalchemy import text; from cloudops.shared.database import sessions;\nwith sessions()() as db: print(json.dumps([dict(r) for r in db.execute(text(\"SELECT b.id::text,b.digest,b.snapshot,b.confirmed_by::text,b.confirmed_at::text FROM baselines b JOIN workloads w ON w.id=b.workload_id WHERE w.name='legacy-e02-fixture'\")).mappings()]))"
-        )
+        # Repeat-at-head is not populated migration proof; the _test suite owns that check.
         app(
             "from alembic import command; from alembic.config import Config; command.upgrade(Config('services/backend/alembic.ini'),'head'); command.upgrade(Config('services/backend/alembic.ini'),'head')"
         )
@@ -590,46 +808,69 @@ def verify(args):
         assert (
             stable(context("e02-ready", baseline_ids["e02-ready"])["baseline"]) == before_selected
         )
-        after_legacy = app(
-            "import json; from sqlalchemy import text; from cloudops.shared.database import sessions;\nwith sessions()() as db: print(json.dumps([dict(r) for r in db.execute(text(\"SELECT b.id::text,b.digest,b.snapshot,b.confirmed_by::text,b.confirmed_at::text FROM baselines b JOIN workloads w ON w.id=b.workload_id WHERE w.name='legacy-e02-fixture'\")).mappings()]))"
+        assert legacy_state() == legacy
+        report["checks"][
+            "repeat_head_upgrade_restart_nonempty_legacy_and_exact_selected_v1_preserved"
+        ] = True
+        report["legacy_continuity_count"] = len(legacy)
+        report["populated_upgrade_scope"] = (
+            "Separate PostgreSQL _test suite; this live case checks repeat-at-head and restart only."
         )
-        assert after_legacy == legacy
-        report["checks"]["repeat_upgrade_stop_start_legacy_and_exact_selected_v1_preserved"] = True
-    assert protected() == before_protected
+    require(
+        protected() == before_protected,
+        "Protected original target/writer policy changed during verification.",
+    )
     report["checks"]["original_checkout_uid_spec_and_writer_allowlist_unchanged"] = True
     report["baselines"] = baseline_ids
-    args.output.write_text(json.dumps(report, indent=2))
-    print(json.dumps(report, indent=2))
+    require(
+        git_bytes("rev-parse", "HEAD").decode().strip() == report["runtime_commit"],
+        "Candidate commit changed during verification.",
+    )
+    require(
+        not git_bytes("status", "--porcelain=v1", "--untracked-files=all").strip(),
+        "Checkout changed during verification.",
+    )
+    report["completed_at"] = datetime.now(timezone.utc).isoformat()
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8", newline="\n")
+    print(
+        json.dumps(
+            {
+                "receipt": str(args.output),
+                "runtime_commit": report["runtime_commit"],
+                "result": "passed",
+                "browser_gate": "open",
+            }
+        )
+    )
 
 
 def cleanup(_args):
     expected = json.loads((folder / "protected.json").read_text())
-    assert protected() == expected, (
-        "Protected checkout or writer policy changed; inspect before cleanup."
+    require(
+        protected() == expected,
+        "Protected checkout or writer policy changed; inspect before cleanup.",
     )
     rows = json.loads(
         kube("get", "deployments", "-n", "demo", "-l", "cloudops-probe=e02-baselines", "-o", "json")
     )["items"]
-    allowed = {"e02-ready", "e02-recreate", "e02-config", "e02-unlisted"}
-    assert all(row["metadata"]["name"] in allowed for row in rows)
+    require(
+        all(row["metadata"]["name"] in FIXTURES["Deployment"] for row in rows),
+        "Unexpected owned Deployment; inspect before cleanup.",
+    )
     for row in rows:
-        kube(
-            "delete",
-            "deployment",
-            row["metadata"]["name"],
-            "-n",
-            "demo",
-            "--wait=true",
-            "--timeout=45s",
-        )
+        delete_fixture("Deployment", row["metadata"]["name"])
     refs = json.loads(
         kube("get", "configmaps", "-n", "demo", "-l", "cloudops-probe=e02-baselines", "-o", "json")
     )["items"]
-    assert all(row["metadata"]["name"] in {"e02-settings", "e02-settings-new"} for row in refs)
+    require(
+        all(row["metadata"]["name"] in FIXTURES["ConfigMap"] for row in refs),
+        "Unexpected owned ConfigMap; inspect before cleanup.",
+    )
     for row in refs:
-        kube("delete", "configmap", row["metadata"]["name"], "-n", "demo")
+        delete_fixture("ConfigMap", row["metadata"]["name"])
     sync()
-    assert protected() == expected
+    require(protected() == expected, "Protected checkout/writer policy changed during cleanup.")
     print("Only owned E02 fixture resources removed; database and authority volumes retained.")
 
 
@@ -650,10 +891,19 @@ def main():
     sub.add_parser(
         "cleanup", help="Remove only the fixed labeled fixtures; retain all records/volumes."
     )
+    sub.add_parser(
+        "seed-legacy", help="Create or retain the explicitly synthetic v0 continuity fixture."
+    )
     args = parser.parse_args()
+    if not __debug__:
+        parser.error(
+            "Run verification without -O/PYTHONOPTIMIZE; acceptance assertions must remain active."
+        )
     if not os.environ.get("POSTGRES_PASSWORD"):
         parser.error("Set POSTGRES_PASSWORD for the existing disposable local lab.")
-    {"prepare": prepare, "verify": verify, "cleanup": cleanup}[args.command](args)
+    {"prepare": prepare, "verify": verify, "cleanup": cleanup, "seed-legacy": seed_legacy}[
+        args.command
+    ](args)
 
 
 if __name__ == "__main__":
