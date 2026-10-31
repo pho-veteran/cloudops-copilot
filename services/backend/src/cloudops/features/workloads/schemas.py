@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -25,8 +26,30 @@ class WorkloadView(View):
     source: Literal["development_fixture", "live_kubernetes"] = "development_fixture"
     health: Health = "unknown"
     observation: ObservationSummary | None = None
+    retirement_reason: Literal["removed", "deleted", "replaced"] | None = None
 
 
 class WorkloadPage(BaseModel):
     items: list[WorkloadView]
+    next_offset: int | None
+
+
+class ScopeTargetView(View):
+    id: UUID
+    cluster: str
+    namespace: str
+    name: str
+    configured: bool
+    workload_id: UUID | None
+    uid: str | None = None
+    state: Literal["current", "missing", "unavailable", "removed"]
+    reason: (
+        Literal["not_found", "permission_denied", "cluster_unavailable", "budget_exhausted"] | None
+    )
+    last_attempt_at: datetime
+    last_success_at: datetime | None
+
+
+class ScopePage(BaseModel):
+    items: list[ScopeTargetView]
     next_offset: int | None

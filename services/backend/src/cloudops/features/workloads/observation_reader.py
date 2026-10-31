@@ -14,6 +14,7 @@ import httpx
 from cloudops.features.workloads.kubernetes import Kubernetes
 from cloudops.features.workloads.observation_evaluator import ObservationError, evaluate, items
 from cloudops.features.workloads.observation_settings import POLICY
+from cloudops.features.workloads.scope_config import cluster_fingerprint
 
 
 def reader_binding():
@@ -31,9 +32,10 @@ def binding(config):
 
 
 class ObservationReader:
-    def __init__(self, *, transport=None, expected_binding=None):
+    def __init__(self, *, transport=None, expected_binding=None, expected_fingerprint=None):
         self.transport = transport
         self.expected_binding = expected_binding
+        self.expected_fingerprint = expected_fingerprint
 
     async def read(self, identity, started_at):
         from datetime import timedelta
@@ -45,6 +47,11 @@ class ObservationReader:
             if not path:
                 raise ObservationError("cluster_unavailable")
             config = json.loads(Path(path).read_text(encoding="utf-8"))
+            if (
+                self.expected_fingerprint
+                and cluster_fingerprint(config) != self.expected_fingerprint
+            ):
+                raise ObservationError("cluster_identity_mismatch")
             if self.expected_binding and binding(config) != self.expected_binding:
                 raise ObservationError("cluster_identity_mismatch")
             server = config["server"].rstrip("/")

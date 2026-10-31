@@ -1,45 +1,33 @@
-import json
 from uuid import UUID
 
-from pydantic import TypeAdapter
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from cloudops.features.workloads.models import Workload
+from cloudops.features.workloads.models import ScopeTarget, Workload
 from cloudops.features.workloads.observation_service import summaries
-from cloudops.features.workloads.schemas import DevelopmentWorkload, WorkloadPage, WorkloadView
-from cloudops.shared.config import settings
+from cloudops.features.workloads.schemas import (
+    ScopePage,
+    ScopeTargetView,
+    WorkloadPage,
+    WorkloadView,
+)
 from cloudops.shared.errors import DomainError
 
 
-def sync_config(db: Session):
-    entries = TypeAdapter(list[DevelopmentWorkload]).validate_python(
-        json.loads(settings().workloads_file.read_text())
-    )
-    if len(entries) > 100:
-        raise ValueError("Configure at most 100 development workloads.")
-    identities = [(e.cluster, e.namespace, e.name, e.uid) for e in entries]
-    if len(set(identities)) != len(identities):
-        raise ValueError("Development workload identities must be unique.")
-    with db.begin():
-        # A new explicit authority window fences in-flight reads, including same-UID
-        # retirement/re-add. Scope synchronization remains the only admission writer.
-        db.execute(
-            update(Workload).values(active=False, observation_epoch=Workload.observation_epoch + 1)
-        )
-        for entry in entries:
-            row = db.scalar(select(Workload).filter_by(**entry.model_dump(exclude={"source"})))
-            if row:
-                row.active = True
-                row.source = entry.source
-            else:
-                db.add(Workload(**entry.model_dump()))
+def sync_config(db: Session, previous_fingerprint=None):
+    from cloudops.features.workloads.reconcile import sync
+
+    return sync(db, previous_fingerprint)
 
 
 def require_active(db: Session, workload_id: UUID) -> Workload:
     row = db.scalar(select(Workload).where(Workload.id == workload_id).with_for_update())
     if not row or not row.active:
-        raise DomainError(422, "workload_unavailable", "Choose an active configured workload.")
+        raise DomainError(
+            422,
+            "workload_unavailable",
+            "Choose an active configured workload; historical identities cannot admit new work.",
+        )
     return row
 
 
@@ -69,5 +57,23 @@ def inventory(db: Session, limit: int, offset: int):
     projected = summaries(db, rows[:limit])
     return WorkloadPage(
         items=[view(w, projected[w.id]) for w in rows[:limit]],
+        next_offset=offset + limit if len(rows) > limit else None,
+    )
+
+
+def scope_inventory(db, limit, offset, removed):
+    rows = db.execute(
+        select(ScopeTarget, Workload.uid)
+        .outerjoin(Workload, ScopeTarget.workload_id == Workload.id)
+        .where(ScopeTarget.configured == (not removed))
+        .order_by(ScopeTarget.cluster, ScopeTarget.namespace, ScopeTarget.name, ScopeTarget.id)
+        .limit(limit + 1)
+        .offset(offset)
+    ).all()
+    return ScopePage(
+        items=[
+            ScopeTargetView.model_validate(target).model_copy(update={"uid": uid})
+            for target, uid in rows[:limit]
+        ],
         next_offset=offset + limit if len(rows) > limit else None,
     )

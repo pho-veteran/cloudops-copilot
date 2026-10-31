@@ -18,6 +18,7 @@ OPERATIONS = {
     "get_session": Operation("GET", "/api/session", "protected_read"),
     "logout": Operation("POST", "/api/logout", "session_self_service"),
     "list_workloads": Operation("GET", "/api/workloads", "protected_read"),
+    "list_workload_scope": Operation("GET", "/api/workloads/scope", "protected_read"),
     "get_workload": Operation("GET", "/api/workloads/{workload_id}", "protected_read"),
     "get_workload_observation": Operation(
         "GET", "/api/workloads/{workload_id}/observation", "protected_read"

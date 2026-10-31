@@ -80,6 +80,35 @@ def test_fixed_get_paths_and_sanitized_response(configured):
     assert "private-token-sentinel" not in result.model_dump_json()
 
 
+@pytest.mark.parametrize("matches", [True, False])
+def test_operator_v2_pin_is_checked_before_any_observation_request(configured, matches):
+    path = Path(module.os.environ["KUBE_READ_CONFIG"])
+    config = json.loads(path.read_text())
+    certificate = Path(__file__).resolve().parents[1] / "tests/fixtures/scope-ca.crt"
+    config["ca_data"] = base64.b64encode(certificate.read_bytes()).decode()
+    path.write_text(json.dumps(config))
+    expected = module.cluster_fingerprint(config) if matches else "0" * 64
+    deployment, rs, pods = objects()
+    calls = []
+
+    async def send(request):
+        calls.append(request.url.path)
+        if request.url.path.endswith("replicasets"):
+            return response(rs)
+        if request.url.path.endswith("pods"):
+            return response(pods)
+        return response(deployment)
+
+    reader = ObservationReader(transport=httpx.MockTransport(send), expected_fingerprint=expected)
+    if matches:
+        result = asyncio.run(reader.read(configured.identity, configured.started_at))
+        assert result.health == "healthy" and len(calls) == 4
+    else:
+        with pytest.raises(ObservationError, match="cluster_identity_mismatch"):
+            asyncio.run(reader.read(configured.identity, configured.started_at))
+        assert calls == []
+
+
 @pytest.mark.parametrize(
     "status,reason",
     [

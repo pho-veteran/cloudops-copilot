@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session
-from cloudops.features.workloads.schemas import WorkloadPage, WorkloadView
-from cloudops.features.workloads.service import inventory, identity
 from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
 from cloudops.features.workloads.observation_service import detail, history
+from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
+from cloudops.features.workloads.service import identity, inventory, scope_inventory
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES
 
@@ -26,6 +26,16 @@ def list_workloads(
     db: Session = Depends(get_db),
 ):
     return inventory(db, limit, offset)
+
+
+@router.get("/scope", operation_id="list_workload_scope", response_model=ScopePage)
+def list_scope(
+    limit: int = Query(25, ge=1, le=100),
+    offset: int = Query(0, ge=0, le=100000),
+    removed: bool = False,
+    db: Session = Depends(get_db),
+):
+    return scope_inventory(db, limit, offset, removed)
 
 
 @router.get("/{workload_id}", operation_id="get_workload", response_model=WorkloadView)

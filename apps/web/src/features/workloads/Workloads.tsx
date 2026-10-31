@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useWorkloads, useWorkload } from "./queries";
 import { WorkloadIdentity } from "./WorkloadIdentity";
 import { Baselines } from "./Baselines";
+import { ScopeStatus } from "./ScopeStatus";
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export function Workloads({
         Configured identities only. Open workload context for owned Pods,
         observation limits, related incidents and known-good preparation.
       </p>
+      <ScopeStatus />
       {query.isPending ? (
         <Loading />
       ) : query.isError ? (

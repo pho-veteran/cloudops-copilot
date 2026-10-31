@@ -8,7 +8,7 @@ from cloudops.features.access.schemas import SessionView
 from cloudops.features.health.schemas import HealthView
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
 from cloudops.features.investigations.schemas import RunPage, RunView
-from cloudops.features.workloads.schemas import WorkloadPage, WorkloadView
+from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
 from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
 
 
@@ -42,6 +42,11 @@ def workload_check(response, context, actor):
     page = validated(WorkloadPage, response)
     assert str(context.workload_id) in {str(item.id) for item in page.items}
     assert page.next_offset is None
+
+
+def scope_check(response, context, actor):
+    result = validated(ScopePage, response)
+    assert result.items == [] and result.next_offset is None
 
 
 def workload_request(context):
@@ -161,6 +166,7 @@ def probe_check(response, context, actor):
 CASES = {
     "get_session": RequestCase(session_request, session_check),
     "list_workloads": RequestCase(session_request, workload_check),
+    "list_workload_scope": RequestCase(session_request, scope_check),
     "get_workload": RequestCase(workload_request, workload_identity_check),
     "get_workload_observation": RequestCase(workload_request, observation_check),
     "list_workload_observations": RequestCase(workload_request, observation_history_check),

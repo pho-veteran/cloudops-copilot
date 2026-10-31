@@ -7,6 +7,16 @@ export function WorkloadIdentity({
   workload: components["schemas"]["WorkloadView"];
 }) {
   const aged = useAgedObservation(workload.observation);
+  const retirement = {
+    deleted: "Deployment deleted",
+    replaced: "Replaced by a different Deployment UID",
+    removed: "Removed from configured scope",
+  };
+  const scope = workload.active
+    ? "Configured"
+    : workload.retirement_reason
+      ? retirement[workload.retirement_reason]
+      : "Historical identity · retirement reason unavailable";
   return (
     <details>
       <summary>Inspect workload identity</summary>
@@ -22,9 +32,9 @@ export function WorkloadIdentity({
         <dt>Deployment UID</dt>
         <dd className="mono">{workload.uid}</dd>
         <dt>Scope</dt>
-        <dd>{workload.active ? "Configured" : "Removed from configured scope"}</dd>
+        <dd>{scope}</dd>
         <dt>Source</dt>
-        <dd>{workload.source === "live_kubernetes" ? "Live Kubernetes" : "Development fixture"}</dd>
+        <dd>{workload.source === "live_kubernetes" ? "Live Kubernetes identity" : "Development fixture"}</dd>
         <dt>Live health</dt>
         <dd>{aged.health.replaceAll("_", " ")}</dd>
       </dl>

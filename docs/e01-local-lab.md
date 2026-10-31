@@ -34,6 +34,8 @@ Open `https://localhost:8443` after accepting this lab's CA through normal local
 
 ## Consumer behavior
 
+Versioned name-based live identity reconciliation, failure semantics and its read-only UI are documented in [Host-configured workload scope](workload-scope.md). The bootstrap's legacy UID-pinned representation remains supported; do not overwrite an approved v2 scope with freshly generated legacy files.
+
 - Workloads expose selected image/resource baseline candidates from two matching healthy observations at least five seconds apart, valid for five minutes. Confirmation saves UID/digest/actor/time metadata and never patches Kubernetes. Referenced configuration and Secrets are explicitly outside the snapshot.
 - Incident notes and acknowledge/resolve/reopen use the existing principal. Resolution captures an immutable stored handoff; later notes/reopen cannot rewrite that export. Queued/executing recovery blocks resolution and reinvestigation. An unknown execution may remain visible in a resolved incident and retains its lock until trusted proof.
 - Connection checks have fixed `cluster`, `database` and `worker` destinations. Results are persisted observations; no request accepts an endpoint or credential.
@@ -42,7 +44,7 @@ Open `https://localhost:8443` after accepting this lab's CA through normal local
 - Reading a plan returns live validity and a receipt tied to the current session, expiring within sixty seconds. Approval/rejection requires its exact version/digest and a fresh explicit action. Reauthentication invalidates old receipts. The UI binds the confirmation dialog to the reviewed plan and discards intent when authority or the displayed plan changes. No mutation is replayed automatically.
 - An acknowledged Kubernetes patch is **not** verified remediation. Results remain `manual_intervention`/`inconclusive`; rollout, application metrics and any subsequent change require manual assessment. There is no automatic rollback.
 
-Viewers read/export these records and log out their own session. All nine Operator mutation operations reject a valid Viewer request before any committed domain/job change. Anonymous/expired requests cannot read observations, review receipts or stored records. The actual 31-operation inventory and executable role cases are in `services/backend/tests`; provider fixtures are explicitly separate from the live probes.
+Viewers read/export these records and log out their own session. All nine Operator mutation operations reject a valid Viewer request before any committed domain/job change. Anonymous/expired requests cannot read observations, review receipts or stored records. The current operation inventory and executable role cases, including the additional scope/history reads, are in `services/backend/tests`; provider fixtures are explicitly separate from the live probes.
 
 ## Writer and maintenance protocol
 

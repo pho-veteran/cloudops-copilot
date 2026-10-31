@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import delete, func, or_, select, text, tuple_
 
-from cloudops.features.workloads.models import Workload
+from cloudops.features.workloads.models import ScopeState, Workload
 from cloudops.features.workloads.observation_evaluator import ObservationError, compare
 from cloudops.features.workloads.observation_models import (
     ObservationAttempt,
@@ -52,6 +52,7 @@ class Claim:
     token: UUID
     sequence: int
     started_at: datetime
+    scope_fingerprint: str | None = None
 
 
 def transaction_limits(db):
@@ -73,6 +74,12 @@ def claim(workload_id, purpose, factory=None):
             raise ObservationError("inactive")
         if workload.source != "live_kubernetes":
             raise ObservationError("fixture")
+        scope = db.get(ScopeState, 1)
+        fingerprint = None
+        if scope and scope.mode == "v2":
+            if scope.cluster_key != workload.cluster or not scope.fingerprint:
+                raise ObservationError("cluster_identity_mismatch")
+            fingerprint = scope.fingerprint
         now = database_now(db)
         live = ObservationState.lease_until > now
         total = db.scalar(select(func.count()).select_from(ObservationState).where(live))
@@ -128,6 +135,7 @@ def claim(workload_id, purpose, factory=None):
             token,
             state.sequence,
             now,
+            fingerprint,
         )
 
 
@@ -257,9 +265,13 @@ async def observe_direct(workload_id, purpose="baseline_candidate", *, factory=N
     if captured is None:
         return DirectOutcome(outcome="busy", reason="budget_exhausted")
     try:
-        observation = await (reader or ObservationReader(expected_binding=captured_binding)).read(
-            captured.identity, captured.started_at
-        )
+        observation = await (
+            reader
+            or ObservationReader(
+                expected_binding=captured_binding,
+                expected_fingerprint=captured.scope_fingerprint,
+            )
+        ).read(captured.identity, captured.started_at)
         if captured_binding and reader_binding() != captured_binding:
             return await database_call(
                 finalize, captured, reason="cluster_identity_mismatch", factory=factory
@@ -472,6 +484,8 @@ def history(db, workload_id, limit, cursor):
 def due(factory=None):
     with (factory or sessions())() as db, db.begin():
         transaction_limits(db)
+        # Initialization shares claim's admission lock: no competing first insert.
+        db.execute(text("SELECT pg_advisory_xact_lock(742027)"))
         now = database_now(db)
         # Initialization and cleanup are bounded to the configured scope.
         active = db.scalars(

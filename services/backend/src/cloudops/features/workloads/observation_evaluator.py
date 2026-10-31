@@ -360,8 +360,11 @@ def _evaluate(identity, start, end, rs_list, pod_list, started_at, observed_at):
     if len(current) != 1 and not (desired == 0 and not active and not current):
         reasons.add("current_replicaset_ambiguous")
     status = start.get("status", {})
+    # Kubernetes omits zero-valued replica counters. Controller observation must
+    # still be present; missing Pod/source evidence remains incomplete below.
+    controller_observed = status.get("observedGeneration") is not None
     counters = {
-        name: status.get(key)
+        name: status.get(key, 0 if controller_observed and key != "observedGeneration" else None)
         for name, key in (
             ("observed_generation", "observedGeneration"),
             ("ready", "readyReplicas"),

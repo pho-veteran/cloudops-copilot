@@ -44,7 +44,7 @@ def test_matching_labels_do_not_establish_ownership(owner):
     "case,health,reason",
     [
         ("missing_status", "unknown", "status_missing"),
-        ("missing_counter", "unknown", "status_missing"),
+        ("missing_counter", "progressing", "rollout_pending"),
         ("no_rs", "unknown", "current_replicaset_ambiguous"),
         ("ambiguous_rs", "unknown", "current_replicaset_ambiguous"),
         ("crash", "degraded", "crash_loop"),
@@ -115,6 +115,34 @@ def test_scaled_zero_is_complete_without_current_rs_but_never_healthy():
     result = observed(data=data)
     assert result.health == "scaled_to_zero" and result.coverage == "complete"
     assert result.deployment.ready is None
+
+
+@pytest.mark.parametrize("failure", [None, "CrashLoopBackOff", "ErrImagePull"])
+def test_omitted_zero_replica_counters_preserve_unready_evidence_and_delta(failure):
+    data = objects()
+    data[0]["status"].pop("readyReplicas")
+    data[0]["status"].pop("availableReplicas")
+    container = data[2]["items"][0]["status"]["containerStatuses"][0]
+    container["ready"] = False
+    if failure:
+        container["state"] = {"waiting": {"reason": failure}}
+    first = observed(data=data)
+    assert first.coverage == "complete"
+    assert first.health == ("degraded" if failure else "progressing")
+    assert first.deployment.ready == first.deployment.available == 0
+    container["restartCount"] += 2
+    second = observed(first.identity, first.started_at + timedelta(seconds=1), data)
+    assert compare(first, second).restart_delta == 2
+
+
+def test_absent_controller_observation_is_not_an_encoded_zero():
+    data = objects()
+    data[0]["status"].pop("observedGeneration")
+    data[0]["status"].pop("readyReplicas")
+    value = observed(data=data)
+    assert value.health == "unknown" and value.coverage == "partial"
+    assert value.deployment.observed_generation is None
+    assert value.deployment.ready is None
 
 
 @pytest.mark.parametrize("native", [False, True])

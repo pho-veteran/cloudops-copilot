@@ -26,8 +26,10 @@ function RelatedIncidents({ id }: { id: string }) {
 }
 
 function Evidence({ value, historical }: { value: components["schemas"]["PublicObservation"]; historical: boolean }) {
-  return <section aria-label={historical ? "Historical Kubernetes evidence" : "Observed Kubernetes evidence"} className="foundation-stack">
-    <h3>{historical ? "Historical evidence · not current health" : "Observed Kubernetes evidence"}</h3>
+  const partial = value.coverage === "partial";
+  return <section aria-label={partial ? "Partial Kubernetes evidence" : historical ? "Historical Kubernetes evidence" : "Observed Kubernetes evidence"} className="foundation-stack">
+    <h3>{partial ? "Latest read · partial coverage" : historical ? "Historical evidence · not current health" : "Observed Kubernetes evidence"}</h3>
+    {partial && <p className="muted">Partial evidence does not establish current health. Inspect its read time and the freshness summary.</p>}
     <p className="mono break-all">Observation: {value.observation_id}</p>
     <p>{new Date(value.started_at).toLocaleString()} → {new Date(value.observed_at).toLocaleString()}</p>
     <p>Generation {value.deployment.generation} · Ready {value.deployment.ready ?? "unknown"} / {value.deployment.desired} · {value.coverage}</p>

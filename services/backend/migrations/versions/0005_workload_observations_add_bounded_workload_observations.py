@@ -4,8 +4,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "0004_workload_observations"
-down_revision = "0003_e01_consumers"
+revision = "0005_workload_observations"
+down_revision = "0004_workload_scope"
 branch_labels = None
 depends_on = None
 

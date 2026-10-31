@@ -17,11 +17,19 @@ from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
-from cloudops.features.workloads.models import Baseline, BaselineCandidate, Workload
+from cloudops.features.workloads.models import (
+    Baseline,
+    BaselineCandidate,
+    ScopeState,
+    ScopeTarget,
+    Workload,
+)
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.jobs import Job
 
 CONSUMER_MODELS = (
+    ScopeState,
+    ScopeTarget,
     Workload,
     BaselineCandidate,
     Baseline,
