@@ -26,6 +26,20 @@ function responses() {
 }
 
 describe("baseline preparation and explicit selection", () => {
+  it.each([[31_000, 2], [1_000, 1]])("uses cached response age %ims to bound reads after a real remount", async (age, requests) => {
+    responses();
+    const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const tree = () => <QueryClientProvider client={cache}><Baselines id={id} canMutate selectedBaseline={baseline} /></QueryClientProvider>;
+    const view = render(tree());
+    await screen.findByText(/Context response received/);
+    await waitFor(() => expect(cache.isFetching()).toBe(0));
+    cache.setQueryData(["recovery-context", id, baseline], cache.getQueryData(["recovery-context", id, baseline]), { updatedAt: Date.now() - age });
+    view.unmount();
+    render(tree());
+    await screen.findByText(/Context response received/);
+    await waitFor(() => expect(cache.isFetching()).toBe(0));
+    expect(mocks.GET.mock.calls.filter(([path]) => path.endsWith("recovery-context"))).toHaveLength(requests);
+  });
   it("refetches stale selected context when returning to a cached selection and labels response time", async () => {
     responses();
     const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
