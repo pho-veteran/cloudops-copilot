@@ -61,7 +61,7 @@ def transaction_limits(db):
 
 
 def claim(workload_id, purpose, factory=None):
-    if purpose not in {"scheduled", "baseline_candidate", "baseline_confirm"}:
+    if purpose not in {"scheduled", "baseline_candidate", "baseline_confirm", "recovery_context"}:
         raise ValueError("Unknown observation purpose")
     with (factory or sessions())() as db, db.begin():
         transaction_limits(db)

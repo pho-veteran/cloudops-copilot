@@ -8,10 +8,12 @@ describe("safe return navigation", () => {
       page: "incidents",
       id,
       run: id,
+      baseline: "",
     });
   });
   it("retains an exact workload identity for read-only navigation", () => {
-    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "" });
+    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "", baseline: "" });
+    expect(safeRoute(`#/workloads?workload=${id}&baseline=${id}`).baseline).toBe(id);
   });
   it.each(["queue", "workloads", "connections", "reports"])(
     "retains %s",
@@ -33,6 +35,6 @@ describe("safe return navigation", () => {
     "#/workloads?workload=not-a-uuid",
     `#/workloads?workload=${id}&next=https://foreign.test`,
   ])("falls back safely for %s", (hash) => {
-    expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "" });
+    expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "", baseline: "" });
   });
 });

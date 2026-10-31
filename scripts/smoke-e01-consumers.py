@@ -12,6 +12,11 @@ from uuid import uuid4
 import httpx
 
 
+def baseline_history(client, workload_id):
+    page = client.get(f"/api/workloads/{workload_id}/baselines").json()
+    return [{key: value for key, value in row.items() if key != "age_seconds"} for row in page["items"]]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ca", required=True)
@@ -61,11 +66,11 @@ def main():
         assert candidate.status_code == 200, candidate.text
         time.sleep(5.2)
         body = {"candidate_id": candidate.json()["id"], "digest": candidate.json()["digest"]}
-        before = viewer.get(f"/api/workloads/{wid}/baselines").json()
+        before = baseline_history(viewer, wid)
         assert (
             viewer.post(f"/api/workloads/{wid}/baseline", json=body, headers=vh).status_code == 403
         )
-        assert viewer.get(f"/api/workloads/{wid}/baselines").json() == before
+        assert baseline_history(viewer, wid) == before
         assert (
             operator.post(f"/api/workloads/{wid}/baseline", json=body, headers=oh).status_code
             == 201

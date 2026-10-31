@@ -14,10 +14,12 @@ export function Workloads({
   canMutate,
   onInvestigate,
   selectedWorkload,
+  selectedBaseline,
 }: {
   canMutate: boolean;
   onInvestigate: (id: string) => void;
   selectedWorkload?: string;
+  selectedBaseline?: string;
 }) {
   const [offset, setOffset] = useState(0);
   const detailTrigger = useRef<HTMLButtonElement | null>(null);
@@ -97,7 +99,7 @@ export function Workloads({
           {selected.isPending ? <Loading /> : selected.isError ? <Failure error={selected.error} retry={() => void selected.refetch()} /> : selected.data && <>
             <WorkloadIdentity workload={selected.data} />
             <WorkloadContext key={selected.data.id} id={selected.data.id} />
-            {selected.data.source === "live_kubernetes" && <Baselines id={selected.data.id} canMutate={canMutate && selected.data.active} />}
+            {selected.data.source === "live_kubernetes" && <Baselines key={selected.data.id} id={selected.data.id} selectedBaseline={selectedBaseline} canMutate={canMutate && selected.data.active} />}
             {canMutate && selected.data.active && <Button onClick={() => onInvestigate(selected.data.id)}>Investigate workload</Button>}
           </>}
         </DialogContent>

@@ -42,6 +42,7 @@ def create_app():
     from cloudops.features.connections.api import router as connections
     from cloudops.features.recommendations.api import router as recommendations
     from cloudops.features.recovery.api import router as recovery
+    from cloudops.features.recovery.baseline_context import router as recovery_context
 
     for router in (
         health,
@@ -54,6 +55,7 @@ def create_app():
         connections,
         recommendations,
         recovery,
+        recovery_context,
     ):
         app.include_router(router)
 

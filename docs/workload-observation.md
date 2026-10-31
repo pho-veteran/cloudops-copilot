@@ -2,7 +2,7 @@
 
 The dedicated observer reads configured live Deployment identities through the host-configured Kubernetes reader and persists sanitized rollout observations. Inventory, detail and history APIs read PostgreSQL only. **Refresh displayed data** refetches that saved projection; it does not issue Kubernetes requests. Viewer and Operator can inspect the same evidence. Only Operator can start the existing manual investigation.
 
-This implementation targets [E02 task #27](https://github.com/pho-veteran/cloudops-copilot/issues/27). Active requirements and baseline-profile decisions remain in [E02 #5](https://github.com/pho-veteran/cloudops-copilot/issues/5). It does not implement baseline v1 confirmation (#28), application/Prometheus health or new recovery actions. Existing baseline v0 and E07 scale semantics remain unchanged.
+This implementation targets [E02 task #27](https://github.com/pho-veteran/cloudops-copilot/issues/27). Active requirements remain in [E02 #5](https://github.com/pho-veteran/cloudops-copilot/issues/5). The direct-read producer also supports [baseline v1 confirmation and read-only recovery context](workload-baselines.md). Application/Prometheus health and new executable recovery actions remain unavailable. Existing baseline v0 and E07 scale semantics remain unchanged.
 
 ## Start and stop
 

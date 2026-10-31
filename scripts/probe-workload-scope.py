@@ -21,6 +21,10 @@ NAMES = ("scope26-a", "scope26-b", "scope26-unlisted")
 READER = ROOT / "tmp/e01-integration/reader"
 
 
+def immutable_baseline(value):
+    return {key: item for key, item in value.items() if key != "age_seconds"}
+
+
 def command(*args, body=None, check=True):
     result = subprocess.run([*COMPOSE, *args], input=body, capture_output=True, text=True, cwd=ROOT)
     if check and result.returncode:
@@ -210,7 +214,7 @@ def main():
                 headers=headers,
             )
             assert baseline_response.status_code == 201
-            saved_baseline = baseline_response.json()
+            saved_baseline = immutable_baseline(baseline_response.json())
             admission = api.post(
                 "/api/incidents",
                 json={
@@ -240,8 +244,8 @@ def main():
                 w for w in api.get("/api/workloads").json()["items"] if w["name"] == NAMES[0]
             )
             assert new["uid"] != old["uid"] and new["id"] != old["id"]
-            assert api.get(f"/api/workloads/{new['id']}/baselines").json() == []
-            assert api.get(f"/api/workloads/{old['id']}/baselines").json() == [saved_baseline]
+            assert api.get(f"/api/workloads/{new['id']}/baselines").json()["items"] == []
+            assert [immutable_baseline(row) for row in api.get(f"/api/workloads/{old['id']}/baselines").json()["items"]] == [saved_baseline]
             denied = api.post(
                 "/api/incidents",
                 json={
@@ -308,7 +312,7 @@ def main():
                 except httpx.TransportError:
                     pass
                 time.sleep(1)
-            assert api.get(f"/api/workloads/{old['id']}/baselines").json() == [saved_baseline]
+            assert [immutable_baseline(row) for row in api.get(f"/api/workloads/{old['id']}/baselines").json()["items"]] == [saved_baseline]
             receipt["checks"]["restart_preserves_baseline"] = True
             api.post("/api/logout", headers=headers)
             viewer_login = api.post(
