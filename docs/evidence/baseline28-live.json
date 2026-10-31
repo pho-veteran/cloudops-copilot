@@ -1,0 +1,34 @@
+{
+  "runtime_commit": "2bed60508dfb17bcffda3e33b84286e6153d4e93",
+  "environment": "Actual local K3s, PostgreSQL and verified HTTPS API; browser proof recorded separately.",
+  "checks": {
+    "no_selection_missing": true,
+    "healthy_two_direct_reads_confirmed": true,
+    "too_young_rejected": true,
+    "viewer_denied_history_unchanged": true,
+    "duplicate_preserves_original": true,
+    "actual_selected_recovery_route_both_roles": true,
+    "target_uid_spec_generation_resource_version_unchanged": true,
+    "related_incidents_plans_executions_unchanged": true
+  },
+  "target": {
+    "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+    "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+    "generation": 5,
+    "resource_version": "67884",
+    "spec_sha256": "c13beb32d2abb9a52c8aed61536d3da7bc613aa65640fa020478763b7caa6b7e"
+  },
+  "baseline": {
+    "id": "c56f4d33-9e10-474c-819e-88ce79d5ba3b",
+    "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+    "profile": "deployment-images-resources/v1",
+    "digest": "1fa98a1a4b5cf0ffde95999c11a6ca26ce8e1cedce891f1e324a1d3b3de5d68e",
+    "confirmed_at": "2026-10-31T18:05:41.700165Z",
+    "confirmed_by": "c3a235d9-67c8-4d29-8c22-78a7f74e6b38",
+    "observations": [
+      "1850536f-dc1e-468f-8450-d9ee59be80c0",
+      "4447ecb9-13c8-4bd1-8741-fe9df6bd5862"
+    ]
+  },
+  "runtime_note": "Current-source backend copied over the cached pinned Python image; web assets compiled locally and served by Caddy. Clean standard Dockerfile/HTTPS smoke is verified separately by CI."
+}
