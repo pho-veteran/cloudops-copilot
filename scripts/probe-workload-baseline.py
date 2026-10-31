@@ -129,10 +129,8 @@ def main():
         assert value["snapshot"]["profile"] == "deployment-images-resources/v1"
         body = {"candidate_id": value["id"], "digest": value["digest"]}
         history = viewer.get(path + "/baselines").json()
-        assert (
-            operator.post(path + "/baseline", json=body, headers=headers["operator"]).status_code
-            == 409
-        )
+        young = operator.post(path + "/baseline", json=body, headers=headers["operator"])
+        assert young.status_code == 409 and young.json()["error"]["code"] == "candidate_changed"
         assert (
             viewer.post(path + "/baseline", json=body, headers=headers["viewer"]).status_code == 403
         )

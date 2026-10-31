@@ -54,12 +54,17 @@ def main():
             login(operator, args.operator, passwords[0]),
             login(viewer, args.viewer, passwords[1]),
         )
-        workload = next(
-            w
-            for w in operator.get("/api/workloads").json()["items"]
-            if w["source"] == "live_kubernetes"
-            and (not args.workload_id or w["id"] == args.workload_id)
-        )
+        if args.workload_id:
+            selected = operator.get(f"/api/workloads/{args.workload_id}")
+            assert selected.status_code == 200, selected.text
+            workload = selected.json()
+            assert workload["active"] and workload["source"] == "live_kubernetes"
+        else:
+            workload = next(
+                w
+                for w in operator.get("/api/workloads").json()["items"]
+                if w["source"] == "live_kubernetes"
+            )
         wid = workload["id"]
         response = operator.post(
             "/api/incidents",
