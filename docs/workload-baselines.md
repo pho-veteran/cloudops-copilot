@@ -27,3 +27,5 @@ uv run --project services/backend python scripts/probe-workload-baseline.py --ca
 ```
 
 Use `--operator`/`--viewer` for differently named lab accounts and opt into `--password-stdin` for automation. Passwords are never command arguments or receipt fields. The generated receipt defaults to ignored `tmp/baseline28-live.json`; keep browser evidence separate. An unrelated target update during this probe invalidates its unchanged-target assertion and requires another bounded run.
+
+The [actual baseline API receipt](evidence/baseline28-live.json) records the producer → PostgreSQL → selected recovery route and unchanged target/domain checks. The [existing scale compatibility receipt](evidence/baseline28-scale-regression.json) records the separate E01 consumer smoke, explicit restoration and final executor quarantine. API receipts do not establish the browser journey or complete E02 acceptance; those remain gates in the owning GitHub issues.
