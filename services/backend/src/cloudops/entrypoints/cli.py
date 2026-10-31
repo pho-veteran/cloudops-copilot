@@ -23,7 +23,13 @@ def main():
     sub.add_parser(
         "bootstrap", help="Apply migrations and synchronize configured development workloads."
     )
-    sub.add_parser("sync-workloads", help="Synchronize configured development workload identities.")
+    sync = sub.add_parser(
+        "sync-workloads", help="Synchronize host-configured workload scope without cluster writes."
+    )
+    sync.add_argument(
+        "--previous-cluster-fingerprint",
+        help="Exact old binding for an explicitly reviewed CA/server rotation; requires unchanged live UIDs.",
+    )
     account = sub.add_parser(
         "account", help="Provision/reset a user and revoke their existing sessions."
     )
@@ -68,8 +74,15 @@ def run(args):
     require_schema()
     with sessions()() as db:
         if args.command in {"sync-workloads", "bootstrap"}:
-            sync_config(db)
-            print("Development workload allowlist synchronized; historical identities preserved.")
+            result = sync_config(db, getattr(args, "previous_cluster_fingerprint", None))
+            print(
+                f"Workload scope synchronized: {result.current} current, {result.missing} missing, {result.unavailable} unavailable, {result.removed} retired. Historical identities preserved; writer authority unchanged."
+            )
+            if result.unavailable:
+                print(
+                    "Partial observation: prior admission is preserved for unreadable identities; inspect scope status and retry explicitly.",
+                    file=sys.stderr,
+                )
         elif args.command == "account":
             password = (
                 sys.stdin.readline().rstrip("\r\n")

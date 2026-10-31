@@ -50,5 +50,5 @@ def test_consumer_upgrade_preserves_populated_foundation_and_has_one_head():
         ]
         is None
     )
-    assert ScriptDirectory.from_config(config).get_heads() == ["0003_e01_consumers"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["0004_workload_scope"]
     command.check(config)

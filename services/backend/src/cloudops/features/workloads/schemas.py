@@ -1,4 +1,5 @@
 from typing import Literal
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -23,8 +24,30 @@ class WorkloadView(View):
     active: bool
     source: Literal["development_fixture", "live_kubernetes"] = "development_fixture"
     health: Literal["unavailable"] = "unavailable"
+    retirement_reason: Literal["removed", "deleted", "replaced"] | None = None
 
 
 class WorkloadPage(BaseModel):
     items: list[WorkloadView]
+    next_offset: int | None
+
+
+class ScopeTargetView(View):
+    id: UUID
+    cluster: str
+    namespace: str
+    name: str
+    configured: bool
+    workload_id: UUID | None
+    uid: str | None = None
+    state: Literal["current", "missing", "unavailable", "removed"]
+    reason: (
+        Literal["not_found", "permission_denied", "cluster_unavailable", "budget_exhausted"] | None
+    )
+    last_attempt_at: datetime
+    last_success_at: datetime | None
+
+
+class ScopePage(BaseModel):
+    items: list[ScopeTargetView]
     next_offset: int | None

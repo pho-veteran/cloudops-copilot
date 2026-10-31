@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useWorkloads } from "./queries";
 import { WorkloadIdentity } from "./WorkloadIdentity";
 import { Baselines } from "./Baselines";
+import { ScopeStatus } from "./ScopeStatus";
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ export function Workloads({
         confirming a known-good baseline; synthetic workloads cannot establish
         one.
       </p>
+      <ScopeStatus />
       {query.isPending ? (
         <Loading />
       ) : query.isError ? (

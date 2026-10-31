@@ -21,8 +21,10 @@ function mount(canMutate = false, onInvestigate = vi.fn()) {
 beforeEach(() => {
   fixtureHttp.fetch.mockReset();
   fixtureHttp.fetch.mockImplementation(async request => {
-    expect(new URL((request as Request).url).pathname).toBe("/api/workloads");
+    const path = new URL((request as Request).url).pathname;
+    expect(["/api/workloads", "/api/workloads/scope"]).toContain(path);
     expect((request as Request).method).toBe("GET");
+    if (path === "/api/workloads/scope") return Response.json({ items: [], next_offset: null });
     return Response.json(workloadFixture);
   });
 });
@@ -37,7 +39,7 @@ describe("feature-local workload identity consumer", () => {
     expect(screen.getByText(workloadFixture.items[0].uid)).toBeTruthy();
     expect(screen.getByText("Unavailable", { exact: true })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Investigate workload" })).toBeNull();
-    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(1);
+    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(2);
   });
   it("keeps inspection read-only while retaining the existing Operator investigation action", async () => {
     const investigate = vi.fn();
@@ -48,19 +50,27 @@ describe("feature-local workload identity consumer", () => {
     expect(investigate).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Investigate workload" }));
     expect(investigate).toHaveBeenCalledWith(workloadFixture.items[0].id);
-    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(1);
+    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(2);
   });
   it("shows the API failure and retries the same consumer without inventing identity data", async () => {
-    fixtureHttp.fetch.mockResolvedValueOnce(Response.json({ error: { code: "database_unavailable", message: "Application database unavailable." } }, { status: 503 }));
+    const successful = fixtureHttp.fetch.getMockImplementation()!;
+    let failed = false;
+    fixtureHttp.fetch.mockImplementation(async request => {
+      if (!failed && new URL((request as Request).url).pathname === "/api/workloads") {
+        failed = true;
+        return Response.json({ error: { code: "database_unavailable", message: "Application database unavailable." } }, { status: 503 });
+      }
+      return successful(request);
+    });
     mount();
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.queryByText(workloadFixture.items[0].uid)).toBeNull();
     await userEvent.setup().click(screen.getByRole("button", { name: "Retry" }));
     await screen.findByRole("heading", { name: "demo/checkout" });
-    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(2);
+    expect(fixtureHttp.fetch).toHaveBeenCalledTimes(3);
   });
   it("preserves the original identity and removed-scope explanation in historical consumers", async () => {
-    render(<WorkloadIdentity workload={{ ...workloadFixture.items[0], active: false }} />);
+    render(<WorkloadIdentity workload={{ ...workloadFixture.items[0], active: false, retirement_reason: "removed" }} />);
     await userEvent.setup().click(screen.getByText("Inspect workload identity"));
     const details = screen.getByText("Inspect workload identity").closest("details")!;
     expect(within(details).getByText("Removed from configured scope")).toBeTruthy();
