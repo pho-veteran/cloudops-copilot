@@ -1,0 +1,141 @@
+# Alertmanager intake
+
+[#36](https://github.com/pho-veteran/cloudops-copilot/issues/36) turns authenticated Alertmanager webhook v4 notifications into durable work: one incident and one initial investigation per firing episode, bound to a configured Deployment UID. Every authenticated per-alert outcome is visible under **Connections → Alert intake**. Intake never calls a model; collection stays the labeled synthetic fixture.
+
+## Configure the sender credential
+
+Intake is disabled until the API process has `ALERT_INTAKE_CONFIG` naming a read-only JSON file:
+
+```json
+{
+  "schema_version": 1,
+  "source_id": "lab-alertmanager",
+  "cluster": "local-k3s",
+  "token_sha256": "<64 lowercase hex characters>"
+}
+```
+
+- `source_id` (`^[a-z0-9][a-z0-9-]{0,63}$`) becomes the trusted origin `Alertmanager · <source_id>`. Nothing in a payload can choose or change the origin.
+- `cluster` must equal the cluster key of the pinned v2 [workload scope](workload-scope.md). Until it does, every new firing alert is retryable with reason `scope_unpinned`.
+- `token_sha256` is the SHA-256 of a random sender token of at least 32 bytes. The API stores only this digest. Alertmanager reads the token from `credentials_file`. Generate both with:
+
+```sh
+python -c "import hashlib,secrets; t=secrets.token_urlsafe(32); print(t); print(hashlib.sha256(t.encode()).hexdigest())"
+```
+
+An invalid file stops the API at startup. Rotate the token by updating both files and restarting the API.
+
+The credential is machine authentication only. Browser cookies and sessions never grant intake, and the token is not accepted by any Operator or Viewer endpoint.
+
+## Sender configuration
+
+```yaml
+route:
+  receiver: cloudops
+  group_by: [alertname, namespace]
+receivers:
+  - name: cloudops
+    webhook_configs:
+      - url: https://<cloudops-origin>/api/intake/alertmanager
+        send_resolved: true
+        max_alerts: 100
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/cloudops-intake/token
+```
+
+The response contract follows the [Alertmanager webhook sender](https://github.com/prometheus/alertmanager/blob/main/notify/webhook/webhook.go): a 2xx response is final and a 5xx response is retried.
+
+| Response | Meaning | Recorded |
+|---|---|---|
+| `200` with `counts` | Every alert in the notification settled | Per-alert receipts |
+| `401 intake_unauthorized` | Missing, wrong or repeated `Authorization`, or a cookie-only request | Nothing; standard access log only |
+| `503 intake_unavailable` | Intake is not configured | Nothing |
+| `413 intake_too_large`, `415 intake_media_type`, `422 intake_invalid` | Body over 1 MiB, not JSON, or not a valid v4 envelope with 1–100 alerts | Nothing |
+| `503 intake_retry` | At least one alert hit a transient condition | Receipts for every alert that settled; retryable receipts where the database allowed them |
+
+Authentication happens before the body is read, and the body read stops at 1 MiB. Unauthenticated or malformed requests make no database write, cluster read or model call.
+
+## Supported identity labels
+
+Labels select candidates; ownership is always confirmed against the live cluster through the pinned scope reader. That reader uses fixed API paths, does not follow redirects, and enforces a per-notification budget of 20 GET requests, 10 seconds and 1 MiB per response.
+
+| Labels | Resolution |
+|---|---|
+| `namespace` + `deployment` | `GET` the Deployment; its UID must equal the configured active identity |
+| `namespace` + `pod` | `GET` the Pod → its single controlling ReplicaSet → that ReplicaSet's controlling Deployment UID |
+| Both | The Pod chain must name the same Deployment |
+| `cluster` (optional) | Must equal the configured cluster |
+| `alertname`, `severity` | Display and metadata only |
+
+Severity is stored raw with provenance `alert_label` when it matches `^[A-Za-z0-9_.-]{1,32}$`; otherwise it stays `Not provided`. Annotations are size-checked and then discarded. They never appear in persistence, responses or receipts.
+
+## Episodes and outcomes
+
+The deduplication key is `(source_id, fingerprint, startsAt)`. `startsAt` is normalized to UTC with all nine fractional digits, so equivalent spellings match and nanosecond differences stay distinct. The bound Workload UID never changes once recorded.
+
+| Situation | Firing alert | Resolved alert |
+|---|---|---|
+| New episode, identity verified | `accepted`, or `deferred` while dispatch capacity is full. Creates one incident and Run | `ignored` (`resolved_before_admission`) terminal marker; no incident |
+| New episode, permanent identity problem | `rejected` terminal marker with reason | — |
+| New episode, transient problem | `retryable`, no marker; Alertmanager retries | — |
+| Accepted episode | `duplicate`; updates last received time | `resolved_signal`; sets the incident alert signal only |
+| Rejected or ignored episode | `duplicate` with the original reason; never creates work, even after a scope change | `duplicate` |
+
+- A resolved alert never resolves, reopens or cancels anything. Lifecycle stays with Operators.
+- A new firing `startsAt` is a new episode and creates a new incident. There is no merging by title or by time proximity.
+- An accepted episode keeps its incident and Run identities through cancel, resolve, reopen, redelivery and restart. It never consumes a second automatic admission.
+- Each alert settles in its own short transaction, so a permanent rejection never discards the valid alerts in the same batch.
+- Capacity follows [bounded admission](incident-admission.md#capacity). When dispatch is full, the Run waits as `queued/capacity` and the worker promotes it automatically. When the deferred queue is also full, the alert is retryable and nothing is saved.
+
+| Reason | Kind |
+|---|---|
+| `identity_missing`, `identity_invalid`, `identity_ambiguous`, `identity_changed`, `unsupported_identity`, `out_of_scope` | Permanent |
+| `resolved_before_admission` | Ignored |
+| `scope_unpinned`, `cluster_unavailable`, `budget_exhausted`, `capacity_exhausted`, `admission_conflict`, `database_unavailable` | Retryable |
+
+`identity_changed` is permanent. An alert carries no UID, so a Deployment label whose live UID differs from the configured identity cannot be safely attributed to either the old or the replacement identity.
+
+## Lock order
+
+Intake takes the admission lock, then the episode row, then the Workload, and only then lets admission create the Incident, Run and Job. A repeat takes the admission lock, the episode, then the Incident. Resolve takes the Incident first but never waits for the admission lock, so these orders cannot deadlock. All network reads happen before the transaction.
+
+## Receipts, retention and redaction
+
+`GET /api/alert-receipts` (Viewer or Operator) returns newest-first, keyset-paginated receipts plus whether intake is configured. A receipt stores only safe fields: time, source, alert status, fingerprint, canonical start, `alertname`, namespace, the target label kind and name, outcome, reason code, and incident/Run/workload links. The newest 5000 receipts are kept and older ones are pruned after each delivery. Episodes are never pruned, because they are the deduplication identity.
+
+## Local lab
+
+The overlay `compose.alertmanager.yaml` runs `prom/alertmanager:v0.34.2`, pinned by digest, in the HTTPS proxy's network namespace, so `https://localhost:8443` and its TLS name work unchanged. The bootstrap writes the sender token to `tmp/e01-integration/intake-sender/` and only its digest to `tmp/e01-integration/intake-api/`.
+
+```sh
+export CLOUDOPS_LAB_PROJECT=cloudops-intake36   # optional: a separate disposable project
+uv run --project services/backend python scripts/bootstrap-integration.py
+LAB="docker compose -p ${CLOUDOPS_LAB_PROJECT:-cloudops-e01-https} -f compose.yaml -f compose.https.yaml -f compose.integration.yaml -f compose.alertmanager.yaml"
+$LAB up -d --build --wait api worker https
+$LAB cp https:/data/caddy/pki/authorities/local/root.crt tmp/e01-integration/intake-sender/proxy-ca.crt
+cp tmp/e01-integration/intake-sender/proxy-ca.crt tmp/local-https-root.crt
+$LAB up -d --wait alertmanager
+uv run --project services/backend python scripts/probe-alert-intake.py --ca tmp/local-https-root.crt
+```
+
+The probe pins a v2 scope for `demo/checkout`, signs in a disposable Operator and injects alerts into the real Alertmanager with `amtool`. It then checks, through the receipts API:
+- a wrong credential gets 401 and leaves no receipt;
+- a direct Deployment alert creates a UID-bound incident;
+- a repeat is a duplicate;
+- a Pod owner-chain alert maps to the same UID;
+- an out-of-scope alert is rejected;
+- a resolved alert only sets the signal;
+- a new firing start creates a new incident;
+- receipts contain no token or annotation.
+
+Remove the disposable project with `$LAB down -v` when finished.
+
+The recorded receipt is [`docs/evidence/intake36-sender.json`](evidence/intake36-sender.json). It covers the checks above and an API/worker restart after which Alertmanager repeats remained duplicates, with the same episodes and incidents.
+
+## Limits
+
+- One configured source per deployment. There is no rate limiting or mTLS.
+- The lab receipt injects alerts through Alertmanager's API; Prometheus alert rules are not part of it.
+- Collection is synthetic. Integrated E03 acceptance with the work queue and handoff remains [#39](https://github.com/pho-veteran/cloudops-copilot/issues/39).

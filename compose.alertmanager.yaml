@@ -1,0 +1,19 @@
+# Lab overlay: a pinned real Alertmanager sends webhook v4 notifications through the local
+# HTTPS proxy. Use with compose.yaml, compose.https.yaml and compose.integration.yaml.
+services:
+  api:
+    environment:
+      ALERT_INTAKE_CONFIG: /run/cloudops-intake/config.json
+    volumes:
+      - ./tmp/e01-integration/intake-api:/run/cloudops-intake:ro
+  alertmanager:
+    image: prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b
+    # Share the proxy's network namespace so https://localhost:8443 matches its TLS name.
+    network_mode: "service:https"
+    volumes:
+      - ./config/lab/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      # Holds the sender token and a copy of the proxy CA (see docs/alert-intake.md).
+      - ./tmp/e01-integration/intake-sender:/run/cloudops-intake:ro
+    depends_on:
+      https:
+        condition: service_healthy

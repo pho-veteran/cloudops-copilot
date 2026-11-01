@@ -37,7 +37,7 @@ Open [http://localhost:5173](http://localhost:5173). Use that exact origin: logi
 4. Inspect the source, workload UID, timestamps, SHA-256 and stored payload. Navigate away/back and refresh the URL. The selected incident/run remains readable.
 5. Stop/start the stack with `docker compose down` and `docker compose up -d`, then refresh. IDs, human-authored description, evidence and attempts persist. **Request a new investigation** asks for a reason and window, shows a review step, and creates another run while preserving earlier snapshots. A queued run can be cancelled before collection starts. See [investigation requests and bounded admission](docs/incident-admission.md).
 6. Sign out and sign in as the Viewer. The same records remain readable; incident/run mutations are unavailable in the UI and denied by the backend.
-7. Open **Connections** for database and worker heartbeat observations. An unavailable model or executor is shown explicitly.
+7. Open **Connections** for database and worker heartbeat observations. An unavailable model or executor is shown explicitly. **Alert intake** lists authenticated Alertmanager delivery outcomes; intake stays disabled until configured as described in [Alertmanager intake](docs/alert-intake.md).
 
 See [foundation operation and contributor handoff](docs/foundation.md) for failure/restart exercises, API conventions, verification evidence and the consumer integration verification.
 
