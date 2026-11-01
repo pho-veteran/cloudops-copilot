@@ -100,6 +100,12 @@ function mount(runs: ReturnType<typeof run>[], state = "open") {
 }
 
 describe("investigation requests", () => {
+  it.each(["analyzing", "waiting_for_quota"] as const)("keeps %s work busy like the server guard", async (state) => {
+    mount([run({ state, finished_at: null })]);
+    expect(await screen.findByText(/An investigation is still active/)).toBeTruthy();
+    expect(screen.queryByLabelText("Why is a new investigation needed?")).toBeNull();
+  });
+
   it("reviews the reason and window before submitting the exact workload request", async () => {
     const posts = mount([run()]);
     const user = userEvent.setup();

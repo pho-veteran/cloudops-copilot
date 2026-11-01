@@ -130,9 +130,10 @@ def transition(
                     "execution_active",
                     "An admitted execution cannot be hidden by resolution. Wait for its recorded outcome.",
                 )
-            invalidate(db, incident_id)
+            # Match claim's Run -> plan order before taking any draft-plan lock.
             # Queued work cannot outlive resolution; claimed collection finishes as history.
             cancel_pending(db, incident_id, "incident_resolved")
+            invalidate(db, incident_id)
             incident.state = "resolved"
         else:
             before, after = expected[body.action]

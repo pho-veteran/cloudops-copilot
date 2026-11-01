@@ -25,10 +25,10 @@ from cloudops.shared.jobs import Job, JobAttempt, retire_queued
 DEFERRED_REASON = "Accepted; waiting for dispatch capacity. It starts automatically."
 DISPATCH_REASON = "Waiting for a collection worker."
 OUTCOME_REASONS = {
-    "operator_cancelled": "An Operator cancelled this queued investigation before collection.",
-    "incident_resolved": "The incident was resolved before collection started; no attempt was made.",
-    "scope_retired": "The workload identity left configured scope before collection; no replacement was used.",
-    "execution_blocking": "A recovery execution must reach a recorded outcome first; collection was not started.",
+    "operator_cancelled": "An Operator cancelled this queued investigation; no further attempt will start.",
+    "incident_resolved": "The incident was resolved; no further collection attempt will start.",
+    "scope_retired": "The workload identity left configured scope; no replacement or further attempt will be used.",
+    "execution_blocking": "A recovery execution blocks this investigation; no further collection attempt will start.",
 }
 
 

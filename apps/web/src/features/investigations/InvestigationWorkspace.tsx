@@ -199,7 +199,7 @@ export function InvestigationWorkspace({
   if (latest.isError)
     return <Failure error={latest.error} retry={() => void latest.refetch()} />;
   const busy = latest.data.items.some(
-    (r) => r.state === "queued" || r.state === "collecting",
+    (r) => !["insufficient_evidence", "completed", "failed", "cancelled"].includes(r.state),
   );
   const resolved = incident.data.state === "resolved";
   return (
@@ -233,7 +233,7 @@ export function InvestigationWorkspace({
           {!canMutate && <p className="muted">Viewer access · read-only</p>}
           {canMutate && busy && (
             <p className="muted">
-              An investigation is queued or collecting. Cancel a queued request
+              An investigation is still active. Cancel a queued request
               or wait for its result before requesting another.
             </p>
           )}
@@ -396,7 +396,11 @@ export function InvestigationWorkspace({
                   earlier records.
                 </p>
                 {!current.data.attempts.length ? (
-                  <p>Waiting for the worker to claim this run.</p>
+                  <p>
+                    {current.data.state === "cancelled"
+                      ? "Cancelled before collection; no attempt was made."
+                      : "Waiting for the worker to claim this run."}
+                  </p>
                 ) : (
                   <ol className="foundation-stack">
                     {current.data.attempts.map((a) => (
