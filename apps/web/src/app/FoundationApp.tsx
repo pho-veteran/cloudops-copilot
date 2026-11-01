@@ -21,6 +21,7 @@ import { WorkQueue } from "@/features/incidents/WorkQueue";
 import { CreateIncident } from "@/features/incidents/CreateIncident";
 import { Workloads } from "@/features/workloads/Workloads";
 import { InvestigationWorkspace } from "@/features/investigations/InvestigationWorkspace";
+import { clearRequestKeys } from "@/features/investigations/request";
 import { Connections } from "@/features/connections/Connections";
 import { Reports } from "@/features/recommendations/Reports";
 import { Failure, Loading } from "./Feedback";
@@ -64,6 +65,7 @@ export function Workspace() {
     cache.getMutationCache().clear();
     logout.reset();
     setCreating(null);
+    clearRequestKeys();
   };
   const [dark, setDark] = useState(
     () => localStorage.getItem("cloudops-theme") === "dark",
@@ -106,6 +108,7 @@ export function Workspace() {
       cache.removeQueries({ queryKey: ["session"] });
       cache.getMutationCache().clear();
       logout.reset();
+      clearRequestKeys();
     };
     window.addEventListener("cloudops:session-expired", listener);
     return () =>

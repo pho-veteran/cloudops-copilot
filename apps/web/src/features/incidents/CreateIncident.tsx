@@ -1,13 +1,24 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 import { useWorkloads, useWorkload } from "@/features/workloads/queries";
+import {
+  defaultWindow,
+  requestKey,
+  settleKey,
+  toSpec,
+  windowProblem,
+  WindowFields,
+  type WindowChoice,
+} from "@/features/investigations/request";
 import { incidentKeys } from "./queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Failure, Loading } from "@/app/Feedback";
+
+const SCOPE = "create-incident";
 
 export function CreateIncident({
   initialWorkload,
@@ -22,26 +33,29 @@ export function CreateIncident({
   const selected = useWorkload(workloadId || undefined);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  // Keep the same key on an uncertain network retry; edited input gets a new key.
-  const attempt = useRef<{ input: string; key: string } | null>(null);
+  const [question, setQuestion] = useState("");
+  const [timeWindow, setTimeWindow] = useState<WindowChoice>(defaultWindow);
   const cache = useQueryClient();
   const mutation = useMutation({
     mutationFn: async () => {
-      const body = { workload_id: workloadId, title, description };
-      const input = JSON.stringify(body);
-      if (attempt.current?.input !== input)
-        attempt.current = { input, key: crypto.randomUUID() };
+      const body = {
+        workload_id: workloadId,
+        title,
+        description,
+        question,
+        window: toSpec(timeWindow),
+      };
+      // The same input reuses its key after an uncertain failure, even after the dialog reopens.
+      const key = requestKey(SCOPE, body);
       return unwrap(
         await api.POST("/api/incidents", {
           body,
-          params: { header: { "idempotency-key": attempt.current.key } },
+          params: { header: { "idempotency-key": key } },
         }),
       );
     },
-    onSuccess: async (result) => {
-      await cache.invalidateQueries({ queryKey: incidentKeys.all });
-      onCreated(result.incident_id, result.run_id);
-    },
+    onSuccess: () => cache.invalidateQueries({ queryKey: incidentKeys.all }),
+    onSettled: (_data, error) => settleKey(SCOPE, error ?? undefined),
   });
   if (workloads.isPending) return <Loading />;
   if (workloads.isError)
@@ -55,9 +69,13 @@ export function CreateIncident({
         sync command.
       </p>
     );
+  const problem = windowProblem(timeWindow);
   function submit(event: FormEvent) {
     event.preventDefault();
-    mutation.mutate();
+    // Navigation belongs to this mounted form; a closed dialog must not reopen the incident.
+    mutation.mutate(undefined, {
+      onSuccess: (result) => onCreated(result.incident_id, result.run_id),
+    });
   }
   return (
     <form onSubmit={submit} className="foundation-stack">
@@ -107,10 +125,26 @@ export function CreateIncident({
         disabled={mutation.isPending}
         onChange={(e) => setDescription(e.target.value)}
       />
+      <Label htmlFor="incident-question">Investigation question</Label>
+      <Textarea
+        id="incident-question"
+        required
+        maxLength={2000}
+        value={question}
+        disabled={mutation.isPending}
+        placeholder="What should this investigation explain?"
+        onChange={(e) => setQuestion(e.target.value)}
+      />
+      <WindowFields
+        id="incident"
+        value={timeWindow}
+        onChange={setTimeWindow}
+        disabled={mutation.isPending}
+      />
       {mutation.isError && <Failure error={mutation.error} />}
       <Button
         type="submit"
-        disabled={mutation.isPending || !title.trim() || !workloadId || selected.isPending || selected.isError || !selected.data?.active}
+        disabled={mutation.isPending || !title.trim() || !question.trim() || Boolean(problem) || !workloadId || selected.isPending || selected.isError || !selected.data?.active}
       >
         {mutation.isPending
           ? "Creating…"

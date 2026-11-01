@@ -120,7 +120,7 @@ export function IncidentActivity({
       {activity.data?.map((a) => (
         <article key={a.id}>
           <h3>
-            {a.kind} · {new Date(a.created_at).toLocaleString()}
+            {a.kind.replaceAll("_", " ")} · {new Date(a.created_at).toLocaleString()}
           </h3>
           <p className="whitespace-pre-wrap">{a.text}</p>
           {a.kind === "resolve" && (
