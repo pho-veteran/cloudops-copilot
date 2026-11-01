@@ -32,10 +32,10 @@ Open [http://localhost:5173](http://localhost:5173). Use that exact origin: logi
 ## First interactive journey
 
 1. Sign in as the Operator. Open **Workloads** and choose **Investigate workload** on `demo/checkout`.
-2. Enter a title and optional description, then **Create incident and collect evidence**. Incident, run and job admission are one database transaction.
+2. Enter a title, optional description, an investigation question and a time window (last 15/30/60 minutes or a custom interval of up to 60 minutes), then **Create incident and collect evidence**. Incident, run and job admission are one database transaction; the server fixes the absolute UTC window when it accepts the request.
 3. Observe queued/collecting states, then inspect **Evidence** and **Collection attempts**. The terminal state is **insufficient evidence**: synthetic collection finished, but live telemetry and AI diagnosis are unavailable. It is not completed RCA.
 4. Inspect the source, workload UID, timestamps, SHA-256 and stored payload. Navigate away/back and refresh the URL. The selected incident/run remains readable.
-5. Stop/start the stack with `docker compose down` and `docker compose up -d`, then refresh. IDs, human-authored description, evidence and attempts persist. **Start new investigation** creates another run while preserving earlier snapshots.
+5. Stop/start the stack with `docker compose down` and `docker compose up -d`, then refresh. IDs, human-authored description, evidence and attempts persist. **Request a new investigation** asks for a reason and window, shows a review step, and creates another run while preserving earlier snapshots. A queued run can be cancelled before collection starts. See [investigation requests and bounded admission](docs/incident-admission.md).
 6. Sign out and sign in as the Viewer. The same records remain readable; incident/run mutations are unavailable in the UI and denied by the backend.
 7. Open **Connections** for database and worker heartbeat observations. An unavailable model or executor is shown explicitly.
 
