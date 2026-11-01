@@ -166,19 +166,19 @@ def test_approval_rechecks_committed_state_after_live_probe(
 
 
 # Future states are producer-contract fixtures, not evidence of live E07 engines.
-@pytest.mark.parametrize(
-    ("state", "holds_lock", "released", "blocked"),
-    [
-        ("queued", True, False, True),
-        ("executing", True, False, True),
-        ("verifying", True, False, True),
-        ("reconciling", True, False, True),
-        ("outcome_unknown", True, False, False),
-        ("outcome_unknown", False, True, False),
-        ("future_unrecognized", False, False, True),
-        ("manual_intervention", True, False, True),
-    ],
-)
+EXECUTION_CASES = [
+    ("queued", True, False, True),
+    ("executing", True, False, True),
+    ("verifying", True, False, True),
+    ("reconciling", True, False, True),
+    ("outcome_unknown", True, False, False),
+    ("outcome_unknown", False, True, False),
+    ("future_unrecognized", False, False, True),
+    ("manual_intervention", True, False, True),
+]
+
+
+@pytest.mark.parametrize(("state", "holds_lock", "released", "blocked"), EXECUTION_CASES)
 @pytest.mark.parametrize("boundary", ["admit", "promote", "claim", "resolve"])
 def test_shared_execution_fixtures_reach_real_consumer_guards(
     client, state, holds_lock, released, blocked, boundary
@@ -334,3 +334,25 @@ def test_manual_automatic_admission_and_promotion_contend_with_available_slots(
         assert active == 2
         assert waiting <= 1
         assert db.get(InvestigationRun, deferred.run_id) is not None
+
+
+@pytest.mark.parametrize(("state", "holds_lock", "released", "blocked"), EXECUTION_CASES)
+def test_approval_respects_classification_and_retained_target_lock(
+    permission_context, state, holds_lock, released, blocked
+):
+    context = permission_context
+    with sessions()() as db, db.begin():
+        execution = db.get(Execution, UUID(context.consumer.execution_id))
+        execution.state = state
+        execution.holds_lock = holds_lock
+        execution.maintenance_released = released
+        # Isolate classification from the independent short target cooldown.
+        execution.created_at = database_now(db) - timedelta(seconds=61)
+    response = decide(context)
+    denied = blocked or holds_lock
+    assert response.status_code == (409 if denied else 200), response.text
+    if denied:
+        assert response.json()["error"]["code"] == "target_locked"
+    with sessions()() as db:
+        execution = db.get(Execution, UUID(context.consumer.execution_id))
+        assert execution.holds_lock == holds_lock and execution.maintenance_released == released

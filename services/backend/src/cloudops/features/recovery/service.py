@@ -10,6 +10,7 @@ from cloudops.features.incidents.coordination import lock_admission
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.states import nonterminal_run
 from cloudops.features.recovery import client
+from cloudops.features.recovery.classification import BLOCKING, classify
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
 from cloudops.features.workloads.models import Workload
@@ -25,13 +26,19 @@ def _available_locally(db, workload):
         raise DomainError(
             409, "live_target_required", "A synthetic workload cannot produce an executable plan."
         )
-    if db.scalar(
-        select(Execution.id).where(Execution.workload_id == workload.id, Execution.holds_lock)
+    executions = db.execute(
+        select(Execution.state, Execution.holds_lock, Execution.maintenance_released).where(
+            Execution.workload_id == workload.id
+        )
+    )
+    if any(
+        row.holds_lock or classify(row.state, row.holds_lock, row.maintenance_released) in BLOCKING
+        for row in executions
     ):
         raise DomainError(
             409,
             "target_locked",
-            "An execution or historical unknown still holds this target. Inspect its evidence and maintenance state.",
+            "An active, locked or unclassified execution blocks this target. Inspect its evidence and maintenance state.",
         )
     if db.scalar(
         select(Execution.id).where(

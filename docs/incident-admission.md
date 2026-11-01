@@ -49,7 +49,9 @@ Execution states are classified in `features/recovery/classification.py`. `queue
 
 ## Lock order
 
-Admission and promotion serialize on one advisory lock. Cancellation and resolution lock the incident, then its Runs, and retire a Job only with `SKIP LOCKED`. A claimer locks the Job, then the Run. Cancellation therefore never waits for a claimer. The claimer sees the cancelled Run afterwards and retires the Job. No network call runs under these locks. The full order is documented in `features/incidents/coordination.py`.
+Admission and promotion serialize on one advisory lock. Cancellation and resolution lock the incident, then its Runs, and retire a Job only with `SKIP LOCKED`; draft-plan invalidation follows the Run locks. A claimer locks the Job, then the Run. Cancellation therefore never waits for a claimer. The claimer sees the cancelled Run afterwards and retires the Job.
+
+Approval performs live probes before taking admission or row locks, then checks fresh persisted state again in its commit transaction. Legacy recovery proposal/read probes still hold Incident/Workload row locks during bounded live reads. An attach waiting for those rows can indirectly retain the admission lock; this existing E07 contention is not a throughput or lock-free guarantee. The full order is documented in `features/incidents/coordination.py`.
 
 ## Migration
 
