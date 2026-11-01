@@ -250,6 +250,7 @@ def test_active_execution_blocks_resolution_and_reinvestigation(permission_conte
     assert response.status_code == 409 and response.json()["error"]["code"] == "execution_active"
     response = c.actors["operator"].client.post(
         f"/api/incidents/{c.consumer.incident_id}/runs",
+        json={"workload_id": c.consumer.workload_id, "reason": "Re-check during execution"},
         headers={**c.actors["operator"].headers, "Idempotency-Key": str(uuid4())},
     )
     assert response.status_code == 409 and response.json()["error"]["code"] == "execution_active"

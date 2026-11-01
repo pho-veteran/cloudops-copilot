@@ -12,7 +12,7 @@ The integrated UI first landed in `47f09ff`; the verification/hardening wave in 
 |---|---|---|
 | Local setup | Compose web/API/worker/PostgreSQL; ordered migration and workload bootstrap; named persistent volume | Clean install and repeat migration/start checks |
 | Access | Provision/reset CLI, scrypt passwords, server-side opaque cookie sessions, Origin/CSRF and backend Viewer denial | PostgreSQL API tests; Operator/Viewer browser sign-in |
-| Admission | Atomic incident/run/job; actor-bound idempotency key; bounded pending queue; one active run per incident | Concurrent duplicate admission, queue-full and rollback tests |
+| Admission | Atomic incident/run/job; actor-bound idempotency key; stored question and UTC window; bounded dispatch queue plus bounded deferred automatic Runs; one active run per incident; queued cancellation. See [investigation requests and bounded admission](incident-admission.md) | Concurrent duplicate admission, legacy replay across upgrade, queue-full, deferral/promotion, cancel/claim races and rollback tests |
 | Collection | 30-second token lease, 5-second renewals, three attempts, atomic evidence/result publication | Real process kill and lease expiry; concurrent claims, stale/duplicate result rejection and failed publication rollback |
 | UI | Queue, configured workloads, manual intake, selected run URL, immutable evidence and attempt history | Navigate/back/refresh and database/API/worker restart; read-only Viewer; light/dark and narrow layouts |
 | Contract | Backend-owned OpenAPI, generated TypeScript, shared typed transport and feature-owned queries/fixtures | Drift detection with a deliberate extra route, synchronized regeneration, schema-checked typed fixture and consumer query test |

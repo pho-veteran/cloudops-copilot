@@ -12,6 +12,7 @@ x-backend: &backend
     WORKLOADS_FILE: /workspace/config/development-workloads.json
     COLLECTOR_DELAY_SECONDS: ${COLLECTOR_DELAY_SECONDS:-2}
     COLLECTOR_FAIL: ${COLLECTOR_FAIL:-false}
+    DEFERRED_RUN_LIMIT: ${DEFERRED_RUN_LIMIT:-100}
   depends_on:
     db:
       condition: service_healthy

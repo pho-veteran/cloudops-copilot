@@ -46,6 +46,23 @@ class JobHandler(Protocol):
     def publish(self, db: Session, subject_id: UUID, result: Any): ...
 
 
+# Optional handler method: ``eligible(db, subject_id) -> bool``. It runs inside the claim
+# transaction before a new attempt exists; False retires the job without an attempt.
+
+
+def retire_queued(db: Session, kind: str, subject_id: UUID, reason: str) -> bool:
+    """Retire an unclaimed job. A job locked by a claimer is skipped, never waited for."""
+    job = db.scalar(
+        select(Job)
+        .where(Job.kind == kind, Job.subject_id == subject_id, Job.state == "queued")
+        .with_for_update(skip_locked=True)
+    )
+    if not job:
+        return False
+    job.state, job.error = "cancelled", reason[:256]
+    return True
+
+
 @dataclass(frozen=True)
 class Claim:
     id: UUID
@@ -58,34 +75,46 @@ class Claim:
 def claim_next(handlers: dict[str, JobHandler]) -> Claim | None:
     with sessions()() as db, db.begin():
         now = database_now(db)
-        job = db.scalar(
-            select(Job)
-            .where(
-                Job.kind.in_(handlers),
-                or_(Job.state == "queued", and_(Job.state == "running", Job.lease_until <= now)),
+        while True:
+            job = db.scalar(
+                select(Job)
+                .where(
+                    Job.kind.in_(handlers),
+                    or_(
+                        Job.state == "queued",
+                        and_(Job.state == "running", Job.lease_until <= now),
+                    ),
+                )
+                .order_by(Job.created_at, Job.id)
+                .with_for_update(skip_locked=True)
+                .limit(1)
             )
-            .order_by(Job.created_at, Job.id)
-            .with_for_update(skip_locked=True)
-            .limit(1)
-        )
-        if not job:
-            return None
-        handler = handlers[job.kind]
-        if job.state == "running":
-            attempt = db.scalar(select(JobAttempt).where(JobAttempt.lease_token == job.lease_token))
-            attempt.state, attempt.finished_at, attempt.error = (
-                "expired",
-                now,
-                "Worker lease expired; collection may be retried.",
-            )
-        if job.attempts >= job.max_attempts:
-            job.state, job.error = (
-                "failed",
-                "Collection attempt budget exhausted after worker lease expiry.",
-            )
+            if not job:
+                return None
+            handler = handlers[job.kind]
+            if job.state == "running":
+                attempt = db.scalar(
+                    select(JobAttempt).where(JobAttempt.lease_token == job.lease_token)
+                )
+                attempt.state, attempt.finished_at, attempt.error = (
+                    "expired",
+                    now,
+                    "Worker lease expired; collection may be retried.",
+                )
+            if job.attempts >= job.max_attempts:
+                job.state, job.error = (
+                    "failed",
+                    "Collection attempt budget exhausted after worker lease expiry.",
+                )
+                job.lease_token, job.lease_until = None, None
+                handler.failed(db, job.subject_id, job.error, True)
+                return None
+            eligible = getattr(handler, "eligible", None)
+            if eligible is None or eligible(db, job.subject_id):
+                break
+            job.state, job.error = "cancelled", "Retired by its feature before another attempt."
             job.lease_token, job.lease_until = None, None
-            handler.failed(db, job.subject_id, job.error, True)
-            return None
+            db.flush()
         job.attempts += 1
         job.state, job.lease_token = "running", uuid4()
         job.lease_until = now + timedelta(seconds=settings().lease_seconds)

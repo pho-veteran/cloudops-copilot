@@ -246,6 +246,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel */
+        post: operations["cancel_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login": {
         parameters: {
             query?: never;
@@ -578,11 +595,19 @@ export interface components {
              * Format: uuid
              */
             incident_id: string;
+            /** Queue Reason */
+            queue_reason: "capacity" | null;
             /**
              * Run Id
              * Format: uuid
              */
             run_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "queued" | "collecting" | "analyzing" | "waiting_for_quota" | "insufficient_evidence" | "completed" | "failed" | "cancelled";
+            window: components["schemas"]["RequestWindow"] | null;
         };
         /** AttemptView */
         AttemptView: {
@@ -681,6 +706,11 @@ export interface components {
              * Format: uuid
              */
             workload_id: string;
+        };
+        /** CancelRequest */
+        CancelRequest: {
+            /** Reason */
+            reason?: string | null;
         };
         /** CandidateView */
         CandidateView: {
@@ -1054,22 +1084,30 @@ export interface components {
         /** IncidentDetail */
         IncidentDetail: {
             /**
+             * Alert Signal
+             * @enum {string}
+             */
+            alert_signal: "none" | "firing" | "resolved";
+            /**
              * Created At
              * Format: date-time
              */
             created_at: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
+            /** Created By */
+            created_by: string | null;
             /** Description */
             description: string;
+            /** First Seen At */
+            first_seen_at: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
+            origin: components["schemas"]["OriginView"];
+            severity: components["schemas"]["SeverityView"];
             /**
              * State
              * @enum {string}
@@ -1094,22 +1132,30 @@ export interface components {
         /** IncidentView */
         IncidentView: {
             /**
+             * Alert Signal
+             * @enum {string}
+             */
+            alert_signal: "none" | "firing" | "resolved";
+            /**
              * Created At
              * Format: date-time
              */
             created_at: string;
-            /**
-             * Created By
-             * Format: uuid
-             */
-            created_by: string;
+            /** Created By */
+            created_by: string | null;
             /** Description */
             description: string;
+            /** First Seen At */
+            first_seen_at: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
+            origin: components["schemas"]["OriginView"];
+            severity: components["schemas"]["SeverityView"];
             /**
              * State
              * @enum {string}
@@ -1130,15 +1176,22 @@ export interface components {
             /** Username */
             username: string;
         };
-        /** ManualIncidentRequest */
+        /**
+         * ManualIncidentRequest
+         * @description Omitting both question and window keeps the committed three-field request contract.
+         */
         ManualIncidentRequest: {
             /**
              * Description
              * @default
              */
             description: string;
+            /** Question */
+            question?: string | null;
             /** Title */
             title: string;
+            /** Window */
+            window?: components["schemas"]["WindowPreset"] | components["schemas"]["WindowInterval"] | null;
             /**
              * Workload Id
              * Format: uuid
@@ -1222,6 +1275,16 @@ export interface components {
              * @constant
              */
             stale_after_seconds: 60;
+        };
+        /** OriginView */
+        OriginView: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "operator" | "alertmanager";
+            /** Source Id */
+            source_id: string | null;
         };
         /** PlanRequest */
         PlanRequest: {
@@ -1440,6 +1503,24 @@ export interface components {
              */
             workload_id: string;
         };
+        /** RequestWindow */
+        RequestWindow: {
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "preset_15" | "preset_30" | "preset_60" | "explicit" | "legacy_default" | "automatic_default";
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
         /** Resources */
         Resources: {
             /** Cpu */
@@ -1503,6 +1584,18 @@ export interface components {
             /** Next Offset */
             next_offset: number | null;
         };
+        /** RunRequest */
+        RunRequest: {
+            /** Reason */
+            reason: string;
+            /** Window */
+            window?: components["schemas"]["WindowPreset"] | components["schemas"]["WindowInterval"];
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
         /** RunView */
         RunView: {
             /** Attempts */
@@ -1532,6 +1625,18 @@ export interface components {
              * Format: uuid
              */
             incident_id: string;
+            origin: components["schemas"]["OriginView"];
+            /** Outcome Code */
+            outcome_code: ("operator_cancelled" | "incident_resolved" | "scope_retired" | "execution_blocking") | null;
+            /** Question */
+            question: string | null;
+            /**
+             * Question Source
+             * @enum {string}
+             */
+            question_source: "operator" | "title_default" | "automatic" | "not_captured";
+            /** Queue Reason */
+            queue_reason: "capacity" | null;
             /** Reason */
             reason: string;
             /**
@@ -1540,16 +1645,14 @@ export interface components {
              * @constant
              */
             recovery: "unavailable";
-            /**
-             * Requested By
-             * Format: uuid
-             */
-            requested_by: string;
+            /** Requested By */
+            requested_by: string | null;
             /**
              * State
              * @enum {string}
              */
-            state: "queued" | "collecting" | "insufficient_evidence" | "failed";
+            state: "queued" | "collecting" | "analyzing" | "waiting_for_quota" | "insufficient_evidence" | "completed" | "failed" | "cancelled";
+            window: components["schemas"]["RequestWindow"] | null;
         };
         /** ScopePage */
         ScopePage: {
@@ -1603,6 +1706,16 @@ export interface components {
             expires_at: string;
             principal: components["schemas"]["Principal"];
         };
+        /** SeverityView */
+        SeverityView: {
+            /**
+             * Provenance
+             * @enum {string}
+             */
+            provenance: "not_provided" | "alert_label" | "operator";
+            /** Value */
+            value: string | null;
+        };
         /** TransitionBody */
         TransitionBody: {
             /**
@@ -1612,6 +1725,34 @@ export interface components {
             action: "acknowledge" | "resolve" | "reopen";
             /** Reason */
             reason: string;
+        };
+        /**
+         * WindowInterval
+         * @description An explicit interval: 1 to 60 minutes and not ending in the future.
+         */
+        WindowInterval: {
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
+        /**
+         * WindowPreset
+         * @description A relative window, resolved to absolute UTC once at first admission.
+         */
+        WindowPreset: {
+            /**
+             * Preset
+             * @default 30
+             * @enum {integer}
+             */
+            preset: 15 | 30 | 60;
         };
         /** WorkloadPage */
         WorkloadPage: {
@@ -2866,7 +3007,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RunRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -2944,6 +3089,89 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    cancel_run: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                incident_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CancelRequest"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

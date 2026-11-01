@@ -1,14 +1,180 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
-import { useIncident } from "@/features/incidents/queries";
+import { incidentKeys, useIncident } from "@/features/incidents/queries";
 import { runKeys, useRun, useRuns } from "./queries";
+import {
+  defaultWindow,
+  describeOrigin,
+  describeQuestion,
+  describeWindow,
+  requestKey,
+  runStateLabel,
+  settleKey,
+  toSpec,
+  windowProblem,
+  WindowFields,
+  type WindowChoice,
+} from "./request";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Failure, Loading } from "@/app/Feedback";
 import { IncidentActivity } from "@/features/incidents/IncidentActivity";
 import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
+
+function RequestInvestigation({
+  incidentId,
+  workloadId,
+}: {
+  incidentId: string;
+  workloadId: string;
+}) {
+  const cache = useQueryClient();
+  const [reason, setReason] = useState("");
+  const [timeWindow, setTimeWindow] = useState<WindowChoice>(defaultWindow);
+  const [reviewing, setReviewing] = useState(false);
+  const scope = `run:${incidentId}`;
+  const body = { workload_id: workloadId, reason, window: toSpec(timeWindow) };
+  const mutation = useMutation({
+    mutationFn: async () =>
+      unwrap(
+        await api.POST("/api/incidents/{incident_id}/runs", {
+          params: {
+            path: { incident_id: incidentId },
+            header: { "idempotency-key": requestKey(scope, body) },
+          },
+          body,
+        }),
+      ),
+    onSuccess: () => cache.invalidateQueries({ queryKey: runKeys.all(incidentId) }),
+    onSettled: (_data, error) => settleKey(scope, error ?? undefined),
+  });
+  const problem = windowProblem(timeWindow);
+  if (reviewing)
+    return (
+      <section
+        className="foundation-panel foundation-stack"
+        aria-labelledby="review-request"
+      >
+        <h2 id="review-request">Review the investigation request</h2>
+        <dl className="foundation-metadata">
+          <dt>Reason</dt>
+          <dd className="whitespace-pre-wrap">{reason}</dd>
+          <dt>Window</dt>
+          <dd>
+            {timeWindow.mode === "preset"
+              ? `Last ${timeWindow.preset} minutes, fixed in UTC when the server accepts the request`
+              : `${new Date(timeWindow.start).toLocaleString()} → ${new Date(timeWindow.end).toLocaleString()}`}
+          </dd>
+        </dl>
+        <p className="muted">
+          A new Run keeps the incident text and earlier investigations. If the
+          collection queue is full the request is refused; nothing is replayed
+          automatically.
+        </p>
+        {mutation.isError && <Failure error={mutation.error} />}
+        <div className="foundation-actions">
+          <Button
+            disabled={mutation.isPending}
+            onClick={() =>
+              // Navigation only while this view is mounted; leaving it never pulls the user back.
+              mutation.mutate(undefined, {
+                onSuccess: (result) => {
+                  setReviewing(false);
+                  setReason("");
+                  window.location.hash = `/incidents/${incidentId}?run=${result.run_id}`;
+                },
+              })
+            }
+          >
+            {mutation.isPending ? "Submitting…" : "Submit request"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={mutation.isPending}
+            onClick={() => setReviewing(false)}
+          >
+            Edit request
+          </Button>
+        </div>
+      </section>
+    );
+  return (
+    <form
+      className="foundation-panel foundation-stack"
+      aria-labelledby="request-investigation"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setReviewing(true);
+      }}
+    >
+      <h2 id="request-investigation">Request a new investigation</h2>
+      <Label htmlFor="run-reason">Why is a new investigation needed?</Label>
+      <Textarea
+        id="run-reason"
+        required
+        maxLength={2000}
+        value={reason}
+        onChange={(event) => setReason(event.target.value)}
+      />
+      <WindowFields id="run" value={timeWindow} onChange={setTimeWindow} />
+      <div className="foundation-actions">
+        <Button type="submit" disabled={!reason.trim() || Boolean(problem)}>
+          Review request
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function CancelRun({ incidentId, runId }: { incidentId: string; runId: string }) {
+  const cache = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
+  const mutation = useMutation({
+    mutationFn: async () =>
+      unwrap(
+        await api.POST("/api/incidents/{incident_id}/runs/{run_id}/cancel", {
+          params: { path: { incident_id: incidentId, run_id: runId } },
+          body: {},
+        }),
+      ),
+    onSuccess: async () => {
+      setConfirming(false);
+      await cache.invalidateQueries({ queryKey: runKeys.all(incidentId) });
+      await cache.invalidateQueries({ queryKey: ["activity", incidentId] });
+    },
+  });
+  return (
+    <div className="foundation-stack">
+      {confirming ? (
+        <div className="foundation-actions">
+          <Button
+            variant="outline"
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? "Cancelling…" : "Confirm cancellation"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={mutation.isPending}
+            onClick={() => setConfirming(false)}
+          >
+            Keep it queued
+          </Button>
+        </div>
+      ) : (
+        <Button variant="outline" onClick={() => setConfirming(true)}>
+          Cancel queued investigation
+        </Button>
+      )}
+      {mutation.isError && <Failure error={mutation.error} />}
+    </div>
+  );
+}
 
 export function InvestigationWorkspace({
   id,
@@ -25,24 +191,6 @@ export function InvestigationWorkspace({
   const history = useRuns(id, offset);
   const runId = selectedRun || latest.data?.items[0]?.id || "";
   const current = useRun(id, runId);
-  const cache = useQueryClient();
-  const requestKey = useRef(crypto.randomUUID());
-  const mutation = useMutation({
-    mutationFn: async () =>
-      unwrap(
-        await api.POST("/api/incidents/{incident_id}/runs", {
-          params: {
-            path: { incident_id: id },
-            header: { "idempotency-key": requestKey.current },
-          },
-        }),
-      ),
-    onSuccess: async (result) => {
-      requestKey.current = crypto.randomUUID();
-      await cache.invalidateQueries({ queryKey: runKeys.all(id) });
-      window.location.hash = `/incidents/${id}?run=${result.run_id}`;
-    },
-  });
   if (incident.isPending || latest.isPending) return <Loading />;
   if (incident.isError)
     return (
@@ -51,13 +199,15 @@ export function InvestigationWorkspace({
   if (latest.isError)
     return <Failure error={latest.error} retry={() => void latest.refetch()} />;
   const busy = latest.data.items.some(
-    (r) => r.state === "queued" || r.state === "collecting",
+    (r) => !["insufficient_evidence", "completed", "failed", "cancelled"].includes(r.state),
   );
+  const resolved = incident.data.state === "resolved";
   return (
     <section>
       <a href="#/queue">← Work queue</a>
       <div className="eyebrow mt-5">
-        INCIDENT · {incident.data.state.toUpperCase()}
+        INCIDENT · {incident.data.state.toUpperCase()} ·{" "}
+        {describeOrigin(incident.data.origin).toUpperCase()}
       </div>
       <h1>{incident.data.title}</h1>
       <p className="muted">
@@ -72,29 +222,33 @@ export function InvestigationWorkspace({
         <a href={`#/workloads?workload=${incident.data.workload.id}`}>View workload context</a>
       </p>
       <WorkloadIdentity workload={incident.data.workload} />
-      <div className="foundation-actions">
-        {canMutate ? (
-          <Button
-            disabled={
-              busy || mutation.isPending || !incident.data.workload.active
-            }
-            onClick={() => mutation.mutate()}
-          >
-            {mutation.isPending ? "Starting…" : "Start new investigation"}
-          </Button>
-        ) : (
-          <p className="muted">Viewer access · read-only</p>
-        )}
-        {busy && (
-          <p className="muted">An investigation is queued or collecting.</p>
-        )}
-        {!incident.data.workload.active && (
-          <p className="muted">
-            This workload identity no longer admits new work. Its history remains readable; inspect the identity for its retirement status.
-          </p>
-        )}
-      </div>
-      {mutation.isError && <Failure error={mutation.error} />}
+      {canMutate && !busy && !resolved && incident.data.workload.active ? (
+        <RequestInvestigation
+          key={latest.data.items[0]?.id ?? "first"}
+          incidentId={id}
+          workloadId={incident.data.workload.id}
+        />
+      ) : (
+        <div className="foundation-actions">
+          {!canMutate && <p className="muted">Viewer access · read-only</p>}
+          {canMutate && busy && (
+            <p className="muted">
+              An investigation is still active. Cancel a queued request
+              or wait for its result before requesting another.
+            </p>
+          )}
+          {canMutate && resolved && (
+            <p className="muted">
+              Reopen this incident before requesting a new investigation.
+            </p>
+          )}
+          {!incident.data.workload.active && (
+            <p className="muted">
+              This workload identity no longer admits new work. Its history remains readable; inspect the identity for its retirement status.
+            </p>
+          )}
+        </div>
+      )}
       <div className="foundation-workspace">
         <aside className="foundation-panel">
           <h2>Run history</h2>
@@ -115,7 +269,7 @@ export function InvestigationWorkspace({
                       aria-current={r.id === runId ? "page" : undefined}
                       href={`#/incidents/${id}?run=${r.id}`}
                     >
-                      <span>{r.state.replaceAll("_", " ")}</span>
+                      <span>{runStateLabel(r)}</span>
                       <br />
                       <small>{new Date(r.created_at).toLocaleString()}</small>
                       <br />
@@ -158,12 +312,23 @@ export function InvestigationWorkspace({
           ) : (
             <>
               <article className="foundation-panel">
-                <Badge variant="outline">
-                  {current.data.state.replaceAll("_", " ")}
-                </Badge>
+                <Badge variant="outline">{runStateLabel(current.data)}</Badge>
                 <h2>Investigation</h2>
                 <p className="mono">{current.data.id}</p>
                 <p>{current.data.reason}</p>
+                <dl className="foundation-metadata">
+                  <dt>Question</dt>
+                  <dd className="whitespace-pre-wrap">
+                    {describeQuestion(current.data)}
+                  </dd>
+                  <dt>Window</dt>
+                  <dd>{describeWindow(current.data.window)}</dd>
+                  <dt>Requested by</dt>
+                  <dd>{describeOrigin(current.data.origin)}</dd>
+                </dl>
+                {canMutate && current.data.state === "queued" && (
+                  <CancelRun incidentId={id} runId={current.data.id} />
+                )}
                 <p className="muted">
                   AI diagnosis unavailable. Live manual recovery, when
                   configured, is reviewed separately below.
@@ -231,7 +396,11 @@ export function InvestigationWorkspace({
                   earlier records.
                 </p>
                 {!current.data.attempts.length ? (
-                  <p>Waiting for the worker to claim this run.</p>
+                  <p>
+                    {current.data.state === "cancelled"
+                      ? "Cancelled before collection; no attempt was made."
+                      : "Waiting for the worker to claim this run."}
+                  </p>
                 ) : (
                   <ol className="foundation-stack">
                     {current.data.attempts.map((a) => (

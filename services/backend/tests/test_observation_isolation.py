@@ -11,6 +11,7 @@ from test_permissions import permission_context as _permission_context
 from test_workload_observation import live_workloads as _live_workloads
 
 from cloudops.entrypoints.worker import run_once
+from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import Execution
 from cloudops.features.workloads.models import Workload
@@ -58,6 +59,13 @@ def test_blocked_observer_leases_do_not_occupy_incident_or_approved_recovery_wor
     with sessions()() as db, db.begin():
         # The seeded recovery consumer is the hundredth active live identity.
         db.get(Workload, live_workloads[-1]).active = False
+        # The deferred cancellation fixture would be promoted into this bounded job receipt.
+        pending = db.get(InvestigationRun, UUID(context.consumer.pending_run_id))
+        pending.state, pending.queue_reason, pending.outcome_code = (
+            "cancelled",
+            None,
+            "operator_cancelled",
+        )
     with ThreadPoolExecutor(max_workers=1) as executor:
         running = executor.submit(asyncio.run, blocked_reads())
         try:

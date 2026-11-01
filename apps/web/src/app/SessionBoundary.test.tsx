@@ -215,6 +215,7 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
         state: "insufficient_evidence",
         evidence: [],
         attempts: [],
+        origin: { kind: "operator", source_id: null },
         created_at: "2026-10-26T00:00:00Z",
       };
     if (url.endsWith("/runs"))
@@ -226,6 +227,7 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
       id,
       title: "Saved incident",
       state: "open",
+      origin: { kind: "operator", source_id: null },
       workload: { active: true, namespace: "demo", name: "checkout" },
     };
   };
@@ -297,6 +299,7 @@ it("discards an expired approval intent and requires a fresh plan read and expli
       id,
       title: "Approval session fixture",
       state: "open",
+      origin: { kind: "operator", source_id: null },
       workload: {
         active: true,
         namespace: "demo",

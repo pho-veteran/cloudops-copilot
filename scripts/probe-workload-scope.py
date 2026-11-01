@@ -259,13 +259,17 @@ def main():
                 headers={**headers, "Idempotency-Key": str(uuid4())},
             )
             assert denied.status_code == 422
-            assert (
-                api.post(
-                    f"/api/incidents/{saved_admission['incident_id']}/runs",
-                    headers={**headers, "Idempotency-Key": str(uuid4())},
-                ).status_code
-                == 422
+            retired_run = api.post(
+                f"/api/incidents/{saved_admission['incident_id']}/runs",
+                json={
+                    "workload_id": old["id"],
+                    "reason": "Retired identity must not admit work",
+                    "window": {"preset": 15},
+                },
+                headers={**headers, "Idempotency-Key": str(uuid4())},
             )
+            assert retired_run.status_code == 422
+            assert retired_run.json()["error"]["code"] == "workload_unavailable"
             assert api.get(f"/api/incidents/{saved_admission['incident_id']}").status_code == 200
             receipt["checks"]["replacement_history_and_denied_old_admission"] = {
                 "old_uuid": old["id"],

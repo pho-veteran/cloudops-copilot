@@ -3,11 +3,14 @@ import json
 import secrets
 from datetime import timedelta
 
-from sqlalchemy import delete, func, select, text, update
+from sqlalchemy import delete, func, select, update
 
 from cloudops.features.access.service import token_hash
+from cloudops.features.incidents.coordination import lock_admission
 from cloudops.features.incidents.models import Incident
+from cloudops.features.investigations.states import nonterminal_run
 from cloudops.features.recovery import client
+from cloudops.features.recovery.classification import BLOCKING, classify
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
 from cloudops.features.workloads.models import Workload
@@ -18,18 +21,24 @@ from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job
 
 
-def available(db, workload):
+def _available_locally(db, workload):
     if workload.source != "live_kubernetes":
         raise DomainError(
             409, "live_target_required", "A synthetic workload cannot produce an executable plan."
         )
-    if db.scalar(
-        select(Execution.id).where(Execution.workload_id == workload.id, Execution.holds_lock)
+    executions = db.execute(
+        select(Execution.state, Execution.holds_lock, Execution.maintenance_released).where(
+            Execution.workload_id == workload.id
+        )
+    )
+    if any(
+        row.holds_lock or classify(row.state, row.holds_lock, row.maintenance_released) in BLOCKING
+        for row in executions
     ):
         raise DomainError(
             409,
             "target_locked",
-            "An execution or historical unknown still holds this target. Inspect its evidence and maintenance state.",
+            "An active, locked or unclassified execution blocks this target. Inspect its evidence and maintenance state.",
         )
     if db.scalar(
         select(Execution.id).where(
@@ -42,13 +51,21 @@ def available(db, workload):
             "target_cooldown",
             "Wait thirty seconds after the last admitted execution and inspect fresh live state before another proposal.",
         )
-    authority = client.target(workload.uid)
+
+
+def _require_authority(authority):
     if not authority["enabled"] or authority["recovery_mode"]:
         raise DomainError(
             409,
             "target_quarantined",
             "A deployment operator must establish proof and explicitly enable this target.",
         )
+
+
+def available(db, workload):
+    _available_locally(db, workload)
+    authority = client.target(workload.uid)
+    _require_authority(authority)
     return authority
 
 
@@ -163,70 +180,109 @@ def read(db, plan_id, session):
         return plan, token, valid, reason
 
 
+def _decision_rows(db, plan_id, session, body, *, locked):
+    """Validate both before live probes and again under the short commit locks."""
+
+    def query(statement):
+        return db.scalar(statement.with_for_update() if locked else statement)
+
+    incident_id = db.scalar(select(ActionPlan.incident_id).where(ActionPlan.id == plan_id))
+    if incident_id is None:
+        raise DomainError(404, "plan_not_found", "Plan not found.")
+    incident = query(select(Incident).where(Incident.id == incident_id))
+    plan = query(select(ActionPlan).where(ActionPlan.id == plan_id))
+    if plan.version != body.version or not secrets.compare_digest(plan.digest, body.digest):
+        raise DomainError(
+            409, "plan_changed", "Read the exact plan version and diff before deciding."
+        )
+    now = database_now(db)
+    if plan.state != "proposed" or plan.expires_at <= now or incident.state == "resolved":
+        raise DomainError(
+            409,
+            "plan_unavailable",
+            "This plan is decided, expired or invalidated. Start a new investigation; no decision was replayed.",
+        )
+    review = query(
+        select(PlanReview).where(
+            PlanReview.plan_id == plan_id,
+            PlanReview.token_hash == token_hash(body.review_token),
+        )
+    )
+    if (
+        not review
+        or review.consumed
+        or review.expires_at <= now
+        or review.session_binding != token_hash(session.csrf_token)
+    ):
+        raise DomainError(
+            409,
+            "plan_refetch_required",
+            "Read the current plan after signing in and make a fresh explicit decision.",
+        )
+    if body.decision == "approve" and nonterminal_run(db, incident_id):
+        raise DomainError(
+            409,
+            "run_active",
+            "Wait for the pending investigation to finish, or cancel it, before approving.",
+        )
+    workload = query(select(Workload).where(Workload.id == plan.workload_id))
+    if not workload or not workload.active:
+        raise DomainError(
+            422,
+            "workload_unavailable",
+            "Choose an active configured workload; historical identities cannot admit new work.",
+        )
+    _available_locally(db, workload)
+    if body.decision == "approve" and (
+        db.scalar(select(func.count()).select_from(Job).where(Job.state.in_(["queued", "running"])))
+        >= settings().queue_limit
+    ):
+        raise DomainError(
+            409, "queue_full", "The bounded work queue is full; no execution was admitted."
+        )
+    return incident, plan, review, workload, now
+
+
 def decide(db, plan_id, session, body):
+    # Read-only preflight grants no authority and takes no admission or row locks.
+    with db.begin():
+        _, plan, _, workload, _ = _decision_rows(db, plan_id, session, body, locked=False)
+        target_identity = (
+            workload.id,
+            workload.cluster,
+            workload.namespace,
+            workload.name,
+            workload.uid,
+        )
+        plan_identity = (plan.version, plan.digest, plan.target_epoch, plan.workload_id)
+        replicas = plan.content.get("replicas")
+    authority = client.target(workload.uid)
+    _require_authority(authority)
+    current = None
+    if body.decision == "approve":
+        kube = Kubernetes()
+        current = kube.deployment(workload)
+        kube.controllers(workload)
+        kube.capacity(current, replicas)
+    # Expire preflight ORM objects: expire_on_commit=False must not conceal a
+    # concurrent resolve, receipt consumption, scope retirement or plan change.
+    db.expire_all()
     with db.begin():
         if body.decision == "approve":
-            db.execute(text("SELECT pg_advisory_xact_lock(742001)"))
-        # Serialize with incident resolve/re-investigation before locking the target.
-        incident_id = db.scalar(select(ActionPlan.incident_id).where(ActionPlan.id == plan_id))
-        if incident_id is None:
-            raise DomainError(404, "plan_not_found", "Plan not found.")
-        incident = db.scalar(select(Incident).where(Incident.id == incident_id).with_for_update())
-        plan = db.scalar(select(ActionPlan).where(ActionPlan.id == plan_id).with_for_update())
-        if plan.version != body.version or not secrets.compare_digest(plan.digest, body.digest):
-            raise DomainError(
-                409, "plan_changed", "Read the exact plan version and diff before deciding."
-            )
-        now = database_now(db)
-        if plan.state != "proposed" or plan.expires_at <= now or incident.state == "resolved":
-            raise DomainError(
-                409,
-                "plan_unavailable",
-                "This plan is decided, expired or invalidated. Start a new investigation; no decision was replayed.",
-            )
-        review = db.scalar(
-            select(PlanReview)
-            .where(
-                PlanReview.plan_id == plan_id,
-                PlanReview.token_hash == token_hash(body.review_token),
-            )
-            .with_for_update()
-        )
+            lock_admission(db)
+        _, plan, review, workload, now = _decision_rows(db, plan_id, session, body, locked=True)
         if (
-            not review
-            or review.consumed
-            or review.expires_at <= now
-            or review.session_binding != token_hash(session.csrf_token)
+            (workload.id, workload.cluster, workload.namespace, workload.name, workload.uid)
+            != target_identity
+            or (plan.version, plan.digest, plan.target_epoch, plan.workload_id) != plan_identity
+            or authority["epoch"] != plan.target_epoch
         ):
-            raise DomainError(
-                409,
-                "plan_refetch_required",
-                "Read the current plan after signing in and make a fresh explicit decision.",
-            )
-        workload = require_active(db, plan.workload_id)
-        authority = available(db, workload)
-        if authority["epoch"] != plan.target_epoch:
             raise DomainError(
                 409,
                 "plan_changed",
                 "Maintenance changed target authority. Start a new investigation and prepare a new plan.",
             )
         if body.decision == "approve":
-            if (
-                db.scalar(
-                    select(func.count())
-                    .select_from(Job)
-                    .where(Job.state.in_(["queued", "running"]))
-                )
-                >= settings().queue_limit
-            ):
-                raise DomainError(
-                    409, "queue_full", "The bounded work queue is full; no execution was admitted."
-                )
-            kube = Kubernetes()
-            current = kube.deployment(workload)
-            kube.controllers(workload)
-            kube.capacity(current, plan.content["replicas"])
             if (
                 current["metadata"]["resourceVersion"] != plan.content["resource_version"]
                 or snapshot(current) != plan.content["before"]
@@ -236,6 +292,8 @@ def decide(db, plan_id, session, body):
                     "plan_changed",
                     "The live target changed after preview. Start a new investigation.",
                 )
+            # The executor independently rechecks epoch/UID/resourceVersion at
+            # dispatch; these unlocked observations never authorize a stale write.
             execution = Execution(plan_id=plan.id, workload_id=workload.id)
             db.add(execution)
             db.flush()

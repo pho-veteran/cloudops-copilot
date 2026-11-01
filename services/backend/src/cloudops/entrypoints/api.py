@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from cloudops.features.investigations.admission_settings import deferred_run_limit
 from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
 from cloudops.shared.errors import DomainError, domain_error_handler, validation_error_handler
@@ -12,6 +13,7 @@ from cloudops.shared.errors import DomainError, domain_error_handler, validation
 @asynccontextmanager
 async def lifespan(app):
     settings()
+    deferred_run_limit()
     require_schema()
     yield
 

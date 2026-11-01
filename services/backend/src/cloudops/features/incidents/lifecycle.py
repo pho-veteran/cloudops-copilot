@@ -14,9 +14,10 @@ from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.incidents.schemas import IncidentDetail
-from cloudops.features.incidents.service import get_incident
+from cloudops.features.incidents.service import cancel_pending, get_incident
 from cloudops.features.investigations.service import list_runs
 from cloudops.features.recovery.api import ExecutionView
+from cloudops.features.recovery.classification import blocking_execution
 from cloudops.features.recovery.models import ActionPlan, Execution
 from cloudops.features.recovery.service import invalidate
 from cloudops.shared.database import get_db
@@ -122,20 +123,16 @@ def transition(
                 raise DomainError(
                     409, "incident_state_changed", "This incident is already resolved."
                 )
-            active = db.scalar(
-                select(Execution.id)
-                .join(ActionPlan)
-                .where(
-                    ActionPlan.incident_id == incident_id,
-                    Execution.state.in_(["queued", "executing"]),
-                )
-            )
+            active = blocking_execution(db, incident_id)
             if active:
                 raise DomainError(
                     409,
                     "execution_active",
                     "An admitted execution cannot be hidden by resolution. Wait for its recorded outcome.",
                 )
+            # Match claim's Run -> plan order before taking any draft-plan lock.
+            # Queued work cannot outlive resolution; claimed collection finishes as history.
+            cancel_pending(db, incident_id, "incident_resolved")
             invalidate(db, incident_id)
             incident.state = "resolved"
         else:

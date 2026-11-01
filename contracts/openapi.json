@@ -63,15 +63,54 @@
             "title": "Incident Id",
             "type": "string"
           },
+          "queue_reason": {
+            "anyOf": [
+              {
+                "const": "capacity",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Reason"
+          },
           "run_id": {
             "format": "uuid",
             "title": "Run Id",
             "type": "string"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "collecting",
+              "analyzing",
+              "waiting_for_quota",
+              "insufficient_evidence",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
           "incident_id",
-          "run_id"
+          "run_id",
+          "state",
+          "queue_reason",
+          "window"
         ],
         "title": "AdmissionView",
         "type": "object"
@@ -303,6 +342,27 @@
           "age_seconds"
         ],
         "title": "BaselineView",
+        "type": "object"
+      },
+      "CancelRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "CancelRequest",
         "type": "object"
       },
       "CandidateView": {
@@ -1319,24 +1379,70 @@
       },
       "IncidentDetail": {
         "properties": {
+          "alert_signal": {
+            "enum": [
+              "none",
+              "firing",
+              "resolved"
+            ],
+            "title": "Alert Signal",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
           "created_by": {
-            "format": "uuid",
-            "title": "Created By",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
           },
           "description": {
             "title": "Description",
             "type": "string"
           },
+          "first_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Seen At"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/OriginView"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/SeverityView"
           },
           "state": {
             "enum": [
@@ -1368,6 +1474,11 @@
           "state",
           "created_by",
           "created_at",
+          "origin",
+          "first_seen_at",
+          "last_seen_at",
+          "severity",
+          "alert_signal",
           "workload"
         ],
         "title": "IncidentDetail",
@@ -1403,24 +1514,70 @@
       },
       "IncidentView": {
         "properties": {
+          "alert_signal": {
+            "enum": [
+              "none",
+              "firing",
+              "resolved"
+            ],
+            "title": "Alert Signal",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
           "created_by": {
-            "format": "uuid",
-            "title": "Created By",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
           },
           "description": {
             "title": "Description",
             "type": "string"
           },
+          "first_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Seen At"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/OriginView"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/SeverityView"
           },
           "state": {
             "enum": [
@@ -1448,7 +1605,12 @@
           "description",
           "state",
           "created_by",
-          "created_at"
+          "created_at",
+          "origin",
+          "first_seen_at",
+          "last_seen_at",
+          "severity",
+          "alert_signal"
         ],
         "title": "IncidentView",
         "type": "object"
@@ -1477,6 +1639,7 @@
         "type": "object"
       },
       "ManualIncidentRequest": {
+        "description": "Omitting both question and window keeps the committed three-field request contract.",
         "properties": {
           "description": {
             "default": "",
@@ -1484,11 +1647,39 @@
             "title": "Description",
             "type": "string"
           },
+          "question": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "pattern": "\\S",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
           "title": {
             "maxLength": 160,
             "minLength": 1,
             "title": "Title",
             "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WindowPreset"
+              },
+              {
+                "$ref": "#/components/schemas/WindowInterval"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
           },
           "workload_id": {
             "format": "uuid",
@@ -1831,6 +2022,35 @@
           "evaluated_at"
         ],
         "title": "ObservationSummary",
+        "type": "object"
+      },
+      "OriginView": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "operator",
+              "alertmanager"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          }
+        },
+        "required": [
+          "kind",
+          "source_id"
+        ],
+        "title": "OriginView",
         "type": "object"
       },
       "PlanRequest": {
@@ -2340,6 +2560,39 @@
         "title": "ReportView",
         "type": "object"
       },
+      "RequestWindow": {
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "preset_15",
+              "preset_30",
+              "preset_60",
+              "explicit",
+              "legacy_default",
+              "automatic_default"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "source"
+        ],
+        "title": "RequestWindow",
+        "type": "object"
+      },
       "Resources": {
         "additionalProperties": false,
         "properties": {
@@ -2534,6 +2787,40 @@
         "title": "RunPage",
         "type": "object"
       },
+      "RunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason",
+            "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WindowPreset"
+              },
+              {
+                "$ref": "#/components/schemas/WindowInterval"
+              }
+            ],
+            "title": "Window"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id",
+          "reason"
+        ],
+        "title": "RunRequest",
+        "type": "object"
+      },
       "RunView": {
         "properties": {
           "attempts": {
@@ -2583,6 +2870,59 @@
             "title": "Incident Id",
             "type": "string"
           },
+          "origin": {
+            "$ref": "#/components/schemas/OriginView"
+          },
+          "outcome_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "operator_cancelled",
+                  "incident_resolved",
+                  "scope_retired",
+                  "execution_blocking"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Code"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "question_source": {
+            "enum": [
+              "operator",
+              "title_default",
+              "automatic",
+              "not_captured"
+            ],
+            "title": "Question Source",
+            "type": "string"
+          },
+          "queue_reason": {
+            "anyOf": [
+              {
+                "const": "capacity",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Reason"
+          },
           "reason": {
             "title": "Reason",
             "type": "string"
@@ -2594,19 +2934,40 @@
             "type": "string"
           },
           "requested_by": {
-            "format": "uuid",
-            "title": "Requested By",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested By"
           },
           "state": {
             "enum": [
               "queued",
               "collecting",
+              "analyzing",
+              "waiting_for_quota",
               "insufficient_evidence",
-              "failed"
+              "completed",
+              "failed",
+              "cancelled"
             ],
             "title": "State",
             "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -2617,6 +2978,12 @@
           "created_at",
           "finished_at",
           "requested_by",
+          "origin",
+          "question",
+          "question_source",
+          "window",
+          "queue_reason",
+          "outcome_code",
           "evidence",
           "attempts"
         ],
@@ -2780,6 +3147,36 @@
         "title": "SessionView",
         "type": "object"
       },
+      "SeverityView": {
+        "properties": {
+          "provenance": {
+            "enum": [
+              "not_provided",
+              "alert_label",
+              "operator"
+            ],
+            "title": "Provenance",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "provenance"
+        ],
+        "title": "SeverityView",
+        "type": "object"
+      },
       "TransitionBody": {
         "additionalProperties": false,
         "properties": {
@@ -2805,6 +3202,46 @@
           "reason"
         ],
         "title": "TransitionBody",
+        "type": "object"
+      },
+      "WindowInterval": {
+        "additionalProperties": false,
+        "description": "An explicit interval: 1 to 60 minutes and not ending in the future.",
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "WindowInterval",
+        "type": "object"
+      },
+      "WindowPreset": {
+        "additionalProperties": false,
+        "description": "A relative window, resolved to absolute UTC once at first admission.",
+        "properties": {
+          "preset": {
+            "default": 30,
+            "enum": [
+              15,
+              30,
+              60
+            ],
+            "title": "Preset",
+            "type": "integer"
+          }
+        },
+        "title": "WindowPreset",
         "type": "object"
       },
       "WorkloadPage": {
@@ -4626,6 +5063,24 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RunRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Required for a new request. An empty body only replays a committed admission.",
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
@@ -4812,6 +5267,147 @@
           }
         ],
         "summary": "Run",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/cancel": {
+      "post": {
+        "operationId": "cancel_run",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CancelRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Cancel",
         "tags": [
           "investigations"
         ]

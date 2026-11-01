@@ -13,6 +13,7 @@ from sqlalchemy import select
 from cloudops.features.access.service import token_hash
 from cloudops.features.connections.models import ConnectionCheck
 from cloudops.features.incidents.models import Incident, IncidentActivity
+from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
@@ -205,6 +206,28 @@ def seed(context, monkeypatch):
         )
         db.add_all([baseline, note, plan, historical])
         db.flush()
+        # A separate incident holds one deferred request so cancellation has a real target.
+        pending_incident = Incident(
+            workload_id=workload.id,
+            title="Deferred permission fixture",
+            description="Waiting for dispatch capacity; no collection was attempted.",
+            created_by=actor_id,
+        )
+        db.add(pending_incident)
+        db.flush()
+        pending = InvestigationRun(
+            incident_id=pending_incident.id,
+            requested_by=actor_id,
+            question="Pending fixture question",
+            question_source="operator",
+            window_start=now - timedelta(minutes=30),
+            window_end=now,
+            window_source="preset_30",
+            queue_reason="capacity",
+            reason="Accepted; waiting for dispatch capacity. It starts automatically.",
+        )
+        db.add(pending)
+        db.flush()
         execution = Execution(
             created_at=now - timedelta(minutes=1),
             plan_id=historical.id,
@@ -240,6 +263,8 @@ def seed(context, monkeypatch):
             review_token=review_token,
             execution_id=str(execution.id),
             deployment=deployment,
+            pending_incident_id=str(pending_incident.id),
+            pending_run_id=str(pending.id),
         )
         live_workload = SimpleNamespace(
             id=workload.id,
@@ -421,7 +446,34 @@ def handoff_check(response, c, actor):
     assert "historical" in response.text.lower() and "new diagnosis" in response.text
 
 
+def cancel_check(response, c, actor):
+    assert response.status_code == 200, response.text
+    value = response.json()
+    assert value["id"] == c.consumer.pending_run_id
+    assert value["state"] == "cancelled" and value["outcome_code"] == "operator_cancelled"
+    assert value["queue_reason"] is None and value["attempts"] == []
+    with sessions()() as db:
+        row = db.scalar(
+            select(IncidentActivity).where(
+                IncidentActivity.incident_id == UUID(c.consumer.pending_incident_id),
+                IncidentActivity.kind == "run_cancelled",
+            )
+        )
+        assert row.text == "No longer needed"
+        assert str(row.actor_id) == c.actors[actor].session["principal"]["id"]
+
+
 CASES = {
+    "cancel_run": RequestCase(
+        lambda c: {
+            "path_params": {
+                "incident_id": c.consumer.pending_incident_id,
+                "run_id": c.consumer.pending_run_id,
+            },
+            "json": {"reason": "No longer needed"},
+        },
+        cancel_check,
+    ),
     "get_baseline_candidate": RequestCase(workload_path, candidate_check),
     "confirm_baseline": RequestCase(
         lambda c: {
