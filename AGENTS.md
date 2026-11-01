@@ -1,3 +1,13 @@
+# GitHub identity — mandatory for this repository
+
+- Use only `pho-veteran` for authenticated GitHub operations on this repository and its worktrees, including reads, pushes, pull requests, comments, reviews, workflow actions and merges. Never fall back to another account.
+- Verify the actual client before use. For GitHub CLI, `gh api user --jq .login` must return exactly `pho-veteran`. If necessary, run `gh auth switch --hostname github.com --user pho-veteran`, then verify again. Recheck immediately before every remote write. If other tasks share the CLI, pin this account's credentials in the command process using the CLI credential interface; never print tokens.
+- Verify connector and browser identities independently. A verified CLI session does not establish their identity. Use a separately verified client when another client's identity is wrong or unavailable.
+- Before pushing, verify the remote URL and contribution fork owner. A contribution fork must belong to `pho-veteran`. Use verified CLI credentials rather than cached Git credentials, for example `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push <verified-remote> <branch>`.
+- Before committing, verify that the Git author name/email belong to `pho-veteran`; use command-scoped overrides when needed without changing global Git settings.
+- After a remote write, verify the resulting actor/author and destination where exposed. Stop further writes and report an identity mismatch immediately; do not conceal it or silently republish under another account.
+- If `pho-veteran` cannot be verified or lacks access, stop the affected GitHub operation and continue independent local work. Identity verification does not itself authorize publication.
+
 # Repository guidance
 
 - Follow [CONTRIBUTING.md](CONTRIBUTING.md).
