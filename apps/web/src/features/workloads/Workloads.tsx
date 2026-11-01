@@ -88,7 +88,7 @@ export function Workloads({
         </>
       )}
       <Dialog open={!!selectedWorkload} onOpenChange={open => { if (!open) window.location.hash = "#/workloads"; }}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl" onCloseAutoFocus={event => {
+        <DialogContent className="workload-context-dialog max-h-[90dvh] overflow-y-auto sm:max-w-3xl" onCloseAutoFocus={event => {
           event.preventDefault();
           (detailTrigger.current?.isConnected ? detailTrigger.current : heading.current)?.focus();
         }}>

@@ -1,6 +1,11 @@
 .foundation-app {
   min-height: 100vh;
 }
+.workload-context-dialog,
+.workload-context-dialog .foundation-stack {
+  grid-template-columns: minmax(0, 1fr);
+  overflow-wrap: anywhere;
+}
 .baseline-preparation button {
   max-width: 100%;
   height: auto;
