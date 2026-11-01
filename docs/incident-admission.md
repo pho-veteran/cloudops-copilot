@@ -56,3 +56,7 @@ Approval performs live probes before taking admission or row locks, then checks 
 ## Migration
 
 `0006_incident_requests` is additive. It keeps all IDs, human text, evidence, resolution snapshots and admission hashes. Earlier Runs show `not_captured`. A partial unique index enforces at most one queued or collecting Run per incident. The upgrade stops without changes if existing data violates that rule. A downgrade refuses to run when automatic origins, deferred Runs or cancelled Runs/Jobs exist; restore a pre-0006 backup instead. Request questions and windows saved after the upgrade are dropped by a downgrade.
+
+## Verification receipt
+
+See [local request/admission acceptance](incident-admission-acceptance.md) for PostgreSQL, browser and separate-worker-process evidence, reproduction pointers and remaining feature boundaries.
