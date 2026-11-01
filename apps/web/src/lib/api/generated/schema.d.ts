@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/alert-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Receipts
+         * @description Sanitized authenticated intake outcomes; unauthenticated deliveries are never stored.
+         */
+        get: operations["list_alert_receipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/connection-checks": {
         parameters: {
             query?: never;
@@ -257,6 +277,26 @@ export interface paths {
         put?: never;
         /** Cancel */
         post: operations["cancel_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/intake/alertmanager": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive one Alertmanager webhook v4 notification
+         * @description Machine-authenticated by the configured sender bearer token, never by a session. The body is read only after authentication and is bounded to 1 MiB and 100 alerts. A 503 asks Alertmanager to retry; committed alerts deduplicate on retry.
+         */
+        post: operations["receive_alertmanager_notification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -608,6 +648,65 @@ export interface components {
              */
             state: "queued" | "collecting" | "analyzing" | "waiting_for_quota" | "insufficient_evidence" | "completed" | "failed" | "cancelled";
             window: components["schemas"]["RequestWindow"] | null;
+        };
+        /** AlertReceiptPage */
+        AlertReceiptPage: {
+            /** Configured */
+            configured: boolean;
+            /** Items */
+            items: components["schemas"]["AlertReceiptView"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Source Id */
+            source_id: string | null;
+        };
+        /** AlertReceiptView */
+        AlertReceiptView: {
+            /**
+             * Alert Status
+             * @enum {string}
+             */
+            alert_status: "firing" | "resolved";
+            /** Alertname */
+            alertname: string | null;
+            /**
+             * Delivery Id
+             * Format: uuid
+             */
+            delivery_id: string;
+            /** Fingerprint */
+            fingerprint: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Incident Id */
+            incident_id: string | null;
+            /** Namespace */
+            namespace: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "accepted" | "deferred" | "duplicate" | "resolved_signal" | "ignored" | "rejected" | "retryable";
+            /** Reason */
+            reason: string | null;
+            /**
+             * Received At
+             * Format: date-time
+             */
+            received_at: string;
+            /** Run Id */
+            run_id: string | null;
+            /** Source Id */
+            source_id: string;
+            /** Target Kind */
+            target_kind: ("deployment" | "pod") | null;
+            /** Target Name */
+            target_name: string | null;
+            /** Workload Id */
+            workload_id: string | null;
         };
         /** AttemptView */
         AttemptView: {
@@ -1168,6 +1267,18 @@ export interface components {
              * Format: uuid
              */
             workload_id: string;
+        };
+        /** IntakeResult */
+        IntakeResult: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * Delivery Id
+             * Format: uuid
+             */
+            delivery_id: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -1803,6 +1914,83 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_alert_receipts: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertReceiptPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     list_connection_checks: {
         parameters: {
             query?: never;
@@ -3211,6 +3399,98 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    receive_alertmanager_notification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntakeResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };

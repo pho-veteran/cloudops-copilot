@@ -50,7 +50,7 @@ def test_consumer_upgrade_preserves_populated_foundation_and_has_one_head():
         ]
         is None
     )
-    assert ScriptDirectory.from_config(config).get_heads() == ["0006_incident_requests"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["0007_alert_intake"]
     command.check(config)
 
 

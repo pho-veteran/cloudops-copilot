@@ -7,10 +7,12 @@ from uuid import UUID, uuid4
 
 from cloudops.features.access.schemas import SessionView
 from cloudops.features.health.schemas import HealthView
+from cloudops.features.incidents.intake_schemas import AlertReceiptPage
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
 from cloudops.features.investigations.schemas import RunPage, RunView
 from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
 from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
+from intake_fixtures import envelope
 
 
 @dataclass(frozen=True)
@@ -176,6 +178,21 @@ def probe_check(response, context, actor):
     assert response.json() == {"status": "available"}
 
 
+def intake_request(context):
+    # A well-formed v4 body sent with only the actor's browser session, never the sender token.
+    return {"json": envelope(), "headers": {"Content-Type": "application/json"}}
+
+
+def intake_check(response, context, actor):
+    raise AssertionError("Machine intake is denied before any case-specific check.")
+
+
+def receipts_check(response, context, actor):
+    page = validated(AlertReceiptPage, response)
+    assert page.configured and page.source_id == "lab-alertmanager"
+    assert page.items == [] and page.next_cursor is None
+
+
 CASES = {
     "get_session": RequestCase(session_request, session_check),
     "list_workloads": RequestCase(session_request, workload_check),
@@ -194,6 +211,8 @@ CASES = {
     "login": RequestCase(login_request, login_check),
     "liveness": RequestCase(session_request, probe_check),
     "readiness": RequestCase(session_request, probe_check),
+    "receive_alertmanager_notification": RequestCase(intake_request, intake_check),
+    "list_alert_receipts": RequestCase(session_request, receipts_check),
 }
 
 from consumer_cases import CASES as CONSUMER_CASES  # noqa: E402
