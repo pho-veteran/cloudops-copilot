@@ -3,6 +3,7 @@ import { api, unwrap } from "@/lib/api/client";
 import { Failure, Loading } from "@/app/Feedback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AlertReceipts } from "./AlertReceipts";
 
 export function Connections({ canMutate }: { canMutate: boolean }) {
   const cache = useQueryClient();
@@ -83,6 +84,7 @@ export function Connections({ canMutate }: { canMutate: boolean }) {
           ))}
         </div>
       )}
+      <AlertReceipts />
     </section>
   );
 }

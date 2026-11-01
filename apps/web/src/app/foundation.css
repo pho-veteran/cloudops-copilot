@@ -170,6 +170,10 @@
   grid-template-columns: 100px minmax(0, 1fr);
   gap: 8px 12px;
 }
+.foundation-receipt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .foundation-metadata dt {
   color: var(--muted-foreground);
 }
