@@ -1,0 +1,536 @@
+{
+  "type": "actual_browser_interaction_ledger",
+  "ui_commit": "31afbf157ce48823a4c22c207964ead32657c081",
+  "browser": "Edge, existing trusted Windows CA; no certificate-warning bypass",
+  "origin": "https://localhost:8443",
+  "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+  "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+  "confirmed_baseline": {
+    "id": "50bcd369-67f9-456d-bf3e-8d248e9589d9",
+    "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+    "candidate_id": "c7032531-7941-4cec-b995-d1d03c6a1f07",
+    "profile": "deployment-images-resources/v1",
+    "digest": "1fa98a1a4b5cf0ffde95999c11a6ca26ce8e1cedce891f1e324a1d3b3de5d68e",
+    "snapshot": {
+      "profile": "deployment-images-resources/v1",
+      "identity": {
+        "cluster": "e02-local-k3s",
+        "namespace": "demo",
+        "name": "e02-ready",
+        "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e"
+      },
+      "containers": [
+        {
+          "name": "app",
+          "image": "python:3.13.11-slim-bookworm",
+          "resources": {
+            "requests": {
+              "cpu": "10m",
+              "memory": "32Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            }
+          }
+        }
+      ],
+      "config_references": [],
+      "provenance": {
+        "policy": "two-fresh-healthy/v1",
+        "first": {
+          "observation_id": "6d16d751-3be0-4b05-8ecc-5317b526b246",
+          "identity": {
+            "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+            "cluster": "e02-local-k3s",
+            "namespace": "demo",
+            "name": "e02-ready",
+            "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+            "epoch": 43
+          },
+          "started_at": "2026-11-01T01:07:43.180193Z",
+          "observed_at": "2026-11-01T01:07:43.264727Z",
+          "deployment": {
+            "generation": 21,
+            "resource_version": "74254",
+            "end_resource_version": "74254",
+            "observed_generation": 21,
+            "desired": 1,
+            "ready": 1,
+            "available": 1,
+            "updated": 1,
+            "replicas": 1
+          },
+          "current_replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+          "coverage": "complete",
+          "health": "healthy",
+          "reasons": [],
+          "pods": [
+            {
+              "uid": "ec9be2fc-0170-493d-9b2b-110a1e87af7d",
+              "name": "e02-ready-85bd78cd54-dxk5j",
+              "replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+              "current": true,
+              "ready": true,
+              "phase": "Running",
+              "terminating": false,
+              "excluded": false,
+              "containers": [
+                {
+                  "name": "app",
+                  "kind": "regular",
+                  "ready": true,
+                  "started": true,
+                  "state": "running",
+                  "restart_count": 0
+                }
+              ]
+            }
+          ],
+          "unrelated_pods": 6,
+          "limitations": "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified."
+        },
+        "second": {
+          "observation_id": "aebfa31f-dede-44ef-ad7d-8d89c154d259",
+          "identity": {
+            "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+            "cluster": "e02-local-k3s",
+            "namespace": "demo",
+            "name": "e02-ready",
+            "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+            "epoch": 43
+          },
+          "started_at": "2026-11-01T01:08:09.834872Z",
+          "observed_at": "2026-11-01T01:08:09.861479Z",
+          "deployment": {
+            "generation": 21,
+            "resource_version": "74254",
+            "end_resource_version": "74254",
+            "observed_generation": 21,
+            "desired": 1,
+            "ready": 1,
+            "available": 1,
+            "updated": 1,
+            "replicas": 1
+          },
+          "current_replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+          "coverage": "complete",
+          "health": "healthy",
+          "reasons": [],
+          "pods": [
+            {
+              "uid": "ec9be2fc-0170-493d-9b2b-110a1e87af7d",
+              "name": "e02-ready-85bd78cd54-dxk5j",
+              "replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+              "current": true,
+              "ready": true,
+              "phase": "Running",
+              "terminating": false,
+              "excluded": false,
+              "containers": [
+                {
+                  "name": "app",
+                  "kind": "regular",
+                  "ready": true,
+                  "started": true,
+                  "state": "running",
+                  "restart_count": 0
+                }
+              ]
+            }
+          ],
+          "unrelated_pods": 6,
+          "limitations": "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified."
+        },
+        "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+      }
+    },
+    "confirmed_by": "c3a235d9-67c8-4d29-8c22-78a7f74e6b38",
+    "confirmed_at": "2026-11-01T01:08:09.888193Z",
+    "age_seconds": 0.007336,
+    "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+  },
+  "selected_context": {
+    "state": "manual_only",
+    "reason": "no_supported_diff",
+    "execution_eligible": false,
+    "baseline": {
+      "id": "50bcd369-67f9-456d-bf3e-8d248e9589d9",
+      "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+      "candidate_id": "c7032531-7941-4cec-b995-d1d03c6a1f07",
+      "profile": "deployment-images-resources/v1",
+      "digest": "1fa98a1a4b5cf0ffde95999c11a6ca26ce8e1cedce891f1e324a1d3b3de5d68e",
+      "snapshot": {
+        "profile": "deployment-images-resources/v1",
+        "identity": {
+          "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+          "name": "e02-ready",
+          "cluster": "e02-local-k3s",
+          "namespace": "demo"
+        },
+        "containers": [
+          {
+            "name": "app",
+            "image": "python:3.13.11-slim-bookworm",
+            "resources": {
+              "limits": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              },
+              "requests": {
+                "cpu": "10m",
+                "memory": "32Mi"
+              }
+            }
+          }
+        ],
+        "provenance": {
+          "first": {
+            "pods": [
+              {
+                "uid": "ec9be2fc-0170-493d-9b2b-110a1e87af7d",
+                "name": "e02-ready-85bd78cd54-dxk5j",
+                "phase": "Running",
+                "ready": true,
+                "current": true,
+                "excluded": false,
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "ready": true,
+                    "state": "running",
+                    "started": true,
+                    "restart_count": 0
+                  }
+                ],
+                "terminating": false,
+                "replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254"
+              }
+            ],
+            "health": "healthy",
+            "reasons": [],
+            "coverage": "complete",
+            "identity": {
+              "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+              "name": "e02-ready",
+              "epoch": 43,
+              "cluster": "e02-local-k3s",
+              "namespace": "demo",
+              "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847"
+            },
+            "deployment": {
+              "ready": 1,
+              "desired": 1,
+              "updated": 1,
+              "replicas": 1,
+              "available": 1,
+              "generation": 21,
+              "resource_version": "74254",
+              "observed_generation": 21,
+              "end_resource_version": "74254"
+            },
+            "started_at": "2026-11-01T01:07:43.180193Z",
+            "limitations": "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified.",
+            "observed_at": "2026-11-01T01:07:43.264727Z",
+            "observation_id": "6d16d751-3be0-4b05-8ecc-5317b526b246",
+            "unrelated_pods": 6,
+            "current_replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254"
+          },
+          "policy": "two-fresh-healthy/v1",
+          "second": {
+            "pods": [
+              {
+                "uid": "ec9be2fc-0170-493d-9b2b-110a1e87af7d",
+                "name": "e02-ready-85bd78cd54-dxk5j",
+                "phase": "Running",
+                "ready": true,
+                "current": true,
+                "excluded": false,
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "ready": true,
+                    "state": "running",
+                    "started": true,
+                    "restart_count": 0
+                  }
+                ],
+                "terminating": false,
+                "replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254"
+              }
+            ],
+            "health": "healthy",
+            "reasons": [],
+            "coverage": "complete",
+            "identity": {
+              "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+              "name": "e02-ready",
+              "epoch": 43,
+              "cluster": "e02-local-k3s",
+              "namespace": "demo",
+              "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847"
+            },
+            "deployment": {
+              "ready": 1,
+              "desired": 1,
+              "updated": 1,
+              "replicas": 1,
+              "available": 1,
+              "generation": 21,
+              "resource_version": "74254",
+              "observed_generation": 21,
+              "end_resource_version": "74254"
+            },
+            "started_at": "2026-11-01T01:08:09.834872Z",
+            "limitations": "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified.",
+            "observed_at": "2026-11-01T01:08:09.861479Z",
+            "observation_id": "aebfa31f-dede-44ef-ad7d-8d89c154d259",
+            "unrelated_pods": 6,
+            "current_replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254"
+          },
+          "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+        },
+        "config_references": []
+      },
+      "confirmed_by": "c3a235d9-67c8-4d29-8c22-78a7f74e6b38",
+      "confirmed_at": "2026-11-01T01:08:09.888193Z",
+      "age_seconds": 0.162939,
+      "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+    },
+    "current_uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+    "supported_diff": [],
+    "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+  },
+  "observations": {
+    "initial_no_selection_manual_missing": true,
+    "operator_healthy_explicit_confirm_201": true,
+    "both_pinned_observations": true,
+    "actual_selected_recovery_200_exact_record": true,
+    "rendered_saved_provenance_matches": true,
+    "preparation_domain_and_three_target_versions_unchanged": true,
+    "selected_ids_survived_refresh": true,
+    "widths": [
+      {
+        "width": 390,
+        "dialog_client_width": 347,
+        "dialog_scroll_width": 347
+      },
+      {
+        "width": 320,
+        "dialog_client_width": 277,
+        "dialog_scroll_width": 277
+      }
+    ],
+    "expanded_provenance_no_horizontal_overflow": true,
+    "keyboard_tab_refresh_to_clear_selection_visible_focus": true,
+    "network_security_state": "secure",
+    "crash_after_saved_healthy_baseline_refuses_pending_confirmation_409": "baseline_unavailable",
+    "broken_candidate_has_no_confirm_control": true,
+    "broken_replacement_no_inherited_history_manual_missing": true,
+    "escape_direct_link_returns_workloads_heading": true,
+    "retired_identity_saved_history_readable_without_investigation": true,
+    "escape_from_inventory_detail_returns_trigger": true,
+    "selected_ids_and_history_survive_standard_api_worker_observer_https_restart": true,
+    "real_observer_pause_ages_to_unknown_stale_readiness_unknown": true,
+    "fault_and_stale_recovery_return_fresh_healthy_candidate": true,
+    "workload_investigate_form_preserves_exact_uuid": true,
+    "actual_local_incident_and_related_link_roundtrip": true,
+    "viewer_history_actual_context_and_related_incident_readable": true,
+    "viewer_has_no_confirm_investigate_or_new_incident_controls": true,
+    "viewer_inspection_preserves_all_confirmed_rows_domain_and_target_versions": true,
+    "real_45_second_browser_expiry_401_clears_pending_candidate": true,
+    "expiry_returns_focus_to_username": true,
+    "re_signin_has_no_pending_candidate_or_automatic_confirm": true,
+    "expiry_and_re_signin_preserve_confirmed_rows_domain_and_targets": true,
+    "prior_session_setting_restored_28800": true,
+    "post_expiry_fresh_explicit_preview_confirm_201_and_exact_context": true,
+    "transient_unavailable_context_recovers_via_explicit_refresh": true,
+    "configured_inventory_excludes_e02_unlisted": true
+  },
+  "adjudications": [
+    "Initial rendered/POST JSON.stringify comparison differed only in object-key order after PostgreSQL JSONB roundtrip. Recursive key-sorted semantic comparison, ID, actor and confirmation time all match; arrays preserve order.",
+    "The wrapped inline incident-to-workload link did not navigate with the automation click. Keyboard Enter on that same observed link navigated correctly and preserved the exact workload UUID.",
+    "The first selected-context read immediately after post-expiry confirmation returned manual_only/unavailable with the exact saved record; explicit Refresh resolved to manual_only/no_supported_diff. No execution eligibility was offered."
+  ],
+  "screenshots": [
+    "operator-preview-fixed-390.png",
+    "operator-preview-fixed-320.png",
+    "operator-selected-context-320.png",
+    "broken-candidate-guidance-320.png",
+    "replacement-broken-missing-390.jpg",
+    "stale-unknown-390.jpg",
+    "viewer-candidate-readonly-390.jpg",
+    "expired-session-focus-390.jpg",
+    "post-expiry-selected-context-390.jpg"
+  ],
+  "remaining": [],
+  "runtime_images": "Standard production Dockerfiles built from clean 31afbf1 snapshot; live lab recreated with those exact images",
+  "incident": {
+    "id": "f41b5de8-7062-4a60-8503-8c793829dc34",
+    "run_id": "b3639764-0300-4524-bbc3-a2f4c053121f",
+    "result": "insufficient_evidence",
+    "evidence": "explicitly synthetic; no AI diagnosis or recovery plan claim"
+  },
+  "post_expiry_confirmed_baseline": {
+    "id": "aec9e5c6-3a1c-4b7f-9c9b-66ecee29d44f",
+    "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+    "candidate_id": "9ab86ce4-7b27-4151-819b-c572301c2e07",
+    "profile": "deployment-images-resources/v1",
+    "digest": "1fa98a1a4b5cf0ffde95999c11a6ca26ce8e1cedce891f1e324a1d3b3de5d68e",
+    "snapshot": {
+      "profile": "deployment-images-resources/v1",
+      "identity": {
+        "cluster": "e02-local-k3s",
+        "namespace": "demo",
+        "name": "e02-ready",
+        "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e"
+      },
+      "containers": [
+        {
+          "name": "app",
+          "image": "python:3.13.11-slim-bookworm",
+          "resources": {
+            "requests": {
+              "cpu": "10m",
+              "memory": "32Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            }
+          }
+        }
+      ],
+      "config_references": [],
+      "provenance": {
+        "policy": "two-fresh-healthy/v1",
+        "first": {
+          "observation_id": "ab421522-9238-44fd-bba6-def01c712485",
+          "identity": {
+            "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+            "cluster": "e02-local-k3s",
+            "namespace": "demo",
+            "name": "e02-ready",
+            "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+            "epoch": 43
+          },
+          "started_at": "2026-11-01T01:27:08.640546Z",
+          "observed_at": "2026-11-01T01:27:08.691608Z",
+          "deployment": {
+            "generation": 23,
+            "resource_version": "82075",
+            "end_resource_version": "82075",
+            "observed_generation": 23,
+            "desired": 1,
+            "ready": 1,
+            "available": 1,
+            "updated": 1,
+            "replicas": 1
+          },
+          "current_replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+          "coverage": "complete",
+          "health": "healthy",
+          "reasons": [],
+          "pods": [
+            {
+              "uid": "ec9be2fc-0170-493d-9b2b-110a1e87af7d",
+              "name": "e02-ready-85bd78cd54-dxk5j",
+              "replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+              "current": true,
+              "ready": true,
+              "phase": "Running",
+              "terminating": false,
+              "excluded": false,
+              "containers": [
+                {
+                  "name": "app",
+                  "kind": "regular",
+                  "ready": true,
+                  "started": true,
+                  "state": "running",
+                  "restart_count": 0
+                }
+              ]
+            }
+          ],
+          "unrelated_pods": 6,
+          "limitations": "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified."
+        },
+        "second": {
+          "observation_id": "728c986b-a13d-479b-8eef-de6a59679702",
+          "identity": {
+            "workload_id": "7823cc63-6f57-422a-9846-c7267eeb6847",
+            "cluster": "e02-local-k3s",
+            "namespace": "demo",
+            "name": "e02-ready",
+            "uid": "c43a37aa-b03d-47e3-9a9f-647d0c95870e",
+            "epoch": 43
+          },
+          "started_at": "2026-11-01T01:28:14.247710Z",
+          "observed_at": "2026-11-01T01:28:14.272232Z",
+          "deployment": {
+            "generation": 23,
+            "resource_version": "82075",
+            "end_resource_version": "82075",
+            "observed_generation": 23,
+            "desired": 1,
+            "ready": 1,
+            "available": 1,
+            "updated": 1,
+            "replicas": 1
+          },
+          "current_replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+          "coverage": "complete",
+          "health": "healthy",
+          "reasons": [],
+          "pods": [
+            {
+              "uid": "ec9be2fc-0170-493d-9b2b-110a1e87af7d",
+              "name": "e02-ready-85bd78cd54-dxk5j",
+              "replicaset_uid": "d730933e-3262-4ee3-bf17-fb3f089cd254",
+              "current": true,
+              "ready": true,
+              "phase": "Running",
+              "terminating": false,
+              "excluded": false,
+              "containers": [
+                {
+                  "name": "app",
+                  "kind": "regular",
+                  "ready": true,
+                  "started": true,
+                  "state": "running",
+                  "restart_count": 0
+                }
+              ]
+            }
+          ],
+          "unrelated_pods": 6,
+          "limitations": "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified."
+        },
+        "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+      }
+    },
+    "confirmed_by": "c3a235d9-67c8-4d29-8c22-78a7f74e6b38",
+    "confirmed_at": "2026-11-01T01:28:14.294583Z",
+    "age_seconds": 0.007528,
+    "limitations": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority."
+  },
+  "completed_at": "2026-11-01T01:28:25.901Z",
+  "layout_regression": {
+    "before": {
+      "viewport": 390,
+      "dialog_client_width": 347,
+      "dialog_scroll_width": 473
+    },
+    "fix_commit": "eedb8aa",
+    "change": "Single minmax(0,1fr) tracks and inherited overflow-wrap:anywhere scoped to the Workloads context dialog; shared dialog primitives unchanged",
+    "after_widths": [
+      320,
+      390
+    ],
+    "expanded_json_has_no_horizontal_overflow": true
+  }
+}

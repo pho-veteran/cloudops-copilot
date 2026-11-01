@@ -1,0 +1,31 @@
+{
+  "type": "verified_local_cleanup",
+  "original_checkout_uid_spec_writer_policy_unchanged": true,
+  "original_checkout_replicas": 3,
+  "owned_fixture_deployments_and_configmaps_remaining": 0,
+  "confirmed_baseline_and_incident_history_retained": true,
+  "baseline_count_retained": 27,
+  "incident_count_retained": 8,
+  "owned_core_and_extra_services_stopped": true,
+  "original_reader_writer_credential_files_restored_byte_for_byte": true,
+  "generated_credential_and_backup_files_removed": [
+    "original-reader-client.json",
+    "original-reader-kubeconfig.json",
+    "original-writer-client.json",
+    "reader/client.json",
+    "denied.json"
+  ],
+  "lab_database_k3s_authority_volumes_retained": [
+    "cloudops-e01-https_database",
+    "cloudops-e01-https_executor_authority",
+    "cloudops-e01-https_k3s_data",
+    "cloudops-e01-https_local_https_config",
+    "cloudops-e01-https_local_https_data"
+  ],
+  "temporary_ca_thumbprint": "91A6CE38F9DC02B109F06F65D86A038A4DA7A3E6",
+  "temporary_ca_present_in_checked_root_stores_at_end": {
+    "current_user": false,
+    "local_machine": false
+  },
+  "ca_cleanup_scope": "Current Windows user Root and LocalMachine Root inspected; both already absent, no additional certificate deletion performed."
+}
