@@ -222,10 +222,20 @@ def test_operation_role_matrix(permission_context, operation_id, actor_name):
             assert_admission(context, operation_id, response, before)
         assert snapshot((User, LoginSession)) == accounts_before
     elif category in {"protected_observation", "protected_review"}:
-        allowed = "baseline_candidates" if category == "protected_observation" else "plan_reviews"
+        allowed = (
+            {"plan_reviews"}
+            if category == "protected_review"
+            else {
+                "workload_observations",
+                "workload_observation_attempts",
+                "workload_observation_state",
+            }
+        )
+        if operation_id == "get_baseline_candidate":
+            allowed.add("baseline_candidates")
         after = snapshot()
-        assert {k: v for k, v in after.items() if k != allowed} == {
-            k: v for k, v in before.items() if k != allowed
+        assert {k: v for k, v in after.items() if k not in allowed} == {
+            k: v for k, v in before.items() if k not in allowed
         }
         assert snapshot((User, LoginSession)) == accounts_before
     elif category == "session_self_service":

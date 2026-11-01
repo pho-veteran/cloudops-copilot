@@ -1,0 +1,53 @@
+{
+  "runtime_commit": "ad35a7fcac7e13ceba7b7dfc24bfd012eaf9792c",
+  "smoke_exit": 0,
+  "original_checkout_uid_spec_and_writer_policy_preserved": true,
+  "final_targets": [
+    {
+      "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+      "enabled": false,
+      "recovery_mode": true
+    }
+  ],
+  "maintenance_and_restoration": [
+    {
+      "operation": "enable_target",
+      "request_id": "250bee5a-ae0d-4d4d-8150-5d2a5a504e22",
+      "status": "applied"
+    },
+    {
+      "operation": "exit_recovery_mode",
+      "request_id": "ad5fd2ae-bf58-4482-822e-04f937ce9209",
+      "status": "applied"
+    },
+    {
+      "operation": "explicit_scale_restoration",
+      "plan_id": "a2715799-3446-46f9-ad45-e80b261068d6",
+      "execution_id": "fa1dac6f-6d71-4629-a517-e98c7f497f34",
+      "replicas": 3
+    },
+    {
+      "operation": "enter_recovery",
+      "request_id": "f6b7f98a-c3f3-4685-a2bc-11f0f1d9c73b",
+      "status": "applied"
+    }
+  ],
+  "limits": "Kubernetes acknowledgement only; application verification remains inconclusive.",
+  "smoke": {
+    "workload_id": "5fc7d395-8adc-4696-80ed-e10d777c6853",
+    "uid": "941260e8-5c27-4fc0-b2b8-2ae90e34962d",
+    "incident_id": "3980cb64-2a60-41ea-b63c-384f201124a6",
+    "run_id": "93ff79ef-5e1b-4fd8-bf05-ef90bf725030",
+    "report_id": "a006968b-b92f-479c-880d-e167966dee9d",
+    "plan_id": "a647c3b7-c1d0-41c7-8fa3-7e0a113fecec",
+    "execution_id": "48f96fc1-4fa6-4a60-9c89-5860b68eb33b"
+  },
+  "krr": {
+    "state": "insufficient_data",
+    "source": "live_krr",
+    "tool_exit_code": 0,
+    "qualified_recommendations": false
+  },
+  "execution_outcome": "acknowledged",
+  "scope": "Existing E01/E07 compatibility smoke plus separate trusted maintenance and explicit API scale/restoration approvals. These regression-only authority transitions are not performed by baseline preparation or recovery-context GET."
+}

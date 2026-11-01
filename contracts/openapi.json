@@ -131,8 +131,118 @@
         "title": "AttemptView",
         "type": "object"
       },
+      "BaselineIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cluster": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Cluster",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "namespace": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Namespace",
+            "type": "string"
+          },
+          "uid": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cluster",
+          "namespace",
+          "name",
+          "uid"
+        ],
+        "title": "BaselineIdentity",
+        "type": "object"
+      },
+      "BaselinePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BaselineView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "BaselinePage",
+        "type": "object"
+      },
+      "BaselinePayload": {
+        "additionalProperties": false,
+        "properties": {
+          "config_references": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigReference"
+            },
+            "maxItems": 128,
+            "title": "Config References",
+            "type": "array"
+          },
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/RestorableContainer"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Containers",
+            "type": "array"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/BaselineIdentity"
+          },
+          "profile": {
+            "const": "deployment-images-resources/v1",
+            "default": "deployment-images-resources/v1",
+            "title": "Profile",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "required": [
+          "identity",
+          "containers",
+          "config_references",
+          "provenance"
+        ],
+        "title": "BaselinePayload",
+        "type": "object"
+      },
       "BaselineView": {
         "properties": {
+          "age_seconds": {
+            "title": "Age Seconds",
+            "type": "number"
+          },
           "candidate_id": {
             "format": "uuid",
             "title": "Candidate Id",
@@ -157,6 +267,19 @@
             "title": "Id",
             "type": "string"
           },
+          "limitations": {
+            "default": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority.",
+            "title": "Limitations",
+            "type": "string"
+          },
+          "profile": {
+            "enum": [
+              "deployment-images-resources/v1",
+              "legacy/v0"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
           "snapshot": {
             "additionalProperties": true,
             "title": "Snapshot",
@@ -172,16 +295,23 @@
           "id",
           "workload_id",
           "candidate_id",
+          "profile",
           "digest",
           "snapshot",
           "confirmed_by",
-          "confirmed_at"
+          "confirmed_at",
+          "age_seconds"
         ],
         "title": "BaselineView",
         "type": "object"
       },
       "CandidateView": {
         "properties": {
+          "confirm_after": {
+            "format": "date-time",
+            "title": "Confirm After",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -191,15 +321,23 @@
             "title": "Digest",
             "type": "string"
           },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
           },
+          "server_time": {
+            "format": "date-time",
+            "title": "Server Time",
+            "type": "string"
+          },
           "snapshot": {
-            "additionalProperties": true,
-            "title": "Snapshot",
-            "type": "object"
+            "$ref": "#/components/schemas/BaselinePayload"
           },
           "workload_id": {
             "format": "uuid",
@@ -212,7 +350,10 @@
           "workload_id",
           "digest",
           "snapshot",
-          "created_at"
+          "created_at",
+          "confirm_after",
+          "expires_at",
+          "server_time"
         ],
         "title": "CandidateView",
         "type": "object"
@@ -401,6 +542,122 @@
         "title": "Comparison",
         "type": "object"
       },
+      "ConfigReference": {
+        "additionalProperties": false,
+        "properties": {
+          "api_version": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Version"
+          },
+          "container_name": {
+            "anyOf": [
+              {
+                "maxLength": 253,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Container Name"
+          },
+          "divisor": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Divisor"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "kind": {
+            "enum": [
+              "Secret",
+              "ConfigMap",
+              "Field",
+              "Resource"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 253,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "optional": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Optional"
+          },
+          "path": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          },
+          "selector": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selector"
+          }
+        },
+        "required": [
+          "path",
+          "kind"
+        ],
+        "title": "ConfigReference",
+        "type": "object"
+      },
       "ConfirmBaseline": {
         "additionalProperties": false,
         "properties": {
@@ -546,6 +803,23 @@
           "restart_count"
         ],
         "title": "ContainerObservation",
+        "type": "object"
+      },
+      "ContainerResources": {
+        "additionalProperties": false,
+        "properties": {
+          "limits": {
+            "$ref": "#/components/schemas/Resources"
+          },
+          "requests": {
+            "$ref": "#/components/schemas/Resources"
+          }
+        },
+        "required": [
+          "requests",
+          "limits"
+        ],
+        "title": "ContainerResources",
         "type": "object"
       },
       "Decision": {
@@ -1802,6 +2076,40 @@
         "title": "Principal",
         "type": "object"
       },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "first": {
+            "$ref": "#/components/schemas/PublicObservation"
+          },
+          "limitations": {
+            "default": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority.",
+            "title": "Limitations",
+            "type": "string"
+          },
+          "policy": {
+            "const": "two-fresh-healthy/v1",
+            "default": "two-fresh-healthy/v1",
+            "title": "Policy",
+            "type": "string"
+          },
+          "second": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "first"
+        ],
+        "title": "Provenance",
+        "type": "object"
+      },
       "PublicObservation": {
         "additionalProperties": false,
         "description": "Public evidence deliberately excludes private template/reference extraction.",
@@ -2030,6 +2338,145 @@
           "finished_at"
         ],
         "title": "ReportView",
+        "type": "object"
+      },
+      "Resources": {
+        "additionalProperties": false,
+        "properties": {
+          "cpu": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpu"
+          },
+          "memory": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memory"
+          }
+        },
+        "title": "Resources",
+        "type": "object"
+      },
+      "RestorableContainer": {
+        "additionalProperties": false,
+        "properties": {
+          "image": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Image",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/ContainerResources"
+          }
+        },
+        "required": [
+          "name",
+          "image",
+          "resources"
+        ],
+        "title": "RestorableContainer",
+        "type": "object"
+      },
+      "RestoreContext": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BaselineView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_uid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Uid"
+          },
+          "execution_eligible": {
+            "const": false,
+            "default": false,
+            "title": "Execution Eligible",
+            "type": "boolean"
+          },
+          "limitations": {
+            "default": "Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority.",
+            "title": "Limitations",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "missing",
+              "legacy",
+              "mismatch",
+              "unavailable",
+              "unsupported",
+              "config_unverified",
+              "no_supported_diff",
+              "restore_not_implemented"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "baseline_context",
+              "manual_only"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "supported_diff": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported Diff"
+          }
+        },
+        "required": [
+          "state",
+          "reason"
+        ],
+        "title": "RestoreContext",
         "type": "object"
       },
       "ReviewedPlan": {
@@ -5829,6 +6276,36 @@
               "title": "Workload Id",
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
           }
         ],
         "responses": {
@@ -5836,11 +6313,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/BaselineView"
-                  },
-                  "title": "Response List Baselines",
-                  "type": "array"
+                  "$ref": "#/components/schemas/BaselinePage"
                 }
               }
             },
@@ -6141,6 +6614,121 @@
         "summary": "List Workload Observations",
         "tags": [
           "workloads"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/recovery-context": {
+      "get": {
+        "operationId": "get_recovery_context",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "baseline_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Baseline Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreContext"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Recovery Context",
+        "tags": [
+          "recovery"
         ]
       }
     }

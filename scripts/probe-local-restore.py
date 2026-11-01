@@ -150,7 +150,11 @@ def main():
         wid = json.loads(Path("tmp/e01-consumer-smoke.json").read_text())["workload_id"]
         candidate = client.get(f"/api/workloads/{wid}/baseline-candidate")
         assert candidate.status_code == 200
-        replicas = 2 if candidate.json()["snapshot"]["replicas"] == 1 else 1
+        replicas = (
+            2
+            if candidate.json()["snapshot"]["provenance"]["first"]["deployment"]["desired"] == 1
+            else 1
+        )
         path = f"/api/incidents/{iid}/plans"
         body = {
             "replicas": replicas,

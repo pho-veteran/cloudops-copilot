@@ -26,6 +26,41 @@ from cloudops.features.workloads.models import (
 )
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.jobs import Job
+from cloudops.features.workloads import baseline_service
+from cloudops.features.recovery import baseline_context
+from cloudops.features.workloads.baseline_schemas import BaselinePayload, Provenance
+from cloudops.features.workloads.observation_schemas import DirectOutcome, Identity
+from cloudops.features.workloads.observation_service import public
+from observation_fixtures import objects, observed
+
+
+def consumer_observation(workload, deployment, at=None):
+    data = objects()
+    dep, replicasets, pods = data
+    dep.clear()
+    dep.update(copy.deepcopy(deployment))
+    dep.update(kind="Deployment", apiVersion="apps/v1")
+    dep["metadata"].update(name=workload.name, namespace=workload.namespace)
+    rs = replicasets["items"][0]
+    rs["metadata"]["ownerReferences"][0]["uid"] = workload.uid
+    rs["spec"]["template"] = copy.deepcopy(dep["spec"]["template"])
+    pods["items"][0]["spec"] = copy.deepcopy(dep["spec"]["template"]["spec"])
+    pods["items"][0]["status"]["containerStatuses"][0]["name"] = dep["spec"]["template"]["spec"][
+        "containers"
+    ][0]["name"]
+    return observed(
+        Identity(
+            workload_id=workload.id,
+            cluster=workload.cluster,
+            namespace=workload.namespace,
+            name=workload.name,
+            uid=workload.uid,
+            epoch=workload.observation_epoch,
+        ),
+        at,
+        data,
+    )
+
 
 CONSUMER_MODELS = (
     ScopeState,
@@ -93,6 +128,16 @@ def seed(context, monkeypatch):
             snapshot=value,
             created_at=now - timedelta(seconds=10),
         )
+        observation = consumer_observation(workload, deployment, now - timedelta(seconds=10))
+        v1 = BaselinePayload(
+            **baseline_service.envelope(observation).model_dump(),
+            provenance=Provenance(first=public(observation)),
+        )
+        candidate.snapshot = {
+            **v1.model_dump(mode="json", exclude_none=True),
+            "_session_binding": token_hash(context.actors["operator"].cookie),
+        }
+        candidate.digest = baseline_service.digest(v1)
         incident = Incident(
             workload_id=workload.id,
             title="Consumer permission fixture",
@@ -187,7 +232,7 @@ def seed(context, monkeypatch):
             uid=workload.uid,
             incident_id=str(incident.id),
             candidate_id=str(candidate.id),
-            digest=digest,
+            digest=candidate.digest,
             baseline_id=str(baseline.id),
             report_id=str(report.id),
             plan_id=str(plan.id),
@@ -196,6 +241,23 @@ def seed(context, monkeypatch):
             execution_id=str(execution.id),
             deployment=deployment,
         )
+        live_workload = SimpleNamespace(
+            id=workload.id,
+            cluster=workload.cluster,
+            namespace=workload.namespace,
+            name=workload.name,
+            uid=workload.uid,
+            observation_epoch=workload.observation_epoch,
+        )
+
+    async def direct(workload_id, purpose):
+        with sessions()() as db:
+            now = database_now(db)
+        value = consumer_observation(live_workload, deployment, now)
+        return DirectOutcome(outcome="complete", observation=value)
+
+    monkeypatch.setattr(baseline_service, "observe_direct", direct)
+    monkeypatch.setattr(baseline_context, "observe_direct", direct)
     monkeypatch.setattr(Kubernetes, "__init__", lambda self, path=None: None)
     monkeypatch.setattr(Kubernetes, "deployment", lambda self, workload: copy.deepcopy(deployment))
     monkeypatch.setattr(Kubernetes, "controllers", lambda *_args: None)
@@ -232,7 +294,21 @@ def candidate_check(response, c, actor):
     assert response.status_code == 200, response.text
     value = response.json()
     assert value["workload_id"] == c.consumer.workload_id
-    assert value["digest"] == c.consumer.digest and value["snapshot"]["uid"] == c.consumer.uid
+    assert (
+        value["digest"] == c.consumer.digest
+        and value["snapshot"]["identity"]["uid"] == c.consumer.uid
+    )
+
+
+def baseline_history_check(response, context):
+    assert response.status_code == 200, response.text
+    assert any(row["id"] == context.consumer.baseline_id for row in response.json()["items"])
+
+
+def context_check(response):
+    assert response.status_code == 200, response.text
+    assert response.json()["reason"] == "missing"
+    assert response.json()["execution_eligible"] is False
 
 
 def baseline_check(response, c, actor):
@@ -354,9 +430,8 @@ CASES = {
         },
         baseline_check,
     ),
-    "list_baselines": RequestCase(
-        workload_path, lambda r, c, a: saved_list(r, c, a, "id", c.consumer.baseline_id)
-    ),
+    "list_baselines": RequestCase(workload_path, lambda r, c, a: baseline_history_check(r, c)),
+    "get_recovery_context": RequestCase(workload_path, lambda r, c, a: context_check(r)),
     "add_incident_note": RequestCase(
         lambda c: {**incident_path(c), "json": {"text": "New consumer note"}}, note_check
     ),

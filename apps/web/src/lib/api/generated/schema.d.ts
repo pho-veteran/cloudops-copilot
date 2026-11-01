@@ -519,6 +519,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workloads/{workload_id}/recovery-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recovery Context */
+        get: operations["get_recovery_context"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -586,8 +603,43 @@ export interface components {
              */
             state: "running" | "expired" | "succeeded" | "failed";
         };
+        /** BaselineIdentity */
+        BaselineIdentity: {
+            /** Cluster */
+            cluster: string;
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Uid */
+            uid: string;
+        };
+        /** BaselinePage */
+        BaselinePage: {
+            /** Items */
+            items: components["schemas"]["BaselineView"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** BaselinePayload */
+        BaselinePayload: {
+            /** Config References */
+            config_references: components["schemas"]["ConfigReference"][];
+            /** Containers */
+            containers: components["schemas"]["RestorableContainer"][];
+            identity: components["schemas"]["BaselineIdentity"];
+            /**
+             * Profile
+             * @default deployment-images-resources/v1
+             * @constant
+             */
+            profile: "deployment-images-resources/v1";
+            provenance: components["schemas"]["Provenance"];
+        };
         /** BaselineView */
         BaselineView: {
+            /** Age Seconds */
+            age_seconds: number;
             /**
              * Candidate Id
              * Format: uuid
@@ -610,6 +662,16 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Limitations
+             * @default Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority.
+             */
+            limitations: string;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "deployment-images-resources/v1" | "legacy/v0";
             /** Snapshot */
             snapshot: {
                 [key: string]: unknown;
@@ -623,6 +685,11 @@ export interface components {
         /** CandidateView */
         CandidateView: {
             /**
+             * Confirm After
+             * Format: date-time
+             */
+            confirm_after: string;
+            /**
              * Created At
              * Format: date-time
              */
@@ -630,14 +697,21 @@ export interface components {
             /** Digest */
             digest: string;
             /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
              * Id
              * Format: uuid
              */
             id: string;
-            /** Snapshot */
-            snapshot: {
-                [key: string]: unknown;
-            };
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
+            snapshot: components["schemas"]["BaselinePayload"];
             /**
              * Workload Id
              * Format: uuid
@@ -706,6 +780,30 @@ export interface components {
             /** To Observation Id */
             to_observation_id?: string | null;
         };
+        /** ConfigReference */
+        ConfigReference: {
+            /** Api Version */
+            api_version?: string | null;
+            /** Container Name */
+            container_name?: string | null;
+            /** Divisor */
+            divisor?: string | null;
+            /** Key */
+            key?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "Secret" | "ConfigMap" | "Field" | "Resource";
+            /** Name */
+            name?: string | null;
+            /** Optional */
+            optional?: boolean | null;
+            /** Path */
+            path: string;
+            /** Selector */
+            selector?: string | null;
+        };
         /** ConfirmBaseline */
         ConfirmBaseline: {
             /**
@@ -740,6 +838,11 @@ export interface components {
              * @enum {string}
              */
             state: "running" | "waiting" | "terminated" | "unknown";
+        };
+        /** ContainerResources */
+        ContainerResources: {
+            limits: components["schemas"]["Resources"];
+            requests: components["schemas"]["Resources"];
         };
         /** Decision */
         Decision: {
@@ -1225,6 +1328,22 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** Provenance */
+        Provenance: {
+            first: components["schemas"]["PublicObservation"];
+            /**
+             * Limitations
+             * @default Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority.
+             */
+            limitations: string;
+            /**
+             * Policy
+             * @default two-fresh-healthy/v1
+             * @constant
+             */
+            policy: "two-fresh-healthy/v1";
+            second?: components["schemas"]["PublicObservation"] | null;
+        };
         /**
          * PublicObservation
          * @description Public evidence deliberately excludes private template/reference extraction.
@@ -1320,6 +1439,52 @@ export interface components {
              * Format: uuid
              */
             workload_id: string;
+        };
+        /** Resources */
+        Resources: {
+            /** Cpu */
+            cpu?: string | null;
+            /** Memory */
+            memory?: string | null;
+        };
+        /** RestorableContainer */
+        RestorableContainer: {
+            /** Image */
+            image: string;
+            /** Name */
+            name: string;
+            resources: components["schemas"]["ContainerResources"];
+        };
+        /** RestoreContext */
+        RestoreContext: {
+            baseline?: components["schemas"]["BaselineView"] | null;
+            /** Current Uid */
+            current_uid?: string | null;
+            /**
+             * Execution Eligible
+             * @default false
+             * @constant
+             */
+            execution_eligible: false;
+            /**
+             * Limitations
+             * @default Declared regular-container images and CPU/memory only. Replicas are observation context, not restored fields. Referenced contents, unsupported template fields, mutable image tags and external effects are unverified. This baseline grants no execution authority.
+             */
+            limitations: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "missing" | "legacy" | "mismatch" | "unavailable" | "unsupported" | "config_unverified" | "no_supported_diff" | "restore_not_implemented";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "baseline_context" | "manual_only";
+            /** Supported Diff */
+            supported_diff?: {
+                [key: string]: unknown;
+            }[] | null;
         };
         /** ReviewedPlan */
         ReviewedPlan: {
@@ -3926,7 +4091,10 @@ export interface operations {
     };
     list_baselines: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
             header?: never;
             path: {
                 workload_id: string;
@@ -3941,7 +4109,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BaselineView"][];
+                    "application/json": components["schemas"]["BaselinePage"];
                 };
             };
             /** @description Unauthorized */
@@ -4097,6 +4265,84 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ObservationPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_recovery_context: {
+        parameters: {
+            query?: {
+                baseline_id?: string | null;
+            };
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestoreContext"];
                 };
             };
             /** @description Unauthorized */

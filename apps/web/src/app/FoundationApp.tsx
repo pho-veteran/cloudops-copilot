@@ -291,6 +291,7 @@ export function Workspace() {
           ) : route.page === "workloads" ? (
             <Workloads
               selectedWorkload={route.id || undefined}
+              selectedBaseline={route.baseline || undefined}
               canMutate={canMutate}
               onInvestigate={(workload) => {
                 window.history.replaceState(null, "", "#/workloads");

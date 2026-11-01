@@ -12,10 +12,22 @@ from uuid import uuid4
 import httpx
 
 
+def baseline_history(client, workload_id):
+    page = client.get(f"/api/workloads/{workload_id}/baselines").json()
+    return [
+        {key: value for key, value in row.items() if key != "age_seconds"} for row in page["items"]
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ca", required=True)
     parser.add_argument("--password-stdin", action="store_true")
+    parser.add_argument("--operator", default="operator")
+    parser.add_argument("--viewer", default="viewer")
+    parser.add_argument(
+        "--workload-id", help="Exact configured live workload for this scale probe."
+    )
     args = parser.parse_args()
     passwords = (
         [sys.stdin.readline().rstrip("\r\n") for _ in range(2)]
@@ -38,12 +50,21 @@ def main():
             assert response.status_code == 200, "Account sign-in failed"
             return {"Origin": origin, "X-CSRF-Token": response.json()["csrf_token"]}
 
-        oh, vh = login(operator, "operator", passwords[0]), login(viewer, "viewer", passwords[1])
-        workload = next(
-            w
-            for w in operator.get("/api/workloads").json()["items"]
-            if w["source"] == "live_kubernetes"
+        oh, vh = (
+            login(operator, args.operator, passwords[0]),
+            login(viewer, args.viewer, passwords[1]),
         )
+        if args.workload_id:
+            selected = operator.get(f"/api/workloads/{args.workload_id}")
+            assert selected.status_code == 200, selected.text
+            workload = selected.json()
+            assert workload["active"] and workload["source"] == "live_kubernetes"
+        else:
+            workload = next(
+                w
+                for w in operator.get("/api/workloads").json()["items"]
+                if w["source"] == "live_kubernetes"
+            )
         wid = workload["id"]
         response = operator.post(
             "/api/incidents",
@@ -61,11 +82,11 @@ def main():
         assert candidate.status_code == 200, candidate.text
         time.sleep(5.2)
         body = {"candidate_id": candidate.json()["id"], "digest": candidate.json()["digest"]}
-        before = viewer.get(f"/api/workloads/{wid}/baselines").json()
+        before = baseline_history(viewer, wid)
         assert (
             viewer.post(f"/api/workloads/{wid}/baseline", json=body, headers=vh).status_code == 403
         )
-        assert viewer.get(f"/api/workloads/{wid}/baselines").json() == before
+        assert baseline_history(viewer, wid) == before
         assert (
             operator.post(f"/api/workloads/{wid}/baseline", json=body, headers=oh).status_code
             == 201
@@ -150,7 +171,11 @@ def main():
         print(
             f"Pinned KRR invocation and actual persisted Viewer export: {report['state']} (tool exit {report['result']['tool_exit_code']}); no qualified recommendations claimed."
         )
-        desired = 2 if candidate.json()["snapshot"]["replicas"] == 1 else 1
+        desired = (
+            2
+            if candidate.json()["snapshot"]["provenance"]["first"]["deployment"]["desired"] == 1
+            else 1
+        )
         response = operator.post(
             f"/api/incidents/{iid}/plans",
             json={

@@ -1,6 +1,7 @@
 """Consumer invariants with real auth/transactions and controlled Kubernetes observations."""
 
 from concurrent.futures import ThreadPoolExecutor
+import copy
 from datetime import timedelta
 from uuid import UUID, uuid4
 
@@ -173,6 +174,13 @@ def test_baseline_requires_two_matching_healthy_observations(permission_context,
             db.get(BaselineCandidate, UUID(c.consumer.candidate_id)).created_at = database_now(
                 db
             ) - timedelta(seconds=0 if change == "too_young" else 301)
+            if change == "expired":
+                row = db.get(BaselineCandidate, UUID(c.consumer.candidate_id))
+                value = copy.deepcopy(row.snapshot)
+                value["provenance"]["first"]["observed_at"] = (
+                    database_now(db) - timedelta(seconds=301)
+                ).isoformat()
+                row.snapshot = value
     body = {"candidate_id": c.consumer.candidate_id, "digest": c.consumer.digest}
     if change == "digest":
         body["digest"] = "0" * 64

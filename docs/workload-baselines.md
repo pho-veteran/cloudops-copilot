@@ -1,0 +1,31 @@
+# Healthy baseline preparation
+
+Start the [scoped reader](workload-scope.md) and [observer](workload-observation.md), then sign in and open a live Workload. Inspect its owned health and related incidents. Baseline preparation uses new direct observations, independently of cached inventory health.
+
+Select **Inspect live baseline candidate**, inspect the selected fields and first observation, wait five seconds and explicitly confirm within five minutes. Both reads must be complete and healthy with the same identity, observation epoch, generation, declared image/resource digest, reference identities and comparable Pod/container restart counters. Scaled-to-zero, partial, denied, unhealthy or changed data cannot establish a baseline. After an error or expiry, inspect a fresh candidate. A new login cannot confirm a candidate from an earlier session. Viewer may inspect but cannot confirm.
+
+The `deployment-images-resources/v1` envelope contains the cluster/namespace/Deployment name/UID, sorted named regular containers with declared image and CPU/memory request/limit strings, and sanitized configuration reference identities. Its SHA-256 uses UTF-8 JSON with sorted keys, compact separators and omitted null reference/resource fields. Container and reference order is canonical. Quantity strings are preserved exactly; this is declared metadata, not normalized resource equivalence. Replicas belong only to observation provenance. Environment literals, command/args, unsupported template fields, Secret/ConfigMap contents and credentials are excluded. Referenced contents, mutable image tags, application health and external effects remain unverified.
+
+Confirmation saves both sanitized observation summaries, actor, time, profile and digest immutably. A repeated confirmation in the same session returns the original record and actor/time while the identity remains active and unchanged. Observation retention cannot erase the copied summaries. All confirmed baselines are retained; no baseline cleanup is performed. Existing `legacy/v0` records retain their original stored JSON, digest, actor and timestamp. They cannot be relabeled as verified v1, and old pending candidates require a fresh preview. No migration or rewrite of existing baseline rows is needed. The existing E07 scale snapshot and digest format is unchanged.
+
+`GET /api/workloads/{workload_id}/baselines?limit=25&cursor=...` returns `{items, next_cursor}` in descending `(confirmed_at, id)` order. Use the opaque returned cursor to load older records; insertion of a newer record does not shift later pages. Confirmed records are immutable, so this order is stable. `age_seconds` is calculated when read and is not part of immutable content.
+
+No history record is selected automatically. Choose one explicitly; successful confirmation selects its exact returned ID. The URL `#/workloads?workload=<UUID>&baseline=<UUID>` preserves that choice across refresh and sign-in. A missing selected record stays missing rather than switching to another record.
+
+The actual recovery-owned `GET /api/workloads/{workload_id}/recovery-context` accepts optional `baseline_id`. Without it the server returns `manual_only/missing`. With a selection it verifies the stored digest and fresh live identity through the same bounded observation producer. It returns the exact saved record and provenance or explicit missing, legacy, mismatch or unavailable reasons. Read-only observation state/history may be persisted; this route creates no plan, approval, job, execution or writer authority. Both roles can inspect it. Invalid sessions and denied confirmations leave protected domain state unchanged.
+
+Use **Refresh selected recovery context** for another direct read. Automatic focus/reconnect refetch is disabled and cached context has a 30-second stale time. Authentication visibility boundaries still discard protected caches, so returning to the workspace may perform a new bounded read after session validation. Per-workload leases and global reader limits apply; a busy or superseded candidate read gives explicit retry guidance, not a claim of unhealthy rollout. No server cooldown is used to replace current live identity validation.
+
+Configuration-reference differences, unsupported container-set differences and no supported differences remain manual-only. A nonempty supported image/resource difference returns `baseline_context/restore_not_implemented`. Every response has `execution_eligible: false`. Inspect health and related incidents, start an authorized investigation or repair manually, then capture a fresh healthy baseline after recovery. This feature does not implement restore execution; E07 owns that later applicability, approval and write path.
+
+Run the repository PostgreSQL, web, contract/drift and existing scale regression checks. Controlled observations establish policy behavior; real K3s and trusted-browser evidence are recorded separately for the owning task and E02 acceptance.
+
+For the fixed lab, reproduce the healthy producer/consumer check with an exact configured live UUID and the trusted lab CA. The probe prompts for existing Operator/Viewer passwords, creates only baseline/observation records, checks both roles against the actual recovery route and compares the Deployment plus related incident/plan/execution records before and after:
+
+```sh
+uv run --project services/backend python scripts/probe-workload-baseline.py --ca tmp/local-https-root.crt --workload-id <UUID>
+```
+
+Use `--operator`/`--viewer` for differently named lab accounts and opt into `--password-stdin` for automation. Passwords are never command arguments or receipt fields. The generated receipt defaults to ignored `tmp/baseline28-live.json`; keep browser evidence separate. An unrelated target update during this probe invalidates its unchanged-target assertion and requires another bounded run.
+
+The [actual baseline API receipt](evidence/baseline28-live.json) records the producer → PostgreSQL → selected recovery route and unchanged target/domain checks. The [existing scale compatibility receipt](evidence/baseline28-scale-regression.json) records the separate E01 consumer smoke, explicit restoration and final executor quarantine. API receipts do not establish the browser journey or complete E02 acceptance; those remain gates in the owning GitHub issues.
