@@ -33,6 +33,9 @@ OPERATIONS = {
     "get_health": Operation("GET", "/api/health", "protected_read"),
     "create_incident": Operation("POST", "/api/incidents", "operator_mutation"),
     "create_run": Operation("POST", "/api/incidents/{incident_id}/runs", "operator_mutation"),
+    "cancel_run": Operation(
+        "POST", "/api/incidents/{incident_id}/runs/{run_id}/cancel", "operator_mutation"
+    ),
     "liveness": Operation("GET", "/api/health/live", "public_probe"),
     "readiness": Operation("GET", "/api/health/ready", "public_probe"),
     "get_baseline_candidate": Operation(

@@ -1,13 +1,13 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, Body, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
 from cloudops.features.incidents.schemas import AdmissionView
-from cloudops.features.incidents.service import admit, get_incident
-from cloudops.features.investigations.schemas import RunPage, RunView
+from cloudops.features.incidents.service import admit, cancel_run, get_incident
+from cloudops.features.investigations.schemas import CancelRequest, RunPage, RunRequest, RunView
 from cloudops.features.investigations.service import get_run, list_runs
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES
@@ -21,10 +21,25 @@ router = APIRouter(
 def create_run(
     incident_id: UUID,
     idempotency_key: UUID = Header(),
+    body: RunRequest | None = Body(
+        default=None,
+        description="Required for a new request. An empty body only replays a committed admission.",
+    ),
     actor: Principal = Depends(operator),
     db: Session = Depends(get_db),
 ):
-    return admit(db, actor.id, idempotency_key, incident_id=incident_id)
+    return admit(db, actor.id, idempotency_key, incident_id=incident_id, run=body)
+
+
+@router.post("/{run_id}/cancel", operation_id="cancel_run", response_model=RunView)
+def cancel(
+    incident_id: UUID,
+    run_id: UUID,
+    body: CancelRequest | None = Body(default=None),
+    actor: Principal = Depends(operator),
+    db: Session = Depends(get_db),
+):
+    return cancel_run(db, incident_id, run_id, actor.id, body.reason if body else None)
 
 
 @router.get(

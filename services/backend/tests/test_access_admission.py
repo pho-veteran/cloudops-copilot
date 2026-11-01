@@ -31,6 +31,17 @@ def create(client, headers, body, key=None):
     )
 
 
+def rerun(client, headers, incident_id, key=None, **fields):
+    """Request a new investigation for the incident's own workload with an explicit reason."""
+    workload = client.get(f"/api/incidents/{incident_id}").json()["workload_id"]
+    body = {"workload_id": workload, "reason": "Check the workload again", **fields}
+    return client.post(
+        f"/api/incidents/{incident_id}/runs",
+        json=body,
+        headers={**headers, "Idempotency-Key": str(key or uuid4())},
+    )
+
+
 def test_access_origin_csrf_viewer_and_validation(client):
     assert client.get("/api/incidents").status_code == 401
     assert (
@@ -108,11 +119,7 @@ def test_atomic_idempotent_admission_and_migration_preserves_data(client, db):
     assert first.status_code == 201, first.text
     assert create(client, headers, body, key).json() == first.json()
     assert create(client, headers, {**body, "title": "Different"}, key).status_code == 409
-    run_url = f"/api/incidents/{first.json()['incident_id']}/runs"
-    assert (
-        client.post(run_url, headers={**headers, "Idempotency-Key": str(uuid4())}).status_code
-        == 409
-    )
+    assert rerun(client, headers, first.json()["incident_id"]).status_code == 409
     for model in [Incident, InvestigationRun, Job]:
         assert db.scalar(select(func.count()).select_from(model)) == 1
     db.rollback()
@@ -145,18 +152,19 @@ def test_concurrent_duplicate_creates_one_run(client, db):
 def test_capacity_and_admission_failure_do_not_leave_partial_incidents(client, db, monkeypatch):
     from dataclasses import replace
     from cloudops.features.incidents import service
+    from cloudops.features.investigations import promotion
     from cloudops.shared.config import settings
     from cloudops.shared.errors import DomainError
 
     headers = sign_in(client)
     body = incident_body(client)
     original = settings()
-    monkeypatch.setattr(service, "settings", lambda: replace(original, queue_limit=1))
+    monkeypatch.setattr(promotion, "settings", lambda: replace(original, queue_limit=1))
     assert create(client, headers, body).status_code == 201
     assert create(client, headers, body).json()["error"]["code"] == "queue_full"
     assert db.scalar(select(func.count()).select_from(Incident)) == 1
     db.rollback()
-    monkeypatch.setattr(service, "settings", lambda: original)
+    monkeypatch.setattr(promotion, "settings", lambda: original)
 
     def fail(*args):
         raise DomainError(503, "admission_unavailable", "Admission unavailable.")

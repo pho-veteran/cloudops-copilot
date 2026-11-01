@@ -1,6 +1,7 @@
 """Valid requests and outcome assertions owned by the available feature operations."""
 
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Callable
 from uuid import UUID, uuid4
 
@@ -131,7 +132,15 @@ def create_incident_request(context):
 
 
 def create_run_request(context):
-    return {**incident_request(context), "headers": {"Idempotency-Key": str(uuid4())}}
+    return {
+        **incident_request(context),
+        "json": {
+            "workload_id": context.workload_id,
+            "reason": "Permission fixture re-investigation",
+            "window": {"preset": 15},
+        },
+        "headers": {"Idempotency-Key": str(uuid4())},
+    }
 
 
 def admission_check(response, context, actor):
@@ -140,6 +149,10 @@ def admission_check(response, context, actor):
     assert result.model_dump(mode="json") == response.json()
     assert isinstance(result.incident_id, UUID) and isinstance(result.run_id, UUID)
     assert str(result.run_id) != context.run_id
+    assert result.state == "queued" and result.queue_reason is None
+    assert result.window.end - result.window.start == timedelta(
+        minutes=15 if result.window.source == "preset_15" else 30
+    )
 
 
 def logout_check(response, context, actor):

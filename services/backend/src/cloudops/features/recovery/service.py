@@ -3,10 +3,12 @@ import json
 import secrets
 from datetime import timedelta
 
-from sqlalchemy import delete, func, select, text, update
+from sqlalchemy import delete, func, select, update
 
 from cloudops.features.access.service import token_hash
+from cloudops.features.incidents.coordination import lock_admission
 from cloudops.features.incidents.models import Incident
+from cloudops.features.investigations.states import nonterminal_run
 from cloudops.features.recovery import client
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
@@ -166,7 +168,7 @@ def read(db, plan_id, session):
 def decide(db, plan_id, session, body):
     with db.begin():
         if body.decision == "approve":
-            db.execute(text("SELECT pg_advisory_xact_lock(742001)"))
+            lock_admission(db)
         # Serialize with incident resolve/re-investigation before locking the target.
         incident_id = db.scalar(select(ActionPlan.incident_id).where(ActionPlan.id == plan_id))
         if incident_id is None:
@@ -202,6 +204,13 @@ def decide(db, plan_id, session, body):
                 409,
                 "plan_refetch_required",
                 "Read the current plan after signing in and make a fresh explicit decision.",
+            )
+        if body.decision == "approve" and nonterminal_run(db, incident_id):
+            # Checked before the review is consumed or any live read; nothing is admitted.
+            raise DomainError(
+                409,
+                "run_active",
+                "Wait for the pending investigation to finish, or cancel it, before approving.",
             )
         workload = require_active(db, plan.workload_id)
         authority = available(db, workload)

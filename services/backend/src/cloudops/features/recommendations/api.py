@@ -5,11 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
+from cloudops.features.incidents.coordination import lock_admission
 from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.workloads.service import require_active
 from cloudops.shared.config import settings
@@ -47,7 +48,7 @@ class ReportView(View):
 )
 def create(body: ReportBody, actor: Principal = Depends(operator), db: Session = Depends(get_db)):
     with db.begin():
-        db.execute(text("SELECT pg_advisory_xact_lock(742001)"))
+        lock_admission(db)
         workload = require_active(db, body.workload_id)
         if workload.source != "live_kubernetes":
             raise DomainError(

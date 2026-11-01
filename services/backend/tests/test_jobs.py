@@ -2,12 +2,12 @@ import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pytest
 from conftest import sign_in
 from sqlalchemy import select, update
-from test_access_admission import create, incident_body
+from test_access_admission import create, incident_body, rerun
 
 from cloudops.entrypoints.worker import HANDLERS, run_once
 from cloudops.features.investigations.collector import collect, prepare
@@ -55,10 +55,7 @@ def test_collection_persists_labeled_immutable_evidence(client, monkeypatch):
             json.dumps(evidence["payload"], sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
     )
-    again = client.post(
-        f"/api/incidents/{ids['incident_id']}/runs",
-        headers={**headers, "Idempotency-Key": str(uuid4())},
-    )
+    again = rerun(client, headers, ids["incident_id"])
     assert again.status_code == 201
     assert read_run(client, ids)["evidence"] == result["evidence"]
     assert len(client.get(f"/api/incidents/{ids['incident_id']}/runs").json()["items"]) == 2
@@ -103,13 +100,7 @@ def test_failures_exhaust_budget_without_success_evidence(client, monkeypatch):
     assert collector["status"] == "available"
     assert collector["source"] == "development_fixture"
     assert collector["last_success_at"] is None
-    assert (
-        client.post(
-            f"/api/incidents/{ids['incident_id']}/runs",
-            headers={**headers, "Idempotency-Key": str(uuid4())},
-        ).status_code
-        == 201
-    )
+    assert rerun(client, headers, ids["incident_id"]).status_code == 201
     assert read_run(client, ids)["state"] == "failed"
 
 

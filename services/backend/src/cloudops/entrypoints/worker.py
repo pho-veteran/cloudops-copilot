@@ -5,7 +5,9 @@ import time
 from sqlalchemy.dialects.postgresql import insert
 
 from cloudops.entrypoints import metadata  # noqa: F401
+from cloudops.features.investigations.admission_settings import deferred_run_limit
 from cloudops.features.investigations.collector import CollectionHandler, collect, prepare
+from cloudops.features.investigations.promotion import promote_deferred
 from cloudops.features.recommendations.worker import ReportHandler, generate
 from cloudops.features.recovery.service import ExecutionHandler, execute
 from cloudops.shared.config import settings
@@ -32,6 +34,8 @@ def heartbeat():
 
 def run_once() -> bool:
     heartbeat()
+    # Deferred investigations take free dispatch slots before the next claim.
+    promote_deferred()
     claim = claim_next(HANDLERS)
     if not claim:
         return False
@@ -72,6 +76,7 @@ def run_once() -> bool:
 
 def main():
     require_schema()
+    deferred_run_limit()
     logging.basicConfig(level=logging.INFO)
     while True:
         try:

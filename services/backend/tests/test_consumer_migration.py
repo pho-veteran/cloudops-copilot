@@ -50,7 +50,7 @@ def test_consumer_upgrade_preserves_populated_foundation_and_has_one_head():
         ]
         is None
     )
-    assert ScriptDirectory.from_config(config).get_heads() == ["0005_workload_observations"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["0006_incident_requests"]
     command.check(config)
 
 
@@ -86,12 +86,22 @@ def test_observation_upgrade_preserves_existing_baselines_sessions_and_incidents
             )
         )
 
+    # 0006 request metadata is outside this receipt; its own migration test covers it.
+    added = (
+        "origin_kind,origin_source_id,first_seen_at,last_seen_at,severity,severity_provenance,"
+        "alert_signal,question,question_source,window_start,window_end,window_source,"
+        "queue_reason,outcome_code"
+    )
+
     def records():
         with engine().connect() as connection:
             result = {
                 table: list(
                     connection.execute(
-                        text(f"SELECT row_to_json(t)::text FROM {table} t ORDER BY 1")
+                        text(
+                            f"SELECT (row_to_json(t)::jsonb - string_to_array('{added}', ','))::text "
+                            f"FROM {table} t ORDER BY 1"
+                        )
                     )
                 )
                 for table in (

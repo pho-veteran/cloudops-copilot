@@ -2,16 +2,26 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from cloudops.features.investigations.schemas import (
+    OriginView,
+    RequestWindow,
+    RunState,
+    WindowSpec,
+)
 from cloudops.features.workloads.schemas import WorkloadView
 from cloudops.shared.schemas import View
 
 
 class ManualIncidentRequest(BaseModel):
+    """Omitting both question and window keeps the committed three-field request contract."""
+
     workload_id: UUID
     title: str = Field(min_length=1, max_length=160)
     description: str = Field(default="", max_length=4000)
+    question: str | None = Field(default=None, min_length=1, max_length=2000, pattern=r"\S")
+    window: WindowSpec | None = None
 
     @field_validator("title")
     @classmethod
@@ -24,6 +34,14 @@ class ManualIncidentRequest(BaseModel):
 class AdmissionView(BaseModel):
     incident_id: UUID
     run_id: UUID
+    state: RunState
+    queue_reason: Literal["capacity"] | None
+    window: RequestWindow | None
+
+
+class SeverityView(BaseModel):
+    value: str | None
+    provenance: Literal["not_provided", "alert_label", "operator"]
 
 
 class IncidentView(View):
@@ -32,8 +50,36 @@ class IncidentView(View):
     title: str
     description: str
     state: Literal["open", "acknowledged", "resolved"]
-    created_by: UUID
+    created_by: UUID | None
     created_at: datetime
+    origin: OriginView
+    first_seen_at: datetime | None
+    last_seen_at: datetime | None
+    severity: SeverityView
+    alert_signal: Literal["none", "firing", "resolved"]
+
+    @model_validator(mode="before")
+    @classmethod
+    def from_row(cls, value):
+        if isinstance(value, dict) or not hasattr(value, "origin_kind"):
+            return value
+        fields = (
+            "id",
+            "workload_id",
+            "title",
+            "description",
+            "state",
+            "created_by",
+            "created_at",
+            "first_seen_at",
+            "last_seen_at",
+            "alert_signal",
+        )
+        return {
+            **{field: getattr(value, field) for field in fields},
+            "origin": {"kind": value.origin_kind, "source_id": value.origin_source_id},
+            "severity": {"value": value.severity, "provenance": value.severity_provenance},
+        }
 
 
 class IncidentDetail(IncidentView):

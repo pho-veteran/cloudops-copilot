@@ -7,10 +7,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.investigations.schemas import FixturePayload
+from cloudops.features.investigations.states import TERMINAL_RUN
 from cloudops.features.workloads.service import identity
 from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, sessions
@@ -64,8 +66,28 @@ def collect(context: CollectionInput) -> CollectionResult:
 
 
 class CollectionHandler:
+    def eligible(self, db: Session, subject_id: UUID) -> bool:
+        """Recheck a first claim or a lease-expiry reclaim before a new attempt exists."""
+        from cloudops.features.investigations.service import dispatch_blocker, terminalize
+        from cloudops.features.recovery.service import invalidate
+
+        run = db.scalar(
+            select(InvestigationRun).where(InvestigationRun.id == subject_id).with_for_update()
+        )
+        if run.state in TERMINAL_RUN:
+            return False
+        code = dispatch_blocker(db, run)
+        if code:
+            terminalize(db, run, code)
+            return False
+        # A draft proposed after Job creation cannot survive collection of new evidence.
+        invalidate(db, run.incident_id)
+        return True
+
     def started(self, db: Session, subject_id: UUID):
         run = db.get(InvestigationRun, subject_id)
+        if run.state == "cancelled":
+            return
         run.state, run.reason = (
             "collecting",
             "Collecting a labeled development fixture; no live telemetry.",
@@ -73,6 +95,8 @@ class CollectionHandler:
 
     def failed(self, db: Session, subject_id: UUID, reason: str, terminal: bool):
         run = db.get(InvestigationRun, subject_id)
+        if run.state == "cancelled":
+            return
         run.state = "failed" if terminal else "queued"
         run.reason = (
             reason if terminal else "Collection attempt failed. Waiting for a bounded retry."
@@ -82,6 +106,9 @@ class CollectionHandler:
     def publish(self, db: Session, subject_id: UUID, result: CollectionResult):
         if result.schema_version != 1:
             raise ValueError("Unsupported collection result version.")
+        run = db.get(InvestigationRun, subject_id)
+        if run.state == "cancelled":
+            return
         payload = result.payload.model_dump()
         digest = hashlib.sha256(
             json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
@@ -98,7 +125,6 @@ class CollectionHandler:
                 sha256=digest,
             )
         )
-        run = db.get(InvestigationRun, subject_id)
         run.state = "insufficient_evidence"
         run.reason = "Fixture collection saved. Live evidence and AI diagnosis are unavailable; no recovery plan exists."
         run.finished_at = database_now(db)
