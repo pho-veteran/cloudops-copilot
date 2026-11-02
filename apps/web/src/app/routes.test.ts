@@ -1,5 +1,6 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { safeRoute } from "./routes";
+import { buildWorkQueueHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
 
 describe("safe return navigation", () => {
   const id = "74483c3e-adc2-4d05-93a6-c218afc6ebe7";
@@ -36,5 +37,103 @@ describe("safe return navigation", () => {
     `#/workloads?workload=${id}&next=https://foreign.test`,
   ])("falls back safely for %s", (hash) => {
     expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "", baseline: "" });
+  });
+});
+
+describe("work queue URL state", () => {
+  const id = "74483c3e-adc2-4d05-93a6-c218afc6ebe7";
+
+  it("parses search from the queue hash", () => {
+    expect(parseWorkQueueHash("#/queue?search=timeout").search).toBe("timeout");
+  });
+
+  it("parses every whitelisted parameter", () => {
+    const params = parseWorkQueueHash(
+      `#/queue?search=db&workload=${id}&origin=alertmanager&state=open` +
+        `&severity=critical&alert_signal=firing&sort_by=severity&sort_order=asc` +
+        `&offset=25&selected=${id}`,
+    );
+    expect(params).toEqual({
+      search: "db",
+      workload: id,
+      origin: "alertmanager",
+      state: "open",
+      severity: "critical",
+      alert_signal: "firing",
+      sort_by: "severity",
+      sort_order: "asc",
+      offset: 25,
+      selected: id,
+    });
+  });
+
+  it("returns defaults for a bare queue hash", () => {
+    expect(parseWorkQueueHash("#/queue")).toEqual({
+      sort_by: "created_at",
+      sort_order: "desc",
+      offset: 0,
+    });
+  });
+
+  it("drops unknown keys and invalid values", () => {
+    const params = parseWorkQueueHash(
+      `#/queue?next=https://foreign.test&state=bogus&origin=unknown` +
+        `&workload=not-a-uuid&selected=raw&offset=abc&sort_by=description` +
+        `&sort_order=sideways&alert_signal=noise&severity=${"x".repeat(33)}`,
+    );
+    expect(params).toEqual({ sort_by: "created_at", sort_order: "desc", offset: 0 });
+  });
+
+  it("treats negative and non-integer offsets as the default", () => {
+    expect(parseWorkQueueHash("#/queue?offset=-5").offset).toBe(0);
+    expect(parseWorkQueueHash("#/queue?offset=2.5").offset).toBe(0);
+  });
+
+  it("builds a bare queue hash when no parameter is set", () => {
+    expect(buildWorkQueueHash({})).toBe("#/queue");
+  });
+
+  it("omits default sort and zero offset", () => {
+    expect(buildWorkQueueHash({ sort_by: "created_at", sort_order: "desc", offset: 0 })).toBe(
+      "#/queue",
+    );
+  });
+
+  it("builds non-default parameters and round-trips them", () => {
+    const params = {
+      search: "test",
+      state: "open" as const,
+      alert_signal: "firing" as const,
+      sort_by: "severity" as const,
+      sort_order: "asc" as const,
+      offset: 25,
+    };
+    const hash = buildWorkQueueHash(params);
+    expect(hash).toContain("search=test");
+    expect(hash).toContain("state=open");
+    expect(hash).toContain("alert_signal=firing");
+    expect(hash).toContain("sort_by=severity");
+    expect(hash).toContain("sort_order=asc");
+    expect(hash).toContain("offset=25");
+    expect(parseWorkQueueHash(hash)).toEqual(params);
+  });
+
+  it("recognizes a queue hash with a query as the queue route", () => {
+    expect(safeRoute("#/queue?search=timeout")).toEqual({
+      page: "queue",
+      id: "",
+      run: "",
+      baseline: "",
+    });
+  });
+
+  it("canonicalizes the queue hash by dropping foreign keys and invalid values", () => {
+    window.history.replaceState(null, "", "/#/queue?state=open&next=https://foreign.test");
+    expect(readRoute().page).toBe("queue");
+    expect(window.location.hash).toBe("#/queue?state=open");
+
+    window.history.replaceState(null, "", "/#/queue?state=bogus");
+    readRoute();
+    expect(window.location.hash).toBe("#/queue");
   });
 });
