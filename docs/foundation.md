@@ -33,6 +33,30 @@ The failed-collection browser exercise created run `86719204-70a7-4497-a4b7-f1bc
 
 The images document local behavior. They do not prove live source collection, model quality, recovery safety or independent review.
 
+### Work queue search and prioritization
+
+The persisted work queue (`#/queue`) searches, filters, sorts and pages incidents through the existing read-only `GET /api/incidents` endpoint. This slice adds no mutation, execution or queue-state capability; investigation detail still owns run state.
+
+- **Search** matches the title case-insensitively and literally (wildcard characters are escaped) or a prefix of the incident UUID. Terms are limited to 160 characters.
+- **Filters:** state, alert signal, origin, severity (exact free-form value, up to 32 characters) and workload UUID. The workload field accepts a UUID; a value that is not UUID-shaped is never sent. A well-formed UUID that does not exist renders the API's error state instead of an empty result.
+- **Sorting:** created time, first seen, last seen and severity, each with an `id ASC` tie-break so pagination does not skip or duplicate rows. Values without severity or seen times sort last. Severity is free-form, so severity sorting is alphabetical: choosing it requests ascending order (`A→Z`) and the select reflects the active direction. `sort_order` has no UI control but remains an optional URL parameter.
+- **URL state:** search, filters, sort, offset and the selected incident persist in the hash (`#/queue?search=timeout&state=open`). Refresh, sharing and back/forward navigation preserve them, and returning from an incident highlights the card that was opened.
+- **States:** distinct loading, error-with-retry, empty queue and no-match panels; pagination is hidden when a page has no rows. The queue refreshes every five seconds.
+- **Permissions:** the endpoint keeps read-only session authorization. The queue renders no mutation controls; incident creation stays owned by the application shell for operators.
+- **Responsive layout:** the seven search/filter/sort controls stack full width at 320px and 390px without horizontal scrolling, and cards keep titles, badges and identifiers readable.
+
+Local evidence came from a disposable evidence stack with 34 seeded incidents: search at 320px, filters at 390px, severity sort, no-match, an error with retry after the API stopped, and URL preservation after returning from an incident.
+
+- [Search at 320px](evidence/work-queue/search-320px.jpg)
+- [State and alert filters at 390px](evidence/work-queue/filters-390px.jpg)
+- [Severity sort ascending on page one](evidence/work-queue/severity-sort-desktop.jpg)
+- [Unset severities last, on the final severity page](evidence/work-queue/severity-nulls-last-desktop.jpg)
+- [No matching incidents](evidence/work-queue/no-match-state.jpg)
+- [Error state with retry after the API stopped](evidence/work-queue/error-recovery.jpg)
+- [Filters and selection preserved after returning from an incident](evidence/work-queue/url-preservation.jpg)
+
+These images document local persisted-app behavior. They do not prove live cluster collection, AI diagnosis or execution.
+
 ## Configuration and account operations
 
 Compose reads `.env`; see the committed `.env.example`. Use a URL-safe database password because the Compose connection URL interpolates it. Keep the exact loopback `WEB_ORIGIN` consistent with the browser URL. `COOKIE_SECURE=false` is an explicit HTTP-loopback exception; the default settings outside this file use Secure cookies. No CORS origin wildcard or public registration is enabled.
