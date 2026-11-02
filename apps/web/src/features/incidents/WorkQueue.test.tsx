@@ -109,6 +109,24 @@ describe("work queue URL state", () => {
       expect(window.location.hash).toBe("#/queue?state=open"),
     );
   });
+
+  it("sorts severity alphabetically ascending from the select", async () => {
+    respond([incident()]);
+    mount();
+    await screen.findByText("Database connection timeout");
+
+    const user = userEvent.setup();
+    await user.selectOptions(
+      screen.getByLabelText("Sort incidents"),
+      "severity",
+    );
+
+    await vi.waitFor(() =>
+      expect(window.location.hash).toBe(
+        "#/queue?sort_by=severity&sort_order=asc",
+      ),
+    );
+  });
 });
 
 describe("work queue results", () => {

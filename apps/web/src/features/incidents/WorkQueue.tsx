@@ -174,16 +174,21 @@ export function WorkQueue() {
           className="foundation-select"
           aria-label="Sort incidents"
           value={params.sort_by ?? "created_at"}
-          onChange={(event) =>
+          onChange={(event) => {
+            const sort_by = event.target
+              .value as WorkQueueParams["sort_by"];
             updateFilters({
-              sort_by: event.target.value as WorkQueueParams["sort_by"],
-            })
-          }
+              sort_by,
+              sort_order: sort_by === "severity" ? "asc" : "desc",
+            });
+          }}
         >
           <option value="created_at">Created time</option>
           <option value="first_seen_at">First seen</option>
           <option value="last_seen_at">Last seen</option>
-          <option value="severity">Severity (A→Z)</option>
+          <option value="severity">
+            Severity ({params.sort_order === "asc" ? "A→Z" : "Z→A"})
+          </option>
         </select>
 
         {hasFilters(params) && (
