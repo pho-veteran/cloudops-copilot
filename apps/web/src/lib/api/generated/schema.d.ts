@@ -2134,7 +2134,17 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
+                /** @description Search in title or ID */
+                search?: string | null;
+                /** @description Filter by workload */
                 workload_id?: string | null;
+                origin?: ("operator" | "alertmanager") | null;
+                state?: ("open" | "acknowledged" | "resolved") | null;
+                /** @description Filter by severity value */
+                severity?: string | null;
+                alert_signal?: ("none" | "firing" | "resolved") | null;
+                sort_by?: "created_at" | "first_seen_at" | "last_seen_at" | "severity";
+                sort_order?: "asc" | "desc";
             };
             header?: never;
             path?: never;

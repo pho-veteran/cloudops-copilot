@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
 from cloudops.features.incidents.coordination import lock_admission
@@ -337,15 +337,64 @@ def get_incident(db: Session, incident_id: UUID):
     )
 
 
-def list_incidents(db: Session, limit: int, offset: int, workload_id: UUID | None = None):
+SORT_COLUMNS = {
+    "created_at": Incident.created_at,
+    "first_seen_at": Incident.first_seen_at,
+    "last_seen_at": Incident.last_seen_at,
+    "severity": Incident.severity,
+}
+NULLABLE_SORT_COLUMNS = {"first_seen_at", "last_seen_at", "severity"}
+
+
+def _escape_like(term: str) -> str:
+    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def list_incidents(
+    db: Session,
+    limit: int,
+    offset: int,
+    search: str | None = None,
+    filters: dict | None = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+):
+    """List incidents with literal search, equality filters and a stable sort.
+
+    Search matches the title case-insensitively and the canonical UUID string as a prefix;
+    wildcard characters in the term are literal. Every sort ends with ``Incident.id ASC`` so
+    pagination cannot skip or duplicate rows.
+    """
+    if sort_by not in SORT_COLUMNS:
+        raise ValueError(f"Unknown incident sort column: {sort_by}")
     query = select(Incident)
-    if workload_id is not None:
-        identity(db, workload_id)
-        query = query.where(Incident.workload_id == workload_id)
+    if search:
+        escaped = _escape_like(search.strip())
+        if escaped:
+            query = query.where(
+                or_(
+                    Incident.title.ilike(f"%{escaped}%", escape="\\"),
+                    func.lower(cast(Incident.id, String)).like(f"{escaped.lower()}%", escape="\\"),
+                )
+            )
+    if filters:
+        if filters.get("workload_id") is not None:
+            identity(db, filters["workload_id"])
+            query = query.where(Incident.workload_id == filters["workload_id"])
+        if filters.get("origin"):
+            query = query.where(Incident.origin_kind == filters["origin"])
+        if filters.get("state"):
+            query = query.where(Incident.state == filters["state"])
+        if filters.get("severity"):
+            query = query.where(Incident.severity == filters["severity"])
+        if filters.get("alert_signal"):
+            query = query.where(Incident.alert_signal == filters["alert_signal"])
+    sort_column = SORT_COLUMNS[sort_by]
+    ordered = sort_column.desc() if sort_order == "desc" else sort_column.asc()
+    if sort_by in NULLABLE_SORT_COLUMNS:
+        ordered = ordered.nulls_last()
     rows = db.scalars(
-        query.order_by(Incident.created_at.desc(), Incident.id.desc())
-        .limit(limit + 1)
-        .offset(offset)
+        query.order_by(ordered, Incident.id.asc()).limit(limit + 1).offset(offset)
     ).all()
     return IncidentPage(
         items=[IncidentView.model_validate(r) for r in rows[:limit]],
