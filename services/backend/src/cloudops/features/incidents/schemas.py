@@ -86,6 +86,49 @@ class IncidentDetail(IncidentView):
     workload: WorkloadView
 
 
+class CreationAnchor(BaseModel):
+    created_at: datetime
+    id: UUID
+
+
+class WorkQueueRun(BaseModel):
+    id: UUID
+    state: str
+    origin_kind: Literal["operator", "alertmanager"]
+    queue_reason: Literal["capacity"] | None
+    reason: str
+    requested_by: UUID | None
+    requested_by_name: str | None
+    created_at: datetime
+    outcome_code: str | None
+
+
+class WorkQueueExecution(BaseModel):
+    id: UUID
+    state: str
+    classification: Literal[
+        "active",
+        "terminal_unknown_locked",
+        "terminal_unknown_released",
+        "terminal",
+        "unrecognized",
+    ]
+    holds_lock: bool
+    workload_id: UUID
+    created_at: datetime
+
+
+class WorkQueueItem(IncidentView):
+    created_by_name: str | None
+    acknowledged_by: UUID | None
+    acknowledged_by_name: str | None
+    acknowledged_at: datetime | None
+    latest_run: WorkQueueRun | None
+    run_blockers: list[Literal["queued", "waiting_for_quota", "failed", "insufficient_evidence"]]
+    relevant_executions: list[WorkQueueExecution]
+
+
 class IncidentPage(BaseModel):
-    items: list[IncidentView]
+    items: list[WorkQueueItem]
     next_offset: int | None
+    creation_anchor: CreationAnchor

@@ -8,8 +8,10 @@ from sqlalchemy import select
 
 from cloudops.features.access.models import User
 from cloudops.features.access.service import provision
-from cloudops.features.incidents.models import Incident
+from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.incidents.service import list_incidents
+from cloudops.features.investigations.models import InvestigationRun
+from cloudops.features.recovery.models import ActionPlan, Execution
 from cloudops.features.workloads.models import Workload
 from cloudops.shared.database import database_now
 
@@ -255,14 +257,39 @@ def configured_workload(db) -> Workload:
     return db.scalar(select(Workload).order_by(Workload.id))
 
 
-def test_list_endpoint_defaults_unchanged(client, db, actor_id, seeded):
-    """Omitting every new parameter behaves exactly like the previous endpoint."""
+def test_list_endpoint_defaults_to_current_incidents_by_last_seen(client, db, actor_id, seeded):
+    """The default queue shows open/acknowledged work ordered by latest seen time."""
     from conftest import sign_in
 
     workload = configured_workload(db)
     now = database_now(db)
-    create_incident(db, workload.id, actor_id, title="One", created_at=now - timedelta(minutes=1))
-    create_incident(db, workload.id, actor_id, title="Two", created_at=now)
+    create_incident(
+        db,
+        workload.id,
+        actor_id,
+        title="One",
+        created_at=now - timedelta(minutes=1),
+        first_seen_at=now - timedelta(minutes=1),
+        last_seen_at=now - timedelta(minutes=1),
+    )
+    create_incident(
+        db,
+        workload.id,
+        actor_id,
+        title="Two",
+        created_at=now,
+        first_seen_at=now,
+        last_seen_at=now,
+        state="acknowledged",
+    )
+    create_incident(
+        db,
+        workload.id,
+        actor_id,
+        title="Resolved",
+        created_at=now + timedelta(seconds=1),
+        state="resolved",
+    )
     db.commit()
 
     response = client.get("/api/incidents", headers=sign_in(client))
@@ -271,6 +298,10 @@ def test_list_endpoint_defaults_unchanged(client, db, actor_id, seeded):
     body = response.json()
     assert [item["title"] for item in body["items"]] == ["Two", "One"]
     assert body["next_offset"] is None
+    assert body["creation_anchor"]["id"]
+
+    all_states = client.get("/api/incidents?view=all", headers=sign_in(client)).json()
+    assert [item["title"] for item in all_states["items"]] == ["Two", "One", "Resolved"]
 
 
 def test_list_endpoint_unknown_workload_is_404(client, seeded):
@@ -303,6 +334,14 @@ def test_list_endpoint_rejects_unknown_sort(client, seeded):
     from conftest import sign_in
 
     response = client.get("/api/incidents?sort_by=description", headers=sign_in(client))
+
+    assert response.status_code == 422
+
+
+def test_list_endpoint_rejects_unknown_run_state(client, seeded):
+    from conftest import sign_in
+
+    response = client.get("/api/incidents?run_state=unknown", headers=sign_in(client))
 
     assert response.status_code == 422
 
@@ -352,3 +391,142 @@ def test_list_endpoint_applies_origin_and_workload_filters(client, db, actor_id,
         "Configured workload",
         "Other workload",
     }
+
+
+def test_blocked_view_keeps_historical_failed_run_with_newer_success(db, actor_id):
+    workload = create_workload(db, "historical-run-blocked")
+    incident = create_incident(db, workload.id, actor_id, title="Recovered after failure")
+    now = database_now(db)
+    db.add_all(
+        [
+            InvestigationRun(
+                incident_id=incident.id,
+                state="failed",
+                requested_by=actor_id,
+                created_at=now - timedelta(minutes=1),
+            ),
+            InvestigationRun(
+                incident_id=incident.id,
+                state="completed",
+                requested_by=actor_id,
+                created_at=now,
+            ),
+        ]
+    )
+    db.commit()
+
+    result = list_incidents(db, 25, 0, view="blocked")
+
+    assert [item.title for item in result.items] == ["Recovered after failure"]
+    assert result.items[0].latest_run.state == "completed"
+    assert result.items[0].run_blockers == ["failed"]
+
+
+def test_resolved_incident_retains_all_unknown_and_active_execution_warnings(db, actor_id):
+    from datetime import timedelta
+
+    workload = create_workload(db, "execution-warnings")
+    incident = create_incident(
+        db, workload.id, actor_id, title="Resolved with unresolved outcome", state="resolved"
+    )
+    now = database_now(db)
+    unknown_plan = ActionPlan(
+        incident_id=incident.id,
+        workload_id=workload.id,
+        content={},
+        digest="a" * 64,
+        target_epoch="epoch-unknown",
+        rationale="test evidence",
+        created_by=actor_id,
+        expires_at=now + timedelta(hours=1),
+    )
+    active_plan = ActionPlan(
+        incident_id=incident.id,
+        workload_id=workload.id,
+        content={},
+        digest="b" * 64,
+        target_epoch="epoch-active",
+        rationale="test evidence",
+        created_by=actor_id,
+        expires_at=now + timedelta(hours=1),
+    )
+    db.add_all([unknown_plan, active_plan])
+    db.flush()
+    unknown = Execution(
+        plan_id=unknown_plan.id,
+        workload_id=workload.id,
+        state="outcome_unknown",
+        holds_lock=True,
+        maintenance_released=False,
+    )
+    active = Execution(
+        plan_id=active_plan.id,
+        workload_id=workload.id,
+        state="verifying",
+        holds_lock=False,
+        maintenance_released=False,
+    )
+    db.add_all([unknown, active])
+    db.commit()
+
+    resolved = list_incidents(db, 25, 0, view="all")
+    blocked = list_incidents(db, 25, 0, view="blocked")
+
+    assert [item.id for item in resolved.items] == [incident.id]
+    assert {item.id for item in resolved.items[0].relevant_executions} == {unknown.id, active.id}
+    assert {item.classification for item in resolved.items[0].relevant_executions} == {
+        "terminal_unknown_locked",
+        "active",
+    }
+    assert blocked.items == []
+
+
+def test_creation_anchor_excludes_incidents_created_after_first_page(db, actor_id):
+    workload = create_workload(db, "queue-anchor")
+    initial = create_incident(db, workload.id, actor_id, title="Initial")
+    db.commit()
+
+    first = list_incidents(db, 25, 0)
+    later = create_incident(
+        db,
+        workload.id,
+        actor_id,
+        title="Created later",
+        created_at=first.creation_anchor.created_at + timedelta(seconds=1),
+    )
+    db.commit()
+
+    anchored = list_incidents(
+        db,
+        25,
+        0,
+        anchor_created_at=first.creation_anchor.created_at,
+        anchor_id=first.creation_anchor.id,
+    )
+    refreshed = list_incidents(db, 25, 0)
+
+    assert [item.id for item in anchored.items] == [initial.id]
+    assert later.id in {item.id for item in refreshed.items}
+
+
+def test_queue_projection_includes_requester_and_acknowledgment_actor_time(db, actor_id):
+    workload = create_workload(db, "queue-actors")
+    incident = create_incident(
+        db, workload.id, actor_id, title="Attributed incident", state="acknowledged"
+    )
+    activity = IncidentActivity(
+        incident_id=incident.id,
+        kind="acknowledge",
+        text="Investigating",
+        actor_id=actor_id,
+    )
+    db.add(activity)
+    db.commit()
+
+    result = list_incidents(db, 25, 0)
+    item = next(row for row in result.items if row.id == incident.id)
+
+    assert item.created_by_name == "queue-operator"
+    assert item.acknowledged_by == actor_id
+    assert item.acknowledged_by_name == "queue-operator"
+    assert item.acknowledged_at == activity.created_at

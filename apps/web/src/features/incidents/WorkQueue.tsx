@@ -19,7 +19,10 @@ function hasFilters(params: WorkQueueParams) {
       params.origin ||
       params.state ||
       params.severity ||
-      params.alert_signal,
+      params.alert_signal ||
+      (params.view && params.view !== "all") ||
+      params.run_state ||
+      params.execution_class,
   );
 }
 
@@ -54,7 +57,23 @@ export function WorkQueue() {
     alert_signal: params.alert_signal,
     sort_by: params.sort_by,
     sort_order: params.sort_order,
+    view: params.view,
+    run_state: params.run_state,
+    execution_class: params.execution_class,
+    anchor_created_at: params.anchor_created_at,
+    anchor_id: params.anchor_id,
   });
+
+  useEffect(() => {
+    const anchor = query.data?.creation_anchor;
+    if (!params.anchor_created_at && anchor && !query.isFetching) {
+      setParams((previous) => ({
+        ...previous,
+        anchor_created_at: anchor.created_at,
+        anchor_id: anchor.id,
+      }));
+    }
+  }, [params.anchor_created_at, query.data?.creation_anchor, query.isFetching]);
 
   const updateFilters = (updates: Partial<WorkQueueParams>) => {
     setParams((previous) => ({ ...previous, ...updates, offset: 0 }));
@@ -79,6 +98,28 @@ export function WorkQueue() {
       </p>
 
       <div className="work-queue-controls">
+        <select
+          className="foundation-select"
+          aria-label="Operational view"
+          value={params.view ?? "default"}
+          onChange={(event) =>
+            updateFilters({
+              view:
+                event.target.value === "all"
+                  ? undefined
+                  : (event.target.value as WorkQueueParams["view"]),
+            })
+          }
+        >
+          <option value="default">Current work (open and acknowledged)</option>
+          <option value="all">All lifecycle states</option>
+          <option value="needs_attention">Needs attention</option>
+          <option value="awaiting_decision">Awaiting decision</option>
+          <option value="verifying">Verifying</option>
+          <option value="blocked">Blocked</option>
+          <option value="resolved">Resolved</option>
+        </select>
+
         <input
           type="search"
           className="foundation-input"
@@ -93,6 +134,50 @@ export function WorkQueue() {
 
         <select
           className="foundation-select"
+          aria-label="Filter by Run state"
+          value={params.run_state ?? "all"}
+          onChange={(event) =>
+            updateFilters({
+              run_state:
+                event.target.value === "all"
+                  ? undefined
+                  : (event.target.value as WorkQueueParams["run_state"]),
+            })
+          }
+        >
+          <option value="all">All Run states</option>
+          <option value="queued">Queued</option>
+          <option value="collecting">Collecting</option>
+          <option value="analyzing">Analyzing</option>
+          <option value="waiting_for_quota">Waiting for quota</option>
+          <option value="failed">Failed</option>
+          <option value="insufficient_evidence">Insufficient evidence</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+
+        <select
+          className="foundation-select"
+          aria-label="Filter by execution"
+          value={params.execution_class ?? "all"}
+          onChange={(event) =>
+            updateFilters({
+              execution_class:
+                event.target.value === "all"
+                  ? undefined
+                  : (event.target.value as WorkQueueParams["execution_class"]),
+            })
+          }
+        >
+          <option value="all">All execution states</option>
+          <option value="active">Active</option>
+          <option value="terminal_unknown">Outcome unknown</option>
+          <option value="unrecognized">Unsupported or ambiguous</option>
+          <option value="terminal">Terminal known</option>
+        </select>
+
+        <select
+          className="foundation-select"
           aria-label="Filter by state"
           value={params.state ?? "all"}
           onChange={(event) =>
@@ -104,7 +189,7 @@ export function WorkQueue() {
             })
           }
         >
-          <option value="all">All states</option>
+          <option value="all">Use view lifecycle scope</option>
           <option value="open">Open</option>
           <option value="acknowledged">Acknowledged</option>
           <option value="resolved">Resolved</option>
@@ -173,7 +258,7 @@ export function WorkQueue() {
         <select
           className="foundation-select"
           aria-label="Sort incidents"
-          value={params.sort_by ?? "created_at"}
+          value={params.sort_by ?? "last_seen_at"}
           onChange={(event) => {
             const sort_by = event.target
               .value as WorkQueueParams["sort_by"];
@@ -192,7 +277,10 @@ export function WorkQueue() {
         </select>
 
         {hasFilters(params) && (
-          <Button variant="ghost" onClick={() => setParams({})}>
+          <Button
+            variant="ghost"
+            onClick={() => setParams(parseWorkQueueHash("#/queue"))}
+          >
             Clear filters
           </Button>
         )}
@@ -213,8 +301,12 @@ export function WorkQueue() {
                 </>
               ) : (
                 <>
-                  <h2>No incidents yet</h2>
-                  <p>Select a workload and start an investigation.</p>
+                  <h2>
+                    {params.view === "all"
+                      ? "No incidents yet"
+                      : "No open or acknowledged incidents"}
+                  </h2>
+                  <p>View all lifecycle states to include resolved incidents.</p>
                   <a href="#/workloads">View workloads</a>
                 </>
               )}
@@ -256,8 +348,11 @@ export function WorkQueue() {
                       )}
                       {incident.severity.value && (
                         <Badge variant="secondary">
-                          {incident.severity.value}
+                          {incident.severity.value} · {incident.severity.provenance}
                         </Badge>
+                      )}
+                      {!incident.severity.value && (
+                        <Badge variant="secondary">Severity not provided</Badge>
                       )}
                     </div>
                   </div>
@@ -270,8 +365,47 @@ export function WorkQueue() {
                         ? ` · First seen ${new Date(
                             incident.first_seen_at,
                           ).toLocaleString()}`
-                        : ""}
+                        : " · First seen unknown"}
+                      {incident.last_seen_at
+                        ? ` · Last seen ${new Date(
+                            incident.last_seen_at,
+                          ).toLocaleString()}`
+                        : " · Last seen unknown"}
                     </p>
+                    <p className="muted text-xs">
+                      {incident.origin.kind === "alertmanager"
+                        ? "Opened from Alertmanager"
+                        : `Opened by ${incident.created_by_name ?? "unknown requester"}`}
+                      {incident.acknowledged_at
+                        ? ` · Acknowledged by ${incident.acknowledged_by_name ?? "unknown actor"} at ${new Date(incident.acknowledged_at).toLocaleString()}`
+                        : incident.state === "acknowledged"
+                          ? " · Acknowledgment actor/time unknown"
+                          : ""}
+                    </p>
+                    {incident.latest_run && (
+                      <p className="muted text-xs">
+                        Run {incident.latest_run.state} · {incident.latest_run.id}
+                        {incident.latest_run.queue_reason === "capacity"
+                          ? " · Deferred: dispatch capacity"
+                          : ""}
+                        {incident.latest_run.requested_by_name
+                          ? ` · Requested by ${incident.latest_run.requested_by_name}`
+                          : incident.latest_run.origin_kind === "alertmanager"
+                            ? " · Requested automatically by Alertmanager"
+                            : " · Requester unknown"}
+                      </p>
+                    )}
+                    {(incident.run_blockers ?? []).length > 0 && (
+                      <p className="text-xs" role="status">
+                        Run blockers in history: {incident.run_blockers.join(", ").replaceAll("_", " ")}
+                      </p>
+                    )}
+                    {(incident.relevant_executions ?? []).map((execution) => (
+                      <p className="text-xs" role="status" key={execution.id}>
+                        Execution {execution.state} · {execution.classification.replaceAll("_", " ")}
+                        {execution.holds_lock ? " · target locked" : " · target lock released"}
+                      </p>
+                    ))}
                     <p className="muted text-xs">{incident.id}</p>
                   </div>
                 </a>
@@ -279,37 +413,46 @@ export function WorkQueue() {
             </div>
           )}
 
-          {query.data.items.length > 0 && (
-            <div className="foundation-actions">
-              <Button
-                variant="outline"
-                disabled={(params.offset ?? 0) === 0}
-                onClick={() =>
-                  updateOffset(Math.max(0, (params.offset ?? 0) - 25))
-                }
-              >
-                Previous
-              </Button>
-              <span className="text-sm text-muted">
-                Showing {(params.offset ?? 0) + 1}–
-                {(params.offset ?? 0) + query.data.items.length}
-              </span>
-              <Button
-                variant="outline"
-                disabled={query.data.next_offset === null}
-                onClick={() => updateOffset(query.data.next_offset!)}
-              >
-                Next
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={query.isFetching}
-                onClick={() => void query.refetch()}
-              >
-                {query.isFetching ? "Refreshing..." : "Refresh"}
-              </Button>
-            </div>
-          )}
+          <div className="foundation-actions">
+            {query.data.items.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  disabled={(params.offset ?? 0) === 0}
+                  onClick={() =>
+                    updateOffset(Math.max(0, (params.offset ?? 0) - 25))
+                  }
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted">
+                  Showing {(params.offset ?? 0) + 1}–
+                  {(params.offset ?? 0) + query.data.items.length}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={query.data.next_offset === null}
+                  onClick={() => updateOffset(query.data.next_offset!)}
+                >
+                  Next
+                </Button>
+              </>
+            )}
+            <Button
+              variant="ghost"
+              disabled={query.isFetching}
+              onClick={() =>
+                setParams((previous) => ({
+                  ...previous,
+                  offset: 0,
+                  anchor_created_at: undefined,
+                  anchor_id: undefined,
+                }))
+              }
+            >
+              {query.isFetching ? "Refreshing..." : "Refresh new work"}
+            </Button>
+          </div>
         </>
       )}
     </section>

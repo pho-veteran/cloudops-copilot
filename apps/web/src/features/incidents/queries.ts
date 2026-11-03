@@ -16,6 +16,11 @@ export interface IncidentFilters {
   alert_signal?: "none" | "firing" | "resolved";
   sort_by?: "created_at" | "first_seen_at" | "last_seen_at" | "severity";
   sort_order?: "asc" | "desc";
+  view?: "all" | "needs_attention" | "awaiting_decision" | "verifying" | "blocked" | "resolved";
+  run_state?: "queued" | "collecting" | "analyzing" | "waiting_for_quota" | "insufficient_evidence" | "completed" | "failed" | "cancelled";
+  execution_class?: "active" | "terminal_unknown" | "terminal" | "unrecognized";
+  anchor_created_at?: string;
+  anchor_id?: string;
 }
 
 type IncidentQuery = NonNullable<
@@ -35,6 +40,11 @@ function incidentQuery(
   if (filters.alert_signal) query.alert_signal = filters.alert_signal;
   if (filters.sort_by) query.sort_by = filters.sort_by;
   if (filters.sort_order) query.sort_order = filters.sort_order;
+  if (filters.view) query.view = filters.view;
+  if (filters.run_state) query.run_state = filters.run_state;
+  if (filters.execution_class) query.execution_class = filters.execution_class;
+  if (filters.anchor_created_at) query.anchor_created_at = filters.anchor_created_at;
+  if (filters.anchor_id) query.anchor_id = filters.anchor_id;
   return query;
 }
 

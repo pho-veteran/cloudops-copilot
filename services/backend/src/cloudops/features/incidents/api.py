@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -13,6 +14,7 @@ from cloudops.features.incidents.schemas import (
     IncidentPage,
     ManualIncidentRequest,
 )
+from cloudops.features.investigations.schemas import RunState
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES
 
@@ -45,11 +47,22 @@ def list_incidents(
     severity: str | None = Query(None, max_length=32, description="Filter by severity value"),
     alert_signal: Literal["none", "firing", "resolved"] | None = Query(None),
     sort_by: Literal["created_at", "first_seen_at", "last_seen_at", "severity"] = Query(
-        "created_at"
+        "last_seen_at"
     ),
     sort_order: Literal["asc", "desc"] = Query("desc"),
+    view: Literal["all", "needs_attention", "awaiting_decision", "verifying", "blocked", "resolved"]
+    | None = Query(None),
+    run_state: RunState | None = Query(None),
+    execution_class: Literal["active", "terminal_unknown", "terminal", "unrecognized"]
+    | None = Query(None),
+    anchor_created_at: datetime | None = Query(None),
+    anchor_id: UUID | None = Query(None),
     db: Session = Depends(get_db),
 ):
+    if (anchor_created_at is None) != (anchor_id is None):
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=422, detail="Both creation anchor fields are required.")
     return service.list_incidents(
         db,
         limit,
@@ -64,6 +77,11 @@ def list_incidents(
         },
         sort_by=sort_by,
         sort_order=sort_order,
+        view=view,
+        run_state=run_state,
+        execution_class=execution_class,
+        anchor_created_at=anchor_created_at,
+        anchor_id=anchor_id,
     )
 
 

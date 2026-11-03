@@ -874,6 +874,19 @@ export interface components {
             limits: components["schemas"]["Resources"];
             requests: components["schemas"]["Resources"];
         };
+        /** CreationAnchor */
+        CreationAnchor: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
         /** Decision */
         Decision: {
             /**
@@ -1124,50 +1137,11 @@ export interface components {
         };
         /** IncidentPage */
         IncidentPage: {
+            creation_anchor: components["schemas"]["CreationAnchor"];
             /** Items */
-            items: components["schemas"]["IncidentView"][];
+            items: components["schemas"]["WorkQueueItem"][];
             /** Next Offset */
             next_offset: number | null;
-        };
-        /** IncidentView */
-        IncidentView: {
-            /**
-             * Alert Signal
-             * @enum {string}
-             */
-            alert_signal: "none" | "firing" | "resolved";
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Created By */
-            created_by: string | null;
-            /** Description */
-            description: string;
-            /** First Seen At */
-            first_seen_at: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Last Seen At */
-            last_seen_at: string | null;
-            origin: components["schemas"]["OriginView"];
-            severity: components["schemas"]["SeverityView"];
-            /**
-             * State
-             * @enum {string}
-             */
-            state: "open" | "acknowledged" | "resolved";
-            /** Title */
-            title: string;
-            /**
-             * Workload Id
-             * Format: uuid
-             */
-            workload_id: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -1754,6 +1728,116 @@ export interface components {
              */
             preset: 15 | 30 | 60;
         };
+        /** WorkQueueExecution */
+        WorkQueueExecution: {
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "active" | "terminal_unknown_locked" | "terminal_unknown_released" | "terminal" | "unrecognized";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Holds Lock */
+            holds_lock: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** State */
+            state: string;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
+        /** WorkQueueItem */
+        WorkQueueItem: {
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Acknowledged By */
+            acknowledged_by: string | null;
+            /** Acknowledged By Name */
+            acknowledged_by_name: string | null;
+            /**
+             * Alert Signal
+             * @enum {string}
+             */
+            alert_signal: "none" | "firing" | "resolved";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Created By Name */
+            created_by_name: string | null;
+            /** Description */
+            description: string;
+            /** First Seen At */
+            first_seen_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Seen At */
+            last_seen_at: string | null;
+            latest_run: components["schemas"]["WorkQueueRun"] | null;
+            origin: components["schemas"]["OriginView"];
+            /** Relevant Executions */
+            relevant_executions: components["schemas"]["WorkQueueExecution"][];
+            /** Run Blockers */
+            run_blockers: ("queued" | "waiting_for_quota" | "failed" | "insufficient_evidence")[];
+            severity: components["schemas"]["SeverityView"];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "open" | "acknowledged" | "resolved";
+            /** Title */
+            title: string;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
+        /** WorkQueueRun */
+        WorkQueueRun: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Origin Kind
+             * @enum {string}
+             */
+            origin_kind: "operator" | "alertmanager";
+            /** Outcome Code */
+            outcome_code: string | null;
+            /** Queue Reason */
+            queue_reason: "capacity" | null;
+            /** Reason */
+            reason: string;
+            /** Requested By */
+            requested_by: string | null;
+            /** Requested By Name */
+            requested_by_name: string | null;
+            /** State */
+            state: string;
+        };
         /** WorkloadPage */
         WorkloadPage: {
             /** Items */
@@ -2145,6 +2229,11 @@ export interface operations {
                 alert_signal?: ("none" | "firing" | "resolved") | null;
                 sort_by?: "created_at" | "first_seen_at" | "last_seen_at" | "severity";
                 sort_order?: "asc" | "desc";
+                view?: ("all" | "needs_attention" | "awaiting_decision" | "verifying" | "blocked" | "resolved") | null;
+                run_state?: ("queued" | "collecting" | "analyzing" | "waiting_for_quota" | "insufficient_evidence" | "completed" | "failed" | "cancelled") | null;
+                execution_class?: ("active" | "terminal_unknown" | "terminal" | "unrecognized") | null;
+                anchor_created_at?: string | null;
+                anchor_id?: string | null;
             };
             header?: never;
             path?: never;

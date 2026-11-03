@@ -12,8 +12,8 @@ vi.mock("@/lib/api/client", async (importOriginal) => {
   return { ...original, api: { ...original.api, GET: mocks.get } };
 });
 
-type IncidentView = components["schemas"]["IncidentView"];
-const incident = (overrides: Partial<IncidentView> = {}): IncidentView => ({
+type WorkQueueItem = components["schemas"]["WorkQueueItem"];
+const incident = (overrides: Partial<WorkQueueItem> = {}): WorkQueueItem => ({
   id: "11111111-1111-4111-8111-111111111111",
   title: "Database connection timeout",
   description: "",
@@ -26,6 +26,13 @@ const incident = (overrides: Partial<IncidentView> = {}): IncidentView => ({
   created_at: "2026-11-01T00:00:00Z",
   first_seen_at: null,
   last_seen_at: null,
+  created_by_name: "operator",
+  acknowledged_by: null,
+  acknowledged_by_name: null,
+  acknowledged_at: null,
+  latest_run: null,
+  run_blockers: [],
+  relevant_executions: [],
   ...overrides,
 });
 
@@ -48,7 +55,7 @@ function mount() {
   return cache;
 }
 
-function respond(items: IncidentView[], next: number | null = null) {
+function respond(items: WorkQueueItem[], next: number | null = null) {
   mocks.get.mockResolvedValue({
     data: { items, next_offset: next },
     response: new Response(null, { status: 200 }),
@@ -66,6 +73,40 @@ afterEach(() => {
 });
 
 describe("work queue URL state", () => {
+  it("stores the server creation anchor and resets it for explicit refresh", async () => {
+    const item = incident();
+    const anchor = {
+      created_at: "2026-11-01T00:00:00Z",
+      id: "44444444-4444-4444-8444-444444444444",
+    };
+    mocks.get.mockResolvedValue({
+      data: { items: [item], next_offset: null, creation_anchor: anchor },
+      response: new Response(null, { status: 200 }),
+    });
+    mount();
+
+    await screen.findByText(item.title);
+    await vi.waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(2));
+    expect(mocks.get.mock.calls[1][1].params.query.anchor_created_at).toBe(
+      anchor.created_at,
+    );
+    expect(window.location.hash).toContain("anchor_id=");
+
+    const refreshCallStart = mocks.get.mock.calls.length;
+    await userEvent.setup().click(
+      screen.getByRole("button", { name: "Refresh new work" }),
+    );
+    await vi.waitFor(() => {
+      const query = mocks.get.mock.calls
+        .slice(refreshCallStart)
+        .map((call) => call[1].params.query)
+        .find((params) => params.anchor_created_at === undefined);
+      if (!query) throw new Error("Refresh did not send an unanchored request.");
+      expect(query.offset).toBe(0);
+      expect(query.anchor_id).toBeUndefined();
+    });
+  });
+
   it("parses the search term from the queue hash on mount", async () => {
     respond([]);
     queue("#/queue?search=timeout");
@@ -152,7 +193,7 @@ describe("work queue results", () => {
     respond([]);
     mount();
 
-    expect(await screen.findByText("No incidents yet")).toBeTruthy();
+    expect(await screen.findByText("No open or acknowledged incidents")).toBeTruthy();
   });
 
   it("renders the failure state with a retry action", async () => {
@@ -185,7 +226,7 @@ describe("work queue results", () => {
   it("never sends a workload filter that is not a UUID", async () => {
     respond([]);
     mount();
-    await screen.findByText("No incidents yet");
+    await screen.findByText("No open or acknowledged incidents");
     const requests = mocks.get.mock.calls.length;
 
     const user = userEvent.setup();

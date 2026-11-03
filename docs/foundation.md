@@ -35,7 +35,11 @@ The images document local behavior. They do not prove live source collection, mo
 
 ### Work queue search and prioritization
 
-The persisted work queue (`#/queue`) searches, filters, sorts and pages incidents through the existing read-only `GET /api/incidents` endpoint. This slice adds no mutation, execution or queue-state capability; investigation detail still owns run state.
+The persisted work queue (`#/queue`) searches, filters, sorts and pages incidents through the read-only `GET /api/incidents` endpoint. Server-backed operational views keep incident lifecycle, alert signal, latest Run state and execution state as independent axes. The queue consumes E07's shared execution/lock classification and displays every relevant active, unknown or unsupported execution; it does not authorize or perform mutations.
+
+The default queue shows open and acknowledged incidents, ordered by last-seen time descending with a stable incident-ID tie-break. The **All lifecycle states** choice includes resolved records. Operational views are **Needs attention**, **Awaiting decision**, **Verifying**, **Blocked** and **Resolved**. Blocked includes an actual capacity-deferred queued Run, waiting-for-quota, failed/insufficient-evidence Run history, and relevant uncertain/manual-intervention execution state; resolved incidents are excluded from that view. Active and unknown target-lock warnings remain visible on resolved incidents in other views. Severity and requester/acknowledgment attribution retain their stored provenance; missing historical values remain unknown.
+
+Queue pages carry a server-generated creation-time/ID anchor so inserts after the first page do not shift later offset pages. **Refresh new work** resets the anchor and returns to the first page. Mutable sort values such as last-seen can still move existing rows between pages; the queue does not promise a frozen snapshot. Filter, sort and view changes reset the offset, and the hash URL preserves the current query and selected incident when returning from detail.
 
 - **Search** matches the title case-insensitively and literally (wildcard characters are escaped) or a prefix of the incident UUID. Terms are limited to 160 characters.
 - **Filters:** state, alert signal, origin, severity (exact free-form value, up to 32 characters) and workload UUID. The workload field accepts a UUID; a value that is not UUID-shaped is never sent. A well-formed UUID that does not exist renders the API's error state instead of an empty result.

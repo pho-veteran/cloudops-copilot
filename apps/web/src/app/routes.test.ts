@@ -51,7 +51,8 @@ describe("work queue URL state", () => {
     const params = parseWorkQueueHash(
       `#/queue?search=db&workload=${id}&origin=alertmanager&state=open` +
         `&severity=critical&alert_signal=firing&sort_by=severity&sort_order=asc` +
-        `&offset=25&selected=${id}`,
+        `&offset=25&selected=${id}&view=blocked&run_state=waiting_for_quota` +
+        `&execution_class=terminal_unknown&anchor_created_at=2026-11-01T00%3A00%3A00.000Z&anchor_id=${id}`,
     );
     expect(params).toEqual({
       search: "db",
@@ -64,12 +65,17 @@ describe("work queue URL state", () => {
       sort_order: "asc",
       offset: 25,
       selected: id,
+      view: "blocked",
+      run_state: "waiting_for_quota",
+      execution_class: "terminal_unknown",
+      anchor_created_at: "2026-11-01T00:00:00.000Z",
+      anchor_id: id,
     });
   });
 
   it("returns defaults for a bare queue hash", () => {
     expect(parseWorkQueueHash("#/queue")).toEqual({
-      sort_by: "created_at",
+      sort_by: "last_seen_at",
       sort_order: "desc",
       offset: 0,
     });
@@ -79,9 +85,11 @@ describe("work queue URL state", () => {
     const params = parseWorkQueueHash(
       `#/queue?next=https://foreign.test&state=bogus&origin=unknown` +
         `&workload=not-a-uuid&selected=raw&offset=abc&sort_by=description` +
-        `&sort_order=sideways&alert_signal=noise&severity=${"x".repeat(33)}`,
+      `&sort_order=sideways&alert_signal=noise&severity=${"x".repeat(33)}` +
+        "&view=unknown&run_state=unknown&execution_class=unknown" +
+        "&anchor_created_at=not-a-date&anchor_id=raw",
     );
-    expect(params).toEqual({ sort_by: "created_at", sort_order: "desc", offset: 0 });
+    expect(params).toEqual({ sort_by: "last_seen_at", sort_order: "desc", offset: 0 });
   });
 
   it("treats negative and non-integer offsets as the default", () => {
@@ -94,7 +102,7 @@ describe("work queue URL state", () => {
   });
 
   it("omits default sort and zero offset", () => {
-    expect(buildWorkQueueHash({ sort_by: "created_at", sort_order: "desc", offset: 0 })).toBe(
+    expect(buildWorkQueueHash({ sort_by: "last_seen_at", sort_order: "desc", offset: 0 })).toBe(
       "#/queue",
     );
   });
