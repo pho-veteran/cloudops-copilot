@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
 from cloudops.features.connections.models import ConnectionCheck
+from cloudops.features.incidents.intake_schemas import AlertReceiptPage
+from cloudops.features.incidents.intake_service import receipts_page
 from cloudops.features.workloads.kubernetes import Kubernetes
 from cloudops.features.workloads.models import Workload
 from cloudops.shared.config import settings
@@ -95,3 +97,23 @@ def checks(db: Session = Depends(get_db)):
         .order_by(ConnectionCheck.observed_at.desc(), ConnectionCheck.id.desc())
         .limit(50)
     ).all()
+
+
+alert_receipts = APIRouter(
+    prefix="/api/alert-receipts", tags=["connections"], responses=ERROR_RESPONSES
+)
+
+
+@alert_receipts.get(
+    "",
+    operation_id="list_alert_receipts",
+    response_model=AlertReceiptPage,
+    dependencies=[Depends(current_session)],
+)
+def receipts(
+    limit: int = Query(25, ge=1, le=100),
+    cursor: str | None = Query(None, min_length=1, max_length=256),
+    db: Session = Depends(get_db),
+):
+    """Sanitized authenticated intake outcomes; unauthenticated deliveries are never stored."""
+    return receipts_page(db, limit, cursor)

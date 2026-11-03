@@ -35,7 +35,7 @@ Requests committed before this change keep their original signature. The legacy 
 | D | Accepted automatic Runs waiting with `queue_reason=capacity` | `DEFERRED_RUN_LIMIT`, integer 1–1000, default 100; API and worker refuse to start with another value |
 
 - Manual admission with J full returns `409 queue_full`. Manual work is never deferred.
-- Automatic admission (`admit_automatic`, used by Alertmanager intake) with J full and D available saves the incident and one `queued/capacity` Run without a Job. With both full it returns `503 capacity_exhausted` and saves nothing. The caller's `lookup` runs before any capacity check, so an accepted delivery always replays its original IDs.
+- Automatic admission (`admit_automatic`, used by [Alertmanager intake](alert-intake.md)) with J full and D available saves the incident and one `queued/capacity` Run without a Job. With both full it returns `503 capacity_exhausted` and saves nothing. The caller's `lookup` runs before any capacity check, so an accepted delivery always replays its original IDs.
 - Each worker cycle promotes up to five deferred Runs, oldest first, before claiming work. Promotion rechecks the incident, workload scope and recovery executions, invalidates draft plans, and creates exactly one Job. Promotion survives restarts because the deferred Run is persisted. There is no fairness guarantee against a continuous stream of other admissions.
 
 ## Cancellation, resolution and claims

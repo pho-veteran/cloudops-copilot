@@ -1,0 +1,21 @@
+# Lab-only Alertmanager route to CloudOps intake. The sender token is mounted from ignored
+# tmp/e01-integration/intake-sender; the API only receives its SHA-256.
+route:
+  receiver: cloudops
+  group_by: [alertname, namespace]
+  group_wait: 1s
+  group_interval: 5s
+  repeat_interval: 15s
+receivers:
+  - name: cloudops
+    webhook_configs:
+      - url: https://localhost:8443/api/intake/alertmanager
+        send_resolved: true
+        max_alerts: 100
+        timeout: 5s
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /run/cloudops-intake/token
+          tls_config:
+            ca_file: /run/cloudops-intake/proxy-ca.crt

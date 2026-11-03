@@ -1,5 +1,6 @@
 """Prepare isolated K3s identities and scoped credentials; never alters host kubectl context."""
 
+import hashlib
 import json
 import secrets
 import subprocess
@@ -20,10 +21,25 @@ def kubectl(*args, body=None):
 
 def main():
     folder = ROOT / "tmp/e01-integration"
-    for kind in ("reader", "writer", "dispatcher", "krr"):
+    for kind in ("reader", "writer", "dispatcher", "krr", "intake-api", "intake-sender"):
         (folder / kind).mkdir(parents=True, exist_ok=True)
     if not (folder / "krr/key").exists():
         (folder / "krr/key").write_text(secrets.token_urlsafe(32), encoding="utf-8")
+    sender = folder / "intake-sender/token"
+    if not sender.exists():
+        sender.write_text(secrets.token_urlsafe(32), encoding="utf-8")
+    # The API receives only the digest; the Alertmanager overlay mounts the sender token.
+    (folder / "intake-api/config.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "source_id": "lab-alertmanager",
+                "cluster": "local-k3s",
+                "token_sha256": hashlib.sha256(sender.read_text().strip().encode()).hexdigest(),
+            }
+        ),
+        encoding="utf-8",
+    )
     subprocess.run(
         [*COMPOSE, "up", "-d", "--wait", "--wait-timeout", "240", "k3s"], check=True, cwd=ROOT
     )

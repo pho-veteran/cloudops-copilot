@@ -62,6 +62,10 @@ OPERATIONS = {
     ),
     "create_connection_check": Operation("POST", "/api/connection-checks", "operator_mutation"),
     "list_connection_checks": Operation("GET", "/api/connection-checks", "protected_read"),
+    "receive_alertmanager_notification": Operation(
+        "POST", "/api/intake/alertmanager", "machine_intake"
+    ),
+    "list_alert_receipts": Operation("GET", "/api/alert-receipts", "protected_read"),
     "create_recommendation_report": Operation(
         "POST", "/api/recommendation-reports", "operator_mutation"
     ),
@@ -91,6 +95,8 @@ CATEGORIES = {
     "session_self_service",
     "account_entry",
     "public_probe",
+    # Sender-credential only: no browser session or role can use it.
+    "machine_intake",
 }
 
 # FastAPI's generated UI/schema routes have no application operation ID.
