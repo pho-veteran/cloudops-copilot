@@ -18,6 +18,7 @@ from cloudops.entrypoints.worker import run_once
 from cloudops.features.access.dependencies import COOKIE
 from cloudops.features.access.models import LoginSession, User
 from cloudops.features.access.service import provision, token_hash
+from cloudops.features.incidents.intake_models import AlertEpisode, AlertReceipt
 from cloudops.features.incidents.models import Admission, Incident
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.shared.config import settings
@@ -28,6 +29,7 @@ from cloudops.features.workloads.observation_models import (
     WorkloadObservation,
     ObservationAttempt,
 )
+from intake_fixtures import TOKEN as INTAKE_TOKEN, configure_intake
 
 ORIGIN = "http://localhost:5173"
 ACTORS = ("anonymous", "expired", "viewer", "operator")
@@ -41,6 +43,8 @@ DOMAIN_MODELS = (
     ObservationState,
     WorkloadObservation,
     ObservationAttempt,
+    AlertEpisode,
+    AlertReceipt,
     *CONSUMER_MODELS,
 )
 
@@ -128,9 +132,10 @@ def assert_no_secrets(response, context, *, schema=False):
 
 
 @pytest.fixture
-def permission_context(seeded, monkeypatch):
+def permission_context(seeded, monkeypatch, tmp_path):
     monkeypatch.setenv("COLLECTOR_DELAY_SECONDS", "0")
     settings.cache_clear()
+    configure_intake(tmp_path, monkeypatch)
     with sessions()() as db:
         provision(db, "expired", "expired-test-password", "operator")
     app = create_app()
@@ -178,6 +183,7 @@ def permission_context(seeded, monkeypatch):
                 .values(expires_at=database_now(db) - timedelta(seconds=1))
             )
         secrets = {"local-test-password", "expired-test-password", settings().database_url}
+        secrets.add(INTAKE_TOKEN)
         secrets.update(actor.cookie for actor in actors.values() if actor.cookie)
         with sessions()() as db:
             secrets.update(db.scalars(select(User.password_hash)))
@@ -205,7 +211,14 @@ def test_operation_role_matrix(permission_context, operation_id, actor_name):
     response = send(context, operation_id, actor_name)
     assert_no_secrets(response, context)
     denied = False
-    if category not in {"account_entry", "public_probe"} and actor_name in {"anonymous", "expired"}:
+    if category == "machine_intake":
+        # A browser session of any role, or none, is never a sender credential.
+        assert_error(response, 401, "intake_unauthorized")
+        denied = True
+    elif category not in {"account_entry", "public_probe"} and actor_name in {
+        "anonymous",
+        "expired",
+    }:
         assert_error(response, 401, "session_expired")
         denied = True
     elif category == "operator_mutation" and actor_name == "viewer":

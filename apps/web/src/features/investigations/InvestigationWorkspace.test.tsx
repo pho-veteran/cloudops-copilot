@@ -54,7 +54,7 @@ function run(overrides: Partial<components["schemas"]["RunView"]> = {}) {
   } satisfies components["schemas"]["RunView"];
 }
 
-function mount(runs: ReturnType<typeof run>[], state = "open") {
+function mount(runs: ReturnType<typeof run>[], state = "open", incident: Record<string, unknown> = {}) {
   const posts: { path: string; key: string | null; body: unknown }[] = [];
   http.fetch.mockImplementation(async (input) => {
     const request = input as Request;
@@ -87,6 +87,7 @@ function mount(runs: ReturnType<typeof run>[], state = "open") {
       severity: { value: null, provenance: "not_provided" },
       alert_signal: "none",
       workload,
+      ...incident,
     });
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -154,5 +155,31 @@ describe("investigation requests", () => {
     expect((await screen.findAllByText("Not captured for this earlier request")).length).toBe(2);
     expect(screen.getByText("Reopen this incident before requesting a new investigation.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Review request" })).toBeNull();
+  });
+
+  it("shows a resolved alert signal as metadata while the incident stays open", async () => {
+    mount([run()], "open", {
+      alert_signal: "resolved",
+      severity: { value: "critical", provenance: "alert_label" },
+      first_seen_at: "2026-11-01T10:00:00Z",
+      last_seen_at: "2026-11-01T10:05:00Z",
+    });
+    const metadata = await screen.findByLabelText("Alert signal");
+    expect(within(metadata).getByText("Resolved")).toBeTruthy();
+    expect(within(metadata).getByText(/incident lifecycle is unchanged/)).toBeTruthy();
+    expect(within(metadata).getByText("critical (alert label)")).toBeTruthy();
+    expect(within(metadata).queryByText("Not captured")).toBeNull();
+    expect(screen.getByText(/INCIDENT · OPEN · ALERTMANAGER/)).toBeTruthy();
+  });
+
+  it("omits alert metadata for manual incidents and says when severity is absent", async () => {
+    mount([run()], "open", { origin: { kind: "operator", source_id: null } });
+    expect(await screen.findByText(/INCIDENT · OPEN · MANUAL/)).toBeTruthy();
+    expect(screen.queryByLabelText("Alert signal")).toBeNull();
+    cleanup();
+    mount([run()], "open", { alert_signal: "firing" });
+    const metadata = await screen.findByLabelText("Alert signal");
+    expect(within(metadata).getByText("Not provided")).toBeTruthy();
+    expect(within(metadata).getAllByText("Not captured")).toHaveLength(2);
   });
 });

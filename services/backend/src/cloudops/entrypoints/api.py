@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from cloudops.features.incidents.intake_settings import intake_config
 from cloudops.features.investigations.admission_settings import deferred_run_limit
 from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
@@ -14,6 +15,7 @@ from cloudops.shared.errors import DomainError, domain_error_handler, validation
 async def lifespan(app):
     settings()
     deferred_run_limit()
+    intake_config()
     require_schema()
     yield
 
@@ -41,6 +43,8 @@ def create_app():
     from cloudops.features.workloads.api import router as workloads
     from cloudops.features.workloads.baselines import router as baselines
     from cloudops.features.incidents.lifecycle import router as lifecycle
+    from cloudops.features.incidents.intake_api import router as intake
+    from cloudops.features.connections.api import alert_receipts
     from cloudops.features.connections.api import router as connections
     from cloudops.features.recommendations.api import router as recommendations
     from cloudops.features.recovery.api import router as recovery
@@ -54,7 +58,9 @@ def create_app():
         investigations,
         baselines,
         lifecycle,
+        intake,
         connections,
+        alert_receipts,
         recommendations,
         recovery,
         recovery_context,

@@ -4,7 +4,7 @@ This is an operational handoff for the optional, disposable `cloudops-e01-https`
 
 ## Start the isolated lab
 
-For optional UID-owned workload health, freshness and context, follow the [workload observer handoff](workload-observation.md). Its dedicated process has reader credentials only and does not occupy the collection/recovery worker.
+For optional UID-owned workload health, freshness and context, follow the [workload observer handoff](workload-observation.md). Its dedicated process has reader credentials only and does not occupy the collection/recovery worker. For a pinned real Alertmanager sending to intake, add the overlay described in [Alertmanager intake](alert-intake.md#local-lab). Set `CLOUDOPS_LAB_PROJECT` to run these scripts against a separate disposable Compose project.
 
 Use Docker Desktop/Engine with Linux containers, Compose 2.24.4 or newer, and the README `.env` setup. The K3s server is a privileged **lab container**, not access to a host kubeconfig or an external cluster. All published endpoints remain on loopback. Host Python/uv are needed for the setup/probe scripts; runtime services use their locked container dependencies.
 

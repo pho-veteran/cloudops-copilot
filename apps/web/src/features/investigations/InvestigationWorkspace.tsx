@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Failure, Loading } from "@/app/Feedback";
 import { IncidentActivity } from "@/features/incidents/IncidentActivity";
+import { AlertSignal } from "@/features/incidents/AlertSignal";
 import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
 
@@ -217,6 +218,7 @@ export function InvestigationWorkspace({
       {incident.data.description && (
         <p className="whitespace-pre-wrap">{incident.data.description}</p>
       )}
+      <AlertSignal incident={incident.data} />
       <p className="muted">
         Workload rollout observations are tracked separately from this investigation evidence.{" "}
         <a href={`#/workloads?workload=${incident.data.workload.id}`}>View workload context</a>
