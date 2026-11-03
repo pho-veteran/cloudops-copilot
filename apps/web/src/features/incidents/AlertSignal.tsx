@@ -1,6 +1,6 @@
 import type { components } from "@/lib/api/generated/schema";
 
-type Incident = components["schemas"]["IncidentView"];
+type Incident = components["schemas"]["IncidentDetail"];
 
 /** Read-only alert metadata recorded by intake; it never changes the incident lifecycle. */
 export function AlertSignal({ incident }: { incident: Incident }) {
