@@ -15,7 +15,7 @@ Intake is disabled until the API process has `ALERT_INTAKE_CONFIG` naming a read
 }
 ```
 
-- `source_id` (`^[a-z0-9][a-z0-9-]{0,63}$`) becomes the trusted origin `Alertmanager · <source_id>`. Nothing in a payload can choose or change the origin.
+- `source_id` (`^[a-z0-9][a-z0-9-]{0,63}$`) becomes the trusted origin `Alertmanager · <source_id>`. Payload-level or per-alert `source_id`/`origin` claims are refused as invalid envelopes before writes or mapping reads. Other unknown sender fields remain forward-compatible.
 - `cluster` must equal the cluster key of the pinned v2 [workload scope](workload-scope.md). Until it does, every new firing alert is retryable with reason `scope_unpinned`.
 - `token_sha256` is the SHA-256 of a random sender token of at least 32 bytes. The API stores only this digest. Alertmanager reads the token from `credentials_file`. Generate both with:
 

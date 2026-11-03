@@ -143,6 +143,10 @@ def test_credentials_and_envelopes_are_checked_before_any_write(client, intake, 
     invalid = [
         b"{not json",
         {**body, "version": "3"},
+        {**body, "source_id": "spoofed"},
+        {**body, "origin": {"kind": "operator"}},
+        envelope({**alert(), "source_id": "spoofed"}),
+        envelope({**alert(), "origin": {"kind": "operator"}}),
         {**body, "alerts": []},
         {**body, "alerts": [alert(f"{i:x}") for i in range(101)]},
         envelope(alert(namespace="x" * 1025)),
@@ -159,10 +163,7 @@ def test_credentials_and_envelopes_are_checked_before_any_write(client, intake, 
 
 
 def test_direct_and_pod_alerts_admit_one_uid_bound_incident_each(client, intake):
-    spoofed = envelope(
-        alert("a1"), source_id="spoofed", origin={"kind": "operator"}, receiver="spoofed"
-    )
-    response = deliver(client, spoofed)
+    response = deliver(client, envelope(alert("a1"), receiver="forward-compatible-receiver"))
     assert response.status_code == 200, response.text
     assert response.json()["counts"] == {"accepted": 1}
     assert ANNOTATION not in response.text

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from cloudops.features.incidents.intake_settings import MAX_ALERTS
 
@@ -51,7 +51,7 @@ def bounded_pairs(value: dict[str, str], key_limit: int, value_limit: int) -> di
 
 
 class AlertEntry(BaseModel):
-    # Unknown sender fields are ignored for forward compatibility; none select an origin.
+    # Unknown sender fields are ignored; the envelope rejects caller-supplied origin claims.
     model_config = ConfigDict(extra="ignore")
     status: Literal["firing", "resolved"]
     labels: dict[str, str]
@@ -87,6 +87,21 @@ class AlertmanagerEnvelope(BaseModel):
     status: Literal["firing", "resolved"]
     truncatedAlerts: int = Field(default=0, ge=0)
     alerts: list[AlertEntry] = Field(min_length=1, max_length=MAX_ALERTS)
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_claimed_origin(cls, value):
+        if not isinstance(value, dict):
+            return value
+        if "source_id" in value or "origin" in value:
+            raise ValueError("The sender cannot select a source or origin.")
+        alerts = value.get("alerts")
+        if isinstance(alerts, list) and any(
+            isinstance(alert, dict) and ("source_id" in alert or "origin" in alert)
+            for alert in alerts
+        ):
+            raise ValueError("An alert cannot select a source or origin.")
+        return value
 
 
 Outcome = Literal[
