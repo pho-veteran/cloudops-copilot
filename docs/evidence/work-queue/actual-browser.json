@@ -1,0 +1,305 @@
+{
+  "source": "actual_browser_api_postgresql_over_labeled_persisted_contract_fixtures",
+  "checks": {
+    "pagination": {
+      "pages": [
+        25,
+        25,
+        10
+      ],
+      "rows": 60,
+      "unique": 60,
+      "stableTieBreak": true,
+      "allPersistedRowsMatched": true
+    },
+    "blocked": {
+      "ids": [
+        "3b8433d7-e695-4d09-95cf-4afc2cb0d6d4",
+        "adf3be71-557f-43a7-bbf7-a56436be26f2",
+        "bca5d8c9-3de4-4252-83fa-8b08050b8ee8",
+        "d077959d-1028-43d8-8bba-bf51ca9e9d2b",
+        "f80cea7d-bec3-47a5-aa8c-4f0c30526065"
+      ],
+      "excludesResolvedUnknown": true
+    },
+    "awaiting_decision": [
+      "0ffecdee-6258-4bce-8a9d-0812ba686533"
+    ],
+    "verifying": [
+      "bca5d8c9-3de4-4252-83fa-8b08050b8ee8"
+    ],
+    "server_search_beyond_first_page": {
+      "target": "f88bf8ca-f254-479c-92b1-83314f3245c8",
+      "found": "f88bf8ca-f254-479c-92b1-83314f3245c8",
+      "paginationReset": true
+    },
+    "uuid_prefix_search": {
+      "prefix": "f88bf8ca",
+      "found": "f88bf8ca-f254-479c-92b1-83314f3245c8"
+    },
+    "independent_axes": {
+      "signal-resolved-open": {
+        "card": "Fixture \u00b7 alert resolved, incident open\nIncident: acknowledged\nAlert signal: resolved\nSeverity: critical \u00b7 alert_label\n\nAlert \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen 11/3/2026, 10:49:56 PM \u00b7 Last seen 11/3/2026, 10:58:56 PM\n\nOpened from Alertmanager \u00b7 Acknowledged by queue-operator at 11/4/2026, 12:09:53 AM\n\nRun: none recorded\n\nActive or unknown execution: none recorded\n\nfd5c4434-263e-485a-9acf-e7b529a8bdcd",
+        "layout": {
+          "width": 320,
+          "scrollWidth": 320
+        }
+      },
+      "capacity": {
+        "card": "Fixture \u00b7 queued for dispatch capacity\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: queued \u00b7 a0cefb5b-8917-412d-ad9d-dbad5f2ed083 \u00b7 Deferred: dispatch capacity \u00b7 Requested by queue-operator\n\nRun blockers in history: queued\n\nActive or unknown execution: none recorded\n\nf80cea7d-bec3-47a5-aa8c-4f0c30526065",
+        "layout": {
+          "width": 320,
+          "scrollWidth": 320
+        }
+      },
+      "quota": {
+        "card": "Fixture \u00b7 waiting for quota\nIncident: acknowledged\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator \u00b7 Acknowledged by queue-operator at 11/3/2026, 10:59:56 PM\n\nRun: waiting_for_quota \u00b7 5d31f157-ffaf-40e7-9693-2ad616a2a92a \u00b7 Requested by queue-operator\n\nRun blockers in history: waiting for quota\n\nActive or unknown execution: none recorded\n\nd077959d-1028-43d8-8bba-bf51ca9e9d2b",
+        "layout": {
+          "width": 390,
+          "scrollWidth": 390
+        }
+      },
+      "failed": {
+        "card": "Fixture \u00b7 failed investigation\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: failed \u00b7 e8679327-accc-41cf-bd95-191749876457 \u00b7 Requested by queue-operator\n\nRun blockers in history: failed\n\nActive or unknown execution: none recorded\n\n3b8433d7-e695-4d09-95cf-4afc2cb0d6d4",
+        "layout": {
+          "width": 320,
+          "scrollWidth": 320
+        }
+      },
+      "insufficient": {
+        "card": "Fixture \u00b7 insufficient evidence\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: insufficient_evidence \u00b7 2522c7f3-1374-49d9-a55a-332a48289f98 \u00b7 Requested by queue-operator\n\nRun blockers in history: insufficient evidence\n\nActive or unknown execution: none recorded\n\nadf3be71-557f-43a7-bbf7-a56436be26f2",
+        "layout": {
+          "width": 390,
+          "scrollWidth": 390
+        }
+      },
+      "resolved-unknown": {
+        "card": "Fixture \u00b7 resolved with retained unknown lock\nIncident: resolved\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: none recorded\n\nExecution: outcome_unknown \u00b7 terminal unknown locked \u00b7 target locked\n\nc36fd894-c916-41e1-8728-306893eb4be7",
+        "layout": {
+          "width": 390,
+          "scrollWidth": 390
+        }
+      },
+      "verifying": {
+        "card": "Fixture \u00b7 active verification\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: none recorded\n\nExecution: verifying \u00b7 active \u00b7 target locked\n\nbca5d8c9-3de4-4252-83fa-8b08050b8ee8",
+        "layout": {
+          "width": 320,
+          "scrollWidth": 320
+        }
+      }
+    },
+    "keyboard320": {
+      "view": "all",
+      "focused": "Search incidents",
+      "focusVisible": true,
+      "card": {
+        "tag": "A",
+        "href": "#/incidents/d077959d-1028-43d8-8bba-bf51ca9e9d2b?return_to=%23%2Fqueue%3Fsearch%3Dd077959d-1028-43d8-8bba-bf51ca9e9d2b%26selected%3Dd077959d-1028-43d8-8bba-bf51ca9e9d2b%26view%3Dall%26anchor_created_at%3D2026-11-03T17%253A09%253A53.721603Z%26anchor_id%3D18d939df-134b-48bd-9efe-7cf9d108ad5e",
+        "focusVisible": true
+      },
+      "incidentURL": "http://127.0.0.1:5184/#/incidents/d077959d-1028-43d8-8bba-bf51ca9e9d2b?return_to=%23%2Fqueue%3Fsearch%3Dd077959d-1028-43d8-8bba-bf51ca9e9d2b%26selected%3Dd077959d-1028-43d8-8bba-bf51ca9e9d2b%26view%3Dall%26anchor_created_at%3D2026-11-03T17%253A09%253A53.721603Z%26anchor_id%3D18d939df-134b-48bd-9efe-7cf9d108ad5e"
+    },
+    "keyboard390": {
+      "runState": "waiting_for_quota",
+      "focused": "Filter by execution",
+      "focusVisible": true,
+      "width": 390,
+      "scrollWidth": 390
+    },
+    "new_work_refresh": {
+      "beforeAnchor": "2026-11-03T15:59:56.123456Z",
+      "afterAnchor": "2026-11-03T17:09:53.721603Z",
+      "newIncident": "18d939df-134b-48bd-9efe-7cf9d108ad5e",
+      "visibleAfterRefresh": true
+    },
+    "initial_loading390": {
+      "text": "Loading saved application data\u2026",
+      "rows": 0,
+      "shot": "actual-loading-390.jpg"
+    },
+    "refresh_loading390": {
+      "button": {
+        "text": "Refreshing...",
+        "disabled": true
+      },
+      "shot": "actual-refresh-390.jpg"
+    },
+    "error_recovery390": {
+      "url": "http://127.0.0.1:5184/#/queue?search=c36fd894-c916-41e1-8728-306893eb4be7&view=all&anchor_created_at=2026-11-03T17%3A09%3A53.721603Z&anchor_id=18d939df-134b-48bd-9efe-7cf9d108ad5e",
+      "error": "Unable to load or saveAcceptance queue read failed; retry the saved query. Retry",
+      "search": "c36fd894-c916-41e1-8728-306893eb4be7",
+      "shot": "actual-error-context-390.jpg",
+      "afterRetryURL": "http://127.0.0.1:5184/#/queue?search=c36fd894-c916-41e1-8728-306893eb4be7&view=all&anchor_created_at=2026-11-03T17%3A09%3A53.721603Z&anchor_id=18d939df-134b-48bd-9efe-7cf9d108ad5e",
+      "sameQuery": true
+    },
+    "no_match320": {
+      "rows": 0,
+      "errors": 0,
+      "shot": "actual-no-match-320.jpg"
+    },
+    "empty320": {
+      "heading": "No open or acknowledged incidents",
+      "rows": 0,
+      "width": 320,
+      "scrollWidth": 320,
+      "errors": 0
+    },
+    "same_run_promotion": {
+      "run_id": "a0cefb5b-8917-412d-ad9d-dbad5f2ed083",
+      "before": "Fixture \u00b7 queued for dispatch capacity\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: queued \u00b7 a0cefb5b-8917-412d-ad9d-dbad5f2ed083 \u00b7 Deferred: dispatch capacity \u00b7 Requested by queue-operator\n\nRun blockers in history: queued\n\nActive or unknown execution: none recorded\n\nf80cea7d-bec3-47a5-aa8c-4f0c30526065",
+      "after": "Fixture \u00b7 queued for dispatch capacity\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual \u00b7 11/3/2026, 10:57:56 PM \u00b7 First seen unknown \u00b7 Last seen unknown\n\nOpened by queue-operator\n\nRun: queued \u00b7 a0cefb5b-8917-412d-ad9d-dbad5f2ed083 \u00b7 Requested by queue-operator\n\nActive or unknown execution: none recorded\n\nf80cea7d-bec3-47a5-aa8c-4f0c30526065",
+      "sameRun": true,
+      "deferredLabelRemoved": true
+    },
+    "session_recovery": {
+      "beforeURL": "http://127.0.0.1:5184/#/queue?search=f80cea7d-bec3-47a5-aa8c-4f0c30526065&selected=f80cea7d-bec3-47a5-aa8c-4f0c30526065&view=all&anchor_created_at=2026-11-03T17%3A09%3A53.721603Z&anchor_id=18d939df-134b-48bd-9efe-7cf9d108ad5e",
+      "before": {
+        "search": "f80cea7d-bec3-47a5-aa8c-4f0c30526065",
+        "selected": "f80cea7d-bec3-47a5-aa8c-4f0c30526065",
+        "view": "all",
+        "anchor_created_at": "2026-11-03T17:09:53.721603Z",
+        "anchor_id": "18d939df-134b-48bd-9efe-7cf9d108ad5e"
+      },
+      "expiredMessage": "Your session ended. Sign in again; saved work remains available. No action will be replayed.",
+      "expiredURL": "http://127.0.0.1:5184/#/queue?search=f80cea7d-bec3-47a5-aa8c-4f0c30526065&selected=f80cea7d-bec3-47a5-aa8c-4f0c30526065&view=all&anchor_created_at=2026-11-03T17%3A09%3A53.721603Z&anchor_id=18d939df-134b-48bd-9efe-7cf9d108ad5e",
+      "after": {
+        "search": "f80cea7d-bec3-47a5-aa8c-4f0c30526065",
+        "selected": "f80cea7d-bec3-47a5-aa8c-4f0c30526065",
+        "view": "all",
+        "anchor_created_at": "2026-11-03T17:09:53.721603Z",
+        "anchor_id": "18d939df-134b-48bd-9efe-7cf9d108ad5e"
+      },
+      "sameContext": true
+    },
+    "newer_terminal_keeps_unknown_lock": {
+      "incident_id": "c36fd894-c916-41e1-8728-306893eb4be7",
+      "older": {
+        "id": "7760edc9-b40c-4057-af9b-597b066dd6b8",
+        "state": "outcome_unknown",
+        "holds_lock": true
+      },
+      "newer": {
+        "id": "722ecef4-b762-4d84-8bbc-83a3ad1351cb",
+        "state": "succeeded",
+        "holds_lock": false
+      },
+      "retainedUnknownWarningVerified": true
+    },
+    "viewer_read_only": {
+      "viewerNotice": true,
+      "mutationControls": []
+    },
+    "real_sender_browser": {
+      "incident_id": "67df8d6c-ec22-435e-bcff-ad764d72e931",
+      "card": "QueueIntegration6e0232fa \u00b7 demo/checkout\nIncident: open\nAlert signal: resolved\nSeverity: warning \u00b7 alert_label\n\nAlert \u00b7 11/4/2026, 12:29:27 AM \u00b7 First seen 11/4/2026, 12:28:18 AM \u00b7 Last seen 11/4/2026, 12:29:42 AM\n\nOpened from Alertmanager\n\nRun: insufficient_evidence \u00b7 e9efd1d8-fabd-49ab-a6de-1f4f0b0b9f16 \u00b7 Requested automatically by Alertmanager\n\nRun blockers in history: insufficient evidence\n\nActive or unknown execution: none recorded\n\n67df8d6c-ec22-435e-bcff-ad764d72e931",
+      "layout": {
+        "width": 320,
+        "scrollWidth": 320
+      },
+      "shot": "actual-live-signal-only-320.jpg"
+    }
+  },
+  "findings": {
+    "precision_anchor": {
+      "before": "2026-11-03T15:59:56.123456Z",
+      "after": "2026-11-03T15:59:56.123456Z",
+      "same25Rows": true
+    },
+    "in_app_return": {
+      "before": "http://127.0.0.1:5184/#/queue?search=QueueAC&sort_by=created_at&offset=25&anchor_created_at=2026-11-03T15%3A59%3A56.123456Z&anchor_id=fe3bb15b-74b8-477e-a045-abdcd7f420ad",
+      "detail": "http://127.0.0.1:5184/#/incidents/74a8f110-c03f-4588-a160-d475bab659d2?return_to=%23%2Fqueue%3Fsearch%3DQueueAC%26sort_by%3Dcreated_at%26offset%3D25%26selected%3D74a8f110-c03f-4588-a160-d475bab659d2%26anchor_created_at%3D2026-11-03T15%253A59%253A56.123456Z%26anchor_id%3Dfe3bb15b-74b8-477e-a045-abdcd7f420ad",
+      "after": "http://127.0.0.1:5184/#/queue?search=QueueAC&sort_by=created_at&offset=25&selected=74a8f110-c03f-4588-a160-d475bab659d2&anchor_created_at=2026-11-03T15%3A59%3A56.123456Z&anchor_id=fe3bb15b-74b8-477e-a045-abdcd7f420ad",
+      "selected": "#/incidents/74a8f110-c03f-4588-a160-d475bab659d2?return_to=%23%2Fqueue%3Fsearch%3DQueueAC%26sort_by%3Dcreated_at%26offset%3D25%26selected%3D74a8f110-c03f-4588-a160-d475bab659d2%26anchor_created_at%3D2026-11-03T15%253A59%253A56.123456Z%26anchor_id%3Dfe3bb15b-74b8-477e-a045-abdcd7f420ad",
+      "search": "QueueAC"
+    },
+    "operational_views": {
+      "all": 10,
+      "resolved": 2,
+      "current": 8,
+      "defaultRestoredWithout422": true
+    },
+    "related_history": {
+      "text": "Related incidentsRecords for this exact workload UUID, including historical investigations.Fixture \u00b7 resolved historical investigation \u00b7 resolved266373b0-5b7c-4181-933a-d72c12b67262Previous incidentsNext incidents",
+      "href": "#/incidents/266373b0-5b7c-4181-933a-d72c12b67262"
+    },
+    "empty_later_page": {
+      "previousEnabled": true,
+      "recoveredRows": 10,
+      "recoveredOffset": 50
+    }
+  },
+  "screenshots": [
+    {
+      "name": "actual-signal-resolved-open-320.jpg",
+      "path": "actual-signal-resolved-open-320.jpg"
+    },
+    {
+      "name": "actual-capacity-320.jpg",
+      "path": "actual-capacity-320.jpg"
+    },
+    {
+      "name": "actual-quota-390.jpg",
+      "path": "actual-quota-390.jpg"
+    },
+    {
+      "name": "actual-failed-320.jpg",
+      "path": "actual-failed-320.jpg"
+    },
+    {
+      "name": "actual-insufficient-390.jpg",
+      "path": "actual-insufficient-390.jpg"
+    },
+    {
+      "name": "actual-resolved-unknown-390.jpg",
+      "path": "actual-resolved-unknown-390.jpg"
+    },
+    {
+      "name": "actual-verifying-320.jpg",
+      "path": "actual-verifying-320.jpg"
+    },
+    {
+      "name": "actual-keyboard-controls-320.jpg",
+      "path": "actual-keyboard-controls-320.jpg"
+    },
+    {
+      "name": "actual-empty-320.jpg",
+      "path": "actual-empty-320.jpg"
+    },
+    {
+      "name": "actual-same-run-promoted-320.jpg",
+      "path": "actual-same-run-promoted-320.jpg"
+    },
+    {
+      "name": "actual-live-signal-only-320.jpg",
+      "path": "actual-live-signal-only-320.jpg"
+    },
+    {
+      "name": "actual-loading-390.jpg",
+      "path": "actual-loading-390.jpg"
+    },
+    {
+      "name": "actual-refresh-390.jpg",
+      "path": "actual-refresh-390.jpg"
+    },
+    {
+      "name": "actual-error-context-390.jpg",
+      "path": "actual-error-context-390.jpg"
+    },
+    {
+      "name": "actual-no-match-320.jpg",
+      "path": "actual-no-match-320.jpg"
+    }
+  ],
+  "limits": [
+    "Future Run/execution combinations are explicitly labeled persisted fixtures, not claims of a live producer or diagnosis.",
+    "The real sender check is separate from persisted future-state fixtures; it proves bounded E03-B to E03-C consumption, not the unimplemented E03-D handoff."
+  ],
+  "implementation_commit": "6654a84999791bb27d60d1145db529e596a442b3",
+  "verification": {
+    "backend_tests_passed": 795,
+    "web_tests_passed": 127,
+    "production_build": "passed",
+    "generated_contracts_and_drift_check": "passed",
+    "ruff_check_and_format": "passed"
+  }
+}

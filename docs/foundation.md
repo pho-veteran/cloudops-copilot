@@ -48,7 +48,7 @@ Queue pages carry a server-generated creation-time/ID anchor, preserving its ful
 - **States:** distinct loading, error-with-retry, empty queue and no-match panels. An empty later page retains **Previous** because earlier pages may still contain work; **Refresh new work** starts a new anchored query. The queue refreshes every five seconds.
 - **Workload history:** Related incidents explicitly includes all lifecycle states, including resolved incidents, in created-time order for the selected workload UUID.
 - **Permissions:** the endpoint keeps read-only session authorization. The queue renders no mutation controls; incident creation stays owned by the application shell for operators.
-- **Responsive layout:** the seven search/filter/sort controls stack full width at 320px and 390px without horizontal scrolling, and cards keep titles, badges and identifiers readable.
+- **Responsive layout:** search/filter/sort controls stack full width at 320px and 390px without horizontal scrolling, and cards keep titles, badges and identifiers readable.
 
 Local evidence came from a disposable evidence stack with 34 seeded incidents: search at 320px, filters at 390px, severity sort, no-match, an error with retry after the API stopped, and URL preservation after returning from an incident.
 
@@ -61,6 +61,15 @@ Local evidence came from a disposable evidence stack with 34 seeded incidents: s
 - [Filters and selection preserved after returning from an incident](evidence/work-queue/url-preservation.jpg)
 
 These images document local persisted-app behavior. They do not prove live cluster collection, AI diagnosis or execution.
+
+Post-change acceptance uses a separate 70-incident labeled fixture set plus a real manual API arrival. The [browser receipt](evidence/work-queue/actual-browser.json) records 60 rows across three stable pages, microsecond anchor preservation, operational views, incident/Run/back navigation, resolved workload history, keyboard use at 320px/390px, session recovery and loading/refresh/error/empty/no-match states. The [API receipt](evidence/work-queue/actual-api.json) records server-side filters, acknowledgment attribution, metadata preservation, anchored new work and a Viewer write denial without an activity change.
+
+- [Independent signal and lifecycle from the real sender at 320px](evidence/work-queue/actual-live-signal-only-320.jpg)
+- [Retained unknown lock on a resolved incident at 390px](evidence/work-queue/actual-resolved-unknown-390.jpg)
+- [Actual capacity deferral before promotion](evidence/work-queue/actual-capacity-320.jpg) and [the same Run after ordinary worker promotion and explicit refresh](evidence/work-queue/actual-same-run-promoted-320.jpg)
+- [Keyboard-focused controls at 320px](evidence/work-queue/actual-keyboard-controls-320.jpg), [loading](evidence/work-queue/actual-loading-390.jpg), [refresh](evidence/work-queue/actual-refresh-390.jpg), [error with retained context](evidence/work-queue/actual-error-context-390.jpg) and [empty queue](evidence/work-queue/actual-empty-320.jpg)
+
+The [real Alertmanager → intake → queue receipt](evidence/work-queue/actual-live-sender.json) uses the pinned sender, CA-validated HTTPS and a UID-bound K3s Deployment. Repeated firing retains one incident and its initial Run; resolution changes only the alert signal while the incident remains open. Its browser capture uses a separate loopback HTTP development origin, not a certificate bypass. Future execution/Run combinations in the other captures are explicitly labeled persisted fixtures, not live producers. Collection remains synthetic; this bounded B→C smoke does not complete E03-D or the full integration handoff.
 
 ## Configuration and account operations
 
