@@ -1,0 +1,122 @@
+{
+  "source": "http_browser_over_actual_persisted_live_sender_receipts",
+  "origin": "http://127.0.0.1:5183",
+  "checks": {
+    "viewer_read_only": {
+      "viewerText": true,
+      "mutationButtons": [],
+      "receiptLinks": [
+        "#/incidents/fa0ecd90-aa4e-4634-8567-12d22a19c904?run=335324c6-6ceb-428c-b5ee-9ddb356bd7de",
+        "#/incidents/d5adc379-7c83-479c-94b0-323f4f0af470?run=00096603-4243-40fc-9d22-0d8235269695",
+        "#/incidents/fa0ecd90-aa4e-4634-8567-12d22a19c904?run=335324c6-6ceb-428c-b5ee-9ddb356bd7de",
+        "#/incidents/7f96549f-8256-49c2-b942-21cb37b2da29?run=d03e67f6-d36e-459e-9691-fcd1ecad6a3f",
+        "#/incidents/d5adc379-7c83-479c-94b0-323f4f0af470?run=00096603-4243-40fc-9d22-0d8235269695",
+        "#/incidents/7f96549f-8256-49c2-b942-21cb37b2da29?run=d03e67f6-d36e-459e-9691-fcd1ecad6a3f",
+        "#/incidents/7f96549f-8256-49c2-b942-21cb37b2da29?run=d03e67f6-d36e-459e-9691-fcd1ecad6a3f"
+      ]
+    },
+    "layout390": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "receiptCount": 25
+    },
+    "keyboard390": {
+      "tag": "A",
+      "text": "Open incident",
+      "href": "#/incidents/fa0ecd90-aa4e-4634-8567-12d22a19c904?run=335324c6-6ceb-428c-b5ee-9ddb356bd7de"
+    },
+    "keyboard_open_incident": "http://127.0.0.1:5183/#/incidents/fa0ecd90-aa4e-4634-8567-12d22a19c904?run=335324c6-6ceb-428c-b5ee-9ddb356bd7de",
+    "pagination320": {
+      "receiptCount": 50,
+      "width": 320,
+      "scrollWidth": 320,
+      "overflow": false
+    },
+    "refresh_loading320": {
+      "pending": {
+        "text": "Refreshing…",
+        "disabled": true
+      },
+      "shot": "intake36-refresh-320.jpg"
+    },
+    "error_recovery320": {
+      "error": "Unable to load or saveAcceptance transport failure; retry the saved receipt read. Retry",
+      "retainedRows": 50,
+      "shot": "intake36-error-320.jpg",
+      "retry_restored": true
+    },
+    "initial_loading390": {
+      "status": "Loading saved application data…",
+      "rows": 0,
+      "shot": "intake36-loading-390.jpg"
+    },
+    "initial_error390": {
+      "rows": 0,
+      "error": "Unable to load or saveAcceptance first-load failure; retry the saved receipt read. Retry",
+      "shot": "intake36-initial-error-390.jpg",
+      "retry_restored": true
+    },
+    "empty320": {
+      "empty": true,
+      "configured": true,
+      "width": 320,
+      "scrollWidth": 320,
+      "rows": 0
+    },
+    "viewer_mutation_denied": {
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "permission_denied",
+          "message": "Viewer access is read-only. An Operator must perform this action."
+        }
+      },
+      "beforeCount": 0,
+      "afterCount": 0
+    },
+    "resolved_signal_open_incident320": {
+      "heading": "INCIDENT · OPEN · ALERTMANAGER · LAB-ALERTMANAGER",
+      "signal": "Alert signalResolved · Signal only; the incident lifecycle is unchanged.Severitycritical (alert label)First seen (source)11/3/2026, 11:23:40 PMLast received11/3/2026, 11:25:00 PM",
+      "width": 320,
+      "scrollWidth": 320
+    }
+  },
+  "screenshots": [
+    "intake36-capacity-390.jpg",
+    "intake36-pagination-320.jpg",
+    "intake36-empty-320.jpg",
+    "intake36-signal-only-320.jpg",
+    "intake36-viewer-390.jpg",
+    "intake36-refresh-320.jpg",
+    "intake36-error-320.jpg",
+    "intake36-loading-390.jpg",
+    "intake36-initial-error-390.jpg"
+  ],
+  "implementation_commit": "16aecc0fcd987211bb06dea172551c3edf6e6c50",
+  "final_api_validation_commit": "78faf041b09944641f9632d272f76e77ea4b0d16",
+  "verification": {
+    "backend": {
+      "command": "pytest -q services/backend/tests_unit services/backend/tests",
+      "passed": 770
+    },
+    "focused_intake_after_origin_boundary": {
+      "command": "pytest -q services/backend/tests/test_alert_intake.py services/backend/tests_unit/test_alert_identity.py",
+      "passed": 53
+    },
+    "web": {
+      "command": "npm --prefix apps/web test -- --maxWorkers=1",
+      "passed": 97
+    },
+    "build": "passed",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "contract_check": "passed",
+    "deliberate_contract_drift": "passed"
+  },
+  "limits": [
+    "Browser journeys use an isolated HTTP development origin without disabling certificate validation or changing OS/browser trust. The separate outgoing sender receipt validates HTTPS with the lab CA.",
+    "Initial/refresh transport failures and loading are deliberately induced browser network conditions. Receipt content, pagination, role denial, links and the empty state use the actual API and disposable PostgreSQL databases.",
+    "The collector remains synthetic; no model or recovery execution is claimed."
+  ]
+}

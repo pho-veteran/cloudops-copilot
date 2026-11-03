@@ -137,6 +137,10 @@ Remove the disposable project with `$LAB down -v` when finished.
 
 The recorded receipt is [`docs/evidence/intake36-sender.json`](evidence/intake36-sender.json). It covers the checks above and an API/worker restart after which Alertmanager repeats remained duplicates, with the same episodes and incidents.
 
+The [browser receipt](evidence/intake36-browser.json) records actual Connections journeys at 320px and 390px: Viewer read-only access and a denied write with unchanged history, keyboard refresh/open-incident navigation, 25-to-50-row pagination, a configured empty database, loading, and retry after initial/refresh failures. Existing rows remain visible after a failed refresh; no horizontal overflow was observed. [Capacity outcomes](evidence/intake36-capacity-390.jpg), [empty state](evidence/intake36-empty-320.jpg), [initial failure](evidence/intake36-initial-error-390.jpg), and [signal-only metadata](evidence/intake36-signal-only-320.jpg) capture the corresponding surfaces.
+
+These browser journeys use a separate HTTP development origin over the real disposable PostgreSQL records; no certificate warning was bypassed or OS/browser trust changed. Loading and transport errors were deliberately induced in the browser, not claimed as a live cluster outage. The sender receipt separately validates HTTPS with the lab CA. Its labeled capacity fixture used authenticated intake with live UID mapping and a stopped worker to reach the dispatch bound, then resumed the normal worker and observed promotion of the same Run.
+
 ## Limits
 
 - One configured source per deployment. There is no rate limiting or mTLS.
