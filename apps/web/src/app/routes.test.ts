@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { buildWorkQueueHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
+import { buildIncidentHash, buildWorkQueueHash, incidentReturnHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
 
 describe("safe return navigation", () => {
   const id = "74483c3e-adc2-4d05-93a6-c218afc6ebe7";
@@ -133,6 +133,27 @@ describe("work queue URL state", () => {
       run: "",
       baseline: "",
     });
+  });
+
+  it("retains microsecond anchors through build, parse and route canonicalization", () => {
+    const anchor = "2026-11-01T10:00:00.123456Z";
+    const hash = buildWorkQueueHash({ anchor_created_at: anchor, anchor_id: id, offset: 25 });
+    expect(parseWorkQueueHash(hash).anchor_created_at).toBe(anchor);
+    window.history.replaceState(null, "", `/${hash}`);
+    readRoute();
+    expect(parseWorkQueueHash(window.location.hash).anchor_created_at).toBe(anchor);
+    expect(window.location.hash).toBe(hash);
+  });
+
+  it("keeps only safe queue return targets through incident canonicalization", () => {
+    const queue = buildWorkQueueHash({ search: "db", offset: 25, selected: id });
+    window.history.replaceState(null, "", `/${buildIncidentHash(id, id, queue)}`);
+    expect(readRoute().page).toBe("incidents");
+    expect(incidentReturnHash(window.location.hash)).toBe(queue);
+    window.history.replaceState(null, "", `/#/incidents/${id}?return_to=${encodeURIComponent("https://foreign.test")}`);
+    expect(readRoute().page).toBe("incidents");
+    expect(incidentReturnHash(window.location.hash)).toBe("#/queue");
+    expect(window.location.hash).toBe(`#/incidents/${id}`);
   });
 
   it("canonicalizes the queue hash by dropping foreign keys and invalid values", () => {

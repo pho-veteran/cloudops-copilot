@@ -1,6 +1,6 @@
 """Work queue search, filtering, sorting and stable pagination."""
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -225,6 +225,40 @@ def test_pagination_stable_with_id_tiebreak(db, actor_id):
     assert set(first_ids).isdisjoint({item.id for item in second.items})
 
 
+def test_microsecond_anchor_preserves_unchanged_pages(db, actor_id):
+    workload = create_workload(db, "precise-anchor")
+    timestamp = datetime(2026, 11, 1, 10, 0, 0, 123456, tzinfo=UTC)
+    expected = {
+        create_incident(
+            db,
+            workload.id,
+            actor_id,
+            title=f"Precise {index}",
+            created_at=timestamp - timedelta(microseconds=index),
+        ).id
+        for index in range(55)
+    }
+    db.commit()
+    initial = list_incidents(db, limit=25, offset=0, sort_by="created_at")
+    anchor = initial.creation_anchor
+    assert anchor.created_at == timestamp
+    found = []
+    offset = 0
+    while offset is not None:
+        page = list_incidents(
+            db,
+            limit=25,
+            offset=offset,
+            sort_by="created_at",
+            anchor_created_at=anchor.created_at,
+            anchor_id=anchor.id,
+        )
+        found.extend(item.id for item in page.items)
+        offset = page.next_offset
+    assert len(found) == len(expected)
+    assert set(found) == expected
+
+
 def test_null_sort_values_paginate_without_skips(db, actor_id):
     """Half-null severity data across 60 incidents still pages every row exactly once."""
     workload = create_workload(db, "nulls")
@@ -423,8 +457,6 @@ def test_blocked_view_keeps_historical_failed_run_with_newer_success(db, actor_i
 
 
 def test_resolved_incident_retains_all_unknown_and_active_execution_warnings(db, actor_id):
-    from datetime import timedelta
-
     workload = create_workload(db, "execution-warnings")
     incident = create_incident(
         db, workload.id, actor_id, title="Resolved with unresolved outcome", state="resolved"
@@ -450,7 +482,17 @@ def test_resolved_incident_retains_all_unknown_and_active_execution_warnings(db,
         created_by=actor_id,
         expires_at=now + timedelta(hours=1),
     )
-    db.add_all([unknown_plan, active_plan])
+    newer_plan = ActionPlan(
+        incident_id=incident.id,
+        workload_id=workload.id,
+        content={},
+        digest="c" * 64,
+        target_epoch="epoch-newer",
+        rationale="test evidence",
+        created_by=actor_id,
+        expires_at=now + timedelta(hours=1),
+    )
+    db.add_all([unknown_plan, active_plan, newer_plan])
     db.flush()
     unknown = Execution(
         plan_id=unknown_plan.id,
@@ -465,8 +507,17 @@ def test_resolved_incident_retains_all_unknown_and_active_execution_warnings(db,
         state="verifying",
         holds_lock=False,
         maintenance_released=False,
+        created_at=now,
     )
-    db.add_all([unknown, active])
+    newer = Execution(
+        plan_id=newer_plan.id,
+        workload_id=workload.id,
+        state="succeeded",
+        holds_lock=False,
+        maintenance_released=False,
+        created_at=now + timedelta(seconds=1),
+    )
+    db.add_all([unknown, active, newer])
     db.commit()
 
     resolved = list_incidents(db, 25, 0, view="all")

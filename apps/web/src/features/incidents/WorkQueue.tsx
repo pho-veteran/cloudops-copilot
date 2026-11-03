@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useIncidents } from "./queries";
 import {
+  buildIncidentHash,
   buildWorkQueueHash,
   parseWorkQueueHash,
   type WorkQueueParams,
@@ -105,7 +106,7 @@ export function WorkQueue() {
           onChange={(event) =>
             updateFilters({
               view:
-                event.target.value === "all"
+                event.target.value === "default"
                   ? undefined
                   : (event.target.value as WorkQueueParams["view"]),
             })
@@ -294,7 +295,12 @@ export function WorkQueue() {
         <>
           {query.data.items.length === 0 ? (
             <div className="foundation-panel">
-              {hasFilters(params) ? (
+              {(params.offset ?? 0) > 0 ? (
+                <>
+                  <h2>No incidents on this page</h2>
+                  <p>Earlier pages may contain incidents. Use Previous or refresh new work.</p>
+                </>
+              ) : hasFilters(params) ? (
                 <>
                   <h2>No matching incidents</h2>
                   <p>Try adjusting your filters or search terms.</p>
@@ -319,7 +325,11 @@ export function WorkQueue() {
                     params.selected === incident.id ? "selected" : ""
                   }`}
                   key={incident.id}
-                  href={`#/incidents/${incident.id}`}
+                  href={buildIncidentHash(
+                    incident.id,
+                    "",
+                    buildWorkQueueHash({ ...params, selected: incident.id }),
+                  )}
                   onClick={() =>
                     window.history.replaceState(
                       null,
@@ -334,21 +344,13 @@ export function WorkQueue() {
                   <div className="incident-header">
                     <strong>{incident.title}</strong>
                     <div className="incident-badges">
-                      <Badge variant="outline">{incident.state}</Badge>
-                      {incident.alert_signal !== "none" && (
-                        <Badge
-                          variant={
-                            incident.alert_signal === "firing"
-                              ? "destructive"
-                              : "secondary"
-                          }
-                        >
-                          {incident.alert_signal}
-                        </Badge>
-                      )}
+                      <Badge variant="outline">Incident: {incident.state}</Badge>
+                      <Badge variant={incident.alert_signal === "firing" ? "destructive" : "secondary"}>
+                        Alert signal: {incident.alert_signal}
+                      </Badge>
                       {incident.severity.value && (
                         <Badge variant="secondary">
-                          {incident.severity.value} · {incident.severity.provenance}
+                          Severity: {incident.severity.value} · {incident.severity.provenance}
                         </Badge>
                       )}
                       {!incident.severity.value && (
@@ -384,7 +386,7 @@ export function WorkQueue() {
                     </p>
                     {incident.latest_run && (
                       <p className="muted text-xs">
-                        Run {incident.latest_run.state} · {incident.latest_run.id}
+                        Run: {incident.latest_run.state} · {incident.latest_run.id}
                         {incident.latest_run.queue_reason === "capacity"
                           ? " · Deferred: dispatch capacity"
                           : ""}
@@ -395,6 +397,7 @@ export function WorkQueue() {
                             : " · Requester unknown"}
                       </p>
                     )}
+                    {!incident.latest_run && <p className="muted text-xs">Run: none recorded</p>}
                     {(incident.run_blockers ?? []).length > 0 && (
                       <p className="text-xs" role="status">
                         Run blockers in history: {incident.run_blockers.join(", ").replaceAll("_", " ")}
@@ -402,10 +405,13 @@ export function WorkQueue() {
                     )}
                     {(incident.relevant_executions ?? []).map((execution) => (
                       <p className="text-xs" role="status" key={execution.id}>
-                        Execution {execution.state} · {execution.classification.replaceAll("_", " ")}
+                        Execution: {execution.state} · {execution.classification.replaceAll("_", " ")}
                         {execution.holds_lock ? " · target locked" : " · target lock released"}
                       </p>
                     ))}
+                    {(incident.relevant_executions ?? []).length === 0 && (
+                      <p className="muted text-xs">Active or unknown execution: none recorded</p>
+                    )}
                     <p className="muted text-xs">{incident.id}</p>
                   </div>
                 </a>
@@ -414,7 +420,7 @@ export function WorkQueue() {
           )}
 
           <div className="foundation-actions">
-            {query.data.items.length > 0 && (
+            {(query.data.items.length > 0 || (params.offset ?? 0) > 0) && (
               <>
                 <Button
                   variant="outline"
@@ -425,10 +431,12 @@ export function WorkQueue() {
                 >
                   Previous
                 </Button>
-                <span className="text-sm text-muted">
-                  Showing {(params.offset ?? 0) + 1}–
-                  {(params.offset ?? 0) + query.data.items.length}
-                </span>
+                {query.data.items.length > 0 && (
+                  <span className="text-sm text-muted">
+                    Showing {(params.offset ?? 0) + 1}–
+                    {(params.offset ?? 0) + query.data.items.length}
+                  </span>
+                )}
                 <Button
                   variant="outline"
                   disabled={query.data.next_offset === null}

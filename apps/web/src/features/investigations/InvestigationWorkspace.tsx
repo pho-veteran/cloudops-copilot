@@ -24,6 +24,7 @@ import { Failure, Loading } from "@/app/Feedback";
 import { IncidentActivity } from "@/features/incidents/IncidentActivity";
 import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
+import { buildIncidentHash, incidentReturnHash } from "@/app/routes";
 
 function RequestInvestigation({
   incidentId,
@@ -85,7 +86,11 @@ function RequestInvestigation({
                 onSuccess: (result) => {
                   setReviewing(false);
                   setReason("");
-                  window.location.hash = `/incidents/${incidentId}?run=${result.run_id}`;
+                  window.location.hash = buildIncidentHash(
+                    incidentId,
+                    result.run_id,
+                    incidentReturnHash(window.location.hash),
+                  );
                 },
               })
             }
@@ -204,7 +209,7 @@ export function InvestigationWorkspace({
   const resolved = incident.data.state === "resolved";
   return (
     <section>
-      <a href="#/queue">← Work queue</a>
+      <a href={incidentReturnHash(window.location.hash)}>← Work queue</a>
       <div className="eyebrow mt-5">
         INCIDENT · {incident.data.state.toUpperCase()} ·{" "}
         {describeOrigin(incident.data.origin).toUpperCase()}
@@ -267,7 +272,7 @@ export function InvestigationWorkspace({
                   <li key={r.id}>
                     <a
                       aria-current={r.id === runId ? "page" : undefined}
-                      href={`#/incidents/${id}?run=${r.id}`}
+                      href={buildIncidentHash(id, r.id, incidentReturnHash(window.location.hash))}
                     >
                       <span>{runStateLabel(r)}</span>
                       <br />

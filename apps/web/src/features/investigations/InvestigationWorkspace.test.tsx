@@ -7,6 +7,8 @@ import type { components } from "@/lib/api/generated/schema";
 import { workloadFixture } from "@/features/workloads/fixtures";
 import { clearRequestKeys } from "./request";
 import { InvestigationWorkspace } from "./InvestigationWorkspace";
+import { Workspace } from "@/app/FoundationApp";
+import { parseWorkQueueHash, readRoute } from "@/app/routes";
 
 const http = vi.hoisted(() => ({ fetch: vi.fn<typeof fetch>() }));
 vi.mock("@/lib/api/client", async (original) => {
@@ -54,11 +56,16 @@ function run(overrides: Partial<components["schemas"]["RunView"]> = {}) {
   } satisfies components["schemas"]["RunView"];
 }
 
-function mount(runs: ReturnType<typeof run>[], state = "open") {
+function mount(runs: components["schemas"]["RunView"][], state = "open", fullWorkspace = false) {
   const posts: { path: string; key: string | null; body: unknown }[] = [];
   http.fetch.mockImplementation(async (input) => {
     const request = input as Request;
     const path = new URL(request.url).pathname;
+    if (path === "/api/session") return Response.json({
+      principal: { id: "00000000-0000-4000-8000-000000000030", username: "operator", role: "operator" },
+      csrf_token: "test-csrf",
+      expires_at: "2099-01-01T00:00:00Z",
+    });
     if (request.method === "POST") {
       const body = await request.clone().json().catch(() => null);
       posts.push({ path, key: request.headers.get("idempotency-key"), body });
@@ -69,6 +76,18 @@ function mount(runs: ReturnType<typeof run>[], state = "open") {
         { status: 201 },
       );
     }
+    if (path === "/api/incidents") return Response.json({
+      items: [{
+        id: incidentId, title: "Checkout restarts", description: "", state: "open",
+        severity: { value: null, provenance: "not_provided" },
+        origin: { kind: "alertmanager", source_id: "lab-alertmanager" },
+        alert_signal: "none", workload_id: workload.id, created_by: null,
+        created_at: "2026-11-01T00:00:00.123456Z", first_seen_at: null,
+        last_seen_at: null, created_by_name: null, acknowledged_by: null,
+        acknowledged_by_name: null, acknowledged_at: null, latest_run: null,
+        run_blockers: [], relevant_executions: [],
+      }], next_offset: null,
+    });
     if (path.endsWith("/runs")) return Response.json({ items: runs, next_offset: null });
     if (path.includes("/runs/")) return Response.json(runs.find((r) => path.endsWith(r.id)));
     if (path.endsWith("/plans") || path.endsWith("/executions") || path.endsWith("/activity"))
@@ -93,13 +112,33 @@ function mount(runs: ReturnType<typeof run>[], state = "open") {
   caches.push(cache);
   render(
     <QueryClientProvider client={cache}>
-      <InvestigationWorkspace id={incidentId} selectedRun="" canMutate />
+      {fullWorkspace ? <Workspace /> : <InvestigationWorkspace id={incidentId} selectedRun="" canMutate />}
     </QueryClientProvider>,
   );
   return posts;
 }
 
 describe("investigation requests", () => {
+  it("returns from a queue card through the in-app link with its full context", async () => {
+    const anchor = "2026-11-01T00:00:00.123456Z";
+    window.history.replaceState(null, "", `/#/queue?search=Checkout&sort_by=created_at&offset=25&anchor_created_at=${encodeURIComponent(anchor)}&anchor_id=${incidentId}`);
+    mount([run()], "open", true);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("link", { name: /Checkout restarts/ }));
+    await vi.waitFor(() => expect(readRoute().page).toBe("incidents"));
+    await user.click(await screen.findByRole("link", { name: new RegExp(run().id) }));
+    await vi.waitFor(() => expect(readRoute().run).toBe(run().id));
+    const back = await screen.findByRole("link", { name: "← Work queue" });
+    await user.click(back);
+    await vi.waitFor(() => expect(readRoute().page).toBe("queue"));
+    expect(parseWorkQueueHash(window.location.hash)).toMatchObject({
+      search: "Checkout", sort_by: "created_at", offset: 25, selected: incidentId,
+      anchor_created_at: anchor, anchor_id: incidentId,
+    });
+    expect((await screen.findByRole("link", { name: /Checkout restarts/ })).className).toContain("selected");
+    expect((screen.getByLabelText("Search incidents") as HTMLInputElement).value).toBe("Checkout");
+  });
+
   it.each(["analyzing", "waiting_for_quota"] as const)("keeps %s work busy like the server guard", async (state) => {
     mount([run({ state, finished_at: null })]);
     expect(await screen.findByText(/An investigation is still active/)).toBeTruthy();

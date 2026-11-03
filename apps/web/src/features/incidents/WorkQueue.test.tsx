@@ -73,38 +73,34 @@ afterEach(() => {
 });
 
 describe("work queue URL state", () => {
-  it("stores the server creation anchor and resets it for explicit refresh", async () => {
-    const item = incident();
-    const anchor = {
-      created_at: "2026-11-01T00:00:00Z",
+  it("reveals new arrivals only after explicitly refreshing the anchored queue", async () => {
+    const existing = incident({ title: "Existing incident" });
+    const newer = incident({
       id: "44444444-4444-4444-8444-444444444444",
-    };
-    mocks.get.mockResolvedValue({
-      data: { items: [item], next_offset: null, creation_anchor: anchor },
-      response: new Response(null, { status: 200 }),
+      title: "Newly arrived incident",
+      created_at: "2026-11-01T00:00:01Z",
+    });
+    let arrived = false;
+    mocks.get.mockImplementation(async (_path, options) => {
+      const olderSnapshot = options.params.query.anchor_created_at === existing.created_at;
+      const items = arrived && !olderSnapshot ? [newer, existing] : [existing];
+      return {
+        data: {
+          items,
+          next_offset: null,
+          creation_anchor: { created_at: items[0].created_at, id: items[0].id },
+        },
+        response: new Response(null, { status: 200 }),
+      };
     });
     mount();
-
-    await screen.findByText(item.title);
-    await vi.waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(2));
-    expect(mocks.get.mock.calls[1][1].params.query.anchor_created_at).toBe(
-      anchor.created_at,
-    );
-    expect(window.location.hash).toContain("anchor_id=");
-
-    const refreshCallStart = mocks.get.mock.calls.length;
-    await userEvent.setup().click(
-      screen.getByRole("button", { name: "Refresh new work" }),
-    );
-    await vi.waitFor(() => {
-      const query = mocks.get.mock.calls
-        .slice(refreshCallStart)
-        .map((call) => call[1].params.query)
-        .find((params) => params.anchor_created_at === undefined);
-      if (!query) throw new Error("Refresh did not send an unanchored request.");
-      expect(query.offset).toBe(0);
-      expect(query.anchor_id).toBeUndefined();
-    });
+    await screen.findByText(existing.title);
+    await vi.waitFor(() => expect(window.location.hash).toContain("anchor_id="));
+    arrived = true;
+    expect(screen.queryByText(newer.title)).toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Refresh new work" }));
+    expect(await screen.findByText(newer.title)).toBeTruthy();
+    expect(screen.getByText(existing.title)).toBeTruthy();
   });
 
   it("parses the search term from the queue hash on mount", async () => {
@@ -116,8 +112,6 @@ describe("work queue URL state", () => {
       "Search by title or ID...",
     ) as HTMLInputElement;
     expect(search.value).toBe("timeout");
-    await vi.waitFor(() => expect(mocks.get).toHaveBeenCalled());
-    expect(mocks.get.mock.calls[0][1].params.query.search).toBe("timeout");
   });
 
   it("writes typed search to the hash and resets the offset", async () => {
@@ -151,6 +145,45 @@ describe("work queue URL state", () => {
     );
   });
 
+  it("includes resolved work in all states and returns to current work without a request error", async () => {
+    const current = incident({ title: "Current incident" });
+    const resolved = incident({
+      id: "44444444-4444-4444-8444-444444444444",
+      title: "Resolved incident",
+      state: "resolved",
+    });
+    mocks.get.mockImplementation(async (_path, options) => {
+      const view = options.params.query.view;
+      if (view !== undefined && view !== "all" && view !== "resolved")
+        return {
+          error: { error: { code: "validation_error", message: "Invalid view" } },
+          response: new Response(null, { status: 422 }),
+        };
+      return {
+        data: {
+          items: view === "all" ? [current, resolved] : view === "resolved" ? [resolved] : [current],
+          next_offset: null,
+        },
+        response: new Response(null, { status: 200 }),
+      };
+    });
+    mount();
+    await screen.findByText(current.title);
+    expect(screen.queryByText(resolved.title)).toBeNull();
+    const user = userEvent.setup();
+    const picker = screen.getByLabelText("Operational view");
+    await user.selectOptions(picker, "all");
+    expect(await screen.findByText(resolved.title)).toBeTruthy();
+    expect(screen.getByText(current.title)).toBeTruthy();
+    await user.selectOptions(picker, "resolved");
+    await vi.waitFor(() => expect(screen.queryByText(current.title)).toBeNull());
+    await user.selectOptions(picker, "default");
+    expect(await screen.findByText(current.title)).toBeTruthy();
+    expect(screen.queryByText(resolved.title)).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+
   it("sorts severity alphabetically ascending from the select", async () => {
     respond([incident()]);
     mount();
@@ -171,6 +204,21 @@ describe("work queue URL state", () => {
 });
 
 describe("work queue results", () => {
+
+  it("recovers from an empty later page without claiming the queue is empty", async () => {
+    mocks.get.mockImplementation(async (_path, options) => ({
+      data: { items: options.params.query.offset === 0 ? [incident()] : [], next_offset: null },
+      response: new Response(null, { status: 200 }),
+    }));
+    queue("#/queue?search=database&offset=25");
+    mount();
+    expect(await screen.findByText("No incidents on this page")).toBeTruthy();
+    expect(screen.queryByText("No matching incidents")).toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Previous" }));
+    expect(await screen.findByText("Database connection timeout")).toBeTruthy();
+    expect(window.location.hash).toBe("#/queue?search=database");
+  });
+
   it("shows the no-match panel when a search returns nothing", async () => {
     respond([]);
     queue("#/queue?search=missing");

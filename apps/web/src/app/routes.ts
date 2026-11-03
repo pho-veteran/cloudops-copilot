@@ -57,7 +57,7 @@ export function parseWorkQueueHash(hash: string): WorkQueueParams {
   const parsed: WorkQueueParams = { ...defaults };
 
   const search = params.get("search");
-  if (search) parsed.search = search;
+  if (search && search.length <= 160) parsed.search = search;
   const workload = params.get("workload");
   if (workload && uuid.test(workload)) parsed.workload = workload;
   const origin = oneOf(params.get("origin"), ORIGINS);
@@ -73,7 +73,7 @@ export function parseWorkQueueHash(hash: string): WorkQueueParams {
   const sortOrder = oneOf(params.get("sort_order"), SORT_ORDERS);
   if (sortOrder) parsed.sort_order = sortOrder;
   const offset = Number(params.get("offset") ?? "0");
-  if (Number.isSafeInteger(offset) && offset >= 0) parsed.offset = offset;
+  if (Number.isSafeInteger(offset) && offset >= 0 && offset <= 100000) parsed.offset = offset;
   const selected = params.get("selected");
   if (selected && uuid.test(selected)) parsed.selected = selected;
   const view = oneOf(params.get("view"), QUEUE_VIEWS);
@@ -86,11 +86,12 @@ export function parseWorkQueueHash(hash: string): WorkQueueParams {
   const anchorId = params.get("anchor_id");
   if (
     anchorCreatedAt &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i.test(anchorCreatedAt) &&
     Number.isFinite(Date.parse(anchorCreatedAt)) &&
     anchorId &&
     uuid.test(anchorId)
   ) {
-    parsed.anchor_created_at = new Date(anchorCreatedAt).toISOString();
+    parsed.anchor_created_at = anchorCreatedAt;
     parsed.anchor_id = anchorId;
   }
 
@@ -121,6 +122,27 @@ export function buildWorkQueueHash(params: WorkQueueParams): string {
   return `#/queue${search ? `?${search}` : ""}`;
 }
 
+/** Only queue hashes may be used as in-app return targets. */
+export function queueReturnHash(hash: string): string {
+  if (!/^#\/queue(?:\?[^#]*)?$/.test(hash)) return "#/queue";
+  return buildWorkQueueHash(parseWorkQueueHash(hash));
+}
+
+export function incidentReturnHash(hash: string): string {
+  const match = /^#\/incidents\/[^/?#]+(?:\?([^#]*))?$/.exec(hash);
+  const target = new URLSearchParams(match?.[1] ?? "").get("return_to");
+  return target ? queueReturnHash(target) : "#/queue";
+}
+
+export function buildIncidentHash(id: string, run = "", returnTo = "#/queue"): string {
+  const query = new URLSearchParams();
+  if (run) query.set("run", run);
+  const target = queueReturnHash(returnTo);
+  if (target !== "#/queue") query.set("return_to", target);
+  const suffix = query.toString();
+  return `#/incidents/${id}${suffix ? `?${suffix}` : ""}`;
+}
+
 export function safeRoute(hash: string) {
   const fallback = { page: "queue", id: "", run: "", baseline: "" };
   if (/^#\/queue(?:\?[^#]*)?$/.test(hash)) return { ...fallback, page: "queue" };
@@ -129,13 +151,18 @@ export function safeRoute(hash: string) {
   const workload = /^#\/workloads\?workload=([^&#]+)(?:&baseline=([^&#]+))?$/.exec(hash);
   if (workload && uuid.test(workload[1]) && (!workload[2] || uuid.test(workload[2])))
     return { ...fallback, page: "workloads", id: workload[1], baseline: workload[2] || "" };
-  const incident = /^#\/incidents\/([^/?#]+)(?:\?run=([^&#]+))?$/.exec(hash);
+  const incident = /^#\/incidents\/([^/?#]+)(?:\?([^#]*))?$/.exec(hash);
+  const incidentParams = new URLSearchParams(incident?.[2] ?? "");
+  const run = incidentParams.get("run") || "";
   if (
     incident &&
     uuid.test(incident[1]) &&
-    (!incident[2] || uuid.test(incident[2]))
+    (!run || uuid.test(run)) &&
+    [...incidentParams.keys()].every((key) => key === "run" || key === "return_to") &&
+    incidentParams.getAll("run").length <= 1 &&
+    incidentParams.getAll("return_to").length <= 1
   )
-    return { ...fallback, page: "incidents", id: incident[1], run: incident[2] || "" };
+    return { ...fallback, page: "incidents", id: incident[1], run };
   return fallback;
 }
 
@@ -143,7 +170,7 @@ export function readRoute() {
   const route = safeRoute(window.location.hash);
   const canonical =
     route.page === "incidents"
-      ? `#/incidents/${route.id}${route.run ? `?run=${route.run}` : ""}`
+      ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash))
       : route.page === "queue"
         ? buildWorkQueueHash(parseWorkQueueHash(window.location.hash))
         : `#/${route.page}${route.page === "workloads" && route.id ? `?workload=${route.id}${route.baseline ? `&baseline=${route.baseline}` : ""}` : ""}`;
