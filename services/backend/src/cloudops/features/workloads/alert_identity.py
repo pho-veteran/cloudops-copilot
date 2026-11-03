@@ -5,6 +5,7 @@ read must return the configured UID, and a Pod must be controlled by a ReplicaSe
 controlled by that UID. Destinations are fixed API paths; redirects are never followed.
 """
 
+import asyncio
 import base64
 import json
 import os
@@ -35,6 +36,7 @@ class Resolved:
     uid: str
     namespace: str
     name: str
+    epoch: int
 
 
 @dataclass(frozen=True)
@@ -47,23 +49,30 @@ class Refused:
 class ScopeSnapshot:
     pinned: bool
     fingerprint: str | None
-    # (namespace, name) -> (workload id, uid) for active live identities of the cluster.
-    targets: dict[tuple[str, str], tuple[UUID, str]] = field(default_factory=dict)
+    sequence: int = 0
+    # (namespace, name) -> (workload id, uid, observation epoch).
+    targets: dict[tuple[str, str], tuple[UUID, str, int]] = field(default_factory=dict)
 
 
 def scope_snapshot(db: Session, cluster: str) -> ScopeSnapshot:
-    state = db.get(ScopeState, 1)
+    # Reconciliation takes this lock before changing the state and workload rows.
+    state = db.scalar(select(ScopeState).where(ScopeState.id == 1).with_for_update(read=True))
     if not state or state.mode != "v2" or state.cluster_key != cluster or not state.fingerprint:
         return ScopeSnapshot(False, None)
     rows = db.execute(
-        select(Workload.id, Workload.namespace, Workload.name, Workload.uid).where(
+        select(
+            Workload.id, Workload.namespace, Workload.name, Workload.uid, Workload.observation_epoch
+        ).where(
             Workload.active,
             Workload.source == "live_kubernetes",
             Workload.cluster == cluster,
         )
     ).all()
     return ScopeSnapshot(
-        True, state.fingerprint, {(r.namespace, r.name): (r.id, r.uid) for r in rows}
+        True,
+        state.fingerprint,
+        state.applied_sequence,
+        {(r.namespace, r.name): (r.id, r.uid, r.observation_epoch) for r in rows},
     )
 
 
@@ -91,16 +100,21 @@ class IdentityResolver:
         self.cluster = cluster
         self.snapshot = snapshot
         self.transport = transport
-        self.client: httpx.Client | None = None
+        self.client: httpx.AsyncClient | None = None
+        self.loop = asyncio.new_event_loop()
         self.requests = 0
         self.deadline = time.monotonic() + DEADLINE_SECONDS
         self.cache: dict[tuple[str, str, str], Resolved | Refused] = {}
 
     def close(self):
         if self.client:
-            self.client.close()
+            self.loop.run_until_complete(self.client.aclose())
+        # Do not wait for a cancelled OS DNS lookup's executor thread on shutdown.
+        self.loop.close()
 
     def resolve(self, labels: dict[str, str]) -> Resolved | Refused:
+        if time.monotonic() >= self.deadline:
+            return Refused("budget_exhausted", retry=True)
         if not self.snapshot.pinned:
             return Refused("scope_unpinned", retry=True)
         namespace = labels.get("namespace")
@@ -132,7 +146,10 @@ class IdentityResolver:
 
     def _guard(self, read) -> Resolved | Refused:
         try:
-            return read()
+            result = read()
+            if time.monotonic() >= self.deadline:
+                raise _Retry("budget_exhausted")
+            return result
         except _Missing:
             return Refused("identity_missing")
         except _Retry as error:
@@ -144,7 +161,7 @@ class IdentityResolver:
             return Refused("out_of_scope")
         if target[1] != uid:
             return Refused("identity_changed")
-        return Resolved(target[0], uid, namespace, name)
+        return Resolved(target[0], uid, namespace, name, target[2])
 
     def _deployment(self, namespace: str, name: str) -> Resolved | Refused:
         value = self._get(
@@ -204,7 +221,7 @@ class IdentityResolver:
             return Refused("identity_ambiguous")
         return owner
 
-    def _connect(self) -> httpx.Client:
+    def _connect(self) -> httpx.AsyncClient:
         if self.client:
             return self.client
         try:
@@ -220,7 +237,7 @@ class IdentityResolver:
             server = server_identity(config["server"])
         except (KeyError, OSError, ValueError, TypeError, UnicodeError):
             raise _Retry() from None
-        self.client = httpx.Client(
+        self.client = httpx.AsyncClient(
             base_url=server,
             verify=context,
             trust_env=False,
@@ -236,13 +253,30 @@ class IdentityResolver:
         return self.client
 
     def _get(self, path: str) -> dict:
-        client = self._connect()
         self.requests += 1
         remaining = self.deadline - time.monotonic()
         if self.requests > MAX_REQUESTS or remaining <= 0:
             raise _Retry("budget_exhausted")
         try:
-            with client.stream("GET", path, timeout=min(4.0, remaining)) as response:
+            return self.loop.run_until_complete(self._read(path, remaining))
+        except TimeoutError:
+            raise _Retry("budget_exhausted") from None
+        except (httpx.HTTPError, ValueError):
+            if time.monotonic() >= self.deadline:
+                raise _Retry("budget_exhausted") from None
+            raise _Retry() from None
+
+    async def _read(self, path: str, remaining: float) -> dict:
+        # The cancellation scope covers connection, response headers and every body read;
+        # httpx's timeout alone only bounds individual periods of network inactivity.
+        async with asyncio.timeout(remaining):
+            client = self._connect()
+            remaining = self.deadline - time.monotonic()
+            if remaining <= 0:
+                raise _Retry("budget_exhausted")
+            async with client.stream("GET", path, timeout=min(4.0, remaining)) as response:
+                if time.monotonic() >= self.deadline:
+                    raise _Retry("budget_exhausted")
                 if response.status_code == 404:
                     raise _Missing()
                 if response.status_code != 200:
@@ -250,16 +284,13 @@ class IdentityResolver:
                 if response.headers.get("content-encoding", "identity") != "identity":
                     raise _Retry()
                 body = bytearray()
-                # Encoding is pinned to identity above, so decoded bytes are the raw bytes.
-                for chunk in response.iter_bytes():
+                async for chunk in response.aiter_bytes():
                     body.extend(chunk)
                     if len(body) > RESPONSE_BYTES:
                         raise _Retry()
             value = json.loads(body)
-        except httpx.HTTPError:
-            raise _Retry() from None
-        except ValueError:
-            raise _Retry() from None
-        if not isinstance(value, dict):
-            raise _Retry()
-        return value
+            if time.monotonic() >= self.deadline:
+                raise _Retry("budget_exhausted")
+            if not isinstance(value, dict):
+                raise _Retry()
+            return value

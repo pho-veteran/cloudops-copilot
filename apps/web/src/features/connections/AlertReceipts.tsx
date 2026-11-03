@@ -27,6 +27,7 @@ const reasons: Record<string, string> = {
   out_of_scope: "The workload is not in the configured scope.",
   resolved_before_admission: "Resolved before any investigation was admitted.",
   scope_unpinned: "Intake needs the pinned live scope for its configured cluster.",
+  scope_changed: "The workload scope changed during the read; Alertmanager will retry.",
   cluster_unavailable: "The scoped cluster read failed; Alertmanager will retry.",
   budget_exhausted: "The scoped cluster read budget was exhausted; Alertmanager will retry.",
   capacity_exhausted: "Investigation capacity is full; Alertmanager will retry.",

@@ -4,9 +4,9 @@ Each alert settles in its own short transaction so a permanent rejection never d
 valid entries of a batch. Network identity reads happen before that transaction; the commit
 rechecks the episode binding and the configured identity under the admission lock.
 
-Lock order: admission lock -> episode -> Workload -> Incident/Run/Job (via admission) for new
-work; admission lock -> episode -> Incident for repeats. Resolve takes Incident first but never
-waits for the admission lock, so the orders cannot form a cycle.
+Lock order: admission lock -> episode -> ScopeState -> Workload -> Incident/Run/Job
+for new work; admission lock -> episode -> Incident for repeats. Reconciliation locks
+ScopeState before Workload and never takes the admission lock.
 """
 
 import base64
@@ -49,7 +49,7 @@ from cloudops.features.workloads.alert_identity import (
     Resolved,
     scope_snapshot,
 )
-from cloudops.features.workloads.models import Workload
+from cloudops.features.workloads.models import ScopeState, Workload
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.errors import DomainError
 
@@ -213,7 +213,7 @@ class _Remap(Exception):
     """The episode disappeared between the unlocked check and the commit; resolve again."""
 
 
-def settle(db: Session, config, delivery, f: Facts, resolution) -> str:
+def settle(db: Session, config, delivery, f: Facts, resolution, snapshot) -> str:
     lock_admission(db)
     now = database_now(db)
     episode = find(db, config, f, lock=True)
@@ -225,36 +225,48 @@ def settle(db: Session, config, delivery, f: Facts, resolution) -> str:
         return record(db, config, delivery, f, now, "ignored", reason, episode)
     if resolution is None:
         raise _Remap()
+    if isinstance(resolution, Refused) and resolution.retry:
+        return record(db, config, delivery, f, now, "retryable", resolution.reason)
+    state = db.scalar(select(ScopeState).where(ScopeState.id == 1).with_for_update(read=True))
+    authority_current = bool(
+        state
+        and state.mode == "v2"
+        and state.cluster_key == config.cluster
+        and state.fingerprint == snapshot.fingerprint
+        and state.applied_sequence == snapshot.sequence
+    )
     if isinstance(resolution, Refused):
-        if resolution.retry:
-            return record(db, config, delivery, f, now, "retryable", resolution.reason)
+        if not authority_current:
+            return record(db, config, delivery, f, now, "retryable", "scope_changed")
         episode = marker(db, config, f, now, "rejected", resolution.reason)
         return record(db, config, delivery, f, now, "rejected", resolution.reason, episode)
     workload = db.scalar(
         select(Workload).where(Workload.id == resolution.workload_id).with_for_update()
     )
+    replaced = db.scalar(
+        select(Workload.id).where(
+            Workload.active,
+            Workload.cluster == config.cluster,
+            Workload.namespace == resolution.namespace,
+            Workload.name == resolution.name,
+            Workload.uid != resolution.uid,
+        )
+    )
+    if replaced:
+        episode = marker(db, config, f, now, "rejected", "identity_changed")
+        return record(db, config, delivery, f, now, "rejected", "identity_changed", episode)
     if (
-        not workload
+        not authority_current
+        or not workload
         or not workload.active
         or workload.cluster != config.cluster
         or workload.source != "live_kubernetes"
         or workload.uid != resolution.uid
+        or workload.namespace != resolution.namespace
+        or workload.name != resolution.name
+        or workload.observation_epoch != resolution.epoch
     ):
-        # Scope changed after the read; never attach this episode to a replacement.
-        replaced = workload is not None and db.scalar(
-            select(Workload.id).where(
-                Workload.active,
-                Workload.cluster == workload.cluster,
-                Workload.namespace == workload.namespace,
-                Workload.name == workload.name,
-                Workload.id != workload.id,
-            )
-        )
-        reason = (
-            "identity_changed" if replaced or (workload and workload.active) else "out_of_scope"
-        )
-        episode = marker(db, config, f, now, "rejected", reason)
-        return record(db, config, delivery, f, now, "rejected", reason, episode)
+        return record(db, config, delivery, f, now, "retryable", "scope_changed")
     return admit(db, config, delivery, f, resolution, workload, now)
 
 
@@ -322,14 +334,17 @@ def retryable(config, delivery, f: Facts, reason: str) -> str:
 
 def handle(config, delivery, alert: AlertEntry, resolver: IdentityResolver) -> str:
     f = facts(alert)
-    with sessions()() as db:
-        known = find(db, config, f) is not None
+    try:
+        with sessions()() as db:
+            known = find(db, config, f) is not None
+    except SQLAlchemyError:
+        return retryable(config, delivery, f, "database_unavailable")
     # Existing bindings and markers are consulted before any remapping read.
     resolution = None if known or f.status == "resolved" else resolver.resolve(alert.labels)
     for _ in range(2):
         try:
             with sessions()() as db, db.begin():
-                return settle(db, config, delivery, f, resolution)
+                return settle(db, config, delivery, f, resolution, resolver.snapshot)
         except _Remap:
             resolution = resolver.resolve(alert.labels)
         except IntegrityError:
@@ -363,8 +378,13 @@ def prune() -> None:
 
 def receive(config: IntakeConfig, envelope: AlertmanagerEnvelope) -> IntakeResult:
     delivery = uuid4()
-    with sessions()() as db:
-        snapshot = scope_snapshot(db, config.cluster)
+    try:
+        with sessions()() as db:
+            snapshot = scope_snapshot(db, config.cluster)
+    except SQLAlchemyError:
+        raise DomainError(
+            503, "intake_retry", "Scope is unavailable. Retry the delivery."
+        ) from None
     resolver = IdentityResolver(config.cluster, snapshot, transport=reader_transport)
     try:
         outcomes = Counter(handle(config, delivery, alert, resolver) for alert in envelope.alerts)
@@ -390,7 +410,11 @@ def receipts_page(db: Session, limit: int, cursor: str | None) -> AlertReceiptPa
     if cursor:
         try:
             data = json.loads(base64.urlsafe_b64decode(cursor + "=" * (-len(cursor) % 4)))
-            if not isinstance(data, list) or len(data) != 2:
+            if (
+                not isinstance(data, list)
+                or len(data) != 2
+                or not all(isinstance(value, str) for value in data)
+            ):
                 raise ValueError
             moment, identity = datetime.fromisoformat(data[0]), UUID(data[1])
             if moment.tzinfo is None:

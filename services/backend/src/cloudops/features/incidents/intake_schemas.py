@@ -31,7 +31,10 @@ def canonical_start(value: str) -> tuple[str, datetime]:
         if hours > 23 or minutes > 59:
             raise ValueError("startsAt has an invalid offset.")
         offset = timedelta(hours=hours, minutes=minutes)
-        moment = moment - offset if zone[0] == "+" else moment + offset
+        try:
+            moment = moment - offset if zone[0] == "+" else moment + offset
+        except OverflowError:
+            raise ValueError("startsAt is outside the supported UTC range.") from None
     if moment.year < 1970:
         raise ValueError("startsAt must be a real episode start, not the zero time.")
     nanos = (fraction or "").ljust(9, "0")

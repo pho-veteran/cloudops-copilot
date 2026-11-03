@@ -1,5 +1,7 @@
 """Issue #36: authenticated Alertmanager episodes, UID-bound admission and intake receipts."""
 
+import asyncio
+import base64
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -25,6 +27,7 @@ from intake_fixtures import (
     pin_scope,
 )
 from sqlalchemy import func, select, text, update
+from sqlalchemy.exc import SQLAlchemyError
 from test_incident_requests import capacity as _capacity, free_capacity
 
 from cloudops.entrypoints.api import create_app
@@ -144,6 +147,8 @@ def test_credentials_and_envelopes_are_checked_before_any_write(client, intake, 
         {**body, "alerts": [alert(f"{i:x}") for i in range(101)]},
         envelope(alert(namespace="x" * 1025)),
         envelope(alert(starts="2026-11-01 10:00:00")),
+        envelope(alert(starts="9999-12-31T23:59:59-23:00")),
+        envelope(alert(starts="0001-01-01T00:00:00+23:00")),
         envelope(alert(starts="0001-01-01T00:00:00Z")),
         envelope(alert(fingerprint="NOT-HEX")),
     ]
@@ -294,6 +299,48 @@ def test_transient_reads_are_retryable_without_a_marker(client, intake, monkeypa
         assert deliver(client, envelope(alert("d4"))).json()["counts"] == {"accepted": 1}
 
 
+@pytest.mark.parametrize("boundary", ["scope_snapshot", "find"])
+def test_database_read_failure_is_retryable_without_admission(
+    client, intake, monkeypatch, boundary
+):
+    def unavailable(*args, **kwargs):
+        raise SQLAlchemyError("database unavailable")
+
+    monkeypatch.setattr(intake_service, boundary, unavailable)
+    response = deliver(client, envelope(alert("d6")))
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "intake_retry"
+    assert episode("d6") is None and count(Incident) == 0
+    assert intake.calls == []
+
+
+def test_slow_stream_is_cancelled_at_absolute_notification_deadline(client, intake, monkeypatch):
+    closed = []
+
+    class SlowStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for chunk in (b'{"kind":', b'"Deployment",', b'"metadata":', b"{}}"):
+                await asyncio.sleep(0.05)
+                yield chunk
+
+        async def aclose(self):
+            closed.append(True)
+
+    monkeypatch.setattr(alert_identity, "DEADLINE_SECONDS", 0.12)
+    monkeypatch.setattr(
+        intake_service,
+        "reader_transport",
+        httpx.MockTransport(lambda request: httpx.Response(200, stream=SlowStream())),
+    )
+    response = deliver(client, envelope(alert("d5")))
+    assert response.status_code == 503
+    assert episode("d5") is None and count(Incident) == 0
+    assert [(r.outcome, r.reason) for r in rows(AlertReceipt)] == [
+        ("retryable", "budget_exhausted")
+    ]
+    assert closed
+
+
 def test_concurrent_and_equivalent_deliveries_share_one_episode(client, intake):
     app = create_app()
 
@@ -355,6 +402,50 @@ def test_identity_change_between_read_and_commit_never_binds_a_replacement(
     later = deliver(client, envelope(alert("f6", starts="2026-11-01T11:00:00Z")))
     assert later.json()["counts"] == {"accepted": 1}
     assert episode("f6", "2026-11-01T11:00:00Z").workload_uid == "uid-new"
+
+
+@pytest.mark.parametrize("change", ["epoch", "publication", "rotation", "retirement", "refusal"])
+def test_scope_authority_change_during_mapping_is_retryable(client, intake, monkeypatch, change):
+    original = alert_identity.IdentityResolver.resolve
+
+    def resolve_then_publish(self, labels):
+        result = original(self, labels)
+        with sessions()() as db, db.begin():
+            if change in ("epoch", "retirement"):
+                values = (
+                    {"observation_epoch": Workload.observation_epoch + 1}
+                    if change == "epoch"
+                    else {"active": False}
+                )
+                db.execute(update(Workload).where(Workload.name == "checkout").values(**values))
+            elif change == "rotation":
+                db.execute(
+                    text("UPDATE workload_scope_state SET fingerprint = :f"), {"f": "0" * 64}
+                )
+            else:
+                db.execute(
+                    text("UPDATE workload_scope_state SET applied_sequence = applied_sequence + 1")
+                )
+        return result
+
+    monkeypatch.setattr(alert_identity.IdentityResolver, "resolve", resolve_then_publish)
+    payload = envelope(alert("f7", deployment="unknown" if change == "refusal" else "checkout"))
+    response = deliver(client, payload)
+    assert response.status_code == 503
+    assert episode("f7") is None and count(Incident) == 0
+    assert rows(AlertReceipt)[0].reason == "scope_changed"
+    monkeypatch.setattr(alert_identity.IdentityResolver, "resolve", original)
+    if change == "rotation":
+        with sessions()() as db, db.begin():
+            db.execute(
+                text("UPDATE workload_scope_state SET fingerprint = :f"),
+                {"f": intake.fingerprint},
+            )
+    if change == "retirement":
+        with sessions()() as db, db.begin():
+            db.execute(update(Workload).where(Workload.name == "checkout").values(active=True))
+    if change != "refusal":
+        assert deliver(client, payload).json()["counts"] == {"accepted": 1}
 
 
 def test_each_alert_status_is_processed_independently(client, intake):
@@ -495,6 +586,15 @@ def test_receipts_page_without_gaps_prune_and_never_store_secrets(client, intake
     assert len(seen) == len(set(seen)) == 60
     bad = client.get("/api/alert-receipts", params={"cursor": "not-a-cursor"})
     assert bad.status_code == 422 and bad.json()["error"]["code"] == "invalid_cursor"
+    for elements in (
+        ["2026-01-01T00:00:00+00:00", 1],
+        [1, str(uuid4())],
+        [None, None],
+        [{}, []],
+    ):
+        cursor = base64.urlsafe_b64encode(json.dumps(elements).encode()).decode().rstrip("=")
+        bad = client.get("/api/alert-receipts", params={"cursor": cursor})
+        assert bad.status_code == 422 and bad.json()["error"]["code"] == "invalid_cursor"
     monkeypatch.setattr(intake_service, "RECEIPT_RETENTION", 10)
     assert deliver(client, envelope(alert("e9"))).status_code == 200
     kept = rows(AlertReceipt)

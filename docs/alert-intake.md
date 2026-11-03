@@ -59,7 +59,7 @@ Authentication happens before the body is read, and the body read stops at 1 MiB
 
 ## Supported identity labels
 
-Labels select candidates; ownership is always confirmed against the live cluster through the pinned scope reader. That reader uses fixed API paths, does not follow redirects, and enforces a per-notification budget of 20 GET requests, 10 seconds and 1 MiB per response.
+Labels select candidates; ownership is always confirmed against the live cluster through the pinned scope reader. That reader uses fixed API paths, does not follow redirects, and enforces a per-notification budget of 20 GET requests, an absolute 10-second network deadline and 1 MiB per response. In-flight network reads are cancelled at the deadline and return `budget_exhausted`, not a late identity.
 
 | Labels | Resolution |
 |---|---|
@@ -93,13 +93,15 @@ The deduplication key is `(source_id, fingerprint, startsAt)`. `startsAt` is nor
 |---|---|
 | `identity_missing`, `identity_invalid`, `identity_ambiguous`, `identity_changed`, `unsupported_identity`, `out_of_scope` | Permanent |
 | `resolved_before_admission` | Ignored |
-| `scope_unpinned`, `cluster_unavailable`, `budget_exhausted`, `capacity_exhausted`, `admission_conflict`, `database_unavailable` | Retryable |
+| `scope_unpinned`, `scope_changed`, `cluster_unavailable`, `budget_exhausted`, `capacity_exhausted`, `admission_conflict`, `database_unavailable` | Retryable |
 
 `identity_changed` is permanent. An alert carries no UID, so a Deployment label whose live UID differs from the configured identity cannot be safely attributed to either the old or the replacement identity.
 
 ## Lock order
 
-Intake takes the admission lock, then the episode row, then the Workload, and only then lets admission create the Incident, Run and Job. A repeat takes the admission lock, the episode, then the Incident. Resolve takes the Incident first but never waits for the admission lock, so these orders cannot deadlock. All network reads happen before the transaction.
+Intake takes the admission lock, then the episode row, then the shared scope-state lock, then the Workload, and only then lets admission create the Incident, Run and Job. Scope reconciliation takes the scope-state lock before workload rows and does not take the admission lock. A repeat takes the admission lock, the episode, then the Incident. Resolve takes the Incident first but never waits for the admission lock, so these orders cannot deadlock. All network reads happen before the transaction.
+
+The reader captures the scope fingerprint and published sequence with each target's observation epoch. Admission rechecks these under the scope and workload locks. A publication, rotation, retirement or epoch change during the read yields retryable `scope_changed` without consuming the episode; a verified same-name replacement remains a permanent identity rejection. Known episodes are still looked up before remapping or capacity enforcement.
 
 ## Receipts, retention and redaction
 
@@ -115,6 +117,7 @@ uv run --project services/backend python scripts/bootstrap-integration.py
 LAB="docker compose -p ${CLOUDOPS_LAB_PROJECT:-cloudops-e01-https} -f compose.yaml -f compose.https.yaml -f compose.integration.yaml -f compose.alertmanager.yaml"
 $LAB up -d --build --wait api worker https
 $LAB cp https:/data/caddy/pki/authorities/local/root.crt tmp/e01-integration/intake-sender/proxy-ca.crt
+chmod 0644 tmp/e01-integration/intake-sender/proxy-ca.crt
 cp tmp/e01-integration/intake-sender/proxy-ca.crt tmp/local-https-root.crt
 $LAB up -d --wait alertmanager
 uv run --project services/backend python scripts/probe-alert-intake.py --ca tmp/local-https-root.crt
