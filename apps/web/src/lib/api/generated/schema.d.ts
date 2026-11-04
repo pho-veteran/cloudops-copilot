@@ -649,10 +649,6 @@ export interface components {
             incident_id: string;
             /** Kind */
             kind: string;
-            /** Snapshot */
-            snapshot: {
-                [key: string]: unknown;
-            } | null;
             /** Text */
             text: string;
         };

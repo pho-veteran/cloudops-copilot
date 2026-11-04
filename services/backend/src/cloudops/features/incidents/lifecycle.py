@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select, tuple_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, defer
 
 from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.models import User
@@ -46,7 +46,6 @@ class ActivityView(View):
     actor_id: UUID
     actor_name: str | None
     created_at: datetime
-    snapshot: dict | None
 
 
 class ActivityPage(BaseModel):
@@ -72,7 +71,6 @@ def _activity_view(row, actor_name):
         actor_id=row.actor_id,
         actor_name=actor_name,
         created_at=row.created_at,
-        snapshot=row.snapshot,
     )
 
 
@@ -239,6 +237,7 @@ def activity(
     )
     query = (
         select(IncidentActivity, User.username)
+        .options(defer(IncidentActivity.snapshot, raiseload=True))
         .outerjoin(User, User.id == IncidentActivity.actor_id)
         .where(IncidentActivity.incident_id == incident_id)
     )

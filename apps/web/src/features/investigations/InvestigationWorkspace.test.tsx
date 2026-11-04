@@ -300,7 +300,7 @@ describe("persisted handoff navigation", () => {
       id: index === 100 ? resolution : `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       kind: index === 100 ? "resolve" : "note", text: index === 100 ? human : `Note ${index}`,
       actor_id: "00000000-0000-4000-8000-000000000030", actor_name: "Pat", created_at: "2026-11-01T00:00:00Z",
-      incident_id: incidentId, snapshot: null,
+      incident_id: incidentId,
     } satisfies components["schemas"]["ActivityView"]);
     window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
     mount([run()], "open", {}, true, (request) => {
@@ -325,13 +325,77 @@ describe("persisted handoff navigation", () => {
     expect(readRoute().resolution).toBe(resolution);
   });
 
+  it("refreshes the current report after resolving", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
+    let resolved = false;
+    const detail = () => ({
+      id: incidentId, workload_id: workload.id, title: "Checkout restarts",
+      description: "Original context", state: resolved ? "resolved" : "open",
+      created_by: null, created_at: "2026-11-01T00:00:00Z",
+      origin: { kind: "operator", source_id: null }, first_seen_at: null, last_seen_at: null,
+      severity: { value: null, provenance: "not_provided" }, alert_signal: "none", workload,
+    });
+    mount([run()], "open", {}, true, (request) => {
+      const url = new URL(request.url);
+      if (request.method === "POST" && url.pathname.endsWith("/lifecycle")) {
+        resolved = true;
+        return Response.json(detail());
+      }
+      if (url.pathname === `/api/incidents/${incidentId}`) return Response.json(detail());
+      if (url.pathname.endsWith("/handoff/preview")) return Response.json({
+        incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v1",
+        snapshot: {}, markdown: resolved ? "State: resolved; reason: service recovered" : "State: open",
+      });
+    });
+    expect(await screen.findByText("State: open")).toBeTruthy();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Note or transition reason"), "service recovered");
+    await user.click(screen.getByRole("button", { name: "Resolve with snapshot" }));
+    expect(await screen.findByText("State: resolved; reason: service recovered")).toBeTruthy();
+    expect(screen.queryByText("State: open")).toBeNull();
+  });
+
+  it("keeps history visible with retry when a post-mutation refetch fails", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
+    let posted = false;
+    let unavailable = true;
+    const old = {
+      id: resolution, incident_id: incidentId, kind: "note", text: "Earlier operator context",
+      actor_id: run().requested_by, actor_name: "Pat", created_at: "2026-11-01T00:00:00Z",
+    };
+    const added = { ...old, id: "00000000-0000-4000-8000-000000000098", text: "Later context" };
+    mount([run()], "open", {}, true, (request) => {
+      const path = new URL(request.url).pathname;
+      if (request.method === "POST" && path.endsWith("/notes")) {
+        posted = true;
+        return Response.json(added, { status: 201 });
+      }
+      if (path.endsWith("/activity")) {
+        if (posted && unavailable) return Response.json(
+          { error: { code: "history_unavailable", message: "Temporary history outage" } }, { status: 503 },
+        );
+        return Response.json({ items: posted ? [added, old] : [old], total: posted ? 2 : 1, next_cursor: null });
+      }
+    });
+    expect(await screen.findByText(old.text)).toBeTruthy();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Note or transition reason"), added.text);
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+    const history = screen.getByLabelText("Incident activity");
+    expect(await within(history).findByText(/Temporary history outage/)).toBeTruthy();
+    expect(within(history).getByText(old.text)).toBeTruthy();
+    unavailable = false;
+    await user.click(within(history).getByRole("button", { name: "Retry" }));
+    expect(await within(history).findByText(added.text)).toBeTruthy();
+    expect(within(history).queryByText(/Temporary history outage/)).toBeNull();
+  });
+
   it("does not announce an older copy as the newly selected handoff", async () => {
     window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
     const savedActivity = {
       id: resolution, incident_id: incidentId, kind: "resolve", text: "Saved fixture",
       actor_id: "00000000-0000-4000-8000-000000000030", actor_name: "Pat",
       created_at: "2026-11-01T00:00:00Z",
-      snapshot: { schema_version: "HandoffSnapshot/v1", snapshot: {}, markdown: `Saved: ${human}` },
     } satisfies components["schemas"]["ActivityView"];
     mount([run()], "open", {}, true, (request) => {
       const url = new URL(request.url);

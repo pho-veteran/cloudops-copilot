@@ -1,6 +1,5 @@
 """Stored-data handoff composition. This module never calls a provider or executes work."""
 
-import html
 import json
 import re
 from typing import Literal
@@ -9,6 +8,7 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import or_, select
+from sqlalchemy.orm import defer
 
 from cloudops.features.access.models import User
 from cloudops.features.incidents.models import Incident, IncidentActivity
@@ -56,6 +56,7 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
     workload = db.get(Workload, incident.workload_id)
     activity = db.execute(
         select(IncidentActivity, User.username)
+        .options(defer(IncidentActivity.snapshot, raiseload=True))
         .outerjoin(User, User.id == IncidentActivity.actor_id)
         .where(IncidentActivity.incident_id == incident_id)
         .order_by(IncidentActivity.created_at, IncidentActivity.id)
@@ -67,6 +68,7 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
     ).all()
     evidence = db.scalars(
         select(Evidence)
+        .options(defer(Evidence.payload, raiseload=True))
         .join(InvestigationRun, Evidence.run_id == InvestigationRun.id)
         .where(InvestigationRun.incident_id == incident_id)
         .order_by(Evidence.collected_at, Evidence.id)
@@ -97,6 +99,18 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
         .where(or_(ActionPlan.incident_id == incident_id, ActionPlan.id.in_(referenced_plans)))
         .order_by(ActionPlan.created_at, ActionPlan.id)
     ).all()
+    actor_ids = {
+        incident.created_by,
+        *(run.requested_by for run in runs),
+        *(plan.created_by for plan in plans),
+        *(plan.decided_by for plan in plans),
+    } - {None}
+    actors = {
+        str(identity): name
+        for identity, name in db.execute(
+            select(User.id, User.username).where(User.id.in_(actor_ids))
+        )
+    }
     events = [
         {**_fields(row, ("id", "kind", "text", "actor_id", "created_at")), "actor_name": name}
         for row, name in activity
@@ -192,6 +206,7 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
     ]
     snapshot = {
         "incident": IncidentView.model_validate(incident).model_dump(mode="json"),
+        "actors": actors,
         "workload": _fields(
             workload,
             (
@@ -229,6 +244,10 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
             "status": "unavailable",
             "detail": "Production RCA and findings are unavailable.",
         },
+        "citations": {
+            "status": "unavailable",
+            "detail": "Production finding-to-evidence citations are unavailable.",
+        },
         "ruled_out_checks": {
             "status": "unavailable",
             "detail": "No structured ruled-out checks are recorded.",
@@ -259,6 +278,17 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
             "count": len(items),
             "items": items,
         }
+        references = sorted(
+            {(str(item.run_id), str(eid)) for item in fixture.items for eid in item.evidence_ids}
+        )
+        snapshot["citations"] = {
+            "status": "contract_fixture",
+            "label": fixture.label,
+            "count": len(references),
+            "items": [
+                {"run_id": run_id, "evidence_id": evidence_id} for run_id, evidence_id in references
+            ],
+        }
         for status, section in (
             ("ruled_out", "ruled_out_checks"),
             ("unverified", "unverified_checks"),
@@ -288,8 +318,8 @@ def _inline(value):
     """Keep untrusted single-line metadata from becoming Markdown or raw HTML."""
     if value is None or value == "":
         return "Not recorded"
-    value = html.escape(str(value).replace("\r", " ").replace("\n", " "), quote=True)
-    return re.sub(r"([\\`*{}\[\]()#+!|>~])", r"\\\1", value)
+    value = str(value).replace("\r", " ").replace("\n", " ")
+    return re.sub(r"([\\`*{}\[\]<>|~])", r"\\\1", value)
 
 
 def _text_block(value):
@@ -298,6 +328,11 @@ def _text_block(value):
         return "Not recorded.\n\n"
     fence = "`" * max(3, 1 + max((len(m) for m in re.findall(r"`+", value)), default=0))
     return f"{fence}text\n{value}\n{fence}\n\n"
+
+
+def _actor(snapshot, identity):
+    name = snapshot["actors"].get(str(identity))
+    return f"{_inline(name)} ({_inline(identity)})" if name else _inline(identity)
 
 
 def render(snapshot):
@@ -310,7 +345,7 @@ def render(snapshot):
         "## Incident and workload\n\n",
         f"- Incident: {_inline(incident['id'])}\n",
         f"- State: {_inline(incident['state'])}\n",
-        f"- Created: {_inline(incident['created_at'])}; actor: {_inline(incident['created_by'])}\n",
+        f"- Created: {_inline(incident['created_at'])}; actor: {_actor(snapshot, incident['created_by'])}\n",
         f"- Origin: {_inline(incident['origin']['kind'])}; source: {_inline(incident['origin']['source_id'])}\n",
         f"- Workload: {_inline(workload['name'])}; namespace: {_inline(workload['namespace'])}; cluster: {_inline(workload['cluster'])}\n",
         f"- Workload ID: {_inline(workload['id'])}; UID: {_inline(workload['uid'])}; source: {_inline(workload['source'])}\n",
@@ -331,7 +366,7 @@ def render(snapshot):
             [
                 f"### Run {_inline(run['id'])}\n\n",
                 f"- State: {_inline(run['state'])}; created: {_inline(run['created_at'])}; finished: {_inline(run['finished_at'])}\n",
-                f"- Requested by: {_inline(run['requested_by'])}; origin: {_inline(run['origin_kind'])}; source: {_inline(run['origin_source_id'])}\n",
+                f"- Requested by: {_actor(snapshot, run['requested_by'])}; origin: {_inline(run['origin_kind'])}; source: {_inline(run['origin_source_id'])}\n",
                 f"- Window: {_inline(run['window_start'])} to {_inline(run['window_end'])}; provenance: {_inline(run['window_source'])}\n",
                 f"- Question provenance: {_inline(run['question_source'])}; queue reason: {_inline(run['queue_reason'])}; outcome: {_inline(run['outcome_code'])}\n\n",
                 "**Question**\n\n",
@@ -363,7 +398,7 @@ def render(snapshot):
                 f"### Plan {_inline(plan['id'])}\n\n",
                 f"- Incident: {_inline(plan['incident_id'])}; workload: {_inline(plan['workload_id'])}\n",
                 f"- Template: {_inline(plan['template'])}; state: {_inline(plan['state'])}; version: {_inline(plan['version'])}\n",
-                f"- Created: {_inline(plan['created_at'])} by {_inline(plan['created_by'])}; decision: {_inline(plan['decided_at'])} by {_inline(plan['decided_by'])}\n",
+                f"- Created: {_inline(plan['created_at'])} by {_actor(snapshot, plan['created_by'])}; decision: {_inline(plan['decided_at'])} by {_actor(snapshot, plan['decided_by'])}\n",
                 f"- Expires: {_inline(plan['expires_at'])}; digest: {_inline(plan['digest'])}\n\n",
                 "**Recorded rationale**\n\n",
                 _text_block(plan["rationale"]),
@@ -397,6 +432,17 @@ def render(snapshot):
             f"holds lock {_inline(lock['holds_lock'])}\n"
         )
     sections.append("\n")
+    citations = snapshot["citations"]
+    sections.append("## Citations\n\n")
+    if citations["status"] == "contract_fixture":
+        sections.append(f"{_inline(citations['label'])}; {citations['count']} recorded.\n\n")
+        for citation in citations["items"]:
+            sections.append(
+                f"- Run: {_inline(citation['run_id'])}; Evidence: {_inline(citation['evidence_id'])}\n"
+            )
+        sections.append("\n")
+    else:
+        sections.append(f"{_inline(citations['detail'])}\n\n")
     for title, key in (
         ("Findings", "findings"),
         ("Ruled-out checks", "ruled_out_checks"),

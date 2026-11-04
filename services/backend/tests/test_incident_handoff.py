@@ -15,6 +15,7 @@ from sqlalchemy import literal, select, text
 from test_access_admission import create, incident_body, rerun
 from test_permissions import permission_context as _permission_context
 
+from cloudops.features.access.models import User
 from cloudops.features.incidents import handoff
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.investigations.models import Evidence, InvestigationRun
@@ -60,7 +61,7 @@ def test_saved_and_legacy_bytes_survive_reopen_later_records_and_renderer_change
         item for item in current["snapshot"]["activity"]["items"] if item["text"] == original
     )
     assert stored_note["actor_name"] in current["markdown"]
-    assert stored_note["created_at"] in current["markdown"].replace("\\+", "+")
+    assert stored_note["created_at"] in current["markdown"]
     assert stored_note["id"] in current["markdown"]
     assert "<script>" not in current["markdown"].replace(fenced_note, "")
     assert "```json" not in current["markdown"]
@@ -85,6 +86,7 @@ def test_saved_and_legacy_bytes_survive_reopen_later_records_and_renderer_change
     assert preview["snapshot"]["activity"]["items"][-1]["actor_name"] == "operator"
     assert any(a["text"] == original for a in preview["snapshot"]["activity"]["items"])
     assert preview["snapshot"]["findings"]["status"] == "unavailable"
+    assert preview["snapshot"]["citations"]["status"] == "unavailable"
     assert preview["snapshot"]["ruled_out_checks"]["status"] == "unavailable"
     assert preview["snapshot"]["unverified_checks"]["status"] == "unavailable"
     assert preview["snapshot"]["impact"]["status"] == "not_recorded"
@@ -238,7 +240,88 @@ def test_stored_handoff_and_notes_work_without_provider_requests(client, monkeyp
         transition(client, headers, incident_id, "resolve", "No provider required").status_code
         == 200
     )
+    activity = client.get(f"/api/incidents/{incident_id}/activity").json()
+    resolution = next(item for item in activity["items"] if item["kind"] == "resolve")
+    params = {"resolution_id": resolution["id"]}
+    saved_preview = client.get(f"/api/incidents/{incident_id}/handoff/preview", params=params)
+    saved_export = client.get(f"/api/incidents/{incident_id}/handoff", params=params)
+    assert saved_preview.status_code == saved_export.status_code == 200
+    with sessions()() as db:
+        frozen = db.get(IncidentActivity, UUID(resolution["id"])).snapshot["markdown"].encode()
+    assert saved_preview.json()["markdown"].encode() == saved_export.content == frozen
     assert attempts == []
+
+
+def test_activity_pages_do_not_expand_saved_reports(client):
+    headers = sign_in(client)
+    iid = UUID(create(client, headers, incident_body(client)).json()["incident_id"])
+    large_report = "Stored report fixture\n" * 10000
+    with sessions()() as db, db.begin():
+        actor = db.scalar(text("SELECT id FROM users WHERE username='operator'"))
+        rows = [
+            IncidentActivity(
+                incident_id=iid,
+                kind="resolve",
+                text=f"Resolution {n}",
+                actor_id=actor,
+                snapshot={
+                    "schema_version": handoff.SCHEMA_VERSION,
+                    "snapshot": {},
+                    "markdown": large_report,
+                },
+            )
+            for n in range(30)
+        ]
+        db.add_all(rows)
+    response = client.get(f"/api/incidents/{iid}/activity")
+    page = response.json()
+    assert response.status_code == 200 and len(page["items"]) == 25
+    assert page["total"] >= 30 and page["next_cursor"]
+    assert len(response.content) < 20000
+    assert all("snapshot" not in item for item in page["items"])
+    selected = page["items"][0]["id"]
+    preview = client.get(
+        f"/api/incidents/{iid}/handoff/preview", params={"resolution_id": selected}
+    )
+    assert preview.json()["markdown"] == large_report
+
+
+def test_metadata_remains_readable_and_non_activity_actors_are_named(client):
+    headers = sign_in(client)
+    iid = UUID(create(client, headers, incident_body(client)).json()["incident_id"])
+    names = ("incident-owner", "run-requester", "plan-owner", "plan-decider")
+    with sessions()() as db, db.begin():
+        actors = [
+            User(username=name, password_hash="unused-fixture-hash", role="viewer")
+            for name in names
+        ]
+        db.add_all(actors)
+        db.flush()
+        incident = db.get(Incident, iid)
+        incident.created_by = actors[0].id
+        run = db.scalar(select(InvestigationRun).where(InvestigationRun.incident_id == iid))
+        run.requested_by = actors[1].id
+        db.add(
+            ActionPlan(
+                incident_id=iid,
+                workload_id=incident.workload_id,
+                state="rejected",
+                content={"fixture": "stored actor attribution"},
+                digest="0" * 64,
+                target_epoch="fixture",
+                rationale="Stored attribution fixture, not an execution.",
+                created_by=actors[2].id,
+                decided_by=actors[3].id,
+                expires_at=database_now(db) + timedelta(minutes=5),
+            )
+        )
+    preview = client.get(f"/api/incidents/{iid}/handoff/preview").json()
+    assert all(name in preview["markdown"] for name in names)
+    assert preview["snapshot"]["incident"]["created_at"] in preview["markdown"]
+    preview["snapshot"]["incident"]["origin"]["source_id"] = "team<script>&ops"
+    rendered = handoff.render(preview["snapshot"])
+    assert "<script>" not in rendered
+    assert "&ops" in rendered and "&amp;" not in rendered
 
 
 def test_full_history_evidence_references_and_cross_incident_lock(client):
@@ -358,6 +441,10 @@ def test_full_history_evidence_references_and_cross_incident_lock(client):
         assert projected["findings"]["label"] == "Contract fixture; not production findings"
         assert projected["ruled_out_checks"]["items"][0]["summary"] == "Fixture-only check"
         assert projected["unverified_checks"]["items"][0]["summary"] == "Still needs verification"
+        assert projected["citations"]["status"] == "contract_fixture"
+        assert projected["citations"]["items"] == [
+            {"run_id": first_run, "evidence_id": evidence["id"]}
+        ]
         fixture_markdown = handoff.render(projected)
         assert first_run in fixture_markdown and evidence["id"] in fixture_markdown
         assert "Fixture-only check" in fixture_markdown

@@ -72,6 +72,7 @@ export function IncidentActivity({
     },
     onSuccess: async () => {
       setText("");
+      await cache.invalidateQueries({ queryKey: ["handoff-preview", id, ""], exact: true });
       await cache.invalidateQueries({ queryKey: ["activity", id] });
       await cache.invalidateQueries({ queryKey: ["incidents"] });
       await cache.invalidateQueries({ queryKey: ["plans", id] });
@@ -132,6 +133,7 @@ export function IncidentActivity({
         ) : (
           <>
             <p>{activity.data?.pages[0].total ?? 0} activities recorded.</p>
+            {activity.isRefetchError && <Failure error={activity.error} retry={() => void activity.refetch()} />}
             {activity.data?.pages.flatMap((page) => page.items).map((a) => (
               <article key={a.id}>
                 <h4>{a.kind.replaceAll("_", " ")} · {new Date(a.created_at).toLocaleString()}</h4>

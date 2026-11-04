@@ -71,18 +71,6 @@
             "title": "Kind",
             "type": "string"
           },
-          "snapshot": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Snapshot"
-          },
           "text": {
             "title": "Text",
             "type": "string"
@@ -95,8 +83,7 @@
           "text",
           "actor_id",
           "actor_name",
-          "created_at",
-          "snapshot"
+          "created_at"
         ],
         "title": "ActivityView",
         "type": "object"
