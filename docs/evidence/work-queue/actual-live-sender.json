@@ -1,0 +1,96 @@
+{
+  "source": "actual_pinned_alertmanager_to_combined_intake_and_queue_on_scoped_k3s_https",
+  "implementation_commit": "6654a84999791bb27d60d1145db529e596a442b3",
+  "alertname": "QueueIntegration6e0232fa",
+  "checks": {
+    "real_uid_bound_queue_projection": true,
+    "repeat_keeps_one_incident_and_initial_run": true,
+    "resolved_signal_remains_open_in_queue": true
+  },
+  "limits": [
+    "amtool injects into the actual Alertmanager; Prometheus rule generation is not claimed.",
+    "Collection remains synthetic and diagnosis/recovery remain unavailable.",
+    "Browser visualization uses the separate HTTP development origin; this sender/API path validates HTTPS with the lab CA."
+  ],
+  "incident_id": "67df8d6c-ec22-435e-bcff-ad764d72e931",
+  "run_id": "e9efd1d8-fabd-49ab-a6de-1f4f0b0b9f16",
+  "workload_uid": "d0a7f870-3638-4676-8233-9451b9cd2e9d",
+  "accepted_projection": {
+    "id": "67df8d6c-ec22-435e-bcff-ad764d72e931",
+    "workload_id": "d31ff7ae-294f-4a84-9b60-41ea3c7f4b7d",
+    "title": "QueueIntegration6e0232fa \u00b7 demo/checkout",
+    "description": "Opened by authenticated Alertmanager intake from source lab-alertmanager. Alert annotations are not stored.",
+    "state": "open",
+    "created_by": null,
+    "created_at": "2026-11-03T17:29:27.797050Z",
+    "origin": {
+      "kind": "alertmanager",
+      "source_id": "lab-alertmanager"
+    },
+    "first_seen_at": "2026-11-03T17:28:18Z",
+    "last_seen_at": "2026-11-03T17:29:27.798202Z",
+    "severity": {
+      "value": "warning",
+      "provenance": "alert_label"
+    },
+    "alert_signal": "firing",
+    "created_by_name": null,
+    "acknowledged_by": null,
+    "acknowledged_by_name": null,
+    "acknowledged_at": null,
+    "latest_run": {
+      "id": "e9efd1d8-fabd-49ab-a6de-1f4f0b0b9f16",
+      "state": "collecting",
+      "origin_kind": "alertmanager",
+      "queue_reason": null,
+      "reason": "Collecting a labeled development fixture; no live telemetry.",
+      "requested_by": null,
+      "requested_by_name": null,
+      "created_at": "2026-11-03T17:29:27.797050Z",
+      "outcome_code": null
+    },
+    "run_blockers": [],
+    "relevant_executions": []
+  },
+  "resolved_projection": {
+    "id": "67df8d6c-ec22-435e-bcff-ad764d72e931",
+    "workload_id": "d31ff7ae-294f-4a84-9b60-41ea3c7f4b7d",
+    "title": "QueueIntegration6e0232fa \u00b7 demo/checkout",
+    "description": "Opened by authenticated Alertmanager intake from source lab-alertmanager. Alert annotations are not stored.",
+    "state": "open",
+    "created_by": null,
+    "created_at": "2026-11-03T17:29:27.797050Z",
+    "origin": {
+      "kind": "alertmanager",
+      "source_id": "lab-alertmanager"
+    },
+    "first_seen_at": "2026-11-03T17:28:18Z",
+    "last_seen_at": "2026-11-03T17:29:42.842121Z",
+    "severity": {
+      "value": "warning",
+      "provenance": "alert_label"
+    },
+    "alert_signal": "resolved",
+    "created_by_name": null,
+    "acknowledged_by": null,
+    "acknowledged_by_name": null,
+    "acknowledged_at": null,
+    "latest_run": {
+      "id": "e9efd1d8-fabd-49ab-a6de-1f4f0b0b9f16",
+      "state": "insufficient_evidence",
+      "origin_kind": "alertmanager",
+      "queue_reason": null,
+      "reason": "Fixture collection saved. Live evidence and AI diagnosis are unavailable; no recovery plan exists.",
+      "requested_by": null,
+      "requested_by_name": null,
+      "created_at": "2026-11-03T17:29:27.797050Z",
+      "outcome_code": null
+    },
+    "run_blockers": [
+      "insufficient_evidence"
+    ],
+    "relevant_executions": []
+  },
+  "browser_receipt": "actual-browser.json",
+  "screenshot": "actual-live-signal-only-320.jpg"
+}

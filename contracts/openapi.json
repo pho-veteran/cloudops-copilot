@@ -1089,6 +1089,26 @@
         "title": "ContainerResources",
         "type": "object"
       },
+      "CreationAnchor": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "created_at",
+          "id"
+        ],
+        "title": "CreationAnchor",
+        "type": "object"
+      },
       "Decision": {
         "additionalProperties": false,
         "properties": {
@@ -1693,9 +1713,12 @@
       },
       "IncidentPage": {
         "properties": {
+          "creation_anchor": {
+            "$ref": "#/components/schemas/CreationAnchor"
+          },
           "items": {
             "items": {
-              "$ref": "#/components/schemas/IncidentView"
+              "$ref": "#/components/schemas/WorkQueueItem"
             },
             "title": "Items",
             "type": "array"
@@ -1714,112 +1737,10 @@
         },
         "required": [
           "items",
-          "next_offset"
+          "next_offset",
+          "creation_anchor"
         ],
         "title": "IncidentPage",
-        "type": "object"
-      },
-      "IncidentView": {
-        "properties": {
-          "alert_signal": {
-            "enum": [
-              "none",
-              "firing",
-              "resolved"
-            ],
-            "title": "Alert Signal",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "description": {
-            "title": "Description",
-            "type": "string"
-          },
-          "first_seen_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "First Seen At"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "last_seen_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Seen At"
-          },
-          "origin": {
-            "$ref": "#/components/schemas/OriginView"
-          },
-          "severity": {
-            "$ref": "#/components/schemas/SeverityView"
-          },
-          "state": {
-            "enum": [
-              "open",
-              "acknowledged",
-              "resolved"
-            ],
-            "title": "State",
-            "type": "string"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          },
-          "workload_id": {
-            "format": "uuid",
-            "title": "Workload Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "workload_id",
-          "title",
-          "description",
-          "state",
-          "created_by",
-          "created_at",
-          "origin",
-          "first_seen_at",
-          "last_seen_at",
-          "severity",
-          "alert_signal"
-        ],
-        "title": "IncidentView",
         "type": "object"
       },
       "IntakeResult": {
@@ -3484,6 +3405,329 @@
         "title": "WindowPreset",
         "type": "object"
       },
+      "WorkQueueExecution": {
+        "properties": {
+          "classification": {
+            "enum": [
+              "active",
+              "terminal_unknown_locked",
+              "terminal_unknown_released",
+              "terminal",
+              "unrecognized"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "holds_lock": {
+            "title": "Holds Lock",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "classification",
+          "holds_lock",
+          "workload_id",
+          "created_at"
+        ],
+        "title": "WorkQueueExecution",
+        "type": "object"
+      },
+      "WorkQueueItem": {
+        "properties": {
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          },
+          "acknowledged_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged By"
+          },
+          "acknowledged_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged By Name"
+          },
+          "alert_signal": {
+            "enum": [
+              "none",
+              "firing",
+              "resolved"
+            ],
+            "title": "Alert Signal",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "first_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Seen At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "latest_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkQueueRun"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin": {
+            "$ref": "#/components/schemas/OriginView"
+          },
+          "relevant_executions": {
+            "items": {
+              "$ref": "#/components/schemas/WorkQueueExecution"
+            },
+            "title": "Relevant Executions",
+            "type": "array"
+          },
+          "run_blockers": {
+            "items": {
+              "enum": [
+                "queued",
+                "waiting_for_quota",
+                "failed",
+                "insufficient_evidence"
+              ],
+              "type": "string"
+            },
+            "title": "Run Blockers",
+            "type": "array"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/SeverityView"
+          },
+          "state": {
+            "enum": [
+              "open",
+              "acknowledged",
+              "resolved"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workload_id",
+          "title",
+          "description",
+          "state",
+          "created_by",
+          "created_at",
+          "origin",
+          "first_seen_at",
+          "last_seen_at",
+          "severity",
+          "alert_signal",
+          "created_by_name",
+          "acknowledged_by",
+          "acknowledged_by_name",
+          "acknowledged_at",
+          "latest_run",
+          "run_blockers",
+          "relevant_executions"
+        ],
+        "title": "WorkQueueItem",
+        "type": "object"
+      },
+      "WorkQueueRun": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "origin_kind": {
+            "enum": [
+              "operator",
+              "alertmanager"
+            ],
+            "title": "Origin Kind",
+            "type": "string"
+          },
+          "outcome_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Code"
+          },
+          "queue_reason": {
+            "anyOf": [
+              {
+                "const": "capacity",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Reason"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "requested_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested By"
+          },
+          "requested_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested By Name"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "origin_kind",
+          "queue_reason",
+          "reason",
+          "requested_by",
+          "requested_by_name",
+          "created_at",
+          "outcome_code"
+        ],
+        "title": "WorkQueueRun",
+        "type": "object"
+      },
       "WorkloadPage": {
         "properties": {
           "items": {
@@ -4150,6 +4394,26 @@
             }
           },
           {
+            "description": "Search in title or ID",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 160,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search in title or ID",
+              "title": "Search"
+            }
+          },
+          {
+            "description": "Filter by workload",
             "in": "query",
             "name": "workload_id",
             "required": false,
@@ -4163,7 +4427,225 @@
                   "type": "null"
                 }
               ],
+              "description": "Filter by workload",
               "title": "Workload Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "origin",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "operator",
+                    "alertmanager"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Origin"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "acknowledged",
+                    "resolved"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "description": "Filter by severity value",
+            "in": "query",
+            "name": "severity",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by severity value",
+              "title": "Severity"
+            }
+          },
+          {
+            "in": "query",
+            "name": "alert_signal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "none",
+                    "firing",
+                    "resolved"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Alert Signal"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "last_seen_at",
+              "enum": [
+                "created_at",
+                "first_seen_at",
+                "last_seen_at",
+                "severity"
+              ],
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort_order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Sort Order",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "all",
+                    "needs_attention",
+                    "awaiting_decision",
+                    "verifying",
+                    "blocked",
+                    "resolved"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "View"
+            }
+          },
+          {
+            "in": "query",
+            "name": "run_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "queued",
+                    "collecting",
+                    "analyzing",
+                    "waiting_for_quota",
+                    "insufficient_evidence",
+                    "completed",
+                    "failed",
+                    "cancelled"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Run State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "execution_class",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "active",
+                    "terminal_unknown",
+                    "terminal",
+                    "unrecognized"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Execution Class"
+            }
+          },
+          {
+            "in": "query",
+            "name": "anchor_created_at",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Anchor Created At"
+            }
+          },
+          {
+            "in": "query",
+            "name": "anchor_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Anchor Id"
             }
           }
         ],

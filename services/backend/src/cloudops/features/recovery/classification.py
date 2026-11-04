@@ -7,7 +7,7 @@ maintaining their own lists. Unknown or contradictory persisted states fail clos
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import case, not_, select
 from sqlalchemy.orm import Session
 
 from cloudops.features.recovery.models import ActionPlan, Execution
@@ -36,6 +36,27 @@ def classify(state: str, holds_lock: bool, maintenance_released: bool) -> Execut
     if state in TERMINAL and not holds_lock:
         return "terminal"
     return "unrecognized"
+
+
+def classification_expression(state, holds_lock, maintenance_released):
+    """SQL equivalent of :func:`classify` for read-only server-side queue filters.
+
+    The state sets above remain the single source of truth for both Python consumers and
+    SQL-backed projections. Keep branch order aligned with ``classify``.
+    """
+    return case(
+        (state.in_(ACTIVE), "active"),
+        (
+            state == "outcome_unknown",
+            case(
+                (holds_lock.is_(True), "terminal_unknown_locked"),
+                (maintenance_released.is_(True), "terminal_unknown_released"),
+                else_="unrecognized",
+            ),
+        ),
+        (state.in_(TERMINAL) & not_(holds_lock.is_(True)), "terminal"),
+        else_="unrecognized",
+    )
 
 
 def blocking_execution(db: Session, incident_id: UUID) -> UUID | None:

@@ -78,7 +78,9 @@ def main():
             ).status_code
             == 403
         )
-        assert operator.get("/api/incidents").json() == before
+        after = operator.get("/api/incidents").json()
+        assert after["items"] == before["items"]
+        assert after["next_offset"] == before["next_offset"]
         created = operator.post(
             "/api/incidents", json=body, headers={**headers, "Idempotency-Key": str(uuid4())}
         )

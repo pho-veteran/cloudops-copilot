@@ -8,7 +8,7 @@ import type { components } from "@/lib/api/generated/schema";
 
 function RelatedIncidents({ id }: { id: string }) {
   const [offset, setOffset] = useState(0);
-  const query = useIncidents(offset, id);
+  const query = useIncidents(offset, { workload_id: id, view: "all", sort_by: "created_at" });
   return <section aria-label="Related incidents" className="foundation-stack">
     <h3>Related incidents</h3>
     <p className="muted">Records for this exact workload UUID, including historical investigations.</p>

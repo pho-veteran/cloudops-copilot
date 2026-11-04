@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Query
@@ -12,6 +14,7 @@ from cloudops.features.incidents.schemas import (
     IncidentPage,
     ManualIncidentRequest,
 )
+from cloudops.features.investigations.schemas import RunState
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES
 
@@ -37,10 +40,49 @@ def create_incident(
 def list_incidents(
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0, le=100000),
-    workload_id: UUID | None = None,
+    search: str | None = Query(None, max_length=160, description="Search in title or ID"),
+    workload_id: UUID | None = Query(None, description="Filter by workload"),
+    origin: Literal["operator", "alertmanager"] | None = Query(None),
+    state: Literal["open", "acknowledged", "resolved"] | None = Query(None),
+    severity: str | None = Query(None, max_length=32, description="Filter by severity value"),
+    alert_signal: Literal["none", "firing", "resolved"] | None = Query(None),
+    sort_by: Literal["created_at", "first_seen_at", "last_seen_at", "severity"] = Query(
+        "last_seen_at"
+    ),
+    sort_order: Literal["asc", "desc"] = Query("desc"),
+    view: Literal["all", "needs_attention", "awaiting_decision", "verifying", "blocked", "resolved"]
+    | None = Query(None),
+    run_state: RunState | None = Query(None),
+    execution_class: Literal["active", "terminal_unknown", "terminal", "unrecognized"]
+    | None = Query(None),
+    anchor_created_at: datetime | None = Query(None),
+    anchor_id: UUID | None = Query(None),
     db: Session = Depends(get_db),
 ):
-    return service.list_incidents(db, limit, offset, workload_id)
+    if (anchor_created_at is None) != (anchor_id is None):
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=422, detail="Both creation anchor fields are required.")
+    return service.list_incidents(
+        db,
+        limit,
+        offset,
+        search=search,
+        filters={
+            "workload_id": workload_id,
+            "origin": origin,
+            "state": state,
+            "severity": severity,
+            "alert_signal": alert_signal,
+        },
+        sort_by=sort_by,
+        sort_order=sort_order,
+        view=view,
+        run_state=run_state,
+        execution_class=execution_class,
+        anchor_created_at=anchor_created_at,
+        anchor_id=anchor_id,
+    )
 
 
 @router.get(

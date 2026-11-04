@@ -33,6 +33,44 @@ The failed-collection browser exercise created run `86719204-70a7-4497-a4b7-f1bc
 
 The images document local behavior. They do not prove live source collection, model quality, recovery safety or independent review.
 
+### Work queue search and prioritization
+
+The persisted work queue (`#/queue`) searches, filters, sorts and pages incidents through the read-only `GET /api/incidents` endpoint. Server-backed operational views keep incident lifecycle, alert signal, latest Run state and execution state as independent axes. The queue consumes E07's shared execution/lock classification and displays every relevant active, unknown or unsupported execution; it does not authorize or perform mutations.
+
+The default queue shows open and acknowledged incidents, ordered by last-seen time descending with a stable incident-ID tie-break. The **All lifecycle states** choice includes resolved records. Operational views are **Needs attention**, **Awaiting decision**, **Verifying**, **Blocked** and **Resolved**. Blocked includes an actual capacity-deferred queued Run, waiting-for-quota, failed/insufficient-evidence Run history, and relevant uncertain/manual-intervention execution state; resolved incidents are excluded from that view. Active and unknown target-lock warnings remain visible on resolved incidents in other views. Severity and requester/acknowledgment attribution retain their stored provenance; missing historical values remain unknown.
+
+Queue pages carry a server-generated creation-time/ID anchor, preserving its full timestamp precision, so inserts after the first page do not shift later offset pages. **Refresh new work** resets the anchor and returns to the first page. Mutable sort values such as last-seen can still move existing rows between pages; the queue does not promise a frozen snapshot. Filter, sort and view changes reset the offset, and the hash URL preserves the current query and selected incident when returning from detail.
+
+- **Search** matches the title case-insensitively and literally (wildcard characters are escaped) or a prefix of the incident UUID. Terms are limited to 160 characters.
+- **Filters:** state, alert signal, origin, severity (exact free-form value, up to 32 characters) and workload UUID. The workload field accepts a UUID; a value that is not UUID-shaped is never sent. A well-formed UUID that does not exist renders the API's error state instead of an empty result.
+- **Sorting:** created time, first seen, last seen and severity, each with an `id ASC` tie-break so pagination does not skip or duplicate rows. Values without severity or seen times sort last. Severity is free-form, so severity sorting is alphabetical: choosing it requests ascending order (`A→Z`) and the select reflects the active direction. `sort_order` has no UI control but remains an optional URL parameter.
+- **URL state:** search, filters, sort, offset, creation anchor and the selected incident persist in the hash (`#/queue?search=timeout&state=open`). Refresh, sharing, browser back/forward and the incident's **Work queue** link preserve them, and returning highlights the card that was opened. Only an internal queue route is accepted as a return target.
+- **States:** distinct loading, error-with-retry, empty queue and no-match panels. An empty later page retains **Previous** because earlier pages may still contain work; **Refresh new work** starts a new anchored query. The queue refreshes every five seconds.
+- **Workload history:** Related incidents explicitly includes all lifecycle states, including resolved incidents, in created-time order for the selected workload UUID.
+- **Permissions:** the endpoint keeps read-only session authorization. The queue renders no mutation controls; incident creation stays owned by the application shell for operators.
+- **Responsive layout:** search/filter/sort controls stack full width at 320px and 390px without horizontal scrolling, and cards keep titles, badges and identifiers readable.
+
+Local evidence came from a disposable evidence stack with 34 seeded incidents: search at 320px, filters at 390px, severity sort, no-match, an error with retry after the API stopped, and URL preservation after returning from an incident.
+
+- [Search at 320px](evidence/work-queue/search-320px.jpg)
+- [State and alert filters at 390px](evidence/work-queue/filters-390px.jpg)
+- [Severity sort ascending on page one](evidence/work-queue/severity-sort-desktop.jpg)
+- [Unset severities last, on the final severity page](evidence/work-queue/severity-nulls-last-desktop.jpg)
+- [No matching incidents](evidence/work-queue/no-match-state.jpg)
+- [Error state with retry after the API stopped](evidence/work-queue/error-recovery.jpg)
+- [Filters and selection preserved after returning from an incident](evidence/work-queue/url-preservation.jpg)
+
+These images document local persisted-app behavior. They do not prove live cluster collection, AI diagnosis or execution.
+
+Post-change acceptance uses a separate 70-incident labeled fixture set plus a real manual API arrival. The [browser receipt](evidence/work-queue/actual-browser.json) records 60 rows across three stable pages, microsecond anchor preservation, operational views, incident/Run/back navigation, resolved workload history, keyboard use at 320px/390px, session recovery and loading/refresh/error/empty/no-match states. The [API receipt](evidence/work-queue/actual-api.json) records server-side filters, acknowledgment attribution, metadata preservation, anchored new work and a Viewer write denial without an activity change.
+
+- [Independent signal and lifecycle from the real sender at 320px](evidence/work-queue/actual-live-signal-only-320.jpg)
+- [Retained unknown lock on a resolved incident at 390px](evidence/work-queue/actual-resolved-unknown-390.jpg)
+- [Actual capacity deferral before promotion](evidence/work-queue/actual-capacity-320.jpg) and [the same Run after ordinary worker promotion and explicit refresh](evidence/work-queue/actual-same-run-promoted-320.jpg)
+- [Keyboard-focused controls at 320px](evidence/work-queue/actual-keyboard-controls-320.jpg), [loading](evidence/work-queue/actual-loading-390.jpg), [refresh](evidence/work-queue/actual-refresh-390.jpg), [error with retained context](evidence/work-queue/actual-error-context-390.jpg) and [empty queue](evidence/work-queue/actual-empty-320.jpg)
+
+The [real Alertmanager → intake → queue receipt](evidence/work-queue/actual-live-sender.json) uses the pinned sender, CA-validated HTTPS and a UID-bound K3s Deployment. Repeated firing retains one incident and its initial Run; resolution changes only the alert signal while the incident remains open. Its browser capture uses a separate loopback HTTP development origin, not a certificate bypass. Future execution/Run combinations in the other captures are explicitly labeled persisted fixtures, not live producers. Collection remains synthetic; this bounded B→C smoke does not complete E03-D or the full integration handoff.
+
 ## Configuration and account operations
 
 Compose reads `.env`; see the committed `.env.example`. Use a URL-safe database password because the Compose connection URL interpolates it. Keep the exact loopback `WEB_ORIGIN` consistent with the browser URL. `COOKIE_SECURE=false` is an explicit HTTP-loopback exception; the default settings outside this file use Secure cookies. No CORS origin wildcard or public registration is enabled.

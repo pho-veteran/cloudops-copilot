@@ -1,0 +1,81 @@
+{
+  "source": "actual_api_postgresql_over_labeled_contract_fixtures",
+  "checks": {
+    "run_state=queued": {
+      "incident_id": "f80cea7d-bec3-47a5-aa8c-4f0c30526065",
+      "rows": 1
+    },
+    "run_state=waiting_for_quota": {
+      "incident_id": "d077959d-1028-43d8-8bba-bf51ca9e9d2b",
+      "rows": 1
+    },
+    "run_state=failed": {
+      "incident_id": "3b8433d7-e695-4d09-95cf-4afc2cb0d6d4",
+      "rows": 1
+    },
+    "run_state=insufficient_evidence": {
+      "incident_id": "adf3be71-557f-43a7-bbf7-a56436be26f2",
+      "rows": 1
+    },
+    "execution_class=active": {
+      "incident_id": "bca5d8c9-3de4-4252-83fa-8b08050b8ee8",
+      "rows": 1
+    },
+    "execution_class=terminal_unknown": {
+      "incident_id": "c36fd894-c916-41e1-8728-306893eb4be7",
+      "rows": 1
+    },
+    "severity=critical": {
+      "incident_id": "fd5c4434-263e-485a-9acf-e7b529a8bdcd",
+      "rows": 1
+    },
+    "alert_signal=resolved": {
+      "incident_id": "fd5c4434-263e-485a-9acf-e7b529a8bdcd",
+      "rows": 1
+    },
+    "origin=alertmanager": {
+      "incident_id": "fd5c4434-263e-485a-9acf-e7b529a8bdcd",
+      "rows": 1
+    },
+    "notes_and_ack_preserve_alert_metadata": {
+      "first_seen_at": "2026-11-03T15:49:56.123456Z",
+      "last_seen_at": "2026-11-03T15:58:56.123456Z",
+      "severity": {
+        "value": "critical",
+        "provenance": "alert_label"
+      },
+      "alert_signal": "resolved"
+    },
+    "acknowledgment_attribution": {
+      "acknowledged_by": "fae0613f-3b11-4401-8f7a-2aaf80c46b72",
+      "acknowledged_by_name": "queue-operator",
+      "acknowledged_at": "2026-11-03T17:09:53.684520Z",
+      "state": "acknowledged"
+    },
+    "creation_anchor_new_work": {
+      "anchor": {
+        "created_at": "2026-11-03T15:59:56.123456Z",
+        "id": "fe3bb15b-74b8-477e-a045-abdcd7f420ad"
+      },
+      "new_admission": {
+        "incident_id": "18d939df-134b-48bd-9efe-7cf9d108ad5e",
+        "run_id": "1e49a75f-8144-4799-8c04-f5a131e864ce",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-03T16:39:53.723982Z",
+          "end": "2026-11-03T17:09:53.723982Z",
+          "source": "preset_30"
+        }
+      },
+      "anchored_rows": 60,
+      "refreshed_rows": 61
+    },
+    "viewer_write_denied": {
+      "status": 403,
+      "activity_before": 2,
+      "activity_after": 2
+    }
+  },
+  "implementation_commit": "6654a84999791bb27d60d1145db529e596a442b3"
+}
