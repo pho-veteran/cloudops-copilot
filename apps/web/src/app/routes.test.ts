@@ -9,11 +9,12 @@ describe("safe return navigation", () => {
       page: "incidents",
       id,
       run: id,
+      resolution: "",
       baseline: "",
     });
   });
   it("retains an exact workload identity for read-only navigation", () => {
-    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "", baseline: "" });
+    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "", resolution: "", baseline: "" });
     expect(safeRoute(`#/workloads?workload=${id}&baseline=${id}`).baseline).toBe(id);
   });
   it.each(["queue", "workloads", "connections", "reports"])(
@@ -33,10 +34,12 @@ describe("safe return navigation", () => {
     "#/incidents/not-a-uuid",
     `#/incidents/${id}?run=raw-evidence`,
     `#/incidents/${id}?run=${id}&next=bad`,
+    `#/incidents/${id}?resolution=not-a-uuid`,
+    `#/incidents/${id}?resolution=${id}&resolution=${id}`,
     "#/workloads?workload=not-a-uuid",
     `#/workloads?workload=${id}&next=https://foreign.test`,
   ])("falls back safely for %s", (hash) => {
-    expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "", baseline: "" });
+    expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "", resolution: "", baseline: "" });
   });
 });
 
@@ -131,6 +134,7 @@ describe("work queue URL state", () => {
       page: "queue",
       id: "",
       run: "",
+      resolution: "",
       baseline: "",
     });
   });
@@ -143,6 +147,13 @@ describe("work queue URL state", () => {
     readRoute();
     expect(parseWorkQueueHash(window.location.hash).anchor_created_at).toBe(anchor);
     expect(window.location.hash).toBe(hash);
+  });
+
+  it("round-trips a saved resolution with the run and queue context", () => {
+    const queue = buildWorkQueueHash({ search: "db", selected: id });
+    window.history.replaceState(null, "", `/${buildIncidentHash(id, id, queue, id)}`);
+    expect(readRoute()).toMatchObject({ page: "incidents", id, run: id, resolution: id });
+    expect(incidentReturnHash(window.location.hash)).toBe(queue);
   });
 
   it("keeps only safe queue return targets through incident canonicalization", () => {

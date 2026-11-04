@@ -115,7 +115,9 @@ def main():
             response = operator.post(f"/api/incidents/{iid}/lifecycle", json=body, headers=oh)
             assert response.status_code == 200, response.text
         resolution = next(
-            a for a in viewer.get(f"/api/incidents/{iid}/activity").json() if a["kind"] == "resolve"
+            a
+            for a in viewer.get(f"/api/incidents/{iid}/activity").json()["items"]
+            if a["kind"] == "resolve"
         )
         export_url = f"/api/incidents/{iid}/handoff?resolution_id={resolution['id']}"
         saved = viewer.get(export_url).content

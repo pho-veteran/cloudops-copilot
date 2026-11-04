@@ -1,12 +1,14 @@
+/// <reference lib="es2024.promise" />
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { components } from "@/lib/api/generated/schema";
 import { workloadFixture } from "@/features/workloads/fixtures";
 import { clearRequestKeys } from "./request";
 import { InvestigationWorkspace } from "./InvestigationWorkspace";
+import { IncidentActivity } from "@/features/incidents/IncidentActivity";
 import { Workspace } from "@/app/FoundationApp";
 import { parseWorkQueueHash, readRoute } from "@/app/routes";
 
@@ -61,10 +63,13 @@ function mount(
   state = "open",
   incident: Record<string, unknown> = {},
   fullWorkspace = false,
+  override?: (request: Request) => Response | undefined,
 ) {
   const posts: { path: string; key: string | null; body: unknown }[] = [];
   http.fetch.mockImplementation(async (input) => {
     const request = input as Request;
+    const overridden = override?.(request);
+    if (overridden) return overridden;
     const path = new URL(request.url).pathname;
     if (path === "/api/session") return Response.json({
       principal: { id: "00000000-0000-4000-8000-000000000030", username: "operator", role: "operator" },
@@ -95,8 +100,9 @@ function mount(
     });
     if (path.endsWith("/runs")) return Response.json({ items: runs, next_offset: null });
     if (path.includes("/runs/")) return Response.json(runs.find((r) => path.endsWith(r.id)));
-    if (path.endsWith("/plans") || path.endsWith("/executions") || path.endsWith("/activity"))
-      return Response.json([]);
+    if (path.endsWith("/activity")) return Response.json({ items: [], total: 0, next_cursor: null });
+    if (path.endsWith("/handoff/preview")) return Response.json({ incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v1", snapshot: {}, markdown: "Current handoff" });
+    if (path.endsWith("/plans") || path.endsWith("/executions")) return Response.json([]);
     return Response.json({
       id: incidentId,
       workload_id: workload.id,
@@ -118,7 +124,7 @@ function mount(
   caches.push(cache);
   render(
     <QueryClientProvider client={cache}>
-      {fullWorkspace ? <Workspace /> : <InvestigationWorkspace id={incidentId} selectedRun="" canMutate />}
+      {fullWorkspace ? <Workspace /> : <InvestigationWorkspace id={incidentId} selectedRun="" selectedResolution="" canMutate />}
     </QueryClientProvider>,
   );
   return posts;
@@ -225,5 +231,223 @@ describe("investigation requests", () => {
     const metadata = await screen.findByLabelText("Alert signal");
     expect(within(metadata).getByText("Not provided")).toBeTruthy();
     expect(within(metadata).getAllByText("Not captured")).toHaveLength(2);
+  });
+});
+
+describe("persisted handoff navigation", () => {
+  const resolution = "00000000-0000-4000-8000-000000000099";
+  const human = "<img src=x onerror=alert(1)> Ghi chú & evidence";
+  const previewResponse = (selected: string | null) => Response.json({
+    incident_id: incidentId, resolution_id: selected, schema_version: "HandoffSnapshot/v1",
+    snapshot: {}, markdown: selected ? `Saved: ${human}` : "Current handoff",
+  });
+
+  it("retains the selected resolution on reload and when navigating Runs", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}?resolution=${resolution}&return_to=${encodeURIComponent("#/queue?search=db")}`);
+    const handler = (request: Request) => {
+      const url = new URL(request.url);
+      if (url.pathname.endsWith("/handoff/preview")) return previewResponse(url.searchParams.get("resolution_id"));
+    };
+    mount([run()], "open", {}, true, handler);
+    expect(await screen.findByText(`Saved: ${human}`)).toBeTruthy();
+    expect(screen.queryByRole("img")).toBeNull();
+    await userEvent.setup().click(await screen.findByRole("link", { name: new RegExp(run().id) }));
+    await vi.waitFor(() => expect(readRoute()).toMatchObject({ run: run().id, resolution }));
+    expect(parseWorkQueueHash(readRoute().page === "incidents" ? new URLSearchParams(window.location.hash.split("?")[1]).get("return_to")! : "")).toMatchObject({ search: "db" });
+    cleanup();
+    mount([run()], "open", {}, true, handler);
+    expect(await screen.findByText(`Saved: ${human}`)).toBeTruthy();
+    expect(readRoute().resolution).toBe(resolution);
+  });
+
+  it("retains the saved selection when a new Run is requested", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}?resolution=${resolution}`);
+    mount([run()], "open", {}, true, (request) => {
+      const url = new URL(request.url);
+      if (url.pathname.endsWith("/handoff/preview")) return previewResponse(url.searchParams.get("resolution_id"));
+    });
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Why is a new investigation needed?"), "Recheck after recovery");
+    await user.click(screen.getByRole("button", { name: "Review request" }));
+    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await vi.waitFor(() => expect(readRoute()).toMatchObject({
+      run: "00000000-0000-4000-8000-000000000021", resolution,
+    }));
+    expect(await screen.findByText(`Saved: ${human}`)).toBeTruthy();
+  });
+
+  it("keeps a failed saved selection and retries it without falling back", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}?resolution=${resolution}`);
+    let attempts = 0;
+    const requested: (string | null)[] = [];
+    mount([run()], "open", {}, true, (request) => {
+      const url = new URL(request.url);
+      if (!url.pathname.endsWith("/handoff/preview")) return;
+      requested.push(url.searchParams.get("resolution_id"));
+      if (++attempts === 1) return Response.json({ error: { code: "not_found", message: "Saved handoff unavailable" } }, { status: 404 });
+      return previewResponse(url.searchParams.get("resolution_id"));
+    });
+    expect(await screen.findByText(/Saved handoff unavailable/)).toBeTruthy();
+    expect(screen.queryByText("Current handoff")).toBeNull();
+    expect(readRoute().resolution).toBe(resolution);
+    await userEvent.setup().click(within(screen.getByLabelText("Handoff preview")).getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText(`Saved: ${human}`)).toBeTruthy();
+    expect(requested).toEqual([resolution, resolution]);
+  });
+
+  it("reaches a saved resolution beyond one hundred newer activities", async () => {
+    const activity = (index: number) => ({
+      id: index === 100 ? resolution : `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+      kind: index === 100 ? "resolve" : "note", text: index === 100 ? human : `Note ${index}`,
+      actor_id: "00000000-0000-4000-8000-000000000030", actor_name: "Pat", created_at: "2026-11-01T00:00:00Z",
+      incident_id: incidentId,
+    } satisfies components["schemas"]["ActivityView"]);
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
+    mount([run()], "open", {}, true, (request) => {
+      const url = new URL(request.url);
+      if (url.pathname.endsWith("/handoff/preview")) return previewResponse(url.searchParams.get("resolution_id"));
+      if (url.pathname.endsWith("/activity")) {
+        const start = Number(url.searchParams.get("cursor") || 0);
+        return Response.json({ items: Array.from({ length: Math.min(25, 101 - start) }, (_, n) => activity(start + n)), total: 101, next_cursor: start < 100 ? String(start + 25) : null });
+      }
+    });
+    const user = userEvent.setup();
+    expect(await screen.findByText("101 activities recorded.")).toBeTruthy();
+    for (let i = 0; i < 4; i++) {
+      await user.click(await screen.findByRole("button", { name: "Load older activity" }));
+      await screen.findByText(i === 3 ? human : `Note ${(i + 1) * 25}`);
+    }
+    const old = screen.getByText(human).closest("article")!;
+    expect(within(old).getByText("Actor: Pat")).toBeTruthy();
+    await user.click(within(old).getByRole("button", { name: "View saved resolution" }));
+    expect(await screen.findByText(`Saved: ${human}`)).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Saved resolution handoff" }));
+    expect(readRoute().resolution).toBe(resolution);
+  });
+
+  it("refreshes the current report after resolving", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
+    let resolved = false;
+    const detail = () => ({
+      id: incidentId, workload_id: workload.id, title: "Checkout restarts",
+      description: "Original context", state: resolved ? "resolved" : "open",
+      created_by: null, created_at: "2026-11-01T00:00:00Z",
+      origin: { kind: "operator", source_id: null }, first_seen_at: null, last_seen_at: null,
+      severity: { value: null, provenance: "not_provided" }, alert_signal: "none", workload,
+    });
+    mount([run()], "open", {}, true, (request) => {
+      const url = new URL(request.url);
+      if (request.method === "POST" && url.pathname.endsWith("/lifecycle")) {
+        resolved = true;
+        return Response.json(detail());
+      }
+      if (url.pathname === `/api/incidents/${incidentId}`) return Response.json(detail());
+      if (url.pathname.endsWith("/handoff/preview")) return Response.json({
+        incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v1",
+        snapshot: {}, markdown: resolved ? "State: resolved; reason: service recovered" : "State: open",
+      });
+    });
+    expect(await screen.findByText("State: open")).toBeTruthy();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Note or transition reason"), "service recovered");
+    await user.click(screen.getByRole("button", { name: "Resolve with snapshot" }));
+    expect(await screen.findByText("State: resolved; reason: service recovered")).toBeTruthy();
+    expect(screen.queryByText("State: open")).toBeNull();
+  });
+
+  it("keeps history visible with retry when a post-mutation refetch fails", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
+    let posted = false;
+    let unavailable = true;
+    const old = {
+      id: resolution, incident_id: incidentId, kind: "note", text: "Earlier operator context",
+      actor_id: run().requested_by, actor_name: "Pat", created_at: "2026-11-01T00:00:00Z",
+    };
+    const added = { ...old, id: "00000000-0000-4000-8000-000000000098", text: "Later context" };
+    mount([run()], "open", {}, true, (request) => {
+      const path = new URL(request.url).pathname;
+      if (request.method === "POST" && path.endsWith("/notes")) {
+        posted = true;
+        return Response.json(added, { status: 201 });
+      }
+      if (path.endsWith("/activity")) {
+        if (posted && unavailable) return Response.json(
+          { error: { code: "history_unavailable", message: "Temporary history outage" } }, { status: 503 },
+        );
+        return Response.json({ items: posted ? [added, old] : [old], total: posted ? 2 : 1, next_cursor: null });
+      }
+    });
+    expect(await screen.findByText(old.text)).toBeTruthy();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText("Note or transition reason"), added.text);
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+    const history = screen.getByLabelText("Incident activity");
+    expect(await within(history).findByText(/Temporary history outage/)).toBeTruthy();
+    expect(within(history).getByText(old.text)).toBeTruthy();
+    unavailable = false;
+    await user.click(within(history).getByRole("button", { name: "Retry" }));
+    expect(await within(history).findByText(added.text)).toBeTruthy();
+    expect(within(history).queryByText(/Temporary history outage/)).toBeNull();
+  });
+
+  it("does not announce an older copy as the newly selected handoff", async () => {
+    window.history.replaceState(null, "", `/#/incidents/${incidentId}`);
+    const savedActivity = {
+      id: resolution, incident_id: incidentId, kind: "resolve", text: "Saved fixture",
+      actor_id: "00000000-0000-4000-8000-000000000030", actor_name: "Pat",
+      created_at: "2026-11-01T00:00:00Z",
+    } satisfies components["schemas"]["ActivityView"];
+    mount([run()], "open", {}, true, (request) => {
+      const url = new URL(request.url);
+      if (url.pathname.endsWith("/handoff/preview")) return previewResponse(url.searchParams.get("resolution_id"));
+      if (url.pathname.endsWith("/activity")) return Response.json({ items: [savedActivity], total: 1, next_cursor: null });
+    });
+    const user = userEvent.setup();
+    const { promise: pending, resolve: finishCopy } = Promise.withResolvers<void>();
+    const copying = vi.spyOn(navigator.clipboard, "writeText").mockReturnValue(pending);
+    try {
+      await user.click(await screen.findByRole("button", { name: "Copy handoff" }));
+      await user.click(await screen.findByRole("button", { name: "View saved resolution" }));
+      expect(await screen.findByText(`Saved: ${human}`)).toBeTruthy();
+      await act(async () => { finishCopy(); });
+      expect(screen.queryByText("Handoff copied.")).toBeNull();
+    } finally {
+      finishCopy();
+      copying.mockRestore();
+    }
+  });
+
+  it("does not replay a denied write or clipboard intent when permissions change", async () => {
+    let posts = 0;
+    http.fetch.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "POST") {
+        posts++;
+        return Response.json({ error: { code: "forbidden", message: "Permission denied" } }, { status: 403 });
+      }
+      if (new URL(request.url).pathname.endsWith("/activity")) return Response.json({ items: [], total: 0, next_cursor: null });
+      return previewResponse(null);
+    });
+    const cache = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    caches.push(cache);
+    const renderActivity = (canMutate: boolean) => (
+      <QueryClientProvider client={cache}>
+        <IncidentActivity id={incidentId} state="open" canMutate={canMutate} selectedResolution="" onSelectResolution={() => {}} />
+      </QueryClientProvider>
+    );
+    const view = render(renderActivity(true));
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Note or transition reason"), "Human note");
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+    expect(await screen.findByText(/Permission denied/)).toBeTruthy();
+    const copy = vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("Clipboard denied"));
+    await user.click(await screen.findByRole("button", { name: "Copy handoff" }));
+    expect(await screen.findByText(/Clipboard denied/)).toBeTruthy();
+    view.rerender(renderActivity(false));
+    expect(screen.queryByRole("button", { name: "Save note" })).toBeNull();
+    view.rerender(renderActivity(true));
+    expect(posts).toBe(1);
+    expect(copy).toHaveBeenCalledTimes(1);
+    copy.mockRestore();
   });
 });

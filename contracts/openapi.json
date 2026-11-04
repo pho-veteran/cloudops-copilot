@@ -1,12 +1,56 @@
 {
   "components": {
     "schemas": {
+      "ActivityPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "title": "ActivityPage",
+        "type": "object"
+      },
       "ActivityView": {
         "properties": {
           "actor_id": {
             "format": "uuid",
             "title": "Actor Id",
             "type": "string"
+          },
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
           },
           "created_at": {
             "format": "date-time",
@@ -27,18 +71,6 @@
             "title": "Kind",
             "type": "string"
           },
-          "snapshot": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Snapshot"
-          },
           "text": {
             "title": "Text",
             "type": "string"
@@ -50,8 +82,8 @@
           "kind",
           "text",
           "actor_id",
-          "created_at",
-          "snapshot"
+          "actor_name",
+          "created_at"
         ],
         "title": "ActivityView",
         "type": "object"
@@ -1425,6 +1457,49 @@
           "observation"
         ],
         "title": "FixturePayload",
+        "type": "object"
+      },
+      "HandoffPreview": {
+        "properties": {
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "resolution_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Id"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot": {
+            "additionalProperties": true,
+            "title": "Snapshot",
+            "type": "object"
+          }
+        },
+        "required": [
+          "incident_id",
+          "resolution_id",
+          "schema_version",
+          "snapshot",
+          "markdown"
+        ],
+        "title": "HandoffPreview",
         "type": "object"
       },
       "HealthObservation": {
@@ -4965,6 +5040,35 @@
               "title": "Incident Id",
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
           }
         ],
         "responses": {
@@ -4972,11 +5076,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ActivityView"
-                  },
-                  "title": "Response List Incident Activity",
-                  "type": "array"
+                  "$ref": "#/components/schemas/ActivityPage"
                 }
               }
             },
@@ -5266,6 +5366,121 @@
           }
         ],
         "summary": "Handoff",
+        "tags": [
+          "incident lifecycle"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/handoff/preview": {
+      "get": {
+        "operationId": "preview_incident_handoff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "resolution_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Resolution Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffPreview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Preview",
         "tags": [
           "incident lifecycle"
         ]

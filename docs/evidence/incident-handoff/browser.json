@@ -1,0 +1,132 @@
+{
+  "source": "actual_persisted_browser_over_real_legacy_run_and_recovery_producers",
+  "checks": {
+    "legacy_clipboard": {
+      "equal": true,
+      "source": "page",
+      "sha256": "804393d878983412f1cc6dcbc1852c8ab30f9b54170b4af9a20aeaf55156fb98"
+    },
+    "legacy_download": {
+      "sha256": "804393d878983412f1cc6dcbc1852c8ab30f9b54170b4af9a20aeaf55156fb98",
+      "bytes": 4819,
+      "previewClipboardDownloadEqual": true
+    },
+    "current_keyboard320": {
+      "width": 320,
+      "scrollWidth": 320,
+      "fontSize": "14px",
+      "scrollTop": 1,
+      "focusVisible": true
+    },
+    "actual_unknown_resolution": {
+      "incident_id": "4ae5312b-8f32-46f9-bc84-2c4642baf11c",
+      "resolution_id": "4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+      "schema_version": "HandoffSnapshot/v1",
+      "actor": "operator",
+      "created_at": "2026-11-04T11:26:22.880975Z",
+      "humanTextPreserved": true,
+      "execution_id": "5bac13ee-6dad-4251-9d46-18c372868db1",
+      "outcome": "outcome_unknown",
+      "holds_lock": true
+    },
+    "modern_saved_bytes": {
+      "incident_id": "4ae5312b-8f32-46f9-bc84-2c4642baf11c",
+      "resolution_id": "4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+      "sha256": "46cb7777417238df6dfa29cf9ddf046d4a6d45a34f610738676090431dc669f2",
+      "bytes": 4698,
+      "previewDownloadEqual": true,
+      "clipboard": {
+        "source": "native navigator.clipboard.readText",
+        "approvedTemporaryLabPermission": true,
+        "sameBytes": true,
+        "temporaryGrantRemoved": true
+      }
+    },
+    "reopen_preserves_saved": {
+      "url": "http://127.0.0.1:5188/#/incidents/4ae5312b-8f32-46f9-bc84-2c4642baf11c?run=5d154d03-c8e5-47dd-92f8-9f7d521d5084&resolution=4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+      "sameBytes": true
+    },
+    "later_run_preserves_saved": {
+      "url": "http://127.0.0.1:5188/#/incidents/4ae5312b-8f32-46f9-bc84-2c4642baf11c?run=46bfbec4-8caf-49af-ae49-bf8690f97321&resolution=4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+      "sameBytes": true
+    },
+    "selected_reload": true,
+    "history_ui": {
+      "count": 118,
+      "hasOlder": false,
+      "literal": true,
+      "scriptNodes": 0,
+      "oldestResolutionSelected": true,
+      "url": "http://127.0.0.1:5188/#/incidents/6a471a69-7c26-466c-8176-37d23df718ac?resolution=196a90ae-3445-42c4-929a-4c87284066e5"
+    },
+    "visual390": {
+      "width": 390,
+      "scrollWidth": 390,
+      "dark": true,
+      "reducedMotion": true,
+      "fontSize": "14px"
+    },
+    "cross_incident_resolution_missing": {
+      "url": "http://127.0.0.1:5188/#/incidents/6a471a69-7c26-466c-8176-37d23df718ac?resolution=4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+      "error": "Unable to load or saveSaved resolution not found for this incident. Retry",
+      "hasPreview": false,
+      "hasCopy": false
+    },
+    "explicit_current_recovery": true,
+    "api_outage": {
+      "url": "http://127.0.0.1:5188/#/incidents/6a471a69-7c26-466c-8176-37d23df718ac",
+      "message": "Unable to load or save\nThe request could not be completed. Try again explicitly. Retry\n\nOpen the fixture simulation",
+      "recoveredSameRoute": true,
+      "recovery": "fresh server authority check after API restoration"
+    },
+    "edge_viewer": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+      "url": "http://127.0.0.1:5188/#/incidents/4ae5312b-8f32-46f9-bc84-2c4642baf11c?run=46bfbec4-8caf-49af-ae49-bf8690f97321&resolution=4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+      "sameFrozenBytes": true,
+      "mutationControlsAbsent": true,
+      "viewerExplanation": true,
+      "profilePermissionsChanged": false,
+      "denial": {
+        "after": 5,
+        "before": 5,
+        "code": "permission_denied",
+        "status": 403
+      }
+    },
+    "loading": {
+      "hasContent": false,
+      "text": "Saved resolution handoffResolution: 4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5Show current handoffRefreshing preview…Loading saved application data…",
+      "method": "Edge own-tab network latency; real server responses; throttle removed"
+    },
+    "current_bytes": {
+      "previewServerClipboardDownloadEqual": true,
+      "sha256": "efa0646dd820f6a697615141d95df88134fdac6d328e90c159c0f872ad1288af",
+      "bytes": 31007,
+      "clipboardSource": "native",
+      "approvedTemporaryGrantRemoved": true
+    }
+  },
+  "screenshots": [
+    {
+      "name": "legacy-390-dark.jpg",
+      "path": "legacy-390-dark.jpg"
+    },
+    {
+      "name": "api-outage-390.jpg",
+      "path": "api-outage-390.jpg"
+    },
+    {
+      "name": "edge-viewer-saved-320.jpg",
+      "path": "edge-viewer-saved-320.jpg"
+    },
+    {
+      "name": "edge-loading-320.png",
+      "path": "edge-loading-320.png"
+    }
+  ],
+  "limits": [
+    "Browser uses loopback HTTP development origin; separate actual sender/API paths validate HTTPS with the lab CA.",
+    "Collection remains synthetic; future producer fixtures are labeled separately."
+  ],
+  "source_fingerprint": "ade35caaf00c5c1c7a85743c60c4c1a439fb539737c6fa2fdc93db173e064f9b"
+}

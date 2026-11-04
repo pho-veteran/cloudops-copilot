@@ -11,6 +11,7 @@ from sqlalchemy import case, not_, select
 from sqlalchemy.orm import Session
 
 from cloudops.features.recovery.models import ActionPlan, Execution
+from cloudops.shared.jobs import Job
 
 ExecutionClass = Literal[
     "active",
@@ -31,9 +32,9 @@ def classify(state: str, holds_lock: bool, maintenance_released: bool) -> Execut
         return "active"
     if state == "outcome_unknown":
         if holds_lock:
-            return "terminal_unknown_locked"
+            return "unrecognized" if maintenance_released else "terminal_unknown_locked"
         return "terminal_unknown_released" if maintenance_released else "unrecognized"
-    if state in TERMINAL and not holds_lock:
+    if state in TERMINAL and not holds_lock and not maintenance_released:
         return "terminal"
     return "unrecognized"
 
@@ -49,24 +50,71 @@ def classification_expression(state, holds_lock, maintenance_released):
         (
             state == "outcome_unknown",
             case(
-                (holds_lock.is_(True), "terminal_unknown_locked"),
+                (holds_lock.is_(True) & maintenance_released.is_(False), "terminal_unknown_locked"),
+                (holds_lock.is_(True), "unrecognized"),
                 (maintenance_released.is_(True), "terminal_unknown_released"),
                 else_="unrecognized",
             ),
         ),
-        (state.in_(TERMINAL) & not_(holds_lock.is_(True)), "terminal"),
+        (
+            state.in_(TERMINAL) & not_(holds_lock.is_(True)) & maintenance_released.is_(False),
+            "terminal",
+        ),
         else_="unrecognized",
+    )
+
+
+def _maintenance_proof(result: dict) -> bool:
+    value = result.get("maintenance_request_id")
+    if not isinstance(value, str):
+        return False
+    try:
+        UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+def terminal_unknown_eligible(
+    state: str,
+    holds_lock: bool,
+    maintenance_released: bool,
+    job_state: str | None,
+    result: dict | None,
+) -> bool:
+    """Only a final producer receipt, or recorded maintenance proof, permits handoff."""
+    return (
+        classify(state, holds_lock, maintenance_released)
+        in {"terminal_unknown_locked", "terminal_unknown_released"}
+        and job_state in {"completed", "failed"}
+        and isinstance(result, dict)
+        and result.get("outcome") == "outcome_unknown"
+        and (not maintenance_released or _maintenance_proof(result))
     )
 
 
 def blocking_execution(db: Session, incident_id: UUID) -> UUID | None:
     """Inspect every execution of the incident, not only the newest result."""
     rows = db.execute(
-        select(Execution.id, Execution.state, Execution.holds_lock, Execution.maintenance_released)
+        select(
+            Execution.id,
+            Execution.state,
+            Execution.holds_lock,
+            Execution.maintenance_released,
+            Execution.result,
+            Job.state.label("job_state"),
+        )
         .join(ActionPlan, ActionPlan.id == Execution.plan_id)
+        .outerjoin(Job, (Job.kind == "recovery_execution_v1") & (Job.subject_id == Execution.id))
         .where(ActionPlan.incident_id == incident_id)
     ).all()
     for row in rows:
         if classify(row.state, row.holds_lock, row.maintenance_released) in BLOCKING:
+            return row.id
+        if row.state in TERMINAL and row.job_state in {"queued", "running"}:
+            return row.id
+        if row.state == "outcome_unknown" and not terminal_unknown_eligible(
+            row.state, row.holds_lock, row.maintenance_released, row.job_state, row.result
+        ):
             return row.id
     return None

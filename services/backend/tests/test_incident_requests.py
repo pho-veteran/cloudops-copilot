@@ -456,11 +456,17 @@ def test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries(client):
     assert resolved.status_code == 200
     run = run_row(queued["run_id"])
     assert (run.state, run.outcome_code) == ("cancelled", "incident_resolved")
-    with sessions()() as db:
-        saved = db.scalar(
-            select(IncidentActivity.snapshot).where(IncidentActivity.kind == "resolve")
-        )
-    assert saved["investigations"]["items"][0]["state"] == "cancelled"
+    page = client.get(f"/api/incidents/{queued['incident_id']}/activity").json()
+    resolution = next(item for item in page["items"] if item["kind"] == "resolve")
+    saved = client.get(
+        f"/api/incidents/{queued['incident_id']}/handoff/preview",
+        params={"resolution_id": resolution["id"]},
+    ).json()
+    assert saved["schema_version"] == "HandoffSnapshot/v1"
+    saved_run = next(
+        item for item in saved["snapshot"]["runs"]["items"] if item["id"] == queued["run_id"]
+    )
+    assert (saved_run["state"], saved_run["outcome_code"]) == ("cancelled", "incident_resolved")
     reopened = client.post(
         f"/api/incidents/{queued['incident_id']}/lifecycle",
         json={"action": "reopen", "reason": "Recurring"},

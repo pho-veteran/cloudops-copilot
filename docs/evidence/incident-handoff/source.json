@@ -1,0 +1,27 @@
+{
+  "base": "83b891f9194b7d04a013de214df3155d933e1976",
+  "files": {
+    "apps/web/src/app/FoundationApp.tsx": "ba25175266eca2b93facf3f37d62900d0cdc49b6",
+    "apps/web/src/app/SessionBoundary.test.tsx": "9c901334e931646d17084d3e7408046b46be0ff3",
+    "apps/web/src/app/routes.test.ts": "9ef8e0e5a0eddf9dd51e514baa27561978527b6a",
+    "apps/web/src/app/routes.ts": "5419cfa491f7a9a983a71e1cb02308ee7efb97f8",
+    "apps/web/src/features/incidents/IncidentActivity.tsx": "f29bb91709fd86c4f6c0bd00e63136907036b0db",
+    "apps/web/src/features/investigations/InvestigationWorkspace.test.tsx": "f7ff30e0e1f6f91e2e67a484a028ac21dc9f19a2",
+    "apps/web/src/features/investigations/InvestigationWorkspace.tsx": "1ad27174d5a1262f4ac3c9f0c5a24e9909533643",
+    "apps/web/src/lib/api/generated/schema.d.ts": "56311feabd731b96c2d90dd3edfd11a5dfe6bebd",
+    "contracts/openapi.json": "93be8e0d5d98c2591946a3f926834b607c283989",
+    "scripts/smoke-e01-consumers.py": "69f75bb4c9c0012552dea2954b6c46444c84f846",
+    "services/backend/src/cloudops/features/incidents/handoff.py": "82f1a9ec4cba448e9cfcabd5e17356da18ccf529",
+    "services/backend/src/cloudops/features/incidents/lifecycle.py": "23a9d73070306762544b376ba5d552c39a39ae2d",
+    "services/backend/src/cloudops/features/recovery/classification.py": "aebd1b993a0a132352678f656d4c684557d8d937",
+    "services/backend/tests/consumer_cases.py": "4f1286d86cf4c4d5f017e15caf3d830e302c4495",
+    "services/backend/tests/permission_inventory.py": "44a6199cd6cadb43520f8c9577bff3500e88be23",
+    "services/backend/tests/test_consumers.py": "9e90e5aa78337d3e89ba2771047c38afc7da40b6",
+    "services/backend/tests/test_handoff_three_way_race.py": "2994462c374aec2f00844bbdeaebe02b728d875c",
+    "services/backend/tests/test_incident_handoff.py": "fe589128b1e9efe4d0a3157e5d9c9bdf9fa987c5",
+    "services/backend/tests/test_incident_lock_order.py": "e5ee4bf1d286e26ad939c24cb76270c7f5095f75",
+    "services/backend/tests/test_incident_requests.py": "6197046a0f3bb963525a1af06f13447ca5acb80c",
+    "services/backend/tests_unit/test_execution_classification.py": "256bf70c56e009bb1dd278b38a69e7a81cbcc4b4"
+  },
+  "fingerprint": "ade35caaf00c5c1c7a85743c60c4c1a439fb539737c6fa2fdc93db173e064f9b"
+}

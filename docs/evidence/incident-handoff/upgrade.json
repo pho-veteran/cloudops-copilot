@@ -1,0 +1,9 @@
+{
+  "legacy_after_upgrade_sha256": "804393d878983412f1cc6dcbc1852c8ab30f9b54170b4af9a20aeaf55156fb98",
+  "legacy_bytes_preserved": true,
+  "unchanged_current_preview_export_equal": true,
+  "actual_workload_uid": "4a6e99ae-c87d-4605-b621-3f0fdb01d6a9",
+  "cross_incident_unknown_lock_retained": true,
+  "unknown_terminal_job_state": "completed",
+  "cross_incident_plan_reference_included": true
+}

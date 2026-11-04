@@ -1,0 +1,91 @@
+{
+  "producer_commit": "83b891f9194b7d04a013de214df3155d933e1976",
+  "source": "actual_base_api_worker_executor_and_scoped_k3s_over_validated_https",
+  "checks": {
+    "actual_legacy_resolution_created": true,
+    "actual_conditional_scale_acknowledged_without_success_claim": true,
+    "queued_execution_blocks_resolution": true,
+    "terminal_unknown_from_actual_producer_retains_lock": true
+  },
+  "limits": [
+    "Collection is synthetic; no model request or automatic remediation verification is claimed.",
+    "The unknown outcome is produced by controlled executor unavailability, not proof of an applied-but-unacknowledged patch."
+  ],
+  "workload": {
+    "id": "311ef95d-1724-49d4-b911-4b255b676d56",
+    "uid": "4a6e99ae-c87d-4605-b621-3f0fdb01d6a9",
+    "namespace": "demo",
+    "name": "checkout",
+    "source": "live_kubernetes"
+  },
+  "legacy": {
+    "incident_id": "6a471a69-7c26-466c-8176-37d23df718ac",
+    "run_id": "74657a5e-3322-494a-a240-07f21d97d3f6",
+    "resolution_id": "196a90ae-3445-42c4-929a-4c87284066e5",
+    "markdown_sha256": "804393d878983412f1cc6dcbc1852c8ab30f9b54170b4af9a20aeaf55156fb98",
+    "bytes": 4819,
+    "human_note": "Original human note · Tiếng Việt preserved.\n<script>fixture-only</script>\n```human backticks stay intact```",
+    "evidence_ids": [
+      "6df0afa6-464d-46b7-a4aa-8faea1f57613"
+    ]
+  },
+  "failed_attempts": [
+    {
+      "phase": "legacy export assertion",
+      "reason": "The initial probe incorrectly compared a raw multiline note with JSON-escaped Markdown. The original stored note is unchanged; resume reuses the already-created resolution without repeating setup or writes."
+    }
+  ],
+  "known_scale": {
+    "incident_id": "334c4293-b08f-4a3c-a785-647c47d138ed",
+    "run_id": "22362dad-d964-4ede-ad1b-b72ef341a42f",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-04T10:09:38.325220Z",
+      "end": "2026-11-04T10:39:38.325220Z",
+      "source": "legacy_default"
+    },
+    "execution": {
+      "id": "aed869cb-611f-48d1-8b5a-35f25db87348",
+      "plan_id": "25918c61-e3e4-4dff-8305-31b3d6bc94c6",
+      "workload_id": "311ef95d-1724-49d4-b911-4b255b676d56",
+      "state": "manual_intervention",
+      "holds_lock": false,
+      "result": {
+        "reason": "Kubernetes acknowledged the conditional replica change. Application traffic/metric coverage is unavailable; verify manually.",
+        "outcome": "acknowledged",
+        "replicas": 2,
+        "verification": "inconclusive",
+        "resource_version": "1014"
+      },
+      "created_at": "2026-11-04T10:39:41.076338Z",
+      "finished_at": "2026-11-04T10:39:41.769715Z"
+    },
+    "actual_replicas": 2
+  },
+  "unknown": {
+    "incident_id": "4ae5312b-8f32-46f9-bc84-2c4642baf11c",
+    "run_id": "5d154d03-c8e5-47dd-92f8-9f7d521d5084",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-04T10:09:42.287836Z",
+      "end": "2026-11-04T10:39:42.287836Z",
+      "source": "legacy_default"
+    },
+    "execution": {
+      "id": "5bac13ee-6dad-4251-9d46-18c372868db1",
+      "plan_id": "58ce7d50-09b3-4326-bf5f-5297a27dff1a",
+      "workload_id": "311ef95d-1724-49d4-b911-4b255b676d56",
+      "state": "outcome_unknown",
+      "holds_lock": true,
+      "result": {
+        "reason": "Executor response unavailable. Keep the target lock and use trusted maintenance proof; no blind repeat write is permitted.",
+        "outcome": "outcome_unknown",
+        "verification": "inconclusive"
+      },
+      "created_at": "2026-11-04T10:40:22.465008Z",
+      "finished_at": "2026-11-04T10:40:23.970399Z"
+    }
+  }
+}

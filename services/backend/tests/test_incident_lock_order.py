@@ -173,6 +173,9 @@ EXECUTION_CASES = [
     ("reconciling", True, False, True),
     ("outcome_unknown", True, False, False),
     ("outcome_unknown", False, True, False),
+    ("outcome_unknown", True, True, True),
+    ("outcome_unknown", False, False, True),
+    ("manual_intervention", False, True, True),
     ("future_unrecognized", False, False, True),
     ("manual_intervention", True, False, True),
 ]
@@ -215,10 +218,19 @@ def test_shared_execution_fixtures_reach_real_consumer_guards(
             state=state,
             holds_lock=holds_lock,
             maintenance_released=released,
+            result={
+                "outcome": "outcome_unknown",
+                "maintenance_request_id": "00000000-0000-4000-8000-000000000001",
+            }
+            if state == "outcome_unknown"
+            else {},
         )
         db.add(execution)
         db.flush()
         execution_id = execution.id
+        if state == "outcome_unknown":
+            # Terminal producer-contract fixture; no live E07 future-state engine is implied.
+            db.add(Job(kind="recovery_execution_v1", subject_id=execution_id, state="completed"))
     assert (classify(state, holds_lock, released) in BLOCKING) == blocked
     if boundary == "admit":
         response = rerun(client, headers, incident_id)

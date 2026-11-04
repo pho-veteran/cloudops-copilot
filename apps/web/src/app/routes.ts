@@ -134,9 +134,10 @@ export function incidentReturnHash(hash: string): string {
   return target ? queueReturnHash(target) : "#/queue";
 }
 
-export function buildIncidentHash(id: string, run = "", returnTo = "#/queue"): string {
+export function buildIncidentHash(id: string, run = "", returnTo = "#/queue", resolution = ""): string {
   const query = new URLSearchParams();
   if (run) query.set("run", run);
+  if (resolution) query.set("resolution", resolution);
   const target = queueReturnHash(returnTo);
   if (target !== "#/queue") query.set("return_to", target);
   const suffix = query.toString();
@@ -144,7 +145,7 @@ export function buildIncidentHash(id: string, run = "", returnTo = "#/queue"): s
 }
 
 export function safeRoute(hash: string) {
-  const fallback = { page: "queue", id: "", run: "", baseline: "" };
+  const fallback = { page: "queue", id: "", run: "", resolution: "", baseline: "" };
   if (/^#\/queue(?:\?[^#]*)?$/.test(hash)) return { ...fallback, page: "queue" };
   const match = /^#\/(workloads|connections|reports)$/.exec(hash);
   if (match) return { ...fallback, page: match[1] };
@@ -154,15 +155,18 @@ export function safeRoute(hash: string) {
   const incident = /^#\/incidents\/([^/?#]+)(?:\?([^#]*))?$/.exec(hash);
   const incidentParams = new URLSearchParams(incident?.[2] ?? "");
   const run = incidentParams.get("run") || "";
+  const resolution = incidentParams.get("resolution") || "";
   if (
     incident &&
     uuid.test(incident[1]) &&
     (!run || uuid.test(run)) &&
-    [...incidentParams.keys()].every((key) => key === "run" || key === "return_to") &&
+    (!resolution || uuid.test(resolution)) &&
+    [...incidentParams.keys()].every((key) => key === "run" || key === "resolution" || key === "return_to") &&
     incidentParams.getAll("run").length <= 1 &&
+    incidentParams.getAll("resolution").length <= 1 &&
     incidentParams.getAll("return_to").length <= 1
   )
-    return { ...fallback, page: "incidents", id: incident[1], run };
+    return { ...fallback, page: "incidents", id: incident[1], run, resolution };
   return fallback;
 }
 
@@ -170,7 +174,7 @@ export function readRoute() {
   const route = safeRoute(window.location.hash);
   const canonical =
     route.page === "incidents"
-      ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash))
+      ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash), route.resolution)
       : route.page === "queue"
         ? buildWorkQueueHash(parseWorkQueueHash(window.location.hash))
         : `#/${route.page}${route.page === "workloads" && route.id ? `?workload=${route.id}${route.baseline ? `&baseline=${route.baseline}` : ""}` : ""}`;

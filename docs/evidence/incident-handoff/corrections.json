@@ -1,0 +1,167 @@
+{
+  "predecessor": "398b7d06cee05ca07b2672f55f64cc853f452656",
+  "source_fingerprint_algorithm": "SHA-256 of canonical JSON mapping the listed program/test/contract paths to their SHA-256 content digests; excludes documentation and this receipt",
+  "source_fingerprint": "d127a0d9dd10049f9421228e10117dda3db21742aa8265fee34ef1d3d76bfda1",
+  "files": {
+    "apps/web/src/app/FoundationApp.tsx": "919490b116145797349a6eb15f15453eccaeb8f1b61f7eae8d6684925b301ce5",
+    "apps/web/src/app/SessionBoundary.test.tsx": "e19b6703aa8d61356852ffc06fa8fde19714e99f201dc6310d1b96643d20383c",
+    "apps/web/src/app/routes.test.ts": "4517b2a4ce6c098f3a8fe518b8adeb947f6c73272ad31bc048c0520d28f35e50",
+    "apps/web/src/app/routes.ts": "55b9c68ee45ef5639b326734afdbd497ef1c3da533588720b7b7633636a894e8",
+    "apps/web/src/features/incidents/IncidentActivity.tsx": "bc9dad79acd983cbf0ecb4456955a34e765e221d29acde0f43a67275cb35032c",
+    "apps/web/src/features/investigations/InvestigationWorkspace.test.tsx": "b5e36418e9343fecd34e4af707915925998f7f62922b2b033c3914436542176d",
+    "apps/web/src/features/investigations/InvestigationWorkspace.tsx": "9992311f6f5a83c9d6d99f5f5414800eb6be6bec9a1482e4ed766ad2c829ac6f",
+    "apps/web/src/lib/api/generated/schema.d.ts": "43b76ed4bc67faae3caadd0fd1a0ae50606b62874e397bc943a40ff2454cfa99",
+    "contracts/openapi.json": "6e6459027d12846fa23e22d80731122dbcf11a380f4b3c3cd7c4638172451ce3",
+    "scripts/smoke-e01-consumers.py": "84b4d3b4a933a20aae4ee98e68c9e0653bd7e56985f441a335f877fbf92f92bd",
+    "services/backend/src/cloudops/features/incidents/handoff.py": "bc80e4b7ba8afd424517f98328ec6b98539519f7c8d08f45e99eb97fb2ce7eda",
+    "services/backend/src/cloudops/features/incidents/lifecycle.py": "90a4f59fc16d4929e2f46dc9becdabc0c191038fcc81df3fdad3700eda826cd3",
+    "services/backend/src/cloudops/features/recovery/classification.py": "3b9f99962788979dbef6130abbec5e6fe33456acdf2dd58dc61e9f2dbee39fc3",
+    "services/backend/tests/consumer_cases.py": "e7384f22b4ea979bf9b4d68d619ea973999282d7f40a7337c097acb180c8c858",
+    "services/backend/tests/permission_inventory.py": "e30ddba5276fcf66e208cc6fbef09f40b8c5d350b3bf7e6fac9e3fdcb3b4c0aa",
+    "services/backend/tests/test_consumers.py": "96649622180593e5560fe5c3ce0d0f012c0939fc4e38ebedbd22893ed977a908",
+    "services/backend/tests/test_handoff_three_way_race.py": "5d29ffe3187c2949c9a6f4cfe3ef318884a6e9255dabe3dae9ce4d0a9398b977",
+    "services/backend/tests/test_incident_handoff.py": "e7f50a6a64a5fefd1171c3be08561bfbec1b4b487d1c1cdbbb7d3983c99d12ed",
+    "services/backend/tests/test_incident_lock_order.py": "01de10021c89f6d886d9976b0a3c740d829fa7f17ae9707c1e07cf1485495a08",
+    "services/backend/tests/test_incident_requests.py": "7a5c399fd5ab9cc0051134330ed23e5e07f4a5bddc2ddf0988ce4d4c417ad31e",
+    "services/backend/tests_unit/test_execution_classification.py": "02532bd0ac5989452e4f1e7222ca44d88eab2cde0a1b258cd5b002fca983716a"
+  },
+  "checks": {
+    "backend": {
+      "result": "843 passed, 1 existing Starlette/httpx deprecation warning",
+      "command": "pytest -q services/backend/tests_unit services/backend/tests",
+      "database": "owned PostgreSQL 17.11 cloudops_ci38_test",
+      "python": "3.13.11"
+    },
+    "web": {
+      "result": "138 passed; TypeScript/Vite production build passed",
+      "node": "24.21.0",
+      "npm": "11.19.0"
+    },
+    "lint": "Ruff check passed; Ruff format --check: 137 files formatted",
+    "contracts": "OpenAPI/TypeScript synchronized; deliberate drift exercise passed",
+    "production_https": {
+      "incident_id": "c4688acd-86c9-49e5-9fff-eeb83e34a907",
+      "run_id": "084f8670-7a2a-4251-9806-131e860e8801",
+      "state": "queued",
+      "queue_reason": null,
+      "window": {
+        "start": "2026-11-04T15:24:46.417550Z",
+        "end": "2026-11-04T15:54:46.417550Z",
+        "source": "legacy_default"
+      }
+    }
+  },
+  "regressions": {
+    "baseline": "398b7d06cee05ca07b2672f55f64cc853f452656",
+    "backend_before": "4 expected failures: timestamp readability, activity response size, non-activity actor attribution and explicit citations",
+    "web_before": "2 expected failures: current-preview refresh and visible history refetch error",
+    "baseline_activity_response_bytes": 5758559,
+    "corrected_activity_regression": "25 list items under 20,000 bytes; saved report available separately",
+    "retained_lock_regression": "The complete suite caught accidental escaping of outcome_unknown; corrected the renderer without weakening the consumer assertion."
+  },
+  "browser": {
+    "edge": {
+      "activityItems": 10,
+      "actors": {
+        "6baa2d7c-97ba-4052-b488-8845d1058d81": "operator"
+      },
+      "citations": "unavailable",
+      "domEqualsServer": true,
+      "scrollWidth": 305,
+      "state": "acknowledged",
+      "unknownExecution": [
+        {
+          "classification": "terminal_unknown_locked",
+          "created_at": "2026-11-04T10:40:22.465008+00:00",
+          "finished_at": "2026-11-04T10:40:23.970399+00:00",
+          "holds_lock": true,
+          "id": "5bac13ee-6dad-4251-9d46-18c372868db1",
+          "incident_id": "4ae5312b-8f32-46f9-bc84-2c4642baf11c",
+          "job_state": "completed",
+          "maintenance_released": false,
+          "plan_id": "58ce7d50-09b3-4326-bf5f-5297a27dff1a",
+          "result": {
+            "outcome": "outcome_unknown",
+            "reason": "Executor response unavailable. Keep the target lock and use trusted maintenance proof; no blind repeat write is permitted.",
+            "verification": "inconclusive"
+          },
+          "state": "outcome_unknown",
+          "terminal_unknown_handoff_eligible": true,
+          "workload_id": "311ef95d-1724-49d4-b911-4b255b676d56"
+        },
+        {
+          "classification": "terminal_unknown_locked",
+          "created_at": "2026-11-04T10:40:22.465008+00:00",
+          "finished_at": "2026-11-04T10:40:23.970399+00:00",
+          "holds_lock": true,
+          "id": "5bac13ee-6dad-4251-9d46-18c372868db1",
+          "incident_id": "4ae5312b-8f32-46f9-bc84-2c4642baf11c",
+          "job_state": "completed",
+          "maintenance_released": false,
+          "plan_id": "58ce7d50-09b3-4326-bf5f-5297a27dff1a",
+          "result": {
+            "outcome": "outcome_unknown",
+            "reason": "Executor response unavailable. Keep the target lock and use trusted maintenance proof; no blind repeat write is permitted.",
+            "verification": "inconclusive"
+          },
+          "state": "outcome_unknown",
+          "terminal_unknown_handoff_eligible": true,
+          "workload_id": "311ef95d-1724-49d4-b911-4b255b676d56"
+        }
+      ],
+      "width": 320
+    },
+    "frozenExports": [
+      {
+        "incident": "6a471a69-7c26-466c-8176-37d23df718ac",
+        "resolution": "196a90ae-3445-42c4-929a-4c87284066e5",
+        "sha256": "804393d878983412f1cc6dcbc1852c8ab30f9b54170b4af9a20aeaf55156fb98",
+        "previewDownloadEqual": true
+      },
+      {
+        "incident": "4ae5312b-8f32-46f9-bc84-2c4642baf11c",
+        "resolution": "4ca6782d-5f3e-4f2c-9b1c-90c9e7571ec5",
+        "sha256": "46cb7777417238df6dfa29cf9ddf046d4a6d45a34f610738676090431dc669f2",
+        "previewDownloadEqual": true
+      }
+    ],
+    "managedVisual": {
+      "width": 320,
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "fontSize": "14px",
+      "serverEqualsDOM": true,
+      "readableUnknown": true,
+      "escapedTimezone": false,
+      "citations": "unavailable",
+      "actors": {
+        "6baa2d7c-97ba-4052-b488-8845d1058d81": "operator"
+      }
+    },
+    "historyRefetch": {
+      "edge": {
+        "beforeCount": 6,
+        "visibleCount": 6,
+        "keptEarlierRows": true,
+        "message": "Unable to load or saveCannot reach the local API. Check the API and database services, then retry. Retry"
+      },
+      "edgeRecovered": {
+        "hasError": false,
+        "rows": 7
+      },
+      "fallbackRetainedRows": 8,
+      "fallbackRecoveredRows": 9,
+      "additionalAcknowledgeRetryRecoveredRows": 10
+    },
+    "limits": [
+      "Edge relay screenshot capture timed out; final correction screenshots use the separate managed lab browser.",
+      "Both browser journeys used loopback HTTP; production HTTPS was verified independently with the lab CA.",
+      "No Edge permissions or certificate trust were changed."
+    ]
+  },
+  "limits": [
+    "Historical producer/golden receipts remain unchanged and bind their original candidate.",
+    "The corrected stored-data smoke does not claim a new Kubernetes write or model diagnosis.",
+    "A complete handoff discloses all relevant stored records; deferral removes unused nested reports/payloads without silently truncating history or locks."
+  ]
+}

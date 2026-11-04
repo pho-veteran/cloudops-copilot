@@ -57,6 +57,9 @@ OPERATIONS = {
     "list_incident_activity": Operation(
         "GET", "/api/incidents/{incident_id}/activity", "protected_read"
     ),
+    "preview_incident_handoff": Operation(
+        "GET", "/api/incidents/{incident_id}/handoff/preview", "protected_read"
+    ),
     "export_incident_handoff": Operation(
         "GET", "/api/incidents/{incident_id}/handoff", "protected_read"
     ),
