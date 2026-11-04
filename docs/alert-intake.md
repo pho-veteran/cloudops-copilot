@@ -141,6 +141,73 @@ The [browser receipt](evidence/intake36-browser.json) records actual Connections
 
 These browser journeys use a separate HTTP development origin over the real disposable PostgreSQL records; no certificate warning was bypassed or OS/browser trust changed. Loading and transport errors were deliberately induced in the browser, not claimed as a live cluster outage. The sender receipt separately validates HTTPS with the lab CA. Its labeled capacity fixture used authenticated intake with live UID mapping and a stopped worker to reach the dispatch bound, then resumed the normal worker and observed promotion of the same Run.
 
+## E03 bounded integration probe
+
+`scripts/probe-e03-integration.py` is preparation tooling, not a recorded acceptance
+result. Run it only against a **disposable, isolated** `cloudops-*` Compose project,
+after the local lab above has been bootstrapped, the v2 `demo/checkout` scope
+published with `sync-workloads`, and the API, HTTPS proxy, PostgreSQL, K3s, exactly
+one worker and pinned Alertmanager are running. The lab CA must validate the
+`localhost` hostname. The API and worker must have the same configured J and D,
+each between 2 and 100; the probe reads their effective settings. The project's
+active Job and deferred queues must be empty, and no other process or user may
+submit work while it runs. The script does not use host kubeconfig.
+
+For example, after the local lab setup above, using the **same** explicit project
+and password:
+
+```sh
+export CLOUDOPS_LAB_PROJECT=cloudops-e03-acceptance
+uv run --project services/backend python scripts/probe-e03-integration.py \
+  --ca tmp/local-https-root.crt --output tmp/e03-integration-receipt.json
+```
+
+The repeat path uses the configured Alertmanager. For concurrent real delivery,
+the probe starts two additional pinned Alertmanager containers sharing only the
+project proxy network, with separate listen ports and storage, clustering disabled
+and repeats delayed. It injects identical labels and start times into both,
+observes both webhook-success metrics and separate intake deliveries, and removes
+only these two probe-created containers and their temporary configuration. Direct
+concurrent and mixed-batch v4 deliveries are labeled separately.
+The probe stops and recreates its own worker without starting it, creates
+a disposable Operator and durable incidents, Runs, Jobs, episodes and receipts,
+fills the configured capacities through actual APIs, and cancels selected queued
+Runs through the Operator API. It records actual image metadata, runner commit,
+Deployment UID, identifiers and observed results in a sanitized receipt, including
+partial results on failure. It attempts to restart the worker if interrupted by an
+ordinary error; inspect `worker_restore` and manually start that project's worker
+if restoration failed. Do not reuse the project for production or unrelated work.
+After retaining the receipt and inspecting the project, remove only the selected
+disposable project (including its volumes):
+
+```sh
+docker compose -p "$CLOUDOPS_LAB_PROJECT" -f compose.yaml -f compose.https.yaml \
+  -f compose.integration.yaml -f compose.alertmanager.yaml down -v
+```
+
+To include UID replacement, explicitly add `--replace-owned-checkout` to the
+invocation. This **deletes and recreates** the project's `demo/checkout`
+Deployment, replacing its UID and Pods; it does not replace any other target.
+The probe requires that the live Deployment match the bootstrap writer's pinned
+UID, the expected demo container and the v2 scope, and uses UID/resource-version
+delete preconditions. It recreates the spec without server identity, status,
+owner references or authority annotations, synchronizes scope, and checks the
+old episode/Run binding and a new episode's replacement UID. The old writer
+allowlist remains pinned to the old UID; replacement does not authorize a new
+writer. Existing old-UID unknown-execution rows and locks are compared, not
+released; an empty list is not evidence of an unknown execution. A failure after
+deletion can leave checkout absent or scope unsynchronized; inspect the receipt
+and repair only this disposable lab before using it again. Without the flag the
+replacement scenario is explicitly unexercised.
+
+Lifecycle/claim/callback races and full browser acceptance require separate
+evidence. Worker recreation occurs while reservations are full and stopped;
+the probe then cancels a queued reservation and starts the replacement worker,
+not a transaction-level fault injection. Oldest-first is checked only for these
+deferred Runs without competing admissions; continuous-admission fairness is not
+guaranteed. Collection remains synthetic and direct HTTP fixtures are not live
+AI or remediation.
+
 ## Limits
 
 - One configured source per deployment. There is no rate limiting or mTLS.
