@@ -1,0 +1,6 @@
+{
+  "before": 500,
+  "after": 422,
+  "code": "invalid_cursor",
+  "case": "numeric activity ID inside an otherwise valid encoded cursor"
+}

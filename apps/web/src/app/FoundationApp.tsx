@@ -311,6 +311,7 @@ export function Workspace() {
               key={route.id}
               id={route.id}
               selectedRun={route.run}
+              selectedResolution={route.resolution}
               canMutate={canMutate}
             />
           ) : (

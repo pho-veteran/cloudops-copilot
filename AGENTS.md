@@ -17,6 +17,11 @@
 - The system framework is organized into feature EPICs. Research details inside each EPIC; create task child issues only when that EPIC starts. Do not pre-create the full implementation backlog.
 - Keep the runnable prototype and source distinct from unimplemented backend/runtime claims. Do not recreate legacy proposal/research documents as a second planning source.
 
+## Interactive E2E browser
+
+- Prefer the user's already-running Microsoft Edge for interactive E2E verification. Verify that the relay is connected to Edge, open a separate lab tab and preserve unrelated tabs. Use a disposable managed browser only when Edge is unavailable or an isolated profile is explicitly needed; disclose that choice.
+- Do not change browser profile permissions or certificate trust without explicit authorization for the target and scope.
+
 ## Implemented foundation boundaries
 
 - The persisted app is the default web entry; `?simulation=1` retains the localStorage simulation. Never promote simulation RCA/actions into API results.

@@ -1,5 +1,6 @@
+import base64
+import binascii
 import json
-import re
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
@@ -7,18 +8,17 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session, operator
+from cloudops.features.access.models import User
 from cloudops.features.access.schemas import Principal
+from cloudops.features.incidents import handoff as composer
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.incidents.schemas import IncidentDetail
 from cloudops.features.incidents.service import cancel_pending, get_incident
-from cloudops.features.investigations.service import list_runs
-from cloudops.features.recovery.api import ExecutionView
 from cloudops.features.recovery.classification import blocking_execution
-from cloudops.features.recovery.models import ActionPlan, Execution
 from cloudops.features.recovery.service import invalidate
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES, DomainError
@@ -44,41 +44,103 @@ class ActivityView(View):
     kind: str
     text: str
     actor_id: UUID
+    actor_name: str | None
     created_at: datetime
     snapshot: dict | None
 
 
-def handoff_data(db, incident_id):
-    incident = get_incident(db, incident_id)
-    activities = db.scalars(
-        select(IncidentActivity)
-        .where(IncidentActivity.incident_id == incident_id)
-        .order_by(IncidentActivity.created_at, IncidentActivity.id)
-        .limit(100)
-    ).all()
-    executions = db.scalars(
-        select(Execution)
-        .join(ActionPlan)
-        .where(ActionPlan.incident_id == incident_id)
-        .order_by(Execution.created_at)
-        .limit(25)
-    ).all()
-    return {
-        "incident": incident.model_dump(mode="json"),
-        "investigations": list_runs(db, incident_id, 25, 0).model_dump(mode="json"),
-        "activity": [
-            {
-                "id": str(a.id),
-                "kind": a.kind,
-                "text": a.text,
-                "actor_id": str(a.actor_id),
-                "created_at": a.created_at.isoformat(),
-            }
-            for a in activities
-        ],
-        "executions": [ExecutionView.model_validate(e).model_dump(mode="json") for e in executions],
-        "limitations": "Stored observations and human notes only. No new diagnosis was generated. Historical unknown execution outcomes and target locks remain independent of incident resolution.",
-    }
+class ActivityPage(BaseModel):
+    items: list[ActivityView]
+    total: int
+    next_cursor: str | None
+
+
+class HandoffPreview(BaseModel):
+    incident_id: UUID
+    resolution_id: UUID | None
+    schema_version: str
+    snapshot: dict
+    markdown: str
+
+
+def _activity_view(row, actor_name):
+    return ActivityView(
+        id=row.id,
+        incident_id=row.incident_id,
+        kind=row.kind,
+        text=row.text,
+        actor_id=row.actor_id,
+        actor_name=actor_name,
+        created_at=row.created_at,
+        snapshot=row.snapshot,
+    )
+
+
+def _cursor(incident_id, row):
+    value = json.dumps(
+        [str(incident_id), row.created_at.isoformat(), str(row.id)], separators=(",", ":")
+    )
+    return base64.urlsafe_b64encode(value.encode()).decode().rstrip("=")
+
+
+def _parse_cursor(value, incident_id):
+    try:
+        decoded = base64.b64decode(value + "=" * (-len(value) % 4), altchars=b"-_", validate=True)
+        data = json.loads(decoded)
+        if (
+            not isinstance(data, list)
+            or len(data) != 3
+            or not all(isinstance(item, str) for item in data)
+            or data[0] != str(incident_id)
+        ):
+            raise ValueError
+        at = datetime.fromisoformat(data[1])
+        if at.utcoffset() is None:
+            raise ValueError
+        return at, UUID(data[2])
+    except (ValueError, TypeError, UnicodeDecodeError, binascii.Error, OverflowError):
+        raise DomainError(422, "invalid_cursor", "Invalid activity cursor.") from None
+
+
+def _preview(db, incident_id, resolution_id):
+    if resolution_id is None:
+        snapshot = composer.compose(db, incident_id)
+        return HandoffPreview(
+            incident_id=incident_id,
+            resolution_id=None,
+            schema_version=composer.SCHEMA_VERSION,
+            snapshot=snapshot,
+            markdown=composer.render(snapshot),
+        )
+    row = db.get(IncidentActivity, resolution_id)
+    if not row or row.incident_id != incident_id or row.kind != "resolve" or not row.snapshot:
+        raise DomainError(
+            404, "resolution_not_found", "Saved resolution not found for this incident."
+        )
+    stored = row.snapshot
+    if "schema_version" not in stored:
+        return HandoffPreview(
+            incident_id=incident_id,
+            resolution_id=resolution_id,
+            schema_version=composer.LEGACY_VERSION,
+            snapshot=stored,
+            markdown=composer.legacy_markdown(stored),
+        )
+    if (
+        stored.get("schema_version") != composer.SCHEMA_VERSION
+        or not isinstance(stored.get("snapshot"), dict)
+        or not isinstance(stored.get("markdown"), str)
+    ):
+        raise DomainError(
+            422, "unsupported_handoff_snapshot", "Saved handoff format is unsupported."
+        )
+    return HandoffPreview(
+        incident_id=incident_id,
+        resolution_id=resolution_id,
+        schema_version=composer.SCHEMA_VERSION,
+        snapshot=stored["snapshot"],
+        markdown=stored["markdown"],
+    )
 
 
 @router.post(
@@ -101,7 +163,7 @@ def note(
         )
         db.add(row)
         db.flush()
-        return ActivityView.model_validate(row)
+        return _activity_view(row, actor.username)
 
 
 @router.post(
@@ -123,15 +185,13 @@ def transition(
                 raise DomainError(
                     409, "incident_state_changed", "This incident is already resolved."
                 )
-            active = blocking_execution(db, incident_id)
-            if active:
+            if blocking_execution(db, incident_id):
                 raise DomainError(
                     409,
                     "execution_active",
                     "An admitted execution cannot be hidden by resolution. Wait for its recorded outcome.",
                 )
-            # Match claim's Run -> plan order before taking any draft-plan lock.
-            # Queued work cannot outlive resolution; claimed collection finishes as history.
+            # Keep claim's Run -> plan order; queued work cannot outlive resolution.
             cancel_pending(db, incident_id, "incident_resolved")
             invalidate(db, incident_id)
             incident.state = "resolved"
@@ -150,24 +210,68 @@ def transition(
         db.add(row)
         db.flush()
         if body.action == "resolve":
-            row.snapshot = handoff_data(db, incident_id)
+            snapshot = composer.compose(db, incident_id)
+            row.snapshot = {
+                "schema_version": composer.SCHEMA_VERSION,
+                "snapshot": snapshot,
+                "markdown": composer.render(snapshot),
+            }
         return get_incident(db, incident_id)
 
 
 @router.get(
     "/{incident_id}/activity",
     operation_id="list_incident_activity",
-    response_model=list[ActivityView],
+    response_model=ActivityPage,
     dependencies=[Depends(current_session)],
 )
-def activity(incident_id: UUID, db: Session = Depends(get_db)):
+def activity(
+    incident_id: UUID,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = Query(default=None, max_length=512),
+    db: Session = Depends(get_db),
+):
     get_incident(db, incident_id)
-    return db.scalars(
-        select(IncidentActivity)
+    total = db.scalar(
+        select(func.count())
+        .select_from(IncidentActivity)
         .where(IncidentActivity.incident_id == incident_id)
-        .order_by(IncidentActivity.created_at.desc(), IncidentActivity.id.desc())
-        .limit(100)
+    )
+    query = (
+        select(IncidentActivity, User.username)
+        .outerjoin(User, User.id == IncidentActivity.actor_id)
+        .where(IncidentActivity.incident_id == incident_id)
+    )
+    if cursor is not None:
+        at, identity = _parse_cursor(cursor, incident_id)
+        query = query.where(
+            tuple_(IncidentActivity.created_at, IncidentActivity.id) < tuple_(at, identity)
+        )
+    rows = db.execute(
+        query.order_by(IncidentActivity.created_at.desc(), IncidentActivity.id.desc()).limit(
+            limit + 1
+        )
     ).all()
+    items = [_activity_view(row, name) for row, name in rows[:limit]]
+    return ActivityPage(
+        items=items,
+        total=total,
+        next_cursor=_cursor(incident_id, rows[limit - 1][0]) if len(rows) > limit else None,
+    )
+
+
+@router.get(
+    "/{incident_id}/handoff/preview",
+    operation_id="preview_incident_handoff",
+    response_model=HandoffPreview,
+    dependencies=[Depends(current_session)],
+)
+def preview(
+    incident_id: UUID,
+    resolution_id: UUID | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    return _preview(db, incident_id, resolution_id)
 
 
 @router.get(
@@ -181,19 +285,9 @@ def handoff(
     resolution_id: UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    if resolution_id:
-        row = db.get(IncidentActivity, resolution_id)
-        if not row or row.incident_id != incident_id or row.kind != "resolve" or not row.snapshot:
-            raise DomainError(
-                404, "resolution_not_found", "Saved resolution not found for this incident."
-            )
-        data = row.snapshot
-    else:
-        data = handoff_data(db, incident_id)
-    content = json.dumps(data, ensure_ascii=False, indent=2)
-    fence = "`" * max(3, 1 + max((len(m) for m in re.findall(r"`+", content)), default=0))
+    result = _preview(db, incident_id, resolution_id)
     return PlainTextResponse(
-        f"# Incident handoff\n\n{fence}json\n{content}\n{fence}\n",
+        result.markdown,
         media_type="text/markdown",
         headers={"Content-Disposition": f'attachment; filename="incident-{incident_id}.md"'},
     )

@@ -208,6 +208,7 @@ def test_resolution_is_immutable_and_does_not_release_unknown_target(permission_
             True,
             {"outcome": "outcome_unknown", "reason": "Controlled lost acknowledgement."},
         )
+        db.add(Job(kind="recovery_execution_v1", subject_id=row.id, state="completed"))
 
     def transition(action):
         return send(
@@ -221,7 +222,7 @@ def test_resolution_is_immutable_and_does_not_release_unknown_target(permission_
         )
 
     assert transition("resolve").status_code == 200
-    activity = send(c, "list_incident_activity", "viewer").json()
+    activity = send(c, "list_incident_activity", "viewer").json()["items"]
     resolution = next(a for a in activity if a["kind"] == "resolve")
     path = f"/api/incidents/{c.consumer.incident_id}/handoff?resolution_id={resolution['id']}"
     saved = c.actors["viewer"].client.get(path).content

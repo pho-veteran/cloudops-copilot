@@ -202,12 +202,9 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
   window.history.replaceState(null, "", `/#/incidents/${id}?run=${run}`);
   const fixture = (r: RequestInfo | URL) => {
     const url = path(r);
-    if (
-      url.endsWith("/plans") ||
-      url.endsWith("/executions") ||
-      url.endsWith("/activity")
-    )
-      return [];
+    if (url.endsWith("/activity")) return { items: [], total: 0, next_cursor: null };
+    if (url.endsWith("/handoff/preview")) return { incident_id: id, resolution_id: null, schema_version: "HandoffSnapshot/v1", snapshot: {}, markdown: "Current handoff" };
+    if (url.endsWith("/plans") || url.endsWith("/executions")) return [];
     if (url === "/api/session" || url === "/api/login") return a;
     if (url.endsWith(`/runs/${run}`))
       return {
@@ -291,8 +288,9 @@ it("discards an expired approval intent and requires a fresh plan read and expli
         review_token: signedInAgain ? "fresh-plan-receipt" : "old-plan-receipt",
       });
     if (url.endsWith("/plans")) return Response.json([plan]);
-    if (url.endsWith("/activity") || url.endsWith("/executions"))
-      return Response.json([]);
+    if (url.endsWith("/activity")) return Response.json({ items: [], total: 0, next_cursor: null });
+    if (url.endsWith("/handoff/preview")) return Response.json({ incident_id: id, resolution_id: null, schema_version: "HandoffSnapshot/v1", snapshot: {}, markdown: "Current handoff" });
+    if (url.endsWith("/executions")) return Response.json([]);
     if (url.endsWith("/runs"))
       return Response.json({ items: [], next_offset: null });
     return Response.json({

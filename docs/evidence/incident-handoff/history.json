@@ -1,0 +1,16 @@
+{
+  "incident_id": "6a471a69-7c26-466c-8176-37d23df718ac",
+  "total": 118,
+  "page_sizes": [
+    25,
+    25,
+    25,
+    25,
+    18
+  ],
+  "unique_rows": 118,
+  "old_resolution_reachable": true,
+  "current_activity_completeness": "complete",
+  "original_human_text_preserved": true,
+  "legacy_export_unchanged": true
+}

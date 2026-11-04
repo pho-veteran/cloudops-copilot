@@ -25,7 +25,7 @@ import { IncidentActivity } from "@/features/incidents/IncidentActivity";
 import { AlertSignal } from "@/features/incidents/AlertSignal";
 import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
-import { buildIncidentHash, incidentReturnHash } from "@/app/routes";
+import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 
 function RequestInvestigation({
   incidentId,
@@ -91,6 +91,7 @@ function RequestInvestigation({
                     incidentId,
                     result.run_id,
                     incidentReturnHash(window.location.hash),
+                    safeRoute(window.location.hash).resolution,
                   );
                 },
               })
@@ -185,10 +186,12 @@ function CancelRun({ incidentId, runId }: { incidentId: string; runId: string })
 export function InvestigationWorkspace({
   id,
   selectedRun,
+  selectedResolution,
   canMutate,
 }: {
   id: string;
   selectedRun: string;
+  selectedResolution: string;
   canMutate: boolean;
 }) {
   const incident = useIncident(id);
@@ -274,7 +277,7 @@ export function InvestigationWorkspace({
                   <li key={r.id}>
                     <a
                       aria-current={r.id === runId ? "page" : undefined}
-                      href={buildIncidentHash(id, r.id, incidentReturnHash(window.location.hash))}
+                      href={buildIncidentHash(id, r.id, incidentReturnHash(window.location.hash), selectedResolution)}
                     >
                       <span>{runStateLabel(r)}</span>
                       <br />
@@ -434,6 +437,10 @@ export function InvestigationWorkspace({
         id={id}
         state={incident.data.state}
         canMutate={canMutate}
+        selectedResolution={selectedResolution}
+        onSelectResolution={(resolution) => {
+          window.location.hash = buildIncidentHash(id, selectedRun, incidentReturnHash(window.location.hash), resolution);
+        }}
       />
       <RecoveryPlans
         id={id}

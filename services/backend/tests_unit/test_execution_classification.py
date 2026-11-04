@@ -16,6 +16,8 @@ from cloudops.features.recovery.classification import BLOCKING, classify
         ("outcome_unknown", True, False, "terminal_unknown_locked"),
         ("outcome_unknown", False, True, "terminal_unknown_released"),
         ("outcome_unknown", False, False, "unrecognized"),
+        ("outcome_unknown", True, True, "unrecognized"),
+        ("manual_intervention", False, True, "unrecognized"),
         ("manual_intervention", False, False, "terminal"),
         ("succeeded", False, False, "terminal"),
         ("manual_intervention", True, False, "unrecognized"),

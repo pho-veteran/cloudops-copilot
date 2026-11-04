@@ -1,0 +1,32 @@
+[
+  {
+    "phase": "baseline API startup before implementation",
+    "observed": "The first lifespan probe attempted to connect before PostgreSQL/schema prerequisites were ready and failed with connection refused.",
+    "resolution": "Completed database bootstrap, then exercised the unchanged API and observed the missing handoff-preview route returning 404. No product request was exercised in the failed startup attempt."
+  },
+  {
+    "phase": "legacy export producer probe",
+    "observed": "The probe compared a raw multiline human note with its JSON-escaped representation in the existing legacy Markdown and failed its assertion.",
+    "resolution": "Retained and reused the original incident/resolution. Verified the unchanged decoded snapshot text and JSON-escaped Markdown representation; did not repeat account, executor-authority or legacy-resolution setup."
+  },
+  {
+    "phase": "initial combined backend suite",
+    "observed": "838 passed, 2 failed: current preview/export contained read-time workload observation timestamps; an existing cancellation regression still accessed the legacy saved-snapshot shape.",
+    "resolution": "Stored-only workload identity replaced the volatile observation projection; the cancellation assertion now reads the versioned snapshot without changing cancellation expectations. The full backend suite subsequently passed 841 tests."
+  },
+  {
+    "phase": "malformed activity cursor",
+    "observed": "A numeric decoded cursor identity produced HTTP 500 in the actual HTTPS API.",
+    "resolution": "Validate decoded field types before UUID conversion. A regression test passes and the actual HTTPS request now returns 422 invalid_cursor."
+  },
+  {
+    "phase": "clipboard transition and browser permissions",
+    "observed": "A delayed old copy completion could announce success after selecting a different report. Separately, the browser clipboard-read helper left write permission denied; this was not an application copy failure.",
+    "resolution": "Content-bound local clipboard feedback passes the failing-before regression. With explicit user approval, temporary clipboard permissions in the disposable lab session proved native structured/current copy byte equality; those grants were removed. Edge profile permissions were never changed."
+  },
+  {
+    "phase": "browser automation probes",
+    "observed": "An early concurrent download wait caused TabBusy and a worker restart; a raw request-interception cleanup raced a late continue; an immediate downloads getter missed a later download.",
+    "resolution": "Actual download capture passes with listener and click inside one tab.run Promise.all. Edge loading/recovery passes with own-tab network latency, removed after the check. Failed probes are not counted as passing runs."
+  }
+]
