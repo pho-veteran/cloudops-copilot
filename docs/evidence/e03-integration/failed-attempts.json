@@ -41,5 +41,20 @@
     "failure": "A root-default Ruff check was used without the repository explicit configuration and was not a valid CI result.",
     "correction": "Used the exact CI --config; only the new probe required formatting. Original executed bytes and equal normalized AST are bound in format-binding.json."
   },
-  "limits": "These are prerequisite/harness failures, not silently discarded product passes. The successful receipts identify exactly what was later exercised."
+  "limits": "These are prerequisite/harness failures, not silently discarded product passes. The successful receipts identify exactly what was later exercised.",
+  "correction_attempts": [
+    {
+      "kind": "worker_prestart_environment_comparison",
+      "receipt": "integration-confirmation-attempt1.json",
+      "result": "Failed safely with recreated worker left stopped because list-order equality rejected equal relevant settings. Inspected same image/D2/delay0 before manual restore; fixed dictionary comparison; complete final driver run passed."
+    },
+    {
+      "kind": "backend_harness_mount",
+      "result": "Initial regression runner omitted /workspace/scripts, causing14 E02 probe setup errors. Restored read-only script mount; all844 cases passed. No product exception was suppressed."
+    },
+    {
+      "kind": "browser_harness",
+      "result": "Relay label-fill returned without changing actual fields; switched to observed actual inputs/native keyboard. Incorrect expected UI labels caused waits to time out after successful resolve/navigation; inspected state before proceeding, with no duplicate transition. Managed cookie-envelope import was refused and replaced by the actual login form. Raw default-tab download was not registered; exact bytes came from a native private-context download with a context-specific directory."
+    }
+  ]
 }

@@ -150,16 +150,21 @@ failures, producer limits and retained-volume cleanup. Run it only against a
 after the local lab above has been bootstrapped, the v2 `demo/checkout` scope
 published with `sync-workloads`, and the API, HTTPS proxy, PostgreSQL, K3s, exactly
 one worker and pinned Alertmanager are running. The lab CA must validate the
-`localhost` hostname. The API and worker must have the same configured J and D,
-each between 2 and 100; the probe reads their effective settings. The project's
-active Job and deferred queues must be empty, and no other process or user may
-submit work while it runs. The script does not use host kubeconfig.
+`localhost` hostname. The API and worker must have the same effective J, D and
+collector delay, with J and D each between 2 and 100; the probe reads their
+effective settings and checks the recreated worker's image and settings. The
+project's active Job and deferred queues must be empty, and no other process or
+user may submit work while it runs. The script does not use host kubeconfig.
+The reserved `cloudops-local` and `cloudops-e01-https` projects are refused.
 
-For example, after the local lab setup above, using the **same** explicit project
-and password:
+For example, export these values **before starting the lab services** and retain
+the same explicit project, password and settings when invoking the probe. The
+default J is 100; this example sets D to 100 and the collector delay to 2 seconds:
 
 ```sh
 export CLOUDOPS_LAB_PROJECT=cloudops-e03-acceptance
+export DEFERRED_RUN_LIMIT=100
+export COLLECTOR_DELAY_SECONDS=2
 uv run --project services/backend python scripts/probe-e03-integration.py \
   --ca tmp/local-https-root.crt --output tmp/e03-integration-receipt.json
 ```
@@ -182,9 +187,10 @@ fills the configured capacities through actual APIs, and cancels selected queued
 Runs through the Operator API. It records actual image metadata, runner commit,
 script SHA-256 (including uncommitted edits), Deployment UID, identifiers and observed
 results in a sanitized receipt, including
-partial results on failure. It attempts to restart the worker if interrupted by an
-ordinary error; inspect `worker_restore` and manually start that project's worker
-if restoration failed. Do not reuse the project for production or unrelated work.
+partial results on failure or interruption. It attempts to restart a stopped worker
+unless its recreated image or environment could not be verified; inspect
+`worker_restore` and manually start that project's worker if needed. Do not reuse
+the project for production or unrelated work.
 After retaining the receipt and inspecting the project, remove only the selected
 disposable project (including its volumes):
 

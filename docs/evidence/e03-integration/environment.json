@@ -1,4 +1,5 @@
 {
+  "scope": "Historical initial acceptance images. The corrected image and complete 68-file source comparisons are recorded separately in runtime-source-binding.json.",
   "versions": {
     "python": "Python 3.13.11",
     "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-1.pgdg12+2)",
@@ -17,7 +18,7 @@
   "core_base": "465dc5ab8d751b799268f0e17b64177076654015",
   "core_program_fingerprint": "d127a0d9dd10049f9421228e10117dda3db21742aa8265fee34ef1d3d76bfda1",
   "limits": [
-    "Runtime application sources unchanged from main465dc5a; probe source binding is separate.",
+    "The historical backend image's 68 Python files retrospectively match base main465dc5a exactly. The original selected 21-file fingerprint alone was not a whole-runtime binding; no build-time revision attestation is claimed.",
     "No live AI, live collection pack, verified application recovery or cloud deployment claim."
   ]
 }

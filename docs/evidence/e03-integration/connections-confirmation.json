@@ -1,0 +1,56 @@
+{
+  "driver": "Interactive controlled direct authenticated v4 batch; not an additional real Alertmanager sender.",
+  "inputs": {
+    "valid": {
+      "status": "firing",
+      "fingerprint": "118ffbf38fcc4228aa6106edee12442b",
+      "startsAt": "2026-11-05T03:59:50.804576+00:00",
+      "labels": {
+        "alertname": "E03BrowserReceiptsb81e0037",
+        "namespace": "demo",
+        "deployment": "checkout",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "e03-private-annotation-must-not-appear"
+      }
+    },
+    "outside": {
+      "status": "firing",
+      "fingerprint": "f6288deed39348b890aa36821a2e72a3",
+      "startsAt": "2026-11-05T03:59:50.804621+00:00",
+      "labels": {
+        "alertname": "E03BrowserOutOfScope72dbe633",
+        "namespace": "kube-system",
+        "deployment": "not-allowed"
+      },
+      "annotations": {
+        "summary": "e03-private-annotation-must-not-appear"
+      }
+    }
+  },
+  "image": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+  "while_provider_down": {
+    "status": 503,
+    "response": {
+      "error": {
+        "code": "intake_retry",
+        "message": "Some alerts were not admitted. Retry the delivery; committed alerts deduplicate."
+      }
+    }
+  },
+  "saved_during_outage": {
+    "status": 200,
+    "sha256": "973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6"
+  },
+  "unchanged_batch_after_restore": {
+    "status": 200,
+    "response": {
+      "delivery_id": "c985cbbe-7422-439b-969c-aa273dc3ff8c",
+      "counts": {
+        "accepted": 1,
+        "duplicate": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,436 @@
+{
+  "browser": "Actual running Microsoft Edge156, separate task-owned relay tab; no profile permission or certificate changes.",
+  "runtime_image": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+  "driver": "Interactive native browser helpers, not a committed replay harness.",
+  "alert_incident": "88cc2812-e12d-4b08-9670-7d74a39c7f0f",
+  "alert_queue": {
+    "url": "http://127.0.0.1:5189/#/queue?search=E03Senderdf4489dd26&origin=alertmanager&anchor_created_at=2026-11-05T03%3A39%3A39.224726Z&anchor_id=9dc723aa-256a-4feb-afd3-e4fc9ac71900",
+    "text": "Synthetic investigation collector · AI diagnosis unavailable · Live manual plans require an enabled scoped target\nNew incident\nPERSISTED APPLICATION DATA\nWork queue\n\nSearch, filter, and prioritize saved incidents in your local workspace.\n\nCurrent work (open and acknowledged)\nAll lifecycle states\nNeeds attention\nAwaiting decision\nVerifying\nBlocked\nResolved\nAll Run states\nQueued\nCollecting\nAnalyzing\nWaiting for quota\nFailed\nInsufficient evidence\nCompleted\nCancelled\nAll execution states\nActive\nOutcome unknown\nUnsupported or ambiguous\nTerminal known\nUse view lifecycle scope\nOpen\nAcknowledged\nResolved\nAll alerts\nFiring\nResolved\nNo alert\nAll origins\nManual\nAlert\nCreated time\nFirst seen\nLast seen\nSeverity (Z→A)\nClear filters\nE03Senderdf4489dd26 · demo/checkout\nIncident: open\nAlert signal: resolved\nSeverity not provided\n\nAlert · 11/5/2026, 10:39:17 AM · First seen 11/5/2026, 10:39:16 AM · Last seen 11/5/2026, 10:43:57 AM\n\nOpened from Alertmanager\n\nRun: insufficient_evidence · 6548e962-6620-4893-ba5f-639fc1750551 · Requested automatically by Alertmanager\n\nRun blockers in history: insufficient evidence\n\nActive or unknown execution: none recorded\n\n88cc2812-e12d-4b08-9670-7d74a39c7f0f\n\nPrevious\nShowing 1–1\nNext\nRefresh new work"
+  },
+  "back_navigation": {
+    "url": "http://127.0.0.1:5189/#/queue?search=E03Senderdf4489dd26&origin=alertmanager&selected=88cc2812-e12d-4b08-9670-7d74a39c7f0f&anchor_created_at=2026-11-05T03%3A39%3A39.224726Z&anchor_id=9dc723aa-256a-4feb-afd3-e4fc9ac71900",
+    "search": "E03Senderdf4489dd26",
+    "origin": "alertmanager",
+    "text": "Synthetic investigation collector · AI diagnosis unavailable · Live manual plans require an enabled scoped target\nNew incident\nPERSISTED APPLICATION DATA\nWork queue\n\nSearch, filter, and prioritize saved incidents in your local workspace.\n\nCurrent work (open and acknowledged)\nAll lifecycle states\nNeeds attention\nAwaiting decision\nVerifying\nBlocked\nResolved\nAll Run states\nQueued\nCollecting\nAnalyzing\nWaiting for quota\nFailed\nInsufficient evidence\nCompleted\nCancelled\nAll execution states\nActive\nOutcome unknown\nUnsupported or ambiguous\nTerminal known\nUse view lifecycle scope\nOpen\nAcknowledged\nResolved\nAll alerts\nFiring\nResolved\nNo alert\nAll origins\nManual\nAlert\nCreated time\nFirst seen\nLast seen\nSeverity (Z→A)\nClear filters\nE03Senderdf4489dd26 · demo/checkout\nIncident: open\nAlert signal: resolved\nSeverity not provided\n\nAlert · 11/5/2026, 10:39:17 AM · First seen 11/5/2026, 10:39:16 AM · Last seen 11/5/2026, 10:43:57 AM\n\nOpened from Alertmanager · Acknowledged by e03-review-op-r1 at 11/5/2026, 10:52:26 AM\n\nRun: insufficient_evidence · 6548e962-6620-4893-ba5f-639fc1750551 · Requested automatically by Alertmanager\n\nRun blockers in history: insufficient evidence\n\nActive or unknown execution: none recorded\n\n88cc2812-e12d-4b08-9670-7d74a39c7f0f\n\nPrevious\nShowing 1–1\nNext\nRefresh new work"
+  },
+  "keyboard_order": [
+    {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "focusVisible": true,
+      "id": "",
+      "name": "Sign out",
+      "outline": "oklab(0.727023 -0.0267209 -0.109874 / 0.5) solid 3px",
+      "tag": "BUTTON"
+    },
+    {
+      "boxShadow": "none",
+      "focusVisible": true,
+      "id": "",
+      "name": "Work queue",
+      "outline": "rgb(119, 169, 237) solid 2px",
+      "tag": "A"
+    },
+    {
+      "boxShadow": "none",
+      "focusVisible": true,
+      "id": "",
+      "name": "Workloads",
+      "outline": "rgb(119, 169, 237) solid 2px",
+      "tag": "A"
+    },
+    {
+      "boxShadow": "none",
+      "focusVisible": true,
+      "id": "",
+      "name": "Connections",
+      "outline": "rgb(119, 169, 237) solid 2px",
+      "tag": "A"
+    },
+    {
+      "boxShadow": "none",
+      "focusVisible": true,
+      "id": "",
+      "name": "Resource reports",
+      "outline": "rgb(119, 169, 237) solid 2px",
+      "tag": "A"
+    },
+    {
+      "boxShadow": "none",
+      "focusVisible": true,
+      "id": "",
+      "name": "Open fixture simulation ↗",
+      "outline": "rgb(119, 169, 237) solid 2px",
+      "tag": "A"
+    },
+    {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0 0 0 / 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "focusVisible": true,
+      "id": "",
+      "name": "New incident",
+      "outline": "oklab(0.727023 -0.0267209 -0.109874 / 0.5) solid 3px",
+      "tag": "BUTTON"
+    }
+  ],
+  "dialog_focus": {
+    "initial": {
+      "dialog": "Start a manual investigation\n\nCreate a saved incident for a configured workload.\n\nThe investigation worker saves labeled synthetic evidence. Live workload observations remain separate; AI diagnosis is unavailable.\n\nConfigured workload\nSelect a workload\ndemo/checkout · live\nPrevious workloads\nNext workloads\nIncident title\nDescription (optional)\nInvestigation question\nTime window\nInvestigate\nLast 15 minutes\nLast 30 minutes (default)\nLast 60 minutes\nCustom interval (up to 60 minutes)\n\nThe server fixes the absolute UTC window when it accepts the request; a retry keeps that window.\n\nCreate incident",
+      "focus": "Close",
+      "focusVisible": true,
+      "outline": "rgb(119, 169, 237) solid 1.6px"
+    },
+    "returned": {
+      "focusVisible": true,
+      "name": "New incident",
+      "outline": "oklab(0.727023 -0.0267209 -0.109874 / 0.5) solid 2.4px"
+    }
+  },
+  "contrast_before": {
+    "chain": [
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "text-sm text-muted",
+        "color": "rgb(29, 34, 42)",
+        "tag": "SPAN"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "foundation-actions",
+        "color": "rgb(233, 237, 243)",
+        "tag": "DIV"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "",
+        "color": "rgb(233, 237, 243)",
+        "tag": "SECTION"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "foundation-main",
+        "color": "rgb(233, 237, 243)",
+        "tag": "MAIN"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "foundation-layout",
+        "color": "rgb(233, 237, 243)",
+        "tag": "DIV"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "foundation-app",
+        "color": "rgb(233, 237, 243)",
+        "tag": "DIV"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "",
+        "color": "rgb(233, 237, 243)",
+        "tag": "DIV"
+      },
+      {
+        "bg": "rgb(16, 18, 22)",
+        "classes": "",
+        "color": "rgb(233, 237, 243)",
+        "tag": "BODY"
+      },
+      {
+        "bg": "rgba(0, 0, 0, 0)",
+        "classes": "dark",
+        "color": "rgb(255, 255, 255)",
+        "tag": "HTML"
+      }
+    ],
+    "text": "Showing 1–25",
+    "theme": "dark"
+  },
+  "contrast_after": {
+    "background": "rgb(16, 18, 22)",
+    "contrast": 7.904087379559823,
+    "font": "12.25px",
+    "foreground": "rgb(160, 169, 183)",
+    "text": "Showing 1–25",
+    "theme": "dark"
+  },
+  "alert_saved_before": {
+    "activity": [
+      {
+        "actor_id": "1332f0ef-17ae-4e51-9ab5-ef6798a6c022",
+        "id": "6e1aa864-ce88-4123-89a6-ba015f633b37",
+        "kind": "resolve",
+        "text": "Stored evidence reviewed; follow-up remains manual and synthetic collection is explicit."
+      },
+      {
+        "actor_id": "1332f0ef-17ae-4e51-9ab5-ef6798a6c022",
+        "id": "5a73d8d4-d1cc-4b3a-b23d-4f44da57c9b1",
+        "kind": "acknowledge",
+        "text": "Acknowledged during the real Alertmanager browser journey."
+      },
+      {
+        "actor_id": "1332f0ef-17ae-4e51-9ab5-ef6798a6c022",
+        "id": "09945753-2db4-4dc9-9073-ff7ad74e02d1",
+        "kind": "note",
+        "text": "Alert browser acceptance: recovered alert signal does not resolve the human incident."
+      }
+    ],
+    "bytes": 3443,
+    "loadedAt": "2026-11-05T03:58:05.841Z",
+    "resolutionId": "6e1aa864-ce88-4123-89a6-ba015f633b37",
+    "sha256": "7a9e6c1fe79139daaf5afe8989299559ed89c7479c9963d3c132d92674719419",
+    "status": 200,
+    "url": "http://127.0.0.1:5189/#/incidents/88cc2812-e12d-4b08-9670-7d74a39c7f0f?resolution=6e1aa864-ce88-4123-89a6-ba015f633b37&return_to=%23%2Fqueue%3Fsearch%3DE03Senderdf4489dd26%26origin%3Dalertmanager%26selected%3D88cc2812-e12d-4b08-9670-7d74a39c7f0f%26anchor_created_at%3D2026-11-05T03%253A39%253A39.224726Z%26anchor_id%3D9dc723aa-256a-4feb-afd3-e4fc9ac71900"
+  },
+  "before_restart": {
+    "alert": {
+      "resolutionId": "6e1aa864-ce88-4123-89a6-ba015f633b37",
+      "savedSha256": "7a9e6c1fe79139daaf5afe8989299559ed89c7479c9963d3c132d92674719419",
+      "selectedSaved": "View saved resolution",
+      "state": "Synthetic investigation collector · AI diagnosis unavailable · Live manual plans require an enabled scoped target\nNew incident\n← Work queue\nINCIDENT · OPEN · ALERTMANAGER · LAB-ALERTMANAGER\nE03Senderdf4489dd26 · demo/checkout\n\ndemo/checkout"
+    },
+    "loadedAt": "2026-11-05T03:59:50.784Z",
+    "manual": {
+      "currentSha256": "9cfdf9c1795e7c4f4211b481125de1e69edd1d950c5faef89d9de81a236c8f67",
+      "evidence": [
+        {
+          "id": "7e1d873d-940c-4d7d-846b-4824553074c3",
+          "run_id": "5f297bde-2470-41e6-a8c9-b9868200c06b",
+          "sha256": "f42d773539d04d66c1555d468f7feb2f0d9d8e32e8b0a97519de0b9b07de9c1e"
+        },
+        {
+          "id": "138920fb-4590-4339-9787-83eb64c57570",
+          "run_id": "b80d2b5c-2f35-49fe-8806-1265ac59ee1c",
+          "sha256": "f42d773539d04d66c1555d468f7feb2f0d9d8e32e8b0a97519de0b9b07de9c1e"
+        }
+      ],
+      "incident": {
+        "alert_signal": "none",
+        "created_at": "2026-11-05T00:21:36.234114Z",
+        "created_by": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+        "description": "Original operator context stays unchanged through attachment, resolution and reopen.",
+        "first_seen_at": null,
+        "id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+        "last_seen_at": null,
+        "origin": {
+          "kind": "operator",
+          "source_id": null
+        },
+        "severity": {
+          "provenance": "not_provided",
+          "value": null
+        },
+        "state": "open",
+        "title": "E03 manual handoff and identity acceptance",
+        "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+      },
+      "retiredDisclosure": [
+        "- Workload status: Retired; retirement reason: replaced",
+        "  This incident remains bound to the recorded workload ID and UID; replacement does not grant authority over another UID."
+      ],
+      "runs": [
+        {
+          "created_at": "2026-11-05T00:21:36.234114+00:00",
+          "finished_at": "2026-11-05T00:21:36.411082+00:00",
+          "id": "5f297bde-2470-41e6-a8c9-b9868200c06b",
+          "origin_kind": "operator",
+          "origin_source_id": null,
+          "outcome_code": null,
+          "question": "Which stored signals require follow-up without confusing alert recovery with incident resolution?",
+          "question_source": "operator",
+          "queue_reason": null,
+          "reason": "Fixture collection saved. Live evidence and AI diagnosis are unavailable; no recovery plan exists.",
+          "requested_by": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "state": "insufficient_evidence",
+          "window_end": "2026-11-05T00:21:36.237406+00:00",
+          "window_source": "preset_15",
+          "window_start": "2026-11-05T00:06:36.237406+00:00"
+        },
+        {
+          "created_at": "2026-11-05T00:29:03.870855+00:00",
+          "finished_at": "2026-11-05T00:29:04.026861+00:00",
+          "id": "b80d2b5c-2f35-49fe-8806-1265ac59ee1c",
+          "origin_kind": "operator",
+          "origin_source_id": null,
+          "outcome_code": null,
+          "question": "Follow up with a separate immutable request; do not rewrite the original question or release the uncertain target.",
+          "question_source": "operator",
+          "queue_reason": null,
+          "reason": "Fixture collection saved. Live evidence and AI diagnosis are unavailable; no recovery plan exists.",
+          "requested_by": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "state": "insufficient_evidence",
+          "window_end": "2026-11-05T00:29:03.874229+00:00",
+          "window_source": "preset_60",
+          "window_start": "2026-11-04T23:29:03.874229+00:00"
+        }
+      ],
+      "savedSha256": "973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6"
+    }
+  },
+  "after_restart": {
+    "alert": {
+      "domSha256": "7a9e6c1fe79139daaf5afe8989299559ed89c7479c9963d3c132d92674719419",
+      "savedSha256": "7a9e6c1fe79139daaf5afe8989299559ed89c7479c9963d3c132d92674719419",
+      "selectedSaved": "View saved resolution"
+    },
+    "loadedAt": "2026-11-05T04:07:08.066Z",
+    "manual": {
+      "currentSha256": "9cfdf9c1795e7c4f4211b481125de1e69edd1d950c5faef89d9de81a236c8f67",
+      "evidence": [
+        {
+          "id": "7e1d873d-940c-4d7d-846b-4824553074c3",
+          "run_id": "5f297bde-2470-41e6-a8c9-b9868200c06b",
+          "sha256": "f42d773539d04d66c1555d468f7feb2f0d9d8e32e8b0a97519de0b9b07de9c1e"
+        },
+        {
+          "id": "138920fb-4590-4339-9787-83eb64c57570",
+          "run_id": "b80d2b5c-2f35-49fe-8806-1265ac59ee1c",
+          "sha256": "f42d773539d04d66c1555d468f7feb2f0d9d8e32e8b0a97519de0b9b07de9c1e"
+        }
+      ],
+      "incident": {
+        "alert_signal": "none",
+        "created_at": "2026-11-05T00:21:36.234114Z",
+        "created_by": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+        "description": "Original operator context stays unchanged through attachment, resolution and reopen.",
+        "first_seen_at": null,
+        "id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+        "last_seen_at": null,
+        "origin": {
+          "kind": "operator",
+          "source_id": null
+        },
+        "severity": {
+          "provenance": "not_provided",
+          "value": null
+        },
+        "state": "open",
+        "title": "E03 manual handoff and identity acceptance",
+        "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+      },
+      "runs": [
+        {
+          "created_at": "2026-11-05T00:21:36.234114+00:00",
+          "finished_at": "2026-11-05T00:21:36.411082+00:00",
+          "id": "5f297bde-2470-41e6-a8c9-b9868200c06b",
+          "origin_kind": "operator",
+          "origin_source_id": null,
+          "outcome_code": null,
+          "question": "Which stored signals require follow-up without confusing alert recovery with incident resolution?",
+          "question_source": "operator",
+          "queue_reason": null,
+          "reason": "Fixture collection saved. Live evidence and AI diagnosis are unavailable; no recovery plan exists.",
+          "requested_by": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "state": "insufficient_evidence",
+          "window_end": "2026-11-05T00:21:36.237406+00:00",
+          "window_source": "preset_15",
+          "window_start": "2026-11-05T00:06:36.237406+00:00"
+        },
+        {
+          "created_at": "2026-11-05T00:29:03.870855+00:00",
+          "finished_at": "2026-11-05T00:29:04.026861+00:00",
+          "id": "b80d2b5c-2f35-49fe-8806-1265ac59ee1c",
+          "origin_kind": "operator",
+          "origin_source_id": null,
+          "outcome_code": null,
+          "question": "Follow up with a separate immutable request; do not rewrite the original question or release the uncertain target.",
+          "question_source": "operator",
+          "queue_reason": null,
+          "reason": "Fixture collection saved. Live evidence and AI diagnosis are unavailable; no recovery plan exists.",
+          "requested_by": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "state": "insufficient_evidence",
+          "window_end": "2026-11-05T00:29:03.874229+00:00",
+          "window_source": "preset_60",
+          "window_start": "2026-11-04T23:29:03.874229+00:00"
+        }
+      ],
+      "savedSha256": "973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6"
+    },
+    "url": "http://127.0.0.1:5189/#/incidents/88cc2812-e12d-4b08-9670-7d74a39c7f0f?resolution=6e1aa864-ce88-4123-89a6-ba015f633b37&return_to=%23%2Fqueue%3Fsearch%3DE03Senderdf4489dd26%26origin%3Dalertmanager%26selected%3D88cc2812-e12d-4b08-9670-7d74a39c7f0f%26anchor_created_at%3D2026-11-05T03%253A39%253A39.224726Z%26anchor_id%3D9dc723aa-256a-4feb-afd3-e4fc9ac71900"
+  },
+  "connections": {
+    "observedAt": "2026-11-05T04:03:44.638Z",
+    "receipts": [
+      {
+        "alert_status": "firing",
+        "alertname": "E03BrowserOutOfScope72dbe633",
+        "delivery_id": "c985cbbe-7422-439b-969c-aa273dc3ff8c",
+        "fingerprint": "f6288deed39348b890aa36821a2e72a3",
+        "id": "71fe3257-ee44-405e-ab52-29c10796dc63",
+        "incident_id": null,
+        "namespace": "kube-system",
+        "outcome": "duplicate",
+        "reason": "out_of_scope",
+        "received_at": "2026-11-05T04:00:00.672803Z",
+        "run_id": null,
+        "source_id": "lab-alertmanager",
+        "target_kind": "deployment",
+        "target_name": "not-allowed",
+        "workload_id": null
+      },
+      {
+        "alert_status": "firing",
+        "alertname": "E03BrowserReceiptsb81e0037",
+        "delivery_id": "c985cbbe-7422-439b-969c-aa273dc3ff8c",
+        "fingerprint": "118ffbf38fcc4228aa6106edee12442b",
+        "id": "6d34036c-2ea0-4a9d-88b2-f73a823ff0d2",
+        "incident_id": "47c7341b-ec28-49ec-810d-efed065cdaf3",
+        "namespace": "demo",
+        "outcome": "accepted",
+        "reason": null,
+        "received_at": "2026-11-05T04:00:00.656047Z",
+        "run_id": "e57ede07-47e7-4975-9bd7-62337ffbaf98",
+        "source_id": "lab-alertmanager",
+        "target_kind": "deployment",
+        "target_name": "checkout",
+        "workload_id": "868aaac9-8b10-46a5-953a-e4c0da286360"
+      },
+      {
+        "alert_status": "firing",
+        "alertname": "E03BrowserOutOfScope72dbe633",
+        "delivery_id": "6a61b745-ac00-4daf-8f3d-7e7a6dcce008",
+        "fingerprint": "f6288deed39348b890aa36821a2e72a3",
+        "id": "5099322d-b84c-4e56-a0af-ffa04e7102cd",
+        "incident_id": null,
+        "namespace": "kube-system",
+        "outcome": "rejected",
+        "reason": "out_of_scope",
+        "received_at": "2026-11-05T03:59:53.402297Z",
+        "run_id": null,
+        "source_id": "lab-alertmanager",
+        "target_kind": "deployment",
+        "target_name": "not-allowed",
+        "workload_id": null
+      },
+      {
+        "alert_status": "firing",
+        "alertname": "E03BrowserReceiptsb81e0037",
+        "delivery_id": "6a61b745-ac00-4daf-8f3d-7e7a6dcce008",
+        "fingerprint": "118ffbf38fcc4228aa6106edee12442b",
+        "id": "44e6ec7d-08b6-41b4-ae63-7742cf7c90d0",
+        "incident_id": null,
+        "namespace": "demo",
+        "outcome": "retryable",
+        "reason": "cluster_unavailable",
+        "received_at": "2026-11-05T03:59:53.398216Z",
+        "run_id": null,
+        "source_id": "lab-alertmanager",
+        "target_kind": "deployment",
+        "target_name": "checkout",
+        "workload_id": null
+      }
+    ],
+    "redacted": true,
+    "text": "Synthetic investigation collector · AI diagnosis unavailable · Live manual plans require an enabled scoped target\nNew incident\nLOCAL OPERATING STATUS\nConnections\n\nA fresh worker heartbeat describes the local process. Fixture availability does not establish live source health. Collector availability describes the configured adapter; inspect investigation attempts for collection results.\n\nCheck cluster connection\nCheck database connection\nCheck worker connection\navailable\ndatabase\n\nConnected to the application database.\n\nSource: runtime\n\nObserved: 11/5/2026, 11:03:40 AM\n\nLast success: 11/5/2026, 11:03:40 AM\n\navailable\nworker\n\nCollection worker heartbeat is fresh.\n\nSource: runtime\n\nObserved: 11/5/2026, 11:03:40 AM\n\nLast success: 11/5/2026, 11:03:39 AM\n\navailable\ncollector\n\nSynthetic collector adapter configured; availability does not indicate collection success. Inspect investigation attempts for results. This collector has no live Kubernetes/Prometheus telemetry pack; separate lab reads/checks do not change its evidence source.\n\nSource: development fixture\n\nObserved: 11/5/2026, 11:03:40 AM\n\nLast success: Unavailable\n\nunavailable\ndiagnosis\n\nAI diagnosis is unavailable until E06.\n\nSource: unimplemented\n\nObserved: 11/5/2026, 11:03:40 AM\n\nLast success: Unavailable\n\nunavailable\nexecutor\n\nExecutor target authority is unavailable or quarantined. Use trusted deployment maintenance, not application credentials.\n\nSource: live gateway\n\nObserved: 11/5/2026, 11:03:40 AM\n\nLast success: Unavailable\n\nAlert intake\n\nOutcomes of authenticated Alertmanager deliveries, newest first. Unauthenticated or malformed deliveries are refused without being recorded. Intake never calls a model.\n\nIntake configured · source lab-alertmanager\n\nRefresh receipts\nDuplicate E03BrowserOutOfScope72dbe633 firing · kube-system/not-allowed (deployment)\n11/5/2026, 11:00:00 AM\n\nThe workload is not in the configured scope.\n\nAccepted E03BrowserReceiptsb81e0037 firing · demo/checkout (deployment)\n11/5/2026, 11:00:00 AMOpen incident\nRejected E03BrowserOutOfScope72dbe633 firing · kube-system/not-allowed (deployment)\n11/5/2026, 10:59:53 AM\n\nThe workload is not in the configured scope.\n\nRetry pending E03BrowserReceiptsb81e0037 firing · demo/checkout (deployment)\n11/5/2026, 10:59:53 AM\n\nThe scoped cluster read failed; Alertmanager will retry.\n\nAlert resolved E03Senderdf4489dd26 resolved · demo/checkout (deployment)\n11/5/2026, 10:44:17 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:43:57 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:43:37 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:43:17 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:42:57 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:42:37 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:42:17 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:41:57 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:41:37 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:41:17 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:40:57 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:40:37 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:40:17 AMOpen incident\nDuplicate E03Senderdf4489dd26 firing · demo/checkout (deployment)\n11/5/2026, 10:39:57 AMOpen incident\nDuplicate E03Overflow5cd0399d89 firing · demo/checkout (deployment)\n11/5/2026, 10:39:39 AMOpen incident\nDuplicate E03OutOfScope7593324fe4 firing · demo/not-configured-e03 (deployment)\n11/5/2026, 10:39:39 AM\n\nThe workload is not in the configured scope.\n\nDuplicate E03Deferredf951f5c6e08c firing · demo/checkout (deployment)\n11/5/2026, 10:39:39 AMOpen incident\nAccepted · waiting for capacity E03Overflow5cd0399d89 firing · demo/checkout (deployment)\n11/5/2026, 10:39:39 AMOpen incident\nDuplicate E03OutOfScope7593324fe4 firing · demo/not-configured-e03 (deployment)\n11/5/2026, 10:39:39 AM\n\nThe workload is not in the configured scope.\n\nDuplicate E03Deferredf951f5c6e08c firing · demo/checkout (deployment)\n11/5/2026, 10:39:39 AMOpen incident\nRetry pending E03Overflow5cd0399d89 firing · demo/checkout (deployment)\n11/5/2026, 10:39:38 AM\n\nInvestigation capacity is full; Alertmanager will retry.\n\nLoad older receipts",
+    "url": "http://127.0.0.1:5189/#/connections"
+  },
+  "checks": {
+    "alert_note_ack_resolve_explicit_reopen": true,
+    "alert_saved_export_and_selected_dom_equal_before_after_reopen_and_restart": true,
+    "manual_original_attached_run_and_evidence_ids_exact_before_after_restart": true,
+    "original_manual_saved_v2_export_unchanged": true,
+    "private_annotation_absent_from_connections": true
+  },
+  "limits": [
+    "Focus visibility is native Edge :focus-visible plus computed nonzero outline evidence, not a relay screenshot claim.",
+    "Connections browser readback includes controlled direct-v4 partial/transient receipts; the incident lifecycle journey is from the actual pinned Alertmanager sender."
+  ]
+}

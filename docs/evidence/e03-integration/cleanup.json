@@ -20,5 +20,66 @@
   "volume_policy": "Retained intentionally for audit/reconciliation, including application history, K3s identity and executor authority. No unknown lock was released and no authority journal was deleted to enable writes.",
   "probe_cleanup": "Only probe-created secondary sender containers/configuration removed; worker restored before final stop.",
   "browser_cleanup": "Owned lab sessions signed out and owned tabs released; temporary private clipboard contexts disposed and grants removed. Unrelated Edge tabs and Edge permission/certificate settings untouched.",
-  "unrelated_resources": "No synapse-* container or unrelated host Kubernetes context was changed."
+  "unrelated_resources": "No synapse-* container or unrelated host Kubernetes context was changed.",
+  "retained_disposable_accounts": {
+    "scope": "Owned cloudops-issue39-live database only; fixture accounts are retained with the audit history, not removed or reused as real accounts. Includes failed/interrupted probe attempts and native-browser Operator/Viewer. No credentials are recorded.",
+    "accounts": [
+      {
+        "id": "ad1fa06d-7123-4181-b598-b7a970355a29",
+        "username": "e03probe-2085e0635860",
+        "role": "operator"
+      },
+      {
+        "id": "7fa6971d-b959-4349-b422-0821099d3bf7",
+        "username": "e03probe-902a0a61c632",
+        "role": "operator"
+      },
+      {
+        "id": "84efb82c-7a8a-4cd2-9839-0595aa543cc6",
+        "username": "e03probe-bf0cd2792f0d",
+        "role": "operator"
+      },
+      {
+        "id": "46ee1152-5148-4094-90f9-b004fddd4903",
+        "username": "e03probe-d6b9c40f5d40",
+        "role": "operator"
+      },
+      {
+        "id": "a3f8ef4d-9317-49ee-a22f-ca3dc8c75ec5",
+        "username": "e03probe-f86faa8cf48f",
+        "role": "operator"
+      },
+      {
+        "id": "1332f0ef-17ae-4e51-9ab5-ef6798a6c022",
+        "username": "e03-review-op-r1",
+        "role": "operator"
+      },
+      {
+        "id": "c3832d87-6b35-44d8-80e8-88e34582d650",
+        "username": "intake36-operator",
+        "role": "operator"
+      },
+      {
+        "id": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+        "username": "operator",
+        "role": "operator"
+      },
+      {
+        "id": "e2270f52-4d2f-42f3-a7d3-78adfea2d215",
+        "username": "viewer",
+        "role": "viewer"
+      }
+    ]
+  },
+  "correction_cleanup": {
+    "all_owned_compose_and_browser_api_services_stopped": true,
+    "active_jobs_before_stop": 0,
+    "deferred_runs_before_stop": 0,
+    "dedicated_test_database_removed": "cloudops_ci39_r1_test",
+    "disposable_accounts_retained": 9,
+    "native_and_managed_fixture_sessions_signed_out": true,
+    "task_browser_tabs_released": 2,
+    "temporary_clipboard_and_download_contexts_disposed": true,
+    "authority_boundary": "No executor restart, new-UID authority, unknown replay or unknown unlock during corrections. Original application/K3s/authority volumes retained."
+  }
 }

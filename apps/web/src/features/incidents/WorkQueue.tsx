@@ -432,7 +432,7 @@ export function WorkQueue() {
                   Previous
                 </Button>
                 {query.data.items.length > 0 && (
-                  <span className="text-sm text-muted">
+                  <span className="text-sm text-muted-foreground">
                     Showing {(params.offset ?? 0) + 1}–
                     {(params.offset ?? 0) + query.data.items.length}
                   </span>

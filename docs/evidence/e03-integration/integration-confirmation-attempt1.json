@@ -1,0 +1,284 @@
+{
+  "project": "cloudops-issue39-live",
+  "checks": {
+    "wrong_auth_no_database_writes": {
+      "http_status": 401,
+      "before": {
+        "episodes": 14,
+        "receipts": 118,
+        "incidents": 113,
+        "runs": 114,
+        "jobs": 115
+      }
+    },
+    "two_real_concurrent_senders": {
+      "sender_container_ids": [
+        "a9b9b11a065b194843e86dced619346ac98a28e86d49a910714ab1394583dee3",
+        "60f93528c2842cc37352b37b0f9c73278ca3f8a637353d9d201566bea1e1ec5e"
+      ],
+      "metrics": [
+        {
+          "alertmanager_notifications_total": 1.0,
+          "alertmanager_notifications_failed_total": 0.0
+        },
+        {
+          "alertmanager_notifications_total": 1.0,
+          "alertmanager_notifications_failed_total": 0.0
+        }
+      ],
+      "deliveries": [
+        {
+          "id": "2dcc5496-02c0-4195-a14a-de6fce2827c9",
+          "delivery_id": "7bfa4872-c798-4e8f-ba9a-c5c1af3444d1",
+          "received_at": "2026-11-05T03:32:57.319250Z",
+          "source_id": "lab-alertmanager",
+          "alert_status": "firing",
+          "fingerprint": "7d51976363e56dde",
+          "alertname": "E03RealConcurrentd0fc4a06c2c8",
+          "namespace": "demo",
+          "target_kind": "deployment",
+          "target_name": "checkout",
+          "outcome": "duplicate",
+          "reason": null,
+          "incident_id": "8ad89d0f-7c83-4692-a7cd-2bde2595b49c",
+          "run_id": "8216d582-7cce-4ea9-8cc4-3ad3ff5fbc40",
+          "workload_id": "868aaac9-8b10-46a5-953a-e4c0da286360"
+        },
+        {
+          "id": "2c206973-1594-4477-9134-29b65bed3370",
+          "delivery_id": "feae26f3-45f6-49c5-93ee-bee4d6b101fe",
+          "received_at": "2026-11-05T03:32:57.295161Z",
+          "source_id": "lab-alertmanager",
+          "alert_status": "firing",
+          "fingerprint": "7d51976363e56dde",
+          "alertname": "E03RealConcurrentd0fc4a06c2c8",
+          "namespace": "demo",
+          "target_kind": "deployment",
+          "target_name": "checkout",
+          "outcome": "accepted",
+          "reason": null,
+          "incident_id": "8ad89d0f-7c83-4692-a7cd-2bde2595b49c",
+          "run_id": "8216d582-7cce-4ea9-8cc4-3ad3ff5fbc40",
+          "workload_id": "868aaac9-8b10-46a5-953a-e4c0da286360"
+        }
+      ],
+      "episode": {
+        "episodes": 1,
+        "uid": "368bc881-8abb-44c8-824b-f758c5af6c7c",
+        "incidents": 1,
+        "runs": 1,
+        "initial_runs": 1
+      }
+    },
+    "direct_concurrent_and_new_episode": {
+      "concurrent_outcomes": [
+        [
+          200,
+          {
+            "duplicate": 1
+          }
+        ],
+        [
+          200,
+          {
+            "accepted": 1
+          }
+        ],
+        [
+          200,
+          {
+            "duplicate": 1
+          }
+        ],
+        [
+          200,
+          {
+            "duplicate": 1
+          }
+        ]
+      ],
+      "first": "27dbfad5-ca7a-40bb-bd2f-9207c8059eb1",
+      "second": "34431129-82b3-4b81-89f5-bdf92472f992",
+      "persisted": {
+        "episodes": 2,
+        "incidents": 2,
+        "runs": 2
+      }
+    },
+    "real_sender_repeat_uid_binding": {
+      "incident_id": "a503e658-4659-4819-9471-ac84533384a5",
+      "run_id": "d8e6fe3a-5ba5-4e11-aa91-e15dced7d5b2",
+      "episode": {
+        "count": 1,
+        "uid": "368bc881-8abb-44c8-824b-f758c5af6c7c",
+        "runs": 1
+      }
+    },
+    "mixed_batch_saturated": {
+      "http_status": 503,
+      "duplicate_run": "bf6d81e5-77bf-48b9-8963-dd08e6d1c41e",
+      "rejected_reason": "out_of_scope",
+      "retry_reason": "capacity_exhausted",
+      "overflow_episodes": 0
+    },
+    "retry_once": {
+      "incident_id": "b24ce1d5-2733-4e55-8474-10276d0698ea",
+      "run_id": "c27b0605-2085-4325-86ba-db9e76feacbe"
+    }
+  },
+  "steps": [
+    {
+      "step": "concurrent_sender_input",
+      "labels": {
+        "alertname": "E03RealConcurrentd0fc4a06c2c8",
+        "namespace": "demo",
+        "deployment": "checkout"
+      },
+      "starts_at": "2026-11-05T03:32:27Z",
+      "sender_container_ids": [
+        "a9b9b11a065b194843e86dced619346ac98a28e86d49a910714ab1394583dee3",
+        "60f93528c2842cc37352b37b0f9c73278ca3f8a637353d9d201566bea1e1ec5e"
+      ]
+    },
+    {
+      "step": "real_deferred_reservations",
+      "runs": [
+        "bf6d81e5-77bf-48b9-8963-dd08e6d1c41e",
+        "86f29494-4532-4f65-a220-70d6c7e4c54f"
+      ]
+    }
+  ],
+  "status": "failed",
+  "limits": [
+    "Collection is synthetic; no live AI or remediation is asserted.",
+    "Direct v4 deliveries are labeled separately from the real Alertmanager sender.",
+    "No fairness is claimed under continuous competing admissions.",
+    "Lifecycle/claim/callback races require separate acceptance evidence."
+  ],
+  "runner_commit": "b2a039f2e0809cce0d716964823fbdb862ad3f49",
+  "runner_script_sha256": "02bb59b88e85e1b16db87326cbeca48bbd58b8ce9f5c5ca7219108dbcde4618e",
+  "runtime_images": [
+    {
+      "ID": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "ContainerName": "cloudops-issue39-live-k3s-1",
+      "Repository": "rancher/k3s",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 378067427,
+      "Created": "2026-09-30T16:10:12.488362139Z",
+      "LastTagTime": "2026-11-03T16:18:09.384732978Z"
+    },
+    {
+      "ID": "sha256:abf8a7fbdb60ecfe2c3ffcd6f88eddf536bdf87ef31a4bbc3193e85fac1520d8",
+      "ContainerName": "cloudops-issue39-live-https-1",
+      "Repository": "cloudops-local-https",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 83975076,
+      "Created": "2026-11-04T22:50:25.793912635+07:00",
+      "LastTagTime": "2026-11-04T16:33:53.030898839Z"
+    },
+    {
+      "ID": "sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+      "ContainerName": "cloudops-issue39-live-alertmanager-1",
+      "Repository": "prom/alertmanager",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 124714093,
+      "Created": "2026-10-29T09:57:45.314667954Z",
+      "LastTagTime": "2026-11-03T16:21:03.451790885Z"
+    },
+    {
+      "ID": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+      "ContainerName": "cloudops-issue39-live-migrate-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378881700,
+      "Created": "2026-11-05T10:30:00.004191861+07:00",
+      "LastTagTime": "2026-11-05T03:30:00.244973522Z"
+    },
+    {
+      "ID": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+      "ContainerName": "cloudops-issue39-live-api-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378881700,
+      "Created": "2026-11-05T10:30:00.004191861+07:00",
+      "LastTagTime": "2026-11-05T03:30:00.244973522Z"
+    },
+    {
+      "ID": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+      "ContainerName": "cloudops-issue39-live-worker-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378881700,
+      "Created": "2026-11-05T10:30:00.004191861+07:00",
+      "LastTagTime": "2026-11-05T03:30:00.244973522Z"
+    },
+    {
+      "ID": "sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
+      "ContainerName": "cloudops-issue39-live-db-1",
+      "Repository": "postgres",
+      "Tag": "17.11-bookworm",
+      "Platform": "linux/amd64",
+      "Size": 619679410,
+      "Created": "2026-10-28T01:31:24.32855846Z",
+      "LastTagTime": "2026-11-03T16:20:15.268058291Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-executor-1",
+      "Repository": "",
+      "Tag": "",
+      "Platform": "unknown",
+      "Size": 0
+    },
+    {
+      "ID": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+      "ContainerName": "cloudops-issue39-live-api-run-b2163752d2b9",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378881700,
+      "Created": "2026-11-05T10:30:00.004191861+07:00",
+      "LastTagTime": "2026-11-05T03:30:00.244973522Z"
+    },
+    {
+      "ID": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+      "ContainerName": "cloudops-issue39-review-browser-api",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378881700,
+      "Created": "2026-11-05T10:30:00.004191861+07:00",
+      "LastTagTime": "2026-11-05T03:30:00.244973522Z"
+    }
+  ],
+  "sender_image": {
+    "reference": "prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+    "image_id": "sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b"
+  },
+  "sender_version": "alertmanager, version 0.34.2 (branch: HEAD, revision: e8349048265ccc0871c3d0d668b05eacc68baf50)",
+  "capacity": {
+    "J": 100,
+    "D": 2,
+    "collector_delay_seconds": 0.0
+  },
+  "deployment": {
+    "cluster": "local-k3s",
+    "namespace": "demo",
+    "name": "checkout",
+    "uid": "368bc881-8abb-44c8-824b-f758c5af6c7c"
+  },
+  "worker_recreation_images": {
+    "old_image_id": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+    "new_image_id": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8"
+  },
+  "failure_type": "RuntimeError",
+  "failure": "Recreated worker environment differs from the original",
+  "sender_cleanup": "removed only probe-created sender containers and configuration",
+  "worker_restore": "not started; recreated worker identity or configuration unverified"
+}

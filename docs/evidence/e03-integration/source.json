@@ -1,4 +1,5 @@
 {
+  "scope": "Historical initial acceptance before R1 corrections. This 21-file manifest is not a whole-image fingerprint; complete historical/corrective image comparisons and sender-commit explanation are in runtime-source-binding.json.",
   "base": "465dc5ab8d751b799268f0e17b64177076654015",
   "preparation_head": "f0b69bae168e3f40d700bf20297b6beb910248d5",
   "core_fingerprint_algorithm": "SHA-256 of canonical JSON mapping listed program/test/contract paths to SHA-256 file digests",
@@ -31,10 +32,10 @@
     "final_script_sha256": "87d23f64b4131091b2066d54f5f56ade48477f7f086d1996e526d4341013ce0a",
     "normalized_ast_sha256": "3b3d563d5c6476ad2d7f919cfb63ebb0a25282e072bc131e7b4b2489d9b56186",
     "ast_equal": true,
-    "change": "Only Ruff formatting under the exact repository CI configuration after the full probe; original exercised bytes preserved privately. Runtime feature sources unchanged from independently approved c8fbbad/main465dc5a."
+    "change": "Historical initial CI-only Ruff formatting after the original full probe; original exercised bytes preserved privately. Backend/frontend source trees at that stage equal main465dc5a; see runtime-source-binding.json rather than inferring whole-image identity from this selected manifest."
   },
   "notes": [
     "Full probe recorded exact uncommitted metadata-enhanced script SHA; its bytes were preserved before final CI-only formatting.",
-    "All product core sources are unchanged from main465dc5a; new code is the bounded acceptance CLI, not a backend/runtime feature claim."
+    "The initial product source matched main465dc5a. Later R1 corrections add current-renderer retirement disclosure and queue contrast; those exercised source/image bindings are recorded separately, not folded into this historical fingerprint."
   ]
 }

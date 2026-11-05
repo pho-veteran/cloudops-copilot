@@ -16,7 +16,7 @@ import subprocess
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 
@@ -36,8 +36,21 @@ def command(*args, body=None):
     return result.stdout.strip()
 
 
+def sql_uuid(value):
+    try:
+        return str(UUID(value))
+    except (ValueError, TypeError, AttributeError):
+        raise RuntimeError("Invalid UUID in probe query") from None
+
+
+def sql_fingerprint(value):
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]+", value):
+        raise RuntimeError("Invalid fingerprint in probe query")
+    return value
+
+
 def db(query):
-    # The probe only reads persistence; values in these fixed queries are generated UUIDs.
+    # Queries only read persistence; dynamic identifiers must be validated before interpolation.
     output = command(
         "exec",
         "-T",
@@ -70,7 +83,7 @@ def run_data(run_id):
         "'created_at',r.created_at,'jobs',COALESCE((SELECT json_agg(json_build_object("
         "'id',j.id,'state',j.state,'attempts',j.attempts,'created_at',j.created_at) "
         "ORDER BY j.created_at,j.id) FROM jobs j WHERE j.kind='development_collection_v1' "
-        f"AND j.subject_id=r.id),'[]'::json)) FROM investigation_runs r WHERE r.id='{run_id}'"
+        f"AND j.subject_id=r.id),'[]'::json)) FROM investigation_runs r WHERE r.id='{sql_uuid(run_id)}'"
     )
 
 
@@ -230,8 +243,8 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
     persisted = db(
         "SELECT json_build_object('episodes',count(*),'uid',min(workload_uid),"
         "'incidents',count(DISTINCT incident_id),'runs',count(DISTINCT run_id),"
-        f"'initial_runs',(SELECT count(*) FROM investigation_runs WHERE incident_id='{row['incident_id']}')) "
-        f"FROM alert_episodes WHERE fingerprint='{row['fingerprint']}'"
+        f"'initial_runs',(SELECT count(*) FROM investigation_runs WHERE incident_id='{sql_uuid(row['incident_id'])}')) "
+        f"FROM alert_episodes WHERE fingerprint='{sql_fingerprint(row['fingerprint'])}'"
     )
     if persisted != {
         "episodes": 1,
@@ -310,7 +323,7 @@ def replace_owned_checkout(api, send, first, original, receipt):
         "SELECT json_build_object('id',e.id,'uid',e.workload_uid,'workload_id',e.workload_id,"
         "'incident_id',e.incident_id,'run_id',e.run_id,'fingerprint',e.fingerprint,"
         "'starts_at_key',e.starts_at_key) FROM alert_episodes e "
-        f"WHERE e.incident_id='{first['incident_id']}'"
+        f"WHERE e.incident_id='{sql_uuid(first['incident_id'])}'"
     )
     if old["uid"] != uid or old["run_id"] != first["run_id"]:
         raise RuntimeError("Replacement refused: original episode binding changed")
@@ -321,7 +334,7 @@ def replace_owned_checkout(api, send, first, original, receipt):
             "'workload_id',workload_id,'state',state,'holds_lock',holds_lock,"
             "'maintenance_released',maintenance_released,'result_hash',md5(result::text)) "
             "ORDER BY id),'[]'::json) FROM recovery_executions "
-            f"WHERE workload_id='{old['workload_id']}' AND state='outcome_unknown'"
+            f"WHERE workload_id='{sql_uuid(old['workload_id'])}' AND state='outcome_unknown'"
         )
 
     retained_before = unknowns()
@@ -449,7 +462,7 @@ def replace_owned_checkout(api, send, first, original, receipt):
         "SELECT COALESCE(json_agg(json_build_object('id',id,'uid',workload_uid,"
         "'workload_id',workload_id,'incident_id',incident_id,'run_id',run_id,"
         "'starts_at_key',starts_at_key) ORDER BY starts_at_key),'[]'::json) "
-        f"FROM alert_episodes WHERE fingerprint='{old['fingerprint']}'"
+        f"FROM alert_episodes WHERE fingerprint='{sql_fingerprint(old['fingerprint'])}'"
     )
     preserved = [row for row in bindings if row["id"] == old["id"]]
     newer = [row for row in bindings if row["id"] != old["id"] and row["uid"] == new_uid]
@@ -488,8 +501,10 @@ def main():
     )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    if not os.environ.get("CLOUDOPS_LAB_PROJECT") or not re.fullmatch(
-        r"cloudops-[a-z0-9][a-z0-9_-]*", PROJECT
+    if (
+        not os.environ.get("CLOUDOPS_LAB_PROJECT")
+        or not re.fullmatch(r"cloudops-[a-z0-9][a-z0-9_-]*", PROJECT)
+        or PROJECT in {"cloudops-local", "cloudops-e01-https"}
     ):
         raise RuntimeError(
             "Explicitly set CLOUDOPS_LAB_PROJECT to a disposable cloudops-* Compose project"
@@ -511,6 +526,7 @@ def main():
     worker_stopped = False
     worker_initially_running = False
     owned_containers = []
+    worker_restore_allowed = True
     owned_files = []
     try:
         receipt["runner_commit"] = subprocess.check_output(
@@ -565,7 +581,8 @@ def main():
                     "-c",
                     "import json; from cloudops.shared.config import settings; "
                     "from cloudops.features.investigations.admission_settings import deferred_run_limit; "
-                    "print(json.dumps({'J':settings().queue_limit,'D':deferred_run_limit()}))",
+                    "print(json.dumps({'J':settings().queue_limit,'D':deferred_run_limit(),"
+                    "'collector_delay_seconds':settings().collector_delay_seconds}))",
                 )
             )
 
@@ -721,7 +738,7 @@ def main():
             concurrent_rows = db(
                 "SELECT json_build_object('episodes',count(*),'uid',min(workload_uid),"
                 "'incidents',count(DISTINCT incident_id),'runs',count(DISTINCT run_id)) "
-                f"FROM alert_episodes WHERE fingerprint='{concurrent_entry['fingerprint']}'"
+                f"FROM alert_episodes WHERE fingerprint='{sql_fingerprint(concurrent_entry['fingerprint'])}'"
             )
             if concurrent_rows != {
                 "episodes": 1,
@@ -741,7 +758,7 @@ def main():
             newer_rows = db(
                 "SELECT json_build_object('episodes',count(*),'incidents',count(DISTINCT incident_id),"
                 "'runs',count(DISTINCT run_id)) FROM alert_episodes "
-                f"WHERE fingerprint='{concurrent_entry['fingerprint']}'"
+                f"WHERE fingerprint='{sql_fingerprint(concurrent_entry['fingerprint'])}'"
             )
             if newer_rows != {"episodes": 2, "incidents": 2, "runs": 2}:
                 raise RuntimeError("Distinct episode starts did not preserve separate work")
@@ -787,7 +804,7 @@ def main():
             episode = db(
                 "SELECT json_build_object('count',count(*),'uid',min(workload_uid),"
                 "'runs',(SELECT count(*) FROM investigation_runs WHERE incident_id="
-                f"'{first['incident_id']}')) FROM alert_episodes WHERE incident_id='{first['incident_id']}'"
+                f"'{sql_uuid(first['incident_id'])}')) FROM alert_episodes WHERE incident_id='{sql_uuid(first['incident_id'])}'"
             )
             if episode != {"count": 1, "uid": uid, "runs": 1}:
                 raise RuntimeError(
@@ -874,7 +891,7 @@ def main():
                     "Saturated mixed batch created partial incident, Run or Job rows"
                 )
             absent = db(
-                f"SELECT json_build_object('episodes',count(*)) FROM alert_episodes WHERE fingerprint='{overflow['fingerprint']}'"
+                f"SELECT json_build_object('episodes',count(*)) FROM alert_episodes WHERE fingerprint='{sql_fingerprint(overflow['fingerprint'])}'"
             )
             if absent["episodes"] != 0:
                 raise RuntimeError("Overflow consumed an episode before capacity became available")
@@ -916,10 +933,59 @@ def main():
                 or manual_before["jobs"][0]["state"] != "queued"
             ):
                 raise RuntimeError("Expected one stopped worker and one queued manual reservation")
+            old_image = subprocess.check_output(
+                ["docker", "inspect", "--format", "{{.Image}}", worker_before],
+                text=True,
+                timeout=30,
+            ).strip()
+            old_env = json.loads(
+                subprocess.check_output(
+                    ["docker", "inspect", "--format", "{{json .Config.Env}}", worker_before],
+                    text=True,
+                    timeout=30,
+                )
+            )
+            worker_restore_allowed = False
             command("up", "--no-start", "--no-deps", "--force-recreate", "worker")
             worker_after = command("ps", "--all", "-q", "worker")
             if len(worker_after.splitlines()) != 1 or worker_after == worker_before:
                 raise RuntimeError("Compose did not replace the stopped worker container")
+            new_image = subprocess.check_output(
+                ["docker", "inspect", "--format", "{{.Image}}", worker_after],
+                text=True,
+                timeout=30,
+            ).strip()
+            receipt["worker_recreation_images"] = {
+                "old_image_id": old_image,
+                "new_image_id": new_image,
+            }
+            if not old_image or new_image != old_image:
+                raise RuntimeError("Recreated worker image differs from the original")
+            new_env = json.loads(
+                subprocess.check_output(
+                    ["docker", "inspect", "--format", "{{json .Config.Env}}", worker_after],
+                    text=True,
+                    timeout=30,
+                )
+            )
+            relevant = ("DEFERRED_RUN_LIMIT", "COLLECTOR_DELAY_SECONDS")
+
+            def relevant_env(env):
+                return {
+                    key: value
+                    for item in env
+                    for key, _, value in [item.partition("=")]
+                    if key in relevant
+                }
+
+            receipt["worker_recreation_environment"] = {
+                "old": relevant_env(old_env),
+                "new": relevant_env(new_env),
+            }
+
+            if relevant_env(new_env) != relevant_env(old_env):
+                raise RuntimeError("Recreated worker environment differs from the original")
+            worker_restore_allowed = True
             reserved_after = [run_data(item["run_id"]) for item in deferred[:-1] + [retried]]
             if reserved_before != reserved_after or run_data(manual[0]["run_id"]) != manual_before:
                 raise RuntimeError(
@@ -933,6 +999,8 @@ def main():
                     "reserved_runs": reserved_after,
                     "old_container": worker_before,
                     "new_container": worker_after,
+                    "old_image_id": old_image,
+                    "new_image_id": new_image,
                 }
             )
             cancel(manual[0]["incident_id"], manual[0]["run_id"])
@@ -950,6 +1018,10 @@ def main():
             }
             command("start", "worker")
             worker_stopped = False
+            new_config = config("worker")
+            receipt["steps"][-1]["new_config"] = new_config
+            if new_config != limits:
+                raise RuntimeError("Recreated worker configuration differs from captured settings")
             promoted = deferred[:-1] + [retried]
             for item in promoted:
                 wait_for(
@@ -1006,6 +1078,9 @@ def main():
             receipt["failure"] = "Prerequisite or operation failed; inspect local lab privately."
         raise
     finally:
+        active_exception = sys.exc_info()[0] is not None
+        if receipt["status"] == "running":
+            receipt["status"] = "interrupted"
         cleanup_failed = []
         for container in owned_containers:
             try:
@@ -1033,22 +1108,32 @@ def main():
                 cleanup_failed.append(path.name)
         if cleanup_failed:
             receipt["sender_cleanup"] = {"failed": cleanup_failed}
-            receipt["status"] = "failed"
+            if receipt["status"] != "interrupted":
+                receipt["status"] = "failed"
         elif owned_containers or owned_files:
             receipt["sender_cleanup"] = (
                 "removed only probe-created sender containers and configuration"
             )
-        if worker_stopped and worker_initially_running:
+        if worker_stopped and worker_initially_running and not worker_restore_allowed:
+            receipt["worker_restore"] = (
+                "not started; recreated worker identity or configuration unverified"
+            )
+        elif worker_stopped and worker_initially_running:
             try:
                 command("start", "worker")
             except Exception:
                 receipt["worker_restore"] = "failed; start the project worker manually"
-                receipt["status"] = "failed"
+                if receipt["status"] != "interrupted":
+                    receipt["status"] = "failed"
             else:
                 receipt["worker_restore"] = "started"
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
-        print(f"Sanitized partial/final receipt: {args.output}")
+        try:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+            print(f"Sanitized partial/final receipt: {args.output}")
+        except Exception:
+            if not active_exception:
+                raise
         if receipt["status"] == "failed" and sys.exc_info()[0] is None:
             raise RuntimeError(
                 "Probe cleanup or worker restoration failed; inspect the sanitized receipt"

@@ -1,0 +1,48 @@
+{
+  "clipboard": {
+    "browser": "Chrome/150.0.7871.24",
+    "sha256": "9cfdf9c1795e7c4f4211b481125de1e69edd1d950c5faef89d9de81a236c8f67",
+    "bytes": 6450,
+    "domServerClipboardEqual": true,
+    "grantScope": "Temporary private context, only http://127.0.0.1:5189; read only after native fixture copy success.",
+    "readAfterCopiedFeedback": true,
+    "contextDisposed": true
+  },
+  "download": {
+    "path": "/home/vihn/.cache/cloudops-acceptance/current-v3-real-download/incident-7194f2e9-d623-402a-8f51-a7d6544d9ce0.md",
+    "sha256": "9cfdf9c1795e7c4f4211b481125de1e69edd1d950c5faef89d9de81a236c8f67",
+    "bytes": 6450,
+    "state": "completed",
+    "guid": "b1416d1e-1317-4804-badb-2b3305844264",
+    "source": "Native Download handoff click; context-scoped CDP download destination. Not an API-created stand-in.",
+    "contextDisposed": true
+  },
+  "queue": {
+    "url": "http://127.0.0.1:5189/#/queue?execution_class=terminal_unknown&anchor_created_at=2026-11-05T04%3A00%3A00.655510Z&anchor_id=47c7341b-ec28-49ec-810d-efed065cdaf3",
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "width": 390,
+    "scrollWidth": 390,
+    "devicePixelRatio": 1,
+    "theme": "dark",
+    "text": "Synthetic investigation collector · AI diagnosis unavailable · Live manual plans require an enabled scoped target\nNew incident\nPERSISTED APPLICATION DATA\nWork queue\n\nSearch, filter, and prioritize saved incidents in your local workspace.\n\nCurrent work (open and acknowledged)\nAll lifecycle states\nNeeds attention\nAwaiting decision\nVerifying\nBlocked\nResolved\nAll Run states\nQueued\nCollecting\nAnalyzing\nWaiting for quota\nFailed\nInsufficient evidence\nCompleted\nCancelled\nAll execution states\nActive\nOutcome unknown\nUnsupported or ambiguous\nTerminal known\nUse view lifecycle scope\nOpen\nAcknowledged\nResolved\nAll alerts\nFiring\nResolved\nNo alert\nAll origins\nManual\nAlert\nCreated time\nFirst seen\nLast seen\nSeverity (Z→A)\nClear filters\nE03 actual recovery integration\nIncident: open\nAlert signal: none\nSeverity not provided\n\nManual · 11/4/2026, 11:47:20 PM · First seen unknown · Last seen unknown\n\nOpened by operator\n\nRun: insufficient_evidence · 6c627a4f-48f3-409b-ba6b-313db838a943 · Requested by operator\n\nRun blockers in history: insufficient evidence\n\nExecution: outcome_unknown · terminal unknown locked · target locked\n\nExecution: manual_intervention · terminal · target lock released\n\n20c060aa-e933-418c-a431-7d7f91476c29\n\nPrevious\nShowing 1–1\nNext\nRefresh new work",
+    "showing": "Showing 1–1"
+  },
+  "limits": [
+    "Managed Chrome150 artifacts; native Edge lifecycle/focus/back/restart/Connections evidence is separate.",
+    "All permission grants were task-scoped to the explicitly authorized private clipboard context; no Edge permissions or certificate trust were changed."
+  ],
+  "light_contrast": {
+    "color": "rgb(96, 106, 121)",
+    "background": "rgb(247, 248, 250)",
+    "ratio": 5.153029032637365,
+    "theme": ""
+  },
+  "dark_contrast": {
+    "background": "rgb(16, 18, 22)",
+    "contrast": 7.904087379559823,
+    "font": "12.25px",
+    "foreground": "rgb(160, 169, 183)",
+    "text": "Showing 1–25",
+    "theme": "dark"
+  }
+}

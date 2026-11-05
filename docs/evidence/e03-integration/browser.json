@@ -209,7 +209,7 @@
     "Primary interactions/keyboard/roles/session/error-retry used the running Edge; Edge clipboard read and profile/certificate permissions were not changed.",
     "Edge relay screenshot/download and synthetic-paste capture did not establish artifact bytes. Actual clipboard-byte proof used explicitly authorized temporary isolated contexts; all were disposed. Actual files came from the registered managed download path.",
     "Browser HTTP loopback is separate from CA/hostname-validated HTTPS sender/API checks. No certificate warning was bypassed.",
-    "Saved exports intentionally retain the old UID/state after replacement; current output discloses the old workload as retired/replaced.",
+    "Historical saved exports retain the old UID/state. At this stage only the JSON projection disclosed retired/replaced; v2 Markdown did not. The corrective v3 preview/copy/export and frozen saved-byte proof are in browser-confirmation.json.",
     "Browser transport failure was deliberately scoped to selected preview GET; it is not claimed as a real API outage. The transient sender scenario separately stopped the actual owned K3s provider."
   ]
 }
