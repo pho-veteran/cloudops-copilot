@@ -81,6 +81,7 @@ def test_saved_and_legacy_bytes_survive_reopen_later_records_and_renderer_change
     params = {"resolution_id": resolution["id"]}
     saved = client.get(url, params=params).content
     preview = client.get(url + "/preview", params=params).json()
+    assert preview["schema_version"] == current["schema_version"]
     assert preview["markdown"].encode() == saved
     assert preview["snapshot"]["activity"]["items"][-1]["text"] == "Restored by operator"
     assert preview["snapshot"]["activity"]["items"][-1]["actor_name"] == "operator"

@@ -462,13 +462,11 @@ def _count_samples(value):
 
 
 def _bounded(payload, kind, byte_limit, budget, source_key):
-    budget["truncated"] = False
+    budget["truncated"] = any(key not in ROOT_FIELDS[kind] for key in payload)
     if kind == "fixture":
         payload = FixturePayload.model_validate(payload).model_dump()
         fields = ROOT_FIELDS["fixture"]
     else:
-        if any(key not in ROOT_FIELDS[kind] for key in payload):
-            budget["truncated"] = True
         payload = {key: value for key, value in payload.items() if key in ROOT_FIELDS[kind]}
         fields = (
             CONFIG_FIELDS

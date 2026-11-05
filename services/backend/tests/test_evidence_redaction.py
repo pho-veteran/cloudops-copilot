@@ -128,7 +128,43 @@ def test_configmap_metadata_excludes_content_and_dropped_root_marks_partial(clie
         assert "truncated" in row.coverage["reason_codes"]
         events = next(r for r in rows if r.source_key == "kubernetes.events")
         assert events.payload == {"events": []}
-        assert events.coverage["status"] == "partial"
+        assert events.coverage == {"status": "partial", "reason_codes": ["truncated"]}
+
+
+def test_fixture_unknown_field_is_removed_with_explicit_truncation(client):
+    _, run_id, uid = setup_run(client)
+    results = batch(datetime.now(timezone.utc))
+    original = next(
+        result.redacted_bounded_payload
+        for result in results
+        if result.source_key == "development_fixture"
+    )
+    _set_result(results, "development_fixture", {**original, "discarded_field": "not stored"})
+    with sessions()() as db:
+        rows = store_batch(db, run_id, uid, results)
+        row = next(row for row in rows if row.source_key == "development_fixture")
+        assert row.payload == original
+        assert row.coverage == {"status": "partial", "reason_codes": ["truncated"]}
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [("é" * 17000, "é" * 16384), ("line\n" * 201, "line\n" * 200)],
+    ids=["utf8-byte-limit-only", "line-limit-only"],
+)
+def test_log_trimming_alone_marks_coverage_partial(client, text, expected):
+    _, run_id, uid = setup_run(client)
+    results = batch(datetime.now(timezone.utc))
+    _set_result(
+        results,
+        "kubernetes.logs.current",
+        {"logs": [{"pod_uid": "a", "container": "app", "text": text}]},
+    )
+    with sessions()() as db:
+        rows = store_batch(db, run_id, uid, results)
+        row = next(row for row in rows if row.source_key == "kubernetes.logs.current")
+        assert row.payload["logs"][0]["text"] == expected
+        assert row.coverage == {"status": "partial", "reason_codes": ["truncated"]}
 
 
 def test_log_bounds_apply_across_segments_and_utf8_bytes(client):

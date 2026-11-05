@@ -64,7 +64,7 @@ The non-checkpointed runner uses the existing fenced `development_collection_v1`
 
 New records are immutable per `(run_id, source_key, catalog_version)`. Identical publication preserves IDs; conflicting content/provenance is rejected. Storage independently whitelists, redacts credential-shaped strings, deterministically truncates and hashes the stored canonical JSON. ConfigMap evidence permits identifiers/references only, never full contents; arbitrary raw Kubernetes objects and Secret objects are not accepted. Redaction is not a general detector for every possible sensitive value. Historical v1 payloads/hashes are not rewritten by the new policy.
 
-Canonical ordering and credential redaction do not reduce coverage by themselves. `truncated` means fields, items or text were actually omitted by an allowlist or storage bound; missing/invalid metric samples retain explicit `no_samples` semantics.
+Canonical ordering and credential redaction do not reduce coverage by themselves. `truncated` means fields, items or text were actually omitted by an allowlist or storage bound, including unknown fields on fixture payloads; missing/invalid metric samples retain explicit `no_samples` semantics.
 
 | Stored content allocation | Bound |
 | --- | --- |
