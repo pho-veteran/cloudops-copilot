@@ -5,6 +5,7 @@ This probe changes durable lab state; see docs/alert-intake.md before running it
 
 import argparse
 import concurrent.futures
+import hashlib
 import json
 import os
 import re
@@ -38,7 +39,17 @@ def command(*args, body=None):
 def db(query):
     # The probe only reads persistence; values in these fixed queries are generated UUIDs.
     output = command(
-        "exec", "-T", "db", "psql", "-U", "cloudops", "-d", "cloudops", "-At", "-c", query
+        "exec",
+        "-T",
+        "db",
+        "psql",
+        "-U",
+        "cloudops",
+        "-d",
+        "cloudops",
+        "-At",
+        "-c",
+        query,
     )
     return json.loads(output)
 
@@ -77,7 +88,8 @@ def alert(name, fingerprint=None, start=None, deployment="checkout"):
     return {
         "status": "firing",
         "fingerprint": fingerprint or uuid4().hex,
-        "startsAt": start or (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
+        "startsAt": start
+        or (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
         "labels": {"alertname": name, "namespace": "demo", "deployment": deployment},
         "annotations": {"summary": "e03-probe-private-annotation"},
     }
@@ -86,7 +98,7 @@ def alert(name, fingerprint=None, start=None, deployment="checkout"):
 def sender_metric(port):
     program = (
         "import json,re,urllib.request; "
-        f"s=urllib.request.urlopen('http://https:{port}/metrics',timeout=3).read().decode(); "
+        f"s=urllib.request.build_opener(urllib.request.ProxyHandler({{}})).open('http://https:{port}/metrics',timeout=3).read().decode(); "
         "names=('alertmanager_notifications_total','alertmanager_notifications_failed_total'); "
         "found={n:[float(m.group(1)) for line in s.splitlines() "
         "if (m:=re.match(r'^'+n+r'\\{[^}]*integration=\"webhook\"[^}]*\\}\\s+(\\S+)',line))] "
@@ -102,18 +114,18 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
     # One delivery per isolated Alertmanager: no peer clustering and no repeat within the probe.
     tag = uuid4().hex[:12]
     config_path = TOKEN.parent / f"e03-senders-{tag}.yml"
-    config_path.write_text(
-        "route:\n  receiver: cloudops\n  group_by: [alertname, namespace]\n"
-        "  group_wait: 2s\n  group_interval: 1h\n  repeat_interval: 24h\n"
-        "receivers:\n  - name: cloudops\n    webhook_configs:\n"
-        "      - url: https://localhost:8443/api/intake/alertmanager\n"
-        "        send_resolved: true\n        timeout: 5s\n"
-        "        http_config:\n          authorization:\n            type: Bearer\n"
-        "            credentials_file: /run/cloudops-intake/token\n"
-        "          tls_config:\n            ca_file: /run/cloudops-intake/proxy-ca.crt\n",
-        encoding="utf-8",
-    )
-    owned_files.append(config_path)
+    with config_path.open("x", encoding="utf-8") as config_file:
+        owned_files.append(config_path)
+        config_file.write(
+            "route:\n  receiver: cloudops\n  group_by: [alertname, namespace]\n"
+            "  group_wait: 2s\n  group_interval: 1h\n  repeat_interval: 24h\n"
+            "receivers:\n  - name: cloudops\n    webhook_configs:\n"
+            "      - url: https://localhost:8443/api/intake/alertmanager\n"
+            "        send_resolved: true\n        timeout: 5s\n"
+            "        http_config:\n          authorization:\n            type: Bearer\n"
+            "            credentials_file: /run/cloudops-intake/token\n"
+            "          tls_config:\n            ca_file: /run/cloudops-intake/proxy-ca.crt\n"
+        )
     ports = [20000 + secrets.randbelow(20000), 20000 + secrets.randbelow(20000)]
     while ports[1] == ports[0]:
         ports[1] = 20000 + secrets.randbelow(20000)
@@ -137,13 +149,23 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
             raise RuntimeError("Could not identify an isolated Alertmanager container")
         owned_containers.append(container)
         image_id = subprocess.check_output(
-            ["docker", "inspect", "--format", "{{.Image}}", container], text=True, timeout=30
+            ["docker", "inspect", "--format", "{{.Image}}", container],
+            text=True,
+            timeout=30,
         ).strip()
         if image_id != receipt["sender_image"]["image_id"]:
-            raise RuntimeError("Isolated Alertmanager image differs from the pinned lab sender")
-        wait_for("isolated sender readiness", lambda port=port: sender_metric(port), timeout=60)
+            raise RuntimeError(
+                "Isolated Alertmanager image differs from the pinned lab sender"
+            )
+        wait_for(
+            "isolated sender readiness",
+            lambda port=port: sender_metric(port),
+            timeout=60,
+        )
     name = f"E03RealConcurrent{tag}"
-    start = (datetime.now(timezone.utc) - timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    start = (datetime.now(timezone.utc) - timedelta(seconds=30)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
     def inject(index):
         result = subprocess.run(
@@ -165,7 +187,9 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
             timeout=30,
         )
         if result.returncode:
-            raise RuntimeError("Could not inject the alert into an isolated pinned sender")
+            raise RuntimeError(
+                "Could not inject the alert into an isolated pinned sender"
+            )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         list(pool.map(inject, range(2)))
@@ -175,13 +199,19 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
         if response.status_code != 200:
             raise RuntimeError("Cannot read concurrent sender receipts")
         rows = [row for row in response.json()["items"] if row["alertname"] == name]
-        return rows if len(rows) == 2 and len({row["delivery_id"] for row in rows}) == 2 else None
+        return (
+            rows
+            if len(rows) == 2 and len({row["delivery_id"] for row in rows}) == 2
+            else None
+        )
 
     rows = wait_for("two isolated sender deliveries", delivered, timeout=90)
     if {row["outcome"] for row in rows} != {"accepted", "duplicate"} or len(
         {(row["fingerprint"], row["incident_id"], row["run_id"]) for row in rows}
     ) != 1:
-        raise RuntimeError("Two sender deliveries did not deduplicate to one incident and Run")
+        raise RuntimeError(
+            "Two sender deliveries did not deduplicate to one incident and Run"
+        )
     metrics = []
     for port in ports:
 
@@ -196,9 +226,11 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
             return None
 
         values = wait_for("sender webhook success metric", success, timeout=60)
-        if values["alertmanager_notifications_failed_total"] != 0:
+        # Prometheus counter vectors have no series until their first increment.
+        # Preserve None in the receipt rather than reporting a fabricated zero.
+        if values["alertmanager_notifications_failed_total"] not in (None, 0):
             raise RuntimeError(
-                "An isolated sender reported a failed or unavailable webhook-failure metric"
+                "An isolated sender reported a failed webhook notification"
             )
         metrics.append(values)
     row = rows[0]
@@ -208,8 +240,16 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
         f"'initial_runs',(SELECT count(*) FROM investigation_runs WHERE incident_id='{row['incident_id']}')) "
         f"FROM alert_episodes WHERE fingerprint='{row['fingerprint']}'"
     )
-    if persisted != {"episodes": 1, "uid": uid, "incidents": 1, "runs": 1, "initial_runs": 1}:
-        raise RuntimeError("Concurrent sender deliveries did not persist one UID-bound initial Run")
+    if persisted != {
+        "episodes": 1,
+        "uid": uid,
+        "incidents": 1,
+        "runs": 1,
+        "initial_runs": 1,
+    }:
+        raise RuntimeError(
+            "Concurrent sender deliveries did not persist one UID-bound initial Run"
+        )
     receipt["checks"]["two_real_concurrent_senders"] = {
         "sender_container_ids": list(owned_containers),
         "metrics": metrics,
@@ -222,8 +262,12 @@ def concurrent_senders(api, uid, cancel, receipt, owned_containers, owned_files)
 def replace_owned_checkout(api, send, first, original, receipt):
     metadata = original["metadata"]
     uid = metadata["uid"]
-    writer = json.loads((ROOT / "tmp/e01-integration/writer/workloads.json").read_text())
-    policy = json.loads((ROOT / "tmp/e01-integration/reader/workloads.json").read_text())
+    writer = json.loads(
+        (ROOT / "tmp/e01-integration/writer/workloads.json").read_text()
+    )
+    policy = json.loads(
+        (ROOT / "tmp/e01-integration/reader/workloads.json").read_text()
+    )
     expected = {
         "cluster": "local-k3s",
         "namespace": "demo",
@@ -231,7 +275,12 @@ def replace_owned_checkout(api, send, first, original, receipt):
         "uid": uid,
         "source": "live_kubernetes",
     }
-    containers = original.get("spec", {}).get("template", {}).get("spec", {}).get("containers", [])
+    containers = (
+        original.get("spec", {})
+        .get("template", {})
+        .get("spec", {})
+        .get("containers", [])
+    )
     if (
         writer != [expected]
         or policy.get("schema_version") != 2
@@ -294,6 +343,12 @@ def replace_owned_checkout(api, send, first, original, receipt):
         )
 
     retained_before = unknowns()
+    if not any(
+        row["holds_lock"] and not row["maintenance_released"] for row in retained_before
+    ):
+        raise RuntimeError(
+            "Replacement requires a retained old-UID unknown execution holding its lock"
+        )
     # A fresh create contains only the live spec and safe metadata; no server identity,
     # owner references, Deployment or pod authority annotations, or status are copied.
     spec = current["spec"]
@@ -303,7 +358,11 @@ def replace_owned_checkout(api, send, first, original, receipt):
     fresh = {
         "apiVersion": "apps/v1",
         "kind": "Deployment",
-        "metadata": {"name": "checkout", "namespace": "demo", "labels": {"app": "checkout"}},
+        "metadata": {
+            "name": "checkout",
+            "namespace": "demo",
+            "labels": {"app": "checkout"},
+        },
         "spec": spec,
     }
     receipt["steps"].append(
@@ -316,7 +375,9 @@ def replace_owned_checkout(api, send, first, original, receipt):
     options = {
         "apiVersion": "v1",
         "kind": "DeleteOptions",
-        "preconditions": {key: current["metadata"][key] for key in ("uid", "resourceVersion")},
+        "preconditions": {
+            key: current["metadata"][key] for key in ("uid", "resourceVersion")
+        },
     }
     command(
         "exec",
@@ -349,7 +410,9 @@ def replace_owned_checkout(api, send, first, original, receipt):
         )
 
     wait_for("old Deployment deletion", deleted, timeout=180)
-    command("exec", "-T", "k3s", "/bin/kubectl", "create", "-f", "-", body=json.dumps(fresh))
+    command(
+        "exec", "-T", "k3s", "/bin/kubectl", "create", "-f", "-", body=json.dumps(fresh)
+    )
     command(
         "exec",
         "-T",
@@ -380,8 +443,18 @@ def replace_owned_checkout(api, send, first, original, receipt):
     new_uid = replacement["metadata"]["uid"]
     if new_uid == uid:
         raise RuntimeError("Replacement Deployment retained the old UID")
-    receipt["steps"].append({"step": "replacement_created", "old_uid": uid, "new_uid": new_uid})
-    command("exec", "-T", "api", "python", "-m", "cloudops.entrypoints.cli", "sync-workloads")
+    receipt["steps"].append(
+        {"step": "replacement_created", "old_uid": uid, "new_uid": new_uid}
+    )
+    command(
+        "exec",
+        "-T",
+        "api",
+        "python",
+        "-m",
+        "cloudops.entrypoints.cli",
+        "sync-workloads",
+    )
     old_view = api.get(f"/api/incidents/{old['incident_id']}")
     if (
         old_view.status_code != 200
@@ -389,15 +462,21 @@ def replace_owned_checkout(api, send, first, original, receipt):
         or old_view.json()["workload"]["uid"] != uid
     ):
         raise RuntimeError("Old workload history was not preserved as inactive")
-    entry = alert(first["alertname"], fingerprint=old["fingerprint"], start=old["starts_at_key"])
+    entry = alert(
+        first["alertname"], fingerprint=old["fingerprint"], start=old["starts_at_key"]
+    )
     response = send([entry])
     if response.status_code != 200 or response.json()["counts"].get("duplicate") != 1:
-        raise RuntimeError("Old episode did not remain a duplicate after UID replacement")
+        raise RuntimeError(
+            "Old episode did not remain a duplicate after UID replacement"
+        )
     new_entry = dict(entry)
     new_entry["startsAt"] = datetime.now(timezone.utc).isoformat()
     response = send([new_entry])
     if response.status_code != 200 or response.json()["counts"].get("accepted") != 1:
-        raise RuntimeError("New episode did not admit against the replacement Deployment")
+        raise RuntimeError(
+            "New episode did not admit against the replacement Deployment"
+        )
     bindings = db(
         "SELECT COALESCE(json_agg(json_build_object('id',id,'uid',workload_uid,"
         "'workload_id',workload_id,'incident_id',incident_id,'run_id',run_id,"
@@ -405,7 +484,9 @@ def replace_owned_checkout(api, send, first, original, receipt):
         f"FROM alert_episodes WHERE fingerprint='{old['fingerprint']}'"
     )
     preserved = [row for row in bindings if row["id"] == old["id"]]
-    newer = [row for row in bindings if row["id"] != old["id"] and row["uid"] == new_uid]
+    newer = [
+        row for row in bindings if row["id"] != old["id"] and row["uid"] == new_uid
+    ]
     if (
         len(preserved) != 1
         or len(newer) != 1
@@ -415,11 +496,18 @@ def replace_owned_checkout(api, send, first, original, receipt):
         or newer[0]["incident_id"] == old["incident_id"]
         or newer[0]["run_id"] == old["run_id"]
     ):
-        raise RuntimeError("Old and replacement episode identities were not preserved separately")
+        raise RuntimeError(
+            "Old and replacement episode identities were not preserved separately"
+        )
     if unknowns() != retained_before:
         raise RuntimeError(
             "Retained unknown execution attribution or lock changed during replacement"
         )
+    if (
+        json.loads((ROOT / "tmp/e01-integration/writer/workloads.json").read_text())
+        != writer
+    ):
+        raise RuntimeError("Old-UID writer allowlist changed during replacement")
     receipt["checks"]["guarded_uid_replacement"] = {
         "old_uid": uid,
         "new_uid": new_uid,
@@ -467,6 +555,9 @@ def main():
         receipt["runner_commit"] = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=10
         ).strip()
+        receipt["runner_script_sha256"] = hashlib.sha256(
+            Path(__file__).read_bytes()
+        ).hexdigest()
         images = command("images", "--format", "json")
         receipt["runtime_images"] = json.loads(images)
         sender_container = command("ps", "-q", "alertmanager")
@@ -474,7 +565,13 @@ def main():
             raise RuntimeError("Exactly one Alertmanager container is required")
         sender_image = (
             subprocess.check_output(
-                ["docker", "inspect", "--format", "{{.Config.Image}} {{.Image}}", sender_container],
+                [
+                    "docker",
+                    "inspect",
+                    "--format",
+                    "{{.Config.Image}} {{.Image}}",
+                    sender_container,
+                ],
                 text=True,
                 timeout=30,
             )
@@ -484,7 +581,10 @@ def main():
         pinned_sender = "prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b"
         if len(sender_image) != 2 or sender_image[0] != pinned_sender:
             raise RuntimeError("Running Alertmanager is not the pinned lab sender")
-        receipt["sender_image"] = {"reference": sender_image[0], "image_id": sender_image[1]}
+        receipt["sender_image"] = {
+            "reference": sender_image[0],
+            "image_id": sender_image[1],
+        }
         version = subprocess.run(
             [*LAB, "exec", "-T", "alertmanager", "alertmanager", "--version"],
             capture_output=True,
@@ -494,7 +594,9 @@ def main():
         )
         if version.returncode or not (version.stdout or version.stderr).strip():
             raise RuntimeError("Could not read the running Alertmanager version")
-        receipt["sender_version"] = (version.stdout or version.stderr).strip().splitlines()[0]
+        receipt["sender_version"] = (
+            (version.stdout or version.stderr).strip().splitlines()[0]
+        )
 
         def config(service):
             return json.loads(
@@ -511,16 +613,22 @@ def main():
             )
 
         limits = config("api")
-        if config("worker") != limits or not (2 <= limits["J"] <= 100 and 2 <= limits["D"] <= 100):
+        if config("worker") != limits or not (
+            2 <= limits["J"] <= 100 and 2 <= limits["D"] <= 100
+        ):
             raise RuntimeError(
                 "API/worker capacity must agree; this bounded probe requires 2..100 for J and D"
             )
         receipt["capacity"] = limits
         running = command("ps", "--status", "running", "--services").splitlines()
         if "worker" not in running:
-            raise RuntimeError("Start exactly one disposable lab worker before invoking the probe")
+            raise RuntimeError(
+                "Start exactly one disposable lab worker before invoking the probe"
+            )
         if len(command("ps", "-q", "worker").splitlines()) != 1:
-            raise RuntimeError("The disposable project must have exactly one worker container")
+            raise RuntimeError(
+                "The disposable project must have exactly one worker container"
+            )
         worker_initially_running = True
         deployment = json.loads(
             command(
@@ -561,7 +669,9 @@ def main():
             body=password + "\n",
         )
         context = ssl.create_default_context(cafile=str(args.ca))
-        with httpx.Client(base_url=ORIGIN, verify=context, timeout=30, trust_env=False) as api:
+        with httpx.Client(
+            base_url=ORIGIN, verify=context, timeout=30, trust_env=False
+        ) as api:
             login = api.post(
                 "/api/login",
                 json={"username": username, "password": password},
@@ -615,9 +725,13 @@ def main():
                 "'deferred',(SELECT count(*) FROM investigation_runs WHERE state='queued' AND queue_reason='capacity'))"
             )
             if active != {"jobs": 0, "deferred": 0}:
-                raise RuntimeError("Disposable lab must have no active Jobs or deferred Runs")
+                raise RuntimeError(
+                    "Disposable lab must have no active Jobs or deferred Runs"
+                )
             before = counts()
-            wrong = send([alert("E03Wrong")], {"Authorization": "Bearer wrong-credential"})
+            wrong = send(
+                [alert("E03Wrong")], {"Authorization": "Bearer wrong-credential"}
+            )
             if wrong.status_code != 401 or counts() != before:
                 raise RuntimeError(
                     "Wrong authentication wrote domain/receipt rows or was not rejected"
@@ -637,7 +751,11 @@ def main():
                     result = client.post(
                         "/api/intake/alertmanager",
                         headers=machine,
-                        json={"version": "4", "status": "firing", "alerts": [concurrent_entry]},
+                        json={
+                            "version": "4",
+                            "status": "firing",
+                            "alerts": [concurrent_entry],
+                        },
                     )
                     return result.status_code, result.json().get("counts", {})
 
@@ -660,7 +778,12 @@ def main():
                 "'incidents',count(DISTINCT incident_id),'runs',count(DISTINCT run_id)) "
                 f"FROM alert_episodes WHERE fingerprint='{concurrent_entry['fingerprint']}'"
             )
-            if concurrent_rows != {"episodes": 1, "uid": uid, "incidents": 1, "runs": 1}:
+            if concurrent_rows != {
+                "episodes": 1,
+                "uid": uid,
+                "incidents": 1,
+                "runs": 1,
+            }:
                 raise RuntimeError(
                     "Concurrent delivery did not bind exactly one episode/incident/Run"
                 )
@@ -668,7 +791,10 @@ def main():
             next_entry = dict(concurrent_entry)
             next_entry["startsAt"] = datetime.now(timezone.utc).isoformat()
             response = send([next_entry])
-            if response.status_code != 200 or response.json()["counts"].get("accepted") != 1:
+            if (
+                response.status_code != 200
+                or response.json()["counts"].get("accepted") != 1
+            ):
                 raise RuntimeError("A later firing episode was not admitted separately")
             newer_rows = db(
                 "SELECT json_build_object('episodes',count(*),'incidents',count(DISTINCT incident_id),"
@@ -676,7 +802,9 @@ def main():
                 f"WHERE fingerprint='{concurrent_entry['fingerprint']}'"
             )
             if newer_rows != {"episodes": 2, "incidents": 2, "runs": 2}:
-                raise RuntimeError("Distinct episode starts did not preserve separate work")
+                raise RuntimeError(
+                    "Distinct episode starts did not preserve separate work"
+                )
             newer = next(
                 item
                 for item in page()
@@ -708,11 +836,16 @@ def main():
             repeat = wait_for(
                 "real Alertmanager repeat", lambda: find(name, "duplicate"), timeout=90
             )
-            if (first["incident_id"], first["run_id"]) != (repeat["incident_id"], repeat["run_id"]):
+            if (first["incident_id"], first["run_id"]) != (
+                repeat["incident_id"],
+                repeat["run_id"],
+            ):
                 raise RuntimeError("Sender repeat changed incident or Run identity")
             incident = api.get(f"/api/incidents/{first['incident_id']}").json()
             if incident["workload"]["uid"] != uid:
-                raise RuntimeError("Sender incident is not bound to the live Deployment UID")
+                raise RuntimeError(
+                    "Sender incident is not bound to the live Deployment UID"
+                )
             episode = db(
                 "SELECT json_build_object('count',count(*),'uid',min(workload_uid),"
                 "'runs',(SELECT count(*) FROM investigation_runs WHERE incident_id="
@@ -739,7 +872,10 @@ def main():
                         "description": "Disposable lab",
                     },
                 )
-                if response.status_code != 201 or response.json()["queue_reason"] is not None:
+                if (
+                    response.status_code != 201
+                    or response.json()["queue_reason"] is not None
+                ):
                     raise RuntimeError(
                         f"Manual reservation {index} failed: HTTP {response.status_code}"
                     )
@@ -749,12 +885,16 @@ def main():
             for index in range(limits["D"]):
                 entry = alert(f"E03Deferred{uuid4().hex[:12]}")
                 response = send([entry])
-                if response.status_code != 200 or response.json()["counts"].get("deferred") != 1:
+                if (
+                    response.status_code != 200
+                    or response.json()["counts"].get("deferred") != 1
+                ):
                     raise RuntimeError(
                         f"Deferred admission {index} failed: HTTP {response.status_code}"
                     )
                 item = wait_for(
-                    "deferred receipt", lambda: find(entry["labels"]["alertname"], "deferred")
+                    "deferred receipt",
+                    lambda: find(entry["labels"]["alertname"], "deferred"),
                 )
                 state = run_data(item["run_id"])
                 if state["queue_reason"] != "capacity" or state["jobs"]:
@@ -762,21 +902,29 @@ def main():
                 entries.append(entry)
                 deferred.append(item)
             receipt["steps"].append(
-                {"step": "real_deferred_reservations", "runs": [x["run_id"] for x in deferred]}
+                {
+                    "step": "real_deferred_reservations",
+                    "runs": [x["run_id"] for x in deferred],
+                }
             )
             overflow = alert("E03Overflow" + uuid4().hex[:10])
-            rejected = alert("E03OutOfScope" + uuid4().hex[:10], deployment="not-configured-e03")
+            rejected = alert(
+                "E03OutOfScope" + uuid4().hex[:10], deployment="not-configured-e03"
+            )
             before_mixed = counts()
-            response = send([entries[0], rejected, overflow])
+            mixed_batch = [entries[0], rejected, overflow]
+            response = send(mixed_batch)
             if response.status_code != 503:
                 raise RuntimeError(
                     f"Full J/D mixed batch must return retryable 503, got {response.status_code}"
                 )
             duplicate = wait_for(
-                "saturated duplicate", lambda: find(entries[0]["labels"]["alertname"], "duplicate")
+                "saturated duplicate",
+                lambda: find(entries[0]["labels"]["alertname"], "duplicate"),
             )
             scoped = wait_for(
-                "out-of-scope receipt", lambda: find(rejected["labels"]["alertname"], "rejected")
+                "out-of-scope receipt",
+                lambda: find(rejected["labels"]["alertname"], "rejected"),
             )
             retry = wait_for(
                 "capacity retryable receipt",
@@ -791,7 +939,10 @@ def main():
                     "Mixed batch outcomes did not preserve dedup, scope and retry semantics"
                 )
             after_mixed = counts()
-            if any(after_mixed[key] != before_mixed[key] for key in ("incidents", "runs", "jobs")):
+            if any(
+                after_mixed[key] != before_mixed[key]
+                for key in ("incidents", "runs", "jobs")
+            ):
                 raise RuntimeError(
                     "Saturated mixed batch created partial incident, Run or Job rows"
                 )
@@ -799,7 +950,9 @@ def main():
                 f"SELECT json_build_object('episodes',count(*)) FROM alert_episodes WHERE fingerprint='{overflow['fingerprint']}'"
             )
             if absent["episodes"] != 0:
-                raise RuntimeError("Overflow consumed an episode before capacity became available")
+                raise RuntimeError(
+                    "Overflow consumed an episode before capacity became available"
+                )
             receipt["checks"]["mixed_batch_saturated"] = {
                 "http_status": 503,
                 "duplicate_run": duplicate["run_id"],
@@ -808,23 +961,31 @@ def main():
                 "overflow_episodes": 0,
             }
             cancel(deferred[-1]["incident_id"], deferred[-1]["run_id"])
-            response = send([overflow])
-            if response.status_code != 200 or response.json()["counts"].get("deferred") != 1:
+            response = send(mixed_batch)
+            if response.status_code != 200 or response.json()["counts"] != {
+                "duplicate": 2,
+                "deferred": 1,
+            }:
                 raise RuntimeError(
-                    "Overflow retry was not admitted once after freeing deferred capacity"
+                    "Full mixed-batch retry did not deduplicate committed alerts and admit overflow"
                 )
             retried = wait_for(
-                "accepted overflow retry", lambda: find(overflow["labels"]["alertname"], "deferred")
+                "accepted overflow retry",
+                lambda: find(overflow["labels"]["alertname"], "deferred"),
             )
-            response = send([overflow])
-            if response.status_code != 200 or response.json()["counts"].get("duplicate") != 1:
-                raise RuntimeError("Accepted overflow retry did not deduplicate")
+            response = send(mixed_batch)
+            if response.status_code != 200 or response.json()["counts"] != {
+                "duplicate": 3
+            }:
+                raise RuntimeError("Accepted full-batch retry did not deduplicate")
             receipt["checks"]["retry_once"] = {
                 "incident_id": retried["incident_id"],
                 "run_id": retried["run_id"],
             }
             # Recreate the stopped worker without executing a cycle or disturbing dependencies.
-            reserved_before = [run_data(item["run_id"]) for item in deferred[:-1] + [retried]]
+            reserved_before = [
+                run_data(item["run_id"]) for item in deferred[:-1] + [retried]
+            ]
             manual_before = run_data(manual[0]["run_id"])
             worker_before = command("ps", "--all", "-q", "worker")
             if (
@@ -833,18 +994,32 @@ def main():
                 or len(manual_before["jobs"]) != 1
                 or manual_before["jobs"][0]["state"] != "queued"
             ):
-                raise RuntimeError("Expected one stopped worker and one queued manual reservation")
+                raise RuntimeError(
+                    "Expected one stopped worker and one queued manual reservation"
+                )
             command("up", "--no-start", "--no-deps", "--force-recreate", "worker")
             worker_after = command("ps", "--all", "-q", "worker")
             if len(worker_after.splitlines()) != 1 or worker_after == worker_before:
-                raise RuntimeError("Compose did not replace the stopped worker container")
-            reserved_after = [run_data(item["run_id"]) for item in deferred[:-1] + [retried]]
-            if reserved_before != reserved_after or run_data(manual[0]["run_id"]) != manual_before:
+                raise RuntimeError(
+                    "Compose did not replace the stopped worker container"
+                )
+            reserved_after = [
+                run_data(item["run_id"]) for item in deferred[:-1] + [retried]
+            ]
+            if (
+                reserved_before != reserved_after
+                or run_data(manual[0]["run_id"]) != manual_before
+            ):
                 raise RuntimeError(
                     "Queued reservations changed while the worker was recreated stopped"
                 )
-            if any(row["queue_reason"] != "capacity" or row["jobs"] for row in reserved_after):
-                raise RuntimeError("Deferred reservations did not survive worker recreation")
+            if any(
+                row["queue_reason"] != "capacity" or row["jobs"]
+                for row in reserved_after
+            ):
+                raise RuntimeError(
+                    "Deferred reservations did not survive worker recreation"
+                )
             receipt["steps"].append(
                 {
                     "step": "stopped_worker_recreated",
@@ -854,6 +1029,20 @@ def main():
                 }
             )
             cancel(manual[0]["incident_id"], manual[0]["run_id"])
+            active_jobs = db(
+                "SELECT json_build_object('count',count(*)) FROM jobs "
+                "WHERE state IN ('queued','running')"
+            )["count"]
+            if active_jobs != limits["J"] - 1:
+                raise RuntimeError(
+                    "Expected exactly one free Job slot before worker promotion"
+                )
+            receipt["checks"]["automatic_promotion_context"] = {
+                "initial_available_slots": 1,
+                "deferred_runs": len(reserved_after),
+                "manual_promotion_calls": 0,
+                "competing_admissions": False,
+            }
             command("start", "worker")
             worker_stopped = False
             promoted = deferred[:-1] + [retried]
@@ -865,10 +1054,13 @@ def main():
                 )
             states = [run_data(item["run_id"]) for item in promoted]
             if any(len(row["jobs"]) != 1 for row in states):
-                raise RuntimeError("A promoted Run has zero or multiple collection Jobs")
+                raise RuntimeError(
+                    "A promoted Run has zero or multiple collection Jobs"
+                )
             expected = sorted(states, key=lambda row: (row["created_at"], row["id"]))
             actual = sorted(
-                states, key=lambda row: (row["jobs"][0]["created_at"], row["jobs"][0]["id"])
+                states,
+                key=lambda row: (row["jobs"][0]["created_at"], row["jobs"][0]["id"]),
             )
             if [x["id"] for x in expected] != [x["id"] for x in actual]:
                 raise RuntimeError(
@@ -880,7 +1072,9 @@ def main():
             ]
             listing = json.dumps(page())
             if token in listing or "e03-probe-private-annotation" in listing:
-                raise RuntimeError("Receipt API exposed sender credential or annotation")
+                raise RuntimeError(
+                    "Receipt API exposed sender credential or annotation"
+                )
             receipt["checks"]["receipt_redaction"] = True
             if args.replace_owned_checkout:
 
@@ -908,14 +1102,19 @@ def main():
         if isinstance(exc, (RuntimeError, AssertionError)):
             receipt["failure"] = str(exc)
         else:
-            receipt["failure"] = "Prerequisite or operation failed; inspect local lab privately."
+            receipt["failure"] = (
+                "Prerequisite or operation failed; inspect local lab privately."
+            )
         raise
     finally:
         cleanup_failed = []
         for container in owned_containers:
             try:
                 result = subprocess.run(
-                    ["docker", "rm", "-f", container], capture_output=True, text=True, timeout=30
+                    ["docker", "rm", "-f", container],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
                 )
                 if result.returncode:
                     exists = subprocess.run(

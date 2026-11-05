@@ -167,13 +167,18 @@ the probe starts two additional pinned Alertmanager containers sharing only the
 project proxy network, with separate listen ports and storage, clustering disabled
 and repeats delayed. It injects identical labels and start times into both,
 observes both webhook-success metrics and separate intake deliveries, and removes
-only these two probe-created containers and their temporary configuration. Direct
-concurrent and mixed-batch v4 deliveries are labeled separately.
+only these two probe-created containers and their temporary configuration. An absent
+webhook-failure counter series remains `null` in the receipt (the counter vector
+has not been incremented), rather than being reported as an observed zero. Direct
+concurrent and mixed-batch v4 deliveries are labeled separately. After a saturated
+mixed batch returns 503, the probe retries the entire unchanged batch after freeing
+capacity, and sends it again to check deduplication.
 The probe stops and recreates its own worker without starting it, creates
 a disposable Operator and durable incidents, Runs, Jobs, episodes and receipts,
 fills the configured capacities through actual APIs, and cancels selected queued
 Runs through the Operator API. It records actual image metadata, runner commit,
-Deployment UID, identifiers and observed results in a sanitized receipt, including
+script SHA-256 (including uncommitted edits), Deployment UID, identifiers and observed
+results in a sanitized receipt, including
 partial results on failure. It attempts to restart the worker if interrupted by an
 ordinary error; inspect `worker_restore` and manually start that project's worker
 if restoration failed. Do not reuse the project for production or unrelated work.
@@ -194,19 +199,23 @@ delete preconditions. It recreates the spec without server identity, status,
 owner references or authority annotations, synchronizes scope, and checks the
 old episode/Run binding and a new episode's replacement UID. The old writer
 allowlist remains pinned to the old UID; replacement does not authorize a new
-writer. Existing old-UID unknown-execution rows and locks are compared, not
-released; an empty list is not evidence of an unknown execution. A failure after
-deletion can leave checkout absent or scope unsynchronized; inspect the receipt
+writer. Before deletion, the probe requires at least one old-UID unknown execution
+that still holds its lock. All old-UID unknown-execution rows and locks are compared,
+not released. Seed the real retained execution separately; the probe does not create
+one. A failure after deletion can leave checkout absent or scope unsynchronized; inspect the receipt
 and repair only this disposable lab before using it again. Without the flag the
 replacement scenario is explicitly unexercised.
 
 Lifecycle/claim/callback races and full browser acceptance require separate
 evidence. Worker recreation occurs while reservations are full and stopped;
-the probe then cancels a queued reservation and starts the replacement worker,
-not a transaction-level fault injection. Oldest-first is checked only for these
-deferred Runs without competing admissions; continuous-admission fairness is not
-guaranteed. Collection remains synthetic and direct HTTP fixtures are not live
-AI or remediation.
+the probe frees exactly one Job slot, then starts the replacement worker.
+All deferred Runs promote automatically on ordinary worker cycles; the probe
+never invokes promotion itself. With at least two deferred Runs and only one
+initial slot, later promotion requires capacity freed by worker progress.
+This is not a transaction-level fault injection. Oldest-first is checked only
+for these deferred Runs without competing admissions; continuous-admission
+fairness is not guaranteed. Collection remains synthetic and direct HTTP
+fixtures are not live AI or remediation.
 
 ## Limits
 
