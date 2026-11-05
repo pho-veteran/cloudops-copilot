@@ -45,6 +45,53 @@ def test_storage_redacts_before_hash_and_caps_state(client):
         assert row.coverage["status"] == "partial"
 
 
+@pytest.mark.parametrize(
+    ("source_key", "payload"),
+    [
+        ("kubernetes.state", {"pods": [{"uid": "b"}, {"uid": "a"}]}),
+        (
+            "kubernetes.events",
+            {
+                "events": [
+                    {"uid": "z", "timestamp": "2026-11-01T00:00:00Z", "message": "First"},
+                    {"uid": "a", "timestamp": "2026-11-01T00:01:00Z", "message": "Second"},
+                ]
+            },
+        ),
+        (
+            "kubernetes.logs.current",
+            {
+                "logs": [
+                    {
+                        "pod_uid": "a",
+                        "container": "app",
+                        "text": "Authorization: Bearer synthetic-private-value\nNormal output",
+                    }
+                ]
+            },
+        ),
+        (
+            "prometheus.request_rate",
+            {
+                "series": [
+                    {"name": "b", "samples": [[0, 1]]},
+                    {"name": "a", "samples": [[0, 2]]},
+                ]
+            },
+        ),
+    ],
+)
+def test_ordering_and_redaction_preserve_complete_source_coverage(client, source_key, payload):
+    _, run_id, uid = setup_run(client)
+    results = batch(datetime.now(timezone.utc))
+    _set_result(results, source_key, payload)
+    with sessions()() as db:
+        rows = store_batch(db, run_id, uid, results)
+        row = next(row for row in rows if row.source_key == source_key)
+        assert row.coverage == {"status": "available", "reason_codes": []}
+        assert "synthetic-private-value" not in json.dumps(row.payload)
+
+
 def _set_result(results, key, payload):
     index = next(i for i, result in enumerate(results) if result.source_key == key)
     results[index] = results[index].model_copy(

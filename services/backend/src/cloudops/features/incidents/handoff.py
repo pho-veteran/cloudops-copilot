@@ -26,7 +26,7 @@ from cloudops.features.workloads.models import Workload
 from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job
 
-SCHEMA_VERSION = "HandoffSnapshot/v1"
+SCHEMA_VERSION = "HandoffSnapshot/v2"
 LEGACY_VERSION = "legacy"
 
 
@@ -398,6 +398,11 @@ def _render_v3(snapshot):
         sections.append("No Evidence references recorded.\n\n")
     for evidence in snapshot["evidence"]["items"]:
         window = evidence["requested_window"]
+        coverage = (
+            "Not captured (legacy)"
+            if evidence["schema_version"] == 1
+            else evidence["coverage"]["status"]
+        )
         sections.extend(
             [
                 f"- Evidence {_inline(evidence['id'])}; Run {_inline(evidence['run_id'])}; "
@@ -405,7 +410,7 @@ def _render_v3(snapshot):
                 f"catalog {_inline(evidence['catalog_version'])}; record v{_inline(evidence['schema_version'])}; "
                 f"payload {_inline(evidence['payload_kind'])} v{_inline(evidence['payload_version'])}; "
                 f"workload UID {_inline(evidence['workload_uid'])}\n",
-                f"  Coverage: {_inline(evidence['coverage']['status'])}; "
+                f"  Coverage: {_inline(coverage)}; "
                 f"reasons: {_inline(', '.join(evidence['coverage']['reason_codes']) or 'None')}; "
                 f"content: {_inline(evidence['content_status'])}; pinned: {_inline(str(evidence['pinned']))}\n",
                 f"  Observed: {_inline(evidence['observed_at'])}; collected: {_inline(evidence['collected_at'])}; "

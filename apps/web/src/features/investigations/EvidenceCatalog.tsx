@@ -8,6 +8,12 @@ import { Failure, Loading } from "@/app/Feedback";
 type Run = components["schemas"]["RunView"];
 type Evidence = components["schemas"]["EvidenceView"];
 
+function coverageLabel(evidence: Evidence) {
+  return evidence.schema_version === 1
+    ? "Not captured (legacy)"
+    : evidence.coverage.status;
+}
+
 function EvidenceDetail({
   incidentId,
   runId,
@@ -63,8 +69,7 @@ function EvidenceDetail({
   return (
     <>
       <p>
-        {e.schema_version === 1 ? "Legacy evidence · " : ""}
-        {e.coverage.status} · Content{" "}
+        {coverageLabel(e)} · Content{" "}
         {contentError?.status === 410
           ? "expired"
           : contentError?.status === 409
@@ -101,8 +106,8 @@ function EvidenceDetail({
         <dd>{new Date(e.collected_at).toLocaleString()}</dd>
         <dt>Coverage</dt>
         <dd>
-          {e.coverage.status}
-          {e.coverage.reason_codes.length
+          {coverageLabel(e)}
+          {e.schema_version !== 1 && e.coverage.reason_codes.length
             ? ` · ${e.coverage.reason_codes.join(", ")}`
             : ""}
         </dd>
@@ -230,8 +235,7 @@ export function EvidenceCatalog({
               >
                 {e.source_key}
               </a>{" "}
-              · {e.coverage.status} · content {e.content_status}
-              {e.schema_version === 1 && " · legacy"}
+              · {coverageLabel(e)} · content {e.content_status}
             </li>
           ))}
         </ul>

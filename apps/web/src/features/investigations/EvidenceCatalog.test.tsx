@@ -116,7 +116,14 @@ it("identifies historical evidence with uncaptured source coverage as legacy", a
     return Response.json(evidence);
   });
   mount(evidenceId);
-  expect(await screen.findByText(/Legacy evidence/)).toBeTruthy();
+  await screen.findByText("Stored content");
+  expect(screen.getByText("Coverage").nextElementSibling?.textContent).toBe(
+    "Not captured (legacy)",
+  );
+  expect(
+    screen.getByRole("link", { name: "development_fixture" }).parentElement
+      ?.textContent,
+  ).not.toContain("unavailable");
   expect(document.activeElement).toBe(
     screen.getByRole("heading", { name: "Selected evidence" }),
   );

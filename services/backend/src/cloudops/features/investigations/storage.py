@@ -299,6 +299,8 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
             fields = QUERY_IDENTITY_FIELDS
         elif fields is QUERY_FIELDS and key == "window":
             fields = QUERY_WINDOW_FIELDS
+        if any(field not in fields for field in value):
+            budget["truncated"] = True
         for field, item in value.items():
             if field not in fields:
                 continue
@@ -355,6 +357,7 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
         if pod:
             seen = budget["pods_seen"]
             if pod not in seen and len(seen) >= 10:
+                budget["truncated"] = True
                 return {}
             seen.add(pod)
         container = value.get("container", value.get("name") if key == "containers" else None)
@@ -364,6 +367,7 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
             identity = (pod, container)
             seen = budget["containers_seen"]
             if identity not in seen and len(seen) >= 20:
+                budget["truncated"] = True
                 return {}
             seen.add(identity)
         return {
@@ -382,6 +386,8 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
             values = valid
             count = min(len(values), budget["samples"])
             budget["samples"] -= count
+            if count < len(values):
+                budget["truncated"] = True
             # A sample is a single timestamp/value pair, never an arbitrary nested object.
             return [_clean(v, "", depth + 1, budget, fields, pod) for v in values[:count]]
         if key == "series" and not values:
@@ -389,13 +395,20 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
         if key == "series":
             count = min(len(values), budget["series"])
             budget["series"] -= count
+            if count < len(values):
+                budget["truncated"] = True
             values = values[:count]
         elif key in {"pods", "containers"}:
             # Each record registers its identity while traversing the dictionary.
             values = [v for v in values if isinstance(v, dict)]
         else:
-            values = values[: LIMITS.get(key, 1000)]
+            limit = LIMITS.get(key, 1000)
+            if len(values) > limit:
+                budget["truncated"] = True
+            values = values[:limit]
         items = [_clean(v, key, depth + 1, budget, fields, pod) for v in values]
+        if key in {"pods", "containers", "logs"} and any(item == {} for item in items):
+            budget["truncated"] = True
         return (
             [item for item in items if item != {}]
             if key in {"pods", "containers", "logs"}
@@ -404,7 +417,10 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
     if isinstance(value, str):
         if fields is CONFIG_FIELDS and not re.fullmatch(r"[A-Za-z0-9_.:/-]{1,253}", value):
             raise ValueError("ConfigMap metadata contains an invalid identifier.")
-        return _redact(value)[:32768]
+        redacted = _redact(value)
+        if len(redacted) > 32768:
+            budget["truncated"] = True
+        return redacted[:32768]
     if value is None or isinstance(value, (bool, int)):
         return value
     if isinstance(value, float) and math.isfinite(value):
@@ -446,11 +462,13 @@ def _count_samples(value):
 
 
 def _bounded(payload, kind, byte_limit, budget, source_key):
-    original = payload
+    budget["truncated"] = False
     if kind == "fixture":
         payload = FixturePayload.model_validate(payload).model_dump()
         fields = ROOT_FIELDS["fixture"]
     else:
+        if any(key not in ROOT_FIELDS[kind] for key in payload):
+            budget["truncated"] = True
         payload = {key: value for key, value in payload.items() if key in ROOT_FIELDS[kind]}
         fields = (
             CONFIG_FIELDS
@@ -463,9 +481,12 @@ def _bounded(payload, kind, byte_limit, budget, source_key):
             }[kind]
         )
     cleaned = _clean(payload, budget=budget, fields=fields)
+    truncated = budget["truncated"]
     if kind == "logs":
-        cleaned = _bound_log_segments(cleaned, {})
-    truncated = cleaned != original
+        bounded_logs = _bound_log_segments(cleaned, {})
+        # This phase only trims text/line budgets, unlike sorting or redaction above.
+        truncated = truncated or bounded_logs != cleaned
+        cleaned = bounded_logs
     # Remove list entries deterministically until the fixed allocation is satisfied.
     while len(_canonical(cleaned)) > byte_limit:
         lists = []

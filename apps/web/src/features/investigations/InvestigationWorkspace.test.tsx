@@ -102,7 +102,7 @@ function mount(
     if (path.endsWith("/runs")) return Response.json({ items: runs, next_offset: null });
     if (path.includes("/runs/")) return Response.json(runs.find((r) => path.endsWith(r.id)));
     if (path.endsWith("/activity")) return Response.json({ items: [], total: 0, next_cursor: null });
-    if (path.endsWith("/handoff/preview")) return Response.json({ incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v1", snapshot: {}, markdown: "Current handoff" });
+    if (path.endsWith("/handoff/preview")) return Response.json({ incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v2", snapshot: {}, markdown: "Current handoff" });
     if (path.endsWith("/plans") || path.endsWith("/executions")) return Response.json([]);
     return Response.json({
       id: incidentId,
@@ -239,7 +239,7 @@ describe("persisted handoff navigation", () => {
   const resolution = "00000000-0000-4000-8000-000000000099";
   const human = "<img src=x onerror=alert(1)> Ghi chú & evidence";
   const previewResponse = (selected: string | null) => Response.json({
-    incident_id: incidentId, resolution_id: selected, schema_version: "HandoffSnapshot/v1",
+    incident_id: incidentId, resolution_id: selected, schema_version: selected ? "HandoffSnapshot/v1" : "HandoffSnapshot/v2",
     snapshot: {}, markdown: selected ? `Saved: ${human}` : "Current handoff",
   });
 
@@ -344,7 +344,7 @@ describe("persisted handoff navigation", () => {
       }
       if (url.pathname === `/api/incidents/${incidentId}`) return Response.json(detail());
       if (url.pathname.endsWith("/handoff/preview")) return Response.json({
-        incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v1",
+        incident_id: incidentId, resolution_id: null, schema_version: "HandoffSnapshot/v2",
         snapshot: {}, markdown: resolved ? "State: resolved; reason: service recovered" : "State: open",
       });
     });

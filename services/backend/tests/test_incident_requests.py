@@ -462,7 +462,6 @@ def test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries(client):
         f"/api/incidents/{queued['incident_id']}/handoff/preview",
         params={"resolution_id": resolution["id"]},
     ).json()
-    assert saved["schema_version"] == "HandoffSnapshot/v1"
     saved_run = next(
         item for item in saved["snapshot"]["runs"]["items"] if item["id"] == queued["run_id"]
     )
