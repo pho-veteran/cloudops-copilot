@@ -1,3 +1,5 @@
+import os
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -6,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from cloudops.features.incidents.intake_settings import intake_config
 from cloudops.features.investigations.admission_settings import deferred_run_limit
+from cloudops.features.investigations.collector import configured_adapters
 from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
 from cloudops.shared.errors import DomainError, domain_error_handler, validation_error_handler
@@ -16,6 +19,7 @@ async def lifespan(app):
     settings()
     deferred_run_limit()
     intake_config()
+    configured_adapters(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
     require_schema()
     yield
 

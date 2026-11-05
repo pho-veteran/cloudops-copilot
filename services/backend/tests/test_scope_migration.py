@@ -4,7 +4,6 @@ from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
-from alembic.script import ScriptDirectory
 from sqlalchemy import text
 
 from cloudops.shared.database import BACKEND_ROOT, engine
@@ -97,5 +96,4 @@ def test_populated_scope_upgrade_preserves_existing_records_and_baseline_bytes()
             text("SELECT uid,active,retirement_reason FROM workloads WHERE id=:id"),
             {"id": workload},
         ).one() == ("prior-uid", True, None)
-    assert ScriptDirectory.from_config(config).get_heads() == ["0007_alert_intake"]
     command.check(config)

@@ -49,6 +49,7 @@ def observations(db: Session = Depends(get_db)):
     now = database_now(db)
     beat = db.get(WorkerHeartbeat, "collector")
     stale = not beat or (now - beat.observed_at).total_seconds() > settings().worker_stale_seconds
+    fixture_configured = os.environ.get("COLLECTION_SOURCE_MODE", "none") == "development_fixture"
     executor_status, executor_source, executor_reason = (
         "unavailable",
         "unimplemented",
@@ -99,11 +100,16 @@ def observations(db: Session = Depends(get_db)):
             ),
             observation(
                 "collector",
-                "available",
-                "development_fixture",
-                "Synthetic collector adapter configured; availability does not indicate collection "
-                "success. Inspect investigation attempts for results. This collector has no live "
-                "Kubernetes/Prometheus telemetry pack; separate lab reads/checks do not change its evidence source.",
+                "available" if fixture_configured else "unavailable",
+                "development_fixture" if fixture_configured else "unimplemented",
+                (
+                    "Synthetic collector adapter configured; availability does not indicate "
+                    "collection success. Inspect investigation attempts for results. "
+                    "No live Kubernetes or Prometheus source adapter is installed."
+                    if fixture_configured
+                    else "No collection source adapter is configured. Runs record missing-source "
+                    "coverage; no live Kubernetes or Prometheus telemetry is collected."
+                ),
             ),
             observation(
                 "diagnosis",

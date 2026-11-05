@@ -1121,6 +1121,35 @@
         "title": "ContainerResources",
         "type": "object"
       },
+      "Coverage": {
+        "additionalProperties": false,
+        "properties": {
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "partial",
+              "unavailable",
+              "not_applicable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason_codes"
+        ],
+        "title": "Coverage",
+        "type": "object"
+      },
       "CreationAnchor": {
         "properties": {
           "created_at": {
@@ -1315,25 +1344,32 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
-      "EvidenceView": {
+      "EvidenceContent": {
         "properties": {
-          "collected_at": {
-            "format": "date-time",
-            "title": "Collected At",
-            "type": "string"
-          },
-          "id": {
+          "evidence_id": {
             "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "observed_at": {
-            "format": "date-time",
-            "title": "Observed At",
+            "title": "Evidence Id",
             "type": "string"
           },
           "payload": {
-            "$ref": "#/components/schemas/FixturePayload"
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "payload_kind": {
+            "enum": [
+              "state",
+              "events",
+              "logs",
+              "series",
+              "fixture"
+            ],
+            "title": "Payload Kind",
+            "type": "string"
+          },
+          "payload_version": {
+            "title": "Payload Version",
+            "type": "integer"
           },
           "run_id": {
             "format": "uuid",
@@ -1341,17 +1377,186 @@
             "type": "string"
           },
           "schema_version": {
-            "const": 1,
+            "enum": [
+              1,
+              2
+            ],
             "title": "Schema Version",
             "type": "integer"
           },
           "sha256": {
             "title": "Sha256",
             "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "run_id",
+          "schema_version",
+          "payload_kind",
+          "payload_version",
+          "sha256",
+          "payload"
+        ],
+        "title": "EvidenceContent",
+        "type": "object"
+      },
+      "EvidenceView": {
+        "properties": {
+          "catalog_version": {
+            "title": "Catalog Version",
+            "type": "string"
           },
-          "source": {
-            "const": "development_fixture",
-            "title": "Source",
+          "collected_at": {
+            "format": "date-time",
+            "title": "Collected At",
+            "type": "string"
+          },
+          "content_status": {
+            "enum": [
+              "available",
+              "unavailable",
+              "expired"
+            ],
+            "title": "Content Status",
+            "type": "string"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/Coverage"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "payload_kind": {
+            "enum": [
+              "state",
+              "events",
+              "logs",
+              "series",
+              "fixture"
+            ],
+            "title": "Payload Kind",
+            "type": "string"
+          },
+          "payload_ref": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload Ref"
+          },
+          "payload_version": {
+            "title": "Payload Version",
+            "type": "integer"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          },
+          "query_metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query Metadata"
+          },
+          "redaction_policy_version": {
+            "title": "Redaction Policy Version",
+            "type": "string"
+          },
+          "requested_window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "source_kind": {
+            "enum": [
+              "state",
+              "events",
+              "logs",
+              "series",
+              "fixture"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "time_relation": {
+            "enum": [
+              "current_observation",
+              "within_requested_window",
+              "extends_after_window",
+              "not_captured"
+            ],
+            "title": "Time Relation",
             "type": "string"
           },
           "workload_uid": {
@@ -1363,12 +1568,24 @@
           "id",
           "run_id",
           "workload_uid",
-          "source",
+          "source_key",
+          "source_kind",
+          "catalog_version",
           "schema_version",
+          "payload_kind",
+          "payload_version",
           "observed_at",
           "collected_at",
+          "requested_window",
+          "time_relation",
+          "coverage",
+          "query_metadata",
           "sha256",
-          "payload"
+          "redaction_policy_version",
+          "payload_ref",
+          "expires_at",
+          "pinned",
+          "content_status"
         ],
         "title": "EvidenceView",
         "type": "object"
@@ -1432,31 +1649,6 @@
           "finished_at"
         ],
         "title": "ExecutionView",
-        "type": "object"
-      },
-      "FixturePayload": {
-        "properties": {
-          "label": {
-            "const": "Synthetic development evidence; no live cluster was contacted.",
-            "title": "Label",
-            "type": "string"
-          },
-          "observation": {
-            "const": "Live workload health and telemetry are unavailable.",
-            "title": "Observation",
-            "type": "string"
-          },
-          "workload": {
-            "title": "Workload",
-            "type": "string"
-          }
-        },
-        "required": [
-          "label",
-          "workload",
-          "observation"
-        ],
-        "title": "FixturePayload",
         "type": "object"
       },
       "HandoffPreview": {
@@ -2289,6 +2481,45 @@
         "title": "OriginView",
         "type": "object"
       },
+      "PackCoverage": {
+        "properties": {
+          "missing_required": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Required",
+            "type": "array"
+          },
+          "optional_gaps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Optional Gaps",
+            "type": "array"
+          },
+          "pack": {
+            "title": "Pack",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "partial",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pack",
+          "status",
+          "missing_required",
+          "optional_gaps"
+        ],
+        "title": "PackCoverage",
+        "type": "object"
+      },
       "PlanRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3116,7 +3347,9 @@
                   "operator_cancelled",
                   "incident_resolved",
                   "scope_retired",
-                  "execution_blocking"
+                  "execution_blocking",
+                  "analysis_unavailable",
+                  "collection_failed"
                 ],
                 "type": "string"
               },
@@ -3125,6 +3358,20 @@
               }
             ],
             "title": "Outcome Code"
+          },
+          "pack_coverage": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PackCoverage"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pack Coverage"
           },
           "question": {
             "anyOf": [
@@ -3220,6 +3467,7 @@
           "window",
           "queue_reason",
           "outcome_code",
+          "pack_coverage",
           "evidence",
           "attempts"
         ],
@@ -6464,6 +6712,252 @@
           }
         ],
         "summary": "Cancel",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}": {
+      "get": {
+        "operationId": "get_evidence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Evidence",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/content": {
+      "get": {
+        "operationId": "get_evidence_content",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceContent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Content",
         "tags": [
           "investigations"
         ]

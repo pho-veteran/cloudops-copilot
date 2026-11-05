@@ -14,6 +14,7 @@ from cloudops.features.access.models import User
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.incidents.schemas import IncidentView
 from cloudops.features.investigations.models import Evidence, InvestigationRun
+from cloudops.features.investigations.storage import evidence_views
 from cloudops.features.recovery.classification import (
     BLOCKING,
     classification_expression,
@@ -70,7 +71,7 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
         select(Evidence)
         .options(defer(Evidence.payload, raiseload=True))
         .join(InvestigationRun, Evidence.run_id == InvestigationRun.id)
-        .where(InvestigationRun.incident_id == incident_id)
+        .where(InvestigationRun.incident_id == incident_id, Evidence.workload_uid == workload.uid)
         .order_by(Evidence.collected_at, Evidence.id)
     ).all()
     # Plans are collected after executions so that cross-incident lock owners are
@@ -134,26 +135,12 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
                 "window_source",
                 "queue_reason",
                 "outcome_code",
+                "pack_coverage",
             ),
         )
         for row in runs
     ]
-    evidence_rows = [
-        _fields(
-            row,
-            (
-                "id",
-                "run_id",
-                "workload_uid",
-                "source",
-                "schema_version",
-                "observed_at",
-                "collected_at",
-                "sha256",
-            ),
-        )
-        for row in evidence
-    ]
+    evidence_rows = [row.model_dump(mode="json") for row in evidence_views(db, evidence)]
     plan_rows = [
         _fields(
             row,
@@ -390,17 +377,48 @@ def _render_v3(snapshot):
                 _text_block(run["question"]),
                 "**Recorded Run reason**\n\n",
                 _text_block(run["reason"]),
+                *(
+                    [
+                        "**Collection pack coverage**\n\n",
+                        *(
+                            f"- {_inline(pack['pack'])}: {_inline(pack['status'])}; "
+                            f"missing required: {_inline(', '.join(pack['missing_required']) or 'None')}; "
+                            f"optional gaps: {_inline(', '.join(pack['optional_gaps']) or 'None')}\n"
+                            for pack in run["pack_coverage"]
+                        ),
+                        "\n",
+                    ]
+                    if run["pack_coverage"] is not None
+                    else ["Collection pack coverage was not captured.\n\n"]
+                ),
             ]
         )
     sections.append(f"## Evidence references ({snapshot['evidence']['count']})\n\n")
     if not snapshot["evidence"]["items"]:
         sections.append("No Evidence references recorded.\n\n")
     for evidence in snapshot["evidence"]["items"]:
-        sections.append(
-            f"- Evidence {_inline(evidence['id'])}; Run {_inline(evidence['run_id'])}; "
-            f"source {_inline(evidence['source'])} v{_inline(evidence['schema_version'])}; "
-            f"workload UID {_inline(evidence['workload_uid'])}; observed {_inline(evidence['observed_at'])}; "
-            f"collected {_inline(evidence['collected_at'])}; SHA-256 {_inline(evidence['sha256'])}\n"
+        window = evidence["requested_window"]
+        sections.extend(
+            [
+                f"- Evidence {_inline(evidence['id'])}; Run {_inline(evidence['run_id'])}; "
+                f"source {_inline(evidence['source_key'])}; kind {_inline(evidence['source_kind'])}; "
+                f"catalog {_inline(evidence['catalog_version'])}; record v{_inline(evidence['schema_version'])}; "
+                f"payload {_inline(evidence['payload_kind'])} v{_inline(evidence['payload_version'])}; "
+                f"workload UID {_inline(evidence['workload_uid'])}\n",
+                f"  Coverage: {_inline(evidence['coverage']['status'])}; "
+                f"reasons: {_inline(', '.join(evidence['coverage']['reason_codes']) or 'None')}; "
+                f"content: {_inline(evidence['content_status'])}; pinned: {_inline(str(evidence['pinned']))}\n",
+                f"  Observed: {_inline(evidence['observed_at'])}; collected: {_inline(evidence['collected_at'])}; "
+                f"time relation: {_inline(evidence['time_relation'])}; expires: {_inline(evidence['expires_at'])}\n",
+                (
+                    f"  Requested window: {_inline(window['start'])} to {_inline(window['end'])}; "
+                    f"provenance: {_inline(window['source'])}\n"
+                    if window is not None
+                    else "  Requested window: Not captured.\n"
+                ),
+                f"  SHA-256: {_inline(evidence['sha256'])}; "
+                f"redaction policy: {_inline(evidence['redaction_policy_version'])}\n",
+            ]
         )
     actions = snapshot["actions"]
     sections.append(

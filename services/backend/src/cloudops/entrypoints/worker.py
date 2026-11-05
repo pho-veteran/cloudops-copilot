@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 import time
 
@@ -6,7 +7,12 @@ from sqlalchemy.dialects.postgresql import insert
 
 from cloudops.entrypoints import metadata  # noqa: F401
 from cloudops.features.investigations.admission_settings import deferred_run_limit
-from cloudops.features.investigations.collector import CollectionHandler, collect, prepare
+from cloudops.features.investigations.collector import (
+    CollectionHandler,
+    collect,
+    configured_adapters,
+    prepare,
+)
 from cloudops.features.investigations.promotion import promote_deferred
 from cloudops.features.recommendations.worker import ReportHandler, generate
 from cloudops.features.recovery.service import ExecutionHandler, execute
@@ -55,7 +61,11 @@ def run_once() -> bool:
     keeper.start()
     try:
         if claim.kind == "development_collection_v1":
-            result = collect(prepare(claim.subject_id))
+            adapters = configured_adapters(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
+            context = prepare(
+                claim.subject_id, attempt_number=claim.attempt, max_attempts=claim.max_attempts
+            )
+            result = collect(context, adapters)
         elif claim.kind == "recommendation_report_v1":
             result = generate(claim.subject_id)
         else:
@@ -76,6 +86,7 @@ def run_once() -> bool:
 
 def main():
     require_schema()
+    configured_adapters(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
     deferred_run_limit()
     logging.basicConfig(level=logging.INFO)
     while True:

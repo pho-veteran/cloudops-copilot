@@ -180,6 +180,23 @@
 .foundation-metadata dd {
   margin: 0;
 }
+.evidence-json {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--muted);
+}
+.evidence-sources a {
+  color: var(--ops-blue);
+  text-decoration: underline;
+}
+.evidence-sources a[aria-current="page"] {
+  font-weight: 700;
+}
 .foundation-login {
   max-width: 480px;
   margin: 8vh auto;

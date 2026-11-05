@@ -300,6 +300,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evidence */
+        get: operations["get_evidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Content */
+        get: operations["get_evidence_content"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/intake/alertmanager": {
         parameters: {
             query?: never;
@@ -997,6 +1031,16 @@ export interface components {
             limits: components["schemas"]["Resources"];
             requests: components["schemas"]["Resources"];
         };
+        /** Coverage */
+        Coverage: {
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "partial" | "unavailable" | "not_applicable";
+        };
         /** CreationAnchor */
         CreationAnchor: {
             /**
@@ -1056,24 +1100,24 @@ export interface components {
         ErrorEnvelope: {
             error: components["schemas"]["ErrorDetail"];
         };
-        /** EvidenceView */
-        EvidenceView: {
+        /** EvidenceContent */
+        EvidenceContent: {
             /**
-             * Collected At
-             * Format: date-time
-             */
-            collected_at: string;
-            /**
-             * Id
+             * Evidence Id
              * Format: uuid
              */
-            id: string;
+            evidence_id: string;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
             /**
-             * Observed At
-             * Format: date-time
+             * Payload Kind
+             * @enum {string}
              */
-            observed_at: string;
-            payload: components["schemas"]["FixturePayload"];
+            payload_kind: "state" | "events" | "logs" | "series" | "fixture";
+            /** Payload Version */
+            payload_version: number;
             /**
              * Run Id
              * Format: uuid
@@ -1081,16 +1125,78 @@ export interface components {
             run_id: string;
             /**
              * Schema Version
-             * @constant
+             * @enum {integer}
              */
-            schema_version: 1;
+            schema_version: 1 | 2;
             /** Sha256 */
             sha256: string;
+        };
+        /** EvidenceView */
+        EvidenceView: {
+            /** Catalog Version */
+            catalog_version: string;
             /**
-             * Source
-             * @constant
+             * Collected At
+             * Format: date-time
              */
-            source: "development_fixture";
+            collected_at: string;
+            /**
+             * Content Status
+             * @enum {string}
+             */
+            content_status: "available" | "unavailable" | "expired";
+            coverage: components["schemas"]["Coverage"];
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Observed At */
+            observed_at: string | null;
+            /**
+             * Payload Kind
+             * @enum {string}
+             */
+            payload_kind: "state" | "events" | "logs" | "series" | "fixture";
+            /** Payload Ref */
+            payload_ref: string | null;
+            /** Payload Version */
+            payload_version: number;
+            /** Pinned */
+            pinned: boolean;
+            /** Query Metadata */
+            query_metadata: {
+                [key: string]: unknown;
+            } | null;
+            /** Redaction Policy Version */
+            redaction_policy_version: string;
+            requested_window: components["schemas"]["RequestWindow"] | null;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Schema Version
+             * @enum {integer}
+             */
+            schema_version: 1 | 2;
+            /** Sha256 */
+            sha256: string | null;
+            /** Source Key */
+            source_key: string;
+            /**
+             * Source Kind
+             * @enum {string}
+             */
+            source_kind: "state" | "events" | "logs" | "series" | "fixture";
+            /**
+             * Time Relation
+             * @enum {string}
+             */
+            time_relation: "current_observation" | "within_requested_window" | "extends_after_window" | "not_captured";
             /** Workload Uid */
             workload_uid: string;
         };
@@ -1126,21 +1232,6 @@ export interface components {
              * Format: uuid
              */
             workload_id: string;
-        };
-        /** FixturePayload */
-        FixturePayload: {
-            /**
-             * Label
-             * @constant
-             */
-            label: "Synthetic development evidence; no live cluster was contacted.";
-            /**
-             * Observation
-             * @constant
-             */
-            observation: "Live workload health and telemetry are unavailable.";
-            /** Workload */
-            workload: string;
         };
         /** HandoffPreview */
         HandoffPreview: {
@@ -1412,6 +1503,20 @@ export interface components {
             kind: "operator" | "alertmanager";
             /** Source Id */
             source_id: string | null;
+        };
+        /** PackCoverage */
+        PackCoverage: {
+            /** Missing Required */
+            missing_required: string[];
+            /** Optional Gaps */
+            optional_gaps: string[];
+            /** Pack */
+            pack: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "partial" | "unavailable";
         };
         /** PlanRequest */
         PlanRequest: {
@@ -1754,7 +1859,9 @@ export interface components {
             incident_id: string;
             origin: components["schemas"]["OriginView"];
             /** Outcome Code */
-            outcome_code: ("operator_cancelled" | "incident_resolved" | "scope_retired" | "execution_blocking") | null;
+            outcome_code: ("operator_cancelled" | "incident_resolved" | "scope_retired" | "execution_blocking" | "analysis_unavailable" | "collection_failed") | null;
+            /** Pack Coverage */
+            pack_coverage: components["schemas"]["PackCoverage"][] | null;
             /** Question */
             question: string | null;
             /**
@@ -3621,6 +3728,171 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_evidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+                run_id: string;
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_evidence_content: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+                run_id: string;
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceContent"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gone */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };

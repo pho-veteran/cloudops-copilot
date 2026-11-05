@@ -50,6 +50,7 @@ function run(overrides: Partial<components["schemas"]["RunView"]> = {}) {
     },
     queue_reason: null,
     outcome_code: null,
+    pack_coverage: null,
     evidence: [],
     attempts: [],
     diagnosis: "unavailable",
@@ -450,4 +451,23 @@ describe("persisted handoff navigation", () => {
     expect(copy).toHaveBeenCalledTimes(1);
     copy.mockRestore();
   });
+});
+
+it("keeps an unknown exact historical run selected rather than showing the latest", async () => {
+  const missing = "00000000-0000-4000-8000-000000000099";
+  window.history.replaceState(
+    null,
+    "",
+    `/#/incidents/${incidentId}?run=${missing}`,
+  );
+  mount([run()], "open", {}, true, (request) => {
+    if (new URL(request.url).pathname.endsWith(`/runs/${missing}`))
+      return Response.json(
+        { error: { code: "not_found", message: "Run not found" } },
+        { status: 404 },
+      );
+  });
+  expect(await screen.findByText("Run not found")).toBeTruthy();
+  expect(readRoute().run).toBe(missing);
+  expect(screen.queryByRole("heading", { name: "Investigation" })).toBeNull();
 });

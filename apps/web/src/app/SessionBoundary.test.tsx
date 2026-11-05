@@ -211,6 +211,7 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
         id: run,
         state: "insufficient_evidence",
         evidence: [],
+        pack_coverage: null,
         attempts: [],
         origin: { kind: "operator", source_id: null },
         created_at: "2026-10-26T00:00:00Z",

@@ -26,7 +26,12 @@ WindowSource = Literal[
     "automatic_default",
 ]
 OutcomeCode = Literal[
-    "operator_cancelled", "incident_resolved", "scope_retired", "execution_blocking"
+    "operator_cancelled",
+    "incident_resolved",
+    "scope_retired",
+    "execution_blocking",
+    "analysis_unavailable",
+    "collection_failed",
 ]
 
 
@@ -77,16 +82,73 @@ class FixturePayload(BaseModel):
     observation: Literal["Live workload health and telemetry are unavailable."]
 
 
+class Coverage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    status: Literal["available", "partial", "unavailable", "not_applicable"]
+    reason_codes: list[str] = Field(max_length=16)
+
+
+class SourceTimes(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    observed_at: AwareDatetime | None
+    collected_at: AwareDatetime
+    time_relation: Literal[
+        "current_observation", "within_requested_window", "extends_after_window", "not_captured"
+    ]
+
+
+class SourceResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_key: str
+    payload_kind: Literal["state", "events", "logs", "series", "fixture"]
+    payload_version: int
+    coverage: Coverage
+    source_times: SourceTimes
+    query_metadata: dict | None = None
+    redacted_bounded_payload: dict | None = None
+
+
+class PackCoverage(BaseModel):
+    pack: str
+    status: Literal["available", "partial", "unavailable"]
+    missing_required: list[str]
+    optional_gaps: list[str]
+
+
 class EvidenceView(View):
     id: UUID
     run_id: UUID
     workload_uid: str
-    source: Literal["development_fixture"]
-    schema_version: Literal[1]
-    observed_at: datetime
+    source_key: str
+    source_kind: Literal["state", "events", "logs", "series", "fixture"]
+    catalog_version: str
+    schema_version: Literal[1, 2]
+    payload_kind: Literal["state", "events", "logs", "series", "fixture"]
+    payload_version: int
+    observed_at: datetime | None
     collected_at: datetime
+    requested_window: RequestWindow | None
+    time_relation: Literal[
+        "current_observation", "within_requested_window", "extends_after_window", "not_captured"
+    ]
+    coverage: Coverage
+    query_metadata: dict | None
+    sha256: str | None
+    redaction_policy_version: str
+    payload_ref: UUID | None
+    expires_at: datetime | None
+    pinned: bool
+    content_status: Literal["available", "unavailable", "expired"]
+
+
+class EvidenceContent(BaseModel):
+    evidence_id: UUID
+    run_id: UUID
+    schema_version: Literal[1, 2]
+    payload_kind: Literal["state", "events", "logs", "series", "fixture"]
+    payload_version: int
     sha256: str
-    payload: FixturePayload
+    payload: dict
 
 
 class AttemptView(View):
@@ -111,6 +173,7 @@ class RunView(View):
     window: RequestWindow | None
     queue_reason: Literal["capacity"] | None
     outcome_code: OutcomeCode | None
+    pack_coverage: list[PackCoverage] | None
     evidence: list[EvidenceView]
     attempts: list[AttemptView]
     diagnosis: Literal["unavailable"] = "unavailable"

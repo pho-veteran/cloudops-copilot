@@ -1,7 +1,17 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func, text
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -58,16 +68,39 @@ class InvestigationRun(Base):
     )
     queue_reason: Mapped[str | None] = mapped_column(String(16))
     outcome_code: Mapped[str | None] = mapped_column(String(32))
+    pack_coverage: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
 
 
 class Evidence(Base):
     __tablename__ = "evidence"
+    __table_args__ = (
+        UniqueConstraint(
+            "run_id", "source_key", "catalog_version", name="evidence_source_identity"
+        ),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    run_id: Mapped[UUID] = mapped_column(ForeignKey("investigation_runs.id"), unique=True)
+    run_id: Mapped[UUID] = mapped_column(ForeignKey("investigation_runs.id"))
     workload_uid: Mapped[str] = mapped_column(String(100))
-    source: Mapped[str] = mapped_column(String(64))
-    schema_version: Mapped[int] = mapped_column(default=1)
-    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    source_key: Mapped[str] = mapped_column(String(64))
+    source_kind: Mapped[str] = mapped_column(String(16))
+    catalog_version: Mapped[str] = mapped_column(String(32))
+    schema_version: Mapped[int] = mapped_column(default=2)
+    payload_kind: Mapped[str] = mapped_column(String(16))
+    payload_version: Mapped[int] = mapped_column(default=1)
+    observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    sha256: Mapped[str] = mapped_column(String(64))
-    payload: Mapped[dict] = mapped_column(JSONB)
+    requested_window: Mapped[dict | None] = mapped_column(JSONB)
+    time_relation: Mapped[str] = mapped_column(String(32))
+    coverage: Mapped[dict] = mapped_column(JSONB)
+    query_metadata: Mapped[dict | None] = mapped_column(JSONB)
+    sha256: Mapped[str | None] = mapped_column(String(64))
+    redaction_policy_version: Mapped[str] = mapped_column(String(32))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), deferred=True)
+
+
+class EvidencePin(Base):
+    __tablename__ = "evidence_pins"
+    evidence_id: Mapped[UUID] = mapped_column(ForeignKey("evidence.id"), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    owner_id: Mapped[UUID] = mapped_column(primary_key=True)

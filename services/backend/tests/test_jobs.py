@@ -10,7 +10,8 @@ from sqlalchemy import select, update
 from test_access_admission import create, incident_body, rerun
 
 from cloudops.entrypoints.worker import HANDLERS, run_once
-from cloudops.features.investigations.collector import collect, prepare
+from cloudops.features.investigations.catalog import SOURCES
+from cloudops.features.investigations.collector import collect, configured_adapters, prepare
 from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.jobs import Job, claim_next, finish, renew
@@ -36,6 +37,13 @@ def read_run(client, ids):
     return client.get(f"/api/incidents/{ids['incident_id']}/runs/{ids['run_id']}").json()
 
 
+def collect_claim(claim):
+    return collect(
+        prepare(claim.subject_id, attempt_number=claim.attempt, max_attempts=claim.max_attempts),
+        configured_adapters("development_fixture"),
+    )
+
+
 def test_collection_persists_labeled_immutable_evidence(client, monkeypatch):
     monkeypatch.setenv("COLLECTOR_DELAY_SECONDS", "0")
     settings.cache_clear()
@@ -46,13 +54,19 @@ def test_collection_persists_labeled_immutable_evidence(client, monkeypatch):
     assert result["state"] == "insufficient_evidence"
     assert result["diagnosis"] == result["recovery"] == "unavailable"
     assert result["attempts"][0]["state"] == "succeeded"
-    evidence = result["evidence"][0]
-    assert evidence["source"] == "development_fixture"
+    evidence = next(row for row in result["evidence"] if row["source_key"] == "development_fixture")
+    assert {row["source_key"] for row in result["evidence"]} == SOURCES.keys()
+    assert all("payload" not in row for row in result["evidence"])
     assert evidence["workload_uid"] == "development-checkout-v1"
+    response = client.get(
+        f"/api/incidents/{ids['incident_id']}/runs/{ids['run_id']}"
+        f"/evidence/{evidence['id']}/content"
+    )
+    assert response.status_code == 200
     assert (
         evidence["sha256"]
         == hashlib.sha256(
-            json.dumps(evidence["payload"], sort_keys=True, separators=(",", ":")).encode()
+            json.dumps(response.json()["payload"], sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
     )
     again = rerun(client, headers, ids["incident_id"])
@@ -66,7 +80,7 @@ def test_restart_takeover_fences_obsolete_and_duplicate_results(client, monkeypa
     settings.cache_clear()
     ids, _ = queued(client)
     old = claim_next(HANDLERS)
-    old_result = collect(prepare(old.subject_id))
+    old_result = collect_claim(old)
     assert renew(old)
     expire(old)
     assert not renew(old)
@@ -75,11 +89,11 @@ def test_restart_takeover_fences_obsolete_and_duplicate_results(client, monkeypa
     new = claim_next(HANDLERS)
     assert new.attempt == 2 and new.token != old.token
     assert not finish(old, HANDLERS[old.kind], result=old_result)
-    assert finish(new, HANDLERS[new.kind], result=collect(prepare(new.subject_id)))
+    assert finish(new, HANDLERS[new.kind], result=collect_claim(new))
     assert not finish(new, HANDLERS[new.kind], result=old_result)
     result = read_run(client, ids)
     assert [a["state"] for a in result["attempts"]] == ["expired", "succeeded"]
-    assert len(result["evidence"]) == 1
+    assert {row["source_key"] for row in result["evidence"]} == SOURCES.keys()
 
 
 def test_failures_exhaust_budget_without_success_evidence(client, monkeypatch):
@@ -135,13 +149,13 @@ def test_failed_publication_rolls_back_output_and_completion(client, monkeypatch
             raise RuntimeError("commit interrupted")
 
     with pytest.raises(RuntimeError):
-        finish(claim, BrokenHandler(), result=collect(prepare(claim.subject_id)))
+        finish(claim, BrokenHandler(), result=collect_claim(claim))
     assert read_run(client, ids)["evidence"] == []
     with sessions()() as db:
         assert db.get(Job, claim.id).state == "running"
     expire(claim)
     assert run_once()
-    assert len(read_run(client, ids)["evidence"]) == 1
+    assert {row["source_key"] for row in read_run(client, ids)["evidence"]} == SOURCES.keys()
 
 
 def test_worker_in_fresh_process_loads_all_persistence(client, monkeypatch):
@@ -164,7 +178,7 @@ def test_worker_in_fresh_process_loads_all_persistence(client, monkeypatch):
     )
     result = read_run(client, ids)
     assert result["state"] == "insufficient_evidence"
-    assert len(result["evidence"]) == 1
+    assert {row["source_key"] for row in result["evidence"]} == SOURCES.keys()
 
 
 def test_killed_worker_is_reclaimed_after_real_lease_expiry(client):
@@ -210,7 +224,7 @@ def test_killed_worker_is_reclaimed_after_real_lease_expiry(client):
         )
         result = read_run(client, ids)
         assert [a["state"] for a in result["attempts"]] == ["expired", "succeeded"]
-        assert len(result["evidence"]) == 1
+        assert {row["source_key"] for row in result["evidence"]} == SOURCES.keys()
     finally:
         if process.poll() is None:
             process.kill()

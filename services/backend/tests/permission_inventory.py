@@ -30,6 +30,14 @@ OPERATIONS = {
     "get_incident": Operation("GET", "/api/incidents/{incident_id}", "protected_read"),
     "list_runs": Operation("GET", "/api/incidents/{incident_id}/runs", "protected_read"),
     "get_run": Operation("GET", "/api/incidents/{incident_id}/runs/{run_id}", "protected_read"),
+    "get_evidence": Operation(
+        "GET", "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}", "protected_read"
+    ),
+    "get_evidence_content": Operation(
+        "GET",
+        "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/content",
+        "protected_read",
+    ),
     "get_health": Operation("GET", "/api/health", "protected_read"),
     "create_incident": Operation("POST", "/api/incidents", "operator_mutation"),
     "create_run": Operation("POST", "/api/incidents/{incident_id}/runs", "operator_mutation"),

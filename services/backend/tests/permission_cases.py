@@ -1,5 +1,8 @@
 """Valid requests and outcome assertions owned by the available feature operations."""
 
+import hashlib
+import json
+
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Callable
@@ -9,7 +12,7 @@ from cloudops.features.access.schemas import SessionView
 from cloudops.features.health.schemas import HealthView
 from cloudops.features.incidents.intake_schemas import AlertReceiptPage
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
-from cloudops.features.investigations.schemas import RunPage, RunView
+from cloudops.features.investigations.schemas import EvidenceContent, EvidenceView, RunPage, RunView
 from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
 from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
 from intake_fixtures import envelope
@@ -96,13 +99,46 @@ def run_request(context):
     return {"path_params": {"incident_id": context.incident_id, "run_id": context.run_id}}
 
 
+def evidence_request(context):
+    return {
+        "path_params": {
+            "incident_id": context.incident_id,
+            "run_id": context.run_id,
+            "evidence_id": context.evidence_id,
+        }
+    }
+
+
+def evidence_check(response, context, actor):
+    record = validated(EvidenceView, response)
+    assert str(record.id) == context.evidence_id
+    assert str(record.run_id) == context.run_id
+    assert record.content_status == "available"
+    assert record.source_key == "development_fixture"
+
+
+def content_check(response, context, actor):
+    record = validated(EvidenceContent, response)
+    assert str(record.evidence_id) == context.evidence_id
+    assert str(record.run_id) == context.run_id
+    assert (
+        record.sha256
+        == hashlib.sha256(
+            json.dumps(
+                record.payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ).encode()
+        ).hexdigest()
+    )
+
+
 def assert_evidence(run, context):
     assert str(run.id) == context.run_id
     assert str(run.incident_id) == context.incident_id
     assert run.state == "insufficient_evidence"
-    assert len(run.evidence) == len(run.attempts) == 1
-    assert run.evidence[0].source == "development_fixture"
-    assert run.evidence[0].payload.label.startswith("Synthetic development evidence;")
+    fixture = next(row for row in run.evidence if row.source_key == "development_fixture")
+    assert fixture.coverage.status == "available" and fixture.content_status == "available"
+    assert fixture.payload_ref == fixture.id
+    assert all("payload" not in row.model_dump() for row in run.evidence)
     assert run.attempts[0].state == "succeeded"
     assert run.diagnosis == run.recovery == "unavailable"
 
@@ -204,6 +240,8 @@ CASES = {
     "get_incident": RequestCase(incident_request, incident_check),
     "list_runs": RequestCase(incident_request, run_list_check),
     "get_run": RequestCase(run_request, run_check),
+    "get_evidence": RequestCase(evidence_request, evidence_check),
+    "get_evidence_content": RequestCase(evidence_request, content_check),
     "get_health": RequestCase(session_request, health_check),
     "create_incident": RequestCase(create_incident_request, admission_check),
     "create_run": RequestCase(create_run_request, admission_check),

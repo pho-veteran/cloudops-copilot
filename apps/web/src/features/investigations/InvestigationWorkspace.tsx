@@ -26,6 +26,7 @@ import { AlertSignal } from "@/features/incidents/AlertSignal";
 import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
 import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
+import { EvidenceCatalog } from "./EvidenceCatalog";
 
 function RequestInvestigation({
   incidentId,
@@ -51,7 +52,8 @@ function RequestInvestigation({
           body,
         }),
       ),
-    onSuccess: () => cache.invalidateQueries({ queryKey: runKeys.all(incidentId) }),
+    onSuccess: () =>
+      cache.invalidateQueries({ queryKey: runKeys.all(incidentId) }),
     onSettled: (_data, error) => settleKey(scope, error ?? undefined),
   });
   const problem = windowProblem(timeWindow);
@@ -137,7 +139,13 @@ function RequestInvestigation({
   );
 }
 
-function CancelRun({ incidentId, runId }: { incidentId: string; runId: string }) {
+function CancelRun({
+  incidentId,
+  runId,
+}: {
+  incidentId: string;
+  runId: string;
+}) {
   const cache = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const mutation = useMutation({
@@ -186,11 +194,13 @@ function CancelRun({ incidentId, runId }: { incidentId: string; runId: string })
 export function InvestigationWorkspace({
   id,
   selectedRun,
+  selectedEvidence = "",
   selectedResolution,
   canMutate,
 }: {
   id: string;
   selectedRun: string;
+  selectedEvidence?: string;
   selectedResolution: string;
   canMutate: boolean;
 }) {
@@ -208,7 +218,10 @@ export function InvestigationWorkspace({
   if (latest.isError)
     return <Failure error={latest.error} retry={() => void latest.refetch()} />;
   const busy = latest.data.items.some(
-    (r) => !["insufficient_evidence", "completed", "failed", "cancelled"].includes(r.state),
+    (r) =>
+      !["insufficient_evidence", "completed", "failed", "cancelled"].includes(
+        r.state,
+      ),
   );
   const resolved = incident.data.state === "resolved";
   return (
@@ -228,8 +241,11 @@ export function InvestigationWorkspace({
       )}
       <AlertSignal incident={incident.data} />
       <p className="muted">
-        Workload rollout observations are tracked separately from this investigation evidence.{" "}
-        <a href={`#/workloads?workload=${incident.data.workload.id}`}>View workload context</a>
+        Workload rollout observations are tracked separately from this
+        investigation evidence.{" "}
+        <a href={`#/workloads?workload=${incident.data.workload.id}`}>
+          View workload context
+        </a>
       </p>
       <WorkloadIdentity workload={incident.data.workload} />
       {canMutate && !busy && !resolved && incident.data.workload.active ? (
@@ -243,8 +259,8 @@ export function InvestigationWorkspace({
           {!canMutate && <p className="muted">Viewer access · read-only</p>}
           {canMutate && busy && (
             <p className="muted">
-              An investigation is still active. Cancel a queued request
-              or wait for its result before requesting another.
+              An investigation is still active. Cancel a queued request or wait
+              for its result before requesting another.
             </p>
           )}
           {canMutate && resolved && (
@@ -254,7 +270,8 @@ export function InvestigationWorkspace({
           )}
           {!incident.data.workload.active && (
             <p className="muted">
-              This workload identity no longer admits new work. Its history remains readable; inspect the identity for its retirement status.
+              This workload identity no longer admits new work. Its history
+              remains readable; inspect the identity for its retirement status.
             </p>
           )}
         </div>
@@ -277,7 +294,12 @@ export function InvestigationWorkspace({
                   <li key={r.id}>
                     <a
                       aria-current={r.id === runId ? "page" : undefined}
-                      href={buildIncidentHash(id, r.id, incidentReturnHash(window.location.hash), selectedResolution)}
+                      href={buildIncidentHash(
+                        id,
+                        r.id,
+                        incidentReturnHash(window.location.hash),
+                        selectedResolution,
+                      )}
                     >
                       <span>{runStateLabel(r)}</span>
                       <br />
@@ -358,47 +380,12 @@ export function InvestigationWorkspace({
                     : "Not finished"}
                 </p>
               </article>
-              <article className="foundation-panel">
-                <h2>Evidence</h2>
-                {!current.data.evidence.length ? (
-                  <p>
-                    No evidence has been published for this run. A failed
-                    collection is not successful evidence.
-                  </p>
-                ) : (
-                  current.data.evidence.map((e) => (
-                    <div key={e.id} className="foundation-stack">
-                      <Badge variant="outline">
-                        Synthetic development fixture
-                      </Badge>
-                      <p>{e.payload.label}</p>
-                      <p>{e.payload.observation}</p>
-                      <dl className="foundation-metadata">
-                        <dt>Source</dt>
-                        <dd>{e.source}</dd>
-                        <dt>Workload</dt>
-                        <dd>{e.payload.workload}</dd>
-                        <dt>UID</dt>
-                        <dd className="mono">{e.workload_uid}</dd>
-                        <dt>Observed</dt>
-                        <dd>{new Date(e.observed_at).toLocaleString()}</dd>
-                        <dt>Collected</dt>
-                        <dd>{new Date(e.collected_at).toLocaleString()}</dd>
-                        <dt>Evidence ID</dt>
-                        <dd className="mono">{e.id}</dd>
-                        <dt>SHA-256</dt>
-                        <dd className="mono">{e.sha256}</dd>
-                      </dl>
-                      <details>
-                        <summary>
-                          Inspect stored payload · schema v{e.schema_version}
-                        </summary>
-                        <pre>{JSON.stringify(e.payload, null, 2)}</pre>
-                      </details>
-                    </div>
-                  ))
-                )}
-              </article>
+              <EvidenceCatalog
+                incidentId={id}
+                run={current.data}
+                selectedEvidence={selectedEvidence}
+                selectedResolution={selectedResolution}
+              />
               <article className="foundation-panel">
                 <h2>Collection attempts</h2>
                 <p className="muted">
@@ -439,7 +426,13 @@ export function InvestigationWorkspace({
         canMutate={canMutate}
         selectedResolution={selectedResolution}
         onSelectResolution={(resolution) => {
-          window.location.hash = buildIncidentHash(id, selectedRun, incidentReturnHash(window.location.hash), resolution);
+          window.location.hash = buildIncidentHash(
+            id,
+            selectedRun,
+            incidentReturnHash(window.location.hash),
+            resolution,
+            selectedEvidence,
+          );
         }}
       />
       <RecoveryPlans

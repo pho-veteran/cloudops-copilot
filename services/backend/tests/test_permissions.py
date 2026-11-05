@@ -20,7 +20,7 @@ from cloudops.features.access.models import LoginSession, User
 from cloudops.features.access.service import provision, token_hash
 from cloudops.features.incidents.intake_models import AlertEpisode, AlertReceipt
 from cloudops.features.incidents.models import Admission, Incident
-from cloudops.features.investigations.models import Evidence, InvestigationRun
+from cloudops.features.investigations.models import Evidence, EvidencePin, InvestigationRun
 from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.jobs import Job, JobAttempt
@@ -39,6 +39,7 @@ DOMAIN_MODELS = (
     Job,
     Admission,
     Evidence,
+    EvidencePin,
     JobAttempt,
     ObservationState,
     WorkloadObservation,
@@ -70,6 +71,7 @@ class Context:
     workload_id: str
     incident_id: str
     run_id: str
+    evidence_id: str
     body: dict
     secrets: set[str]
 
@@ -175,6 +177,12 @@ def permission_context(seeded, monkeypatch, tmp_path):
         assert response.status_code == 201, response.text
         ids = response.json()
         assert run_once()
+        run = operator.client.get(
+            f"/api/incidents/{ids['incident_id']}/runs/{ids['run_id']}"
+        ).json()
+        evidence_id = next(
+            row["id"] for row in run["evidence"] if row["source_key"] == "development_fixture"
+        )
 
         with sessions()() as db, db.begin():
             db.execute(
@@ -191,7 +199,14 @@ def permission_context(seeded, monkeypatch, tmp_path):
             secrets.update(str(value) for value in db.scalars(select(JobAttempt.lease_token)))
             assert db.scalar(select(JobAttempt.lease_token)) is not None
         context = Context(
-            app, actors, workload["id"], ids["incident_id"], ids["run_id"], body, secrets
+            app,
+            actors,
+            workload["id"],
+            ids["incident_id"],
+            ids["run_id"],
+            evidence_id,
+            body,
+            secrets,
         )
         seed_consumers(context, monkeypatch)
         yield context
@@ -419,6 +434,10 @@ def test_secret_assertions_have_a_real_persisted_lease_sentinel(permission_conte
         assert lease in context.secrets
     response = send(context, "get_run", "viewer")
     assert response.json()["attempts"]
-    assert response.json()["evidence"][0]["sha256"]
+    assert next(
+        row["sha256"]
+        for row in response.json()["evidence"]
+        if row["source_key"] == "development_fixture"
+    )
     assert_no_secrets(response, context)
     assert "lease_token" not in json.dumps(response.json())
