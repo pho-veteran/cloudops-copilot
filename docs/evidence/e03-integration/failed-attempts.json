@@ -1,0 +1,45 @@
+{
+  "retained_probe_attempt": "integration-attempt1.json",
+  "reader_failure": {
+    "observed": "HTTP401 from the owned Kubernetes reader; real sender receipts retryable/cluster_unavailable with no accepted episode",
+    "correction": "Regenerated only same cloudops-reader eight-hour credentials, preserved scope/UID and writer files, sync-workloads, restarted owned API/worker, then observed HTTP200 same UID. Full probe retry passed.",
+    "original_sender_start": "Not retained by the first failed harness; later input metadata capture was added. No exact replay of that lost input is claimed. A separate recorded real sender stop/start scenario proves same-episode retry."
+  },
+  "recovery_harness_attempts": [
+    {
+      "failure": "Nonexistent GET /api/runs/{run_id} returned404 before scale admission.",
+      "correction": "Used generated incident-scoped Run route and resumed the same existing admission; no duplicate incident created."
+    },
+    {
+      "failure": "Actual plan proposal rejected target_quarantined before plan/execution.",
+      "correction": "Explicit user approval for exact owned lab/UID followed by actual proof-backed enable/exit; no bypass or DB flag edit."
+    }
+  ],
+  "browser_harness_attempts": [
+    {
+      "failure": "Edge screenshot capture timed out; relay synthetic paste produced no text and did not establish clipboard bytes.",
+      "correction": "Kept Edge as primary journey browser. Artifact bytes/pixels were checked separately with explicitly authorized temporary isolated managed contexts; all disposed."
+    },
+    {
+      "failure": "Private read/write permission aliases left sanitized write denied; actual UI displayed Write permission denied.",
+      "correction": "Granted only the already-authorized private-context sanitized text-write permission; actual clipboard/read/hash passed; context removed."
+    },
+    {
+      "failure": "An unfiltered stale ResourceTiming entry was compared to a filtered UI, and a transient row was read while a filter fetch changed.",
+      "correction": "Cleared the timing buffer, correlated the completed filtered request, and inspected settled rows; server and UI IDs matched. No product filter defect was inferred."
+    },
+    {
+      "failure": "Concurrent waitForDownload/click hit the tab serialization guard; the unhandled waiter rejection restarted the JS worker.",
+      "correction": "Recovered owned handles/durable server records; serialized click and collected actual completed download records/files. No mock or clipboard shim is byte proof."
+    },
+    {
+      "failure": "Managed private-target adoption is unsupported and a separate owned Edge artifact-profile launch timed out.",
+      "correction": "Used authorized raw Puppeteer for the private context; kept the registered managed tab for actual file retrieval. No browser security flag was disabled."
+    }
+  ],
+  "non_CI_formatter_attempt": {
+    "failure": "A root-default Ruff check was used without the repository explicit configuration and was not a valid CI result.",
+    "correction": "Used the exact CI --config; only the new probe required formatting. Original executed bytes and equal normalized AST are bound in format-binding.json."
+  },
+  "limits": "These are prerequisite/harness failures, not silently discarded product passes. The successful receipts identify exactly what was later exercised."
+}

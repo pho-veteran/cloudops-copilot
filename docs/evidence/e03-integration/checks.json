@@ -1,0 +1,42 @@
+{
+  "core_base": "465dc5ab8d751b799268f0e17b64177076654015",
+  "core_program_fingerprint": "d127a0d9dd10049f9421228e10117dda3db21742aa8265fee34ef1d3d76bfda1",
+  "core_changed": false,
+  "backend": {
+    "command": "pytest -q services/backend/tests_unit services/backend/tests",
+    "database": "owned cloudops_ci39_test (PostgreSQL17.11)",
+    "result": "843 passed; one existing Starlette/httpx deprecation warning",
+    "seconds": 199.16
+  },
+  "web": {
+    "command": "npm --prefix apps/web test && npm --prefix apps/web run build",
+    "result": "138 passed; TypeScript/Vite production build passed",
+    "node": "24.21.0",
+    "npm": "11.19.0",
+    "assets": [
+      "index-BlWG07Lc.js",
+      "App-CC_c1R4L.js"
+    ]
+  },
+  "lint": {
+    "commands": [
+      "ruff check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr"
+    ],
+    "result": "Passed; 138 files already formatted"
+  },
+  "contracts": {
+    "commands": [
+      "python scripts/contracts.py",
+      "python scripts/test-contract-drift.py"
+    ],
+    "result": "Artifacts synchronized; deliberate schema drift rejected and regenerated consumer accepted; working tree untouched"
+  },
+  "cli": "Final CI-formatted probe --help ran successfully; complete domain scenario uses the exact exercised driver SHA and AST-equivalent formatter binding in format-binding.json",
+  "runtime": "Actual current scoped K3s/HTTPS/API/worker/executor and pinned Alertmanager checks are in sender/integration/transient/recovery/browser receipts. HTTPS clients validated lab CA and localhost hostname.",
+  "limits": [
+    "PostgreSQL guard/race/migration cases use _test only and controlled source observations; they are not claimed as live Kubernetes race injection.",
+    "Browser transport failure/held expiry request are deliberate client-side timing/fault controls over actual server responses, not fabricated API results.",
+    "Future quota/analysis/verifying/reconciliation and finding producer states remain labeled contract fixtures; no live diagnosis or verified remediation."
+  ]
+}

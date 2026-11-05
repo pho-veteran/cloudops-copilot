@@ -143,8 +143,10 @@ These browser journeys use a separate HTTP development origin over the real disp
 
 ## E03 bounded integration probe
 
-`scripts/probe-e03-integration.py` is preparation tooling, not a recorded acceptance
-result. Run it only against a **disposable, isolated** `cloudops-*` Compose project,
+`scripts/probe-e03-integration.py` has a recorded run in the
+[E03 acceptance ledger](incident-integration-acceptance.md), including source binding,
+failures, producer limits and retained-volume cleanup. Run it only against a
+**disposable, isolated** `cloudops-*` Compose project,
 after the local lab above has been bootstrapped, the v2 `demo/checkout` scope
 published with `sync-workloads`, and the API, HTTPS proxy, PostgreSQL, K3s, exactly
 one worker and pinned Alertmanager are running. The lab CA must validate the
@@ -165,9 +167,10 @@ uv run --project services/backend python scripts/probe-e03-integration.py \
 The repeat path uses the configured Alertmanager. For concurrent real delivery,
 the probe starts two additional pinned Alertmanager containers sharing only the
 project proxy network, with separate listen ports and storage, clustering disabled
-and repeats delayed. It injects identical labels and start times into both,
-observes both webhook-success metrics and separate intake deliveries, and removes
-only these two probe-created containers and their temporary configuration. An absent
+and repeats delayed. Before injection, it records the identical alert labels and
+start time in the partial receipt. It observes both webhook-success metrics and
+separate intake deliveries, and removes only these two probe-created containers
+and their temporary configuration. An absent
 webhook-failure counter series remains `null` in the receipt (the counter vector
 has not been incremented), rather than being reported as an observed zero. Direct
 concurrent and mixed-batch v4 deliveries are labeled separately. After a saturated
@@ -221,4 +224,4 @@ fixtures are not live AI or remediation.
 
 - One configured source per deployment. There is no rate limiting or mTLS.
 - The lab receipt injects alerts through Alertmanager's API; Prometheus alert rules are not part of it.
-- Collection is synthetic. Integrated E03 acceptance with the work queue and handoff remains [#39](https://github.com/pho-veteran/cloudops-copilot/issues/39).
+- Collection is synthetic. The [integrated E03 ledger](incident-integration-acceptance.md) maps [#39](https://github.com/pho-veteran/cloudops-copilot/issues/39) and every parent criterion to actual sender/browser/persistence evidence without claiming future RCA or recovery engines.

@@ -1,0 +1,24 @@
+{
+  "project": "cloudops-issue39-live",
+  "before_stop": {
+    "active_jobs": 0,
+    "deferred_runs": 0,
+    "retained_unknown_execution": "6e61f0af-0761-4e28-8e63-d4ed98b86f74",
+    "holds_lock": true,
+    "maintenance_released": false,
+    "old_writer_uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+    "replacement_uid": "368bc881-8abb-44c8-824b-f758c5af6c7c"
+  },
+  "services": "All owned project services stopped; separate browser API stopped/auto-removed. No running work abandoned.",
+  "retained_volumes": [
+    "cloudops-issue39-live_database",
+    "cloudops-issue39-live_executor_authority",
+    "cloudops-issue39-live_k3s_data",
+    "cloudops-issue39-live_local_https_config",
+    "cloudops-issue39-live_local_https_data"
+  ],
+  "volume_policy": "Retained intentionally for audit/reconciliation, including application history, K3s identity and executor authority. No unknown lock was released and no authority journal was deleted to enable writes.",
+  "probe_cleanup": "Only probe-created secondary sender containers/configuration removed; worker restored before final stop.",
+  "browser_cleanup": "Owned lab sessions signed out and owned tabs released; temporary private clipboard contexts disposed and grants removed. Unrelated Edge tabs and Edge permission/certificate settings untouched.",
+  "unrelated_resources": "No synapse-* container or unrelated host Kubernetes context was changed."
+}

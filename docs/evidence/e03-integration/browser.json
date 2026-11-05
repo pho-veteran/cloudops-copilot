@@ -1,0 +1,215 @@
+{
+  "primary_browser": "Running Microsoft Edge 156.0.0.0 on Linux, relay; separate owned lab tab, unrelated tabs preserved",
+  "origin": "http://127.0.0.1:5189",
+  "manual": {
+    "incident_id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+    "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+    "title": "E03 manual handoff and identity acceptance",
+    "description": "Original operator context stays unchanged through attachment, resolution and reopen.",
+    "initial_run": {
+      "id": "5f297bde-2470-41e6-a8c9-b9868200c06b",
+      "question": "Which stored signals require follow-up without confusing alert recovery with incident resolution?",
+      "window": {
+        "start": "2026-11-05T00:06:36.237406Z",
+        "end": "2026-11-05T00:21:36.237406Z",
+        "source": "preset_15"
+      },
+      "state": "insufficient_evidence"
+    },
+    "attached_run": {
+      "id": "b80d2b5c-2f35-49fe-8806-1265ac59ee1c",
+      "question": "Follow up with a separate immutable request; do not rewrite the original question or release the uncertain target.",
+      "window": {
+        "start": "2026-11-04T23:29:03.874229Z",
+        "end": "2026-11-05T00:29:03.874229Z",
+        "source": "preset_60"
+      },
+      "state": "insufficient_evidence"
+    },
+    "actions": [
+      "Trusted keyboard admission with 15-minute request",
+      "Original multiline literal note saved without markup execution",
+      "Acknowledge and resolve for handoff with actual cross-incident unknown lock",
+      "Explicit saved-resolution selection",
+      "Reopen without changing selected saved bytes",
+      "Review and submit a separate 60-minute attached Run without rewriting original text"
+    ],
+    "saved_resolution_id": "eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+    "saved_sha256": "973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6",
+    "activity": {
+      "items": [
+        {
+          "id": "8278013b-24ea-4366-bf29-954c203908e1",
+          "incident_id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+          "kind": "reopen",
+          "text": "Reopen for a fresh read-only investigation; the prior saved handoff and unknown lock must remain unchanged.",
+          "actor_id": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "actor_name": "operator",
+          "created_at": "2026-11-05T00:26:30.911741Z"
+        },
+        {
+          "id": "eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+          "incident_id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+          "kind": "resolve",
+          "text": "Resolved for operator handoff only; preserve the unknown cross-incident target lock.",
+          "actor_id": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "actor_name": "operator",
+          "created_at": "2026-11-05T00:24:44.635255Z"
+        },
+        {
+          "id": "9723f350-311d-48ff-a8ea-720de23e676a",
+          "incident_id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+          "kind": "acknowledge",
+          "text": "Acknowledged stored evidence; unknown outcome is not verified recovery.",
+          "actor_id": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "actor_name": "operator",
+          "created_at": "2026-11-05T00:24:43.513079Z"
+        },
+        {
+          "id": "20bee6e7-8e18-4b00-91be-379aaa4cb2c6",
+          "incident_id": "7194f2e9-d623-402a-8f51-a7d6544d9ce0",
+          "kind": "note",
+          "text": "Original operator note: alert recovery is not incident resolution.\nLiteral <b>text only</b> & `stored evidence`; retain the unknown target lock.",
+          "actor_id": "32c45a9a-3690-41bf-83dc-55d72a5c8679",
+          "actor_name": "operator",
+          "created_at": "2026-11-05T00:24:42.871437Z"
+        }
+      ],
+      "total": 4,
+      "next_cursor": null
+    }
+  },
+  "queue": {
+    "hash": "#/queue?search=E03+manual+handoff&origin=operator&selected=7194f2e9-d623-402a-8f51-a7d6544d9ce0&view=blocked&run_state=insufficient_evidence&anchor_created_at=2026-11-05T02%3A06%3A22.256108Z&anchor_id=d5b024e7-8d62-4123-bd28-dee1035d7ea8",
+    "serverIds": [
+      "7194f2e9-d623-402a-8f51-a7d6544d9ce0"
+    ],
+    "uiIds": [
+      "7194f2e9-d623-402a-8f51-a7d6544d9ce0"
+    ],
+    "url": "http://127.0.0.1:5189/api/incidents?limit=25&offset=0&search=E03%20manual%20handoff&origin=operator&sort_by=last_seen_at&sort_order=desc&view=blocked&run_state=insufficient_evidence&anchor_created_at=2026-11-05T02%3A06%3A22.256108Z&anchor_id=d5b024e7-8d62-4123-bd28-dee1035d7ea8"
+  },
+  "unknown_queue": {
+    "hash": "#/queue?search=E03+actual+recovery&origin=operator&view=all&execution_class=terminal_unknown&anchor_created_at=2026-11-05T02%3A06%3A22.256108Z&anchor_id=d5b024e7-8d62-4123-bd28-dee1035d7ea8",
+    "row": "E03 actual recovery integrationIncident: openAlert signal: noneSeverity not providedManual \u00b7 11/4/2026, 11:47:20 PM \u00b7 First seen unknown \u00b7 Last seen unknownOpened by operatorRun: insufficient_evidence \u00b7 6c627a4f-48f3-409b-ba6b-313db838a943 \u00b7 Requested by operatorRun blockers in history: insufficient evidenceExecution: outcome_unknown \u00b7 terminal unknown locked \u00b7 target lockedExecution: manual_intervention \u00b7 terminal \u00b7 target lock released20c060aa-e933-418c-a431-7d7f91476c29",
+    "scrollWidth": 375,
+    "width": 390
+  },
+  "expiry": {
+    "denial": {
+      "before": {
+        "expiresAt": "2026-11-05T02:23:42.399433Z",
+        "hash": "#/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0?run=b80d2b5c-2f35-49fe-8806-1265ac59ee1c&resolution=eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+        "total": 4
+      },
+      "note": "This expired note must never be automatically replayed.",
+      "stage": "real-expired-request-denied",
+      "hashAfter401": "#/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0?run=b80d2b5c-2f35-49fe-8806-1265ac59ee1c&resolution=eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+      "devtools_status": null,
+      "status": 401,
+      "status_evidence": "Actual browser-API Uvicorn log after 2026-11-05T02:23:30Z: POST /api/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0/notes HTTP/1.1 401 Unauthorized"
+    },
+    "after_reauthentication": {
+      "expiredNoteAbsent": true,
+      "hash": "#/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0?run=b80d2b5c-2f35-49fe-8806-1265ac59ee1c&resolution=eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+      "originalHumanNotePreserved": true,
+      "total": 4
+    },
+    "normal_browser_api_session_seconds_restored": 28800
+  },
+  "viewer": {
+    "after": 4,
+    "before": 4,
+    "hash": "#/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0?run=b80d2b5c-2f35-49fe-8806-1265ac59ee1c&resolution=eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+    "lifecycleCode": "permission_denied",
+    "lifecycleStatus": 403,
+    "noMutationControls": true,
+    "noteCode": "permission_denied",
+    "noteStatus": 403,
+    "principal": {
+      "id": "e2270f52-4d2f-42f3-a7d3-78adfea2d215",
+      "role": "viewer",
+      "username": "viewer"
+    }
+  },
+  "selected_preview_retry": {
+    "hash": "#/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0?run=b80d2b5c-2f35-49fe-8806-1265ac59ee1c&resolution=eb1201ed-de8b-4b4d-a511-edd39d722c9e",
+    "ax": "- region \"Handoff preview\" [ref=e1]:\n  - heading \"Saved resolution handoff\" [level=3] [ref=e2]\n  - paragraph [ref=e3]: \"Resolution: eb1201ed-de8b-4b4d-a511-edd39d722c9e\"\n  - generic [ref=e4]:\n    - button \"Show current handoff\" [ref=e5] [cursor=pointer]\n    - button \"Refresh preview\" [ref=e6] [cursor=pointer]\n  - alert [ref=e7]:\n    - generic [ref=e8]: Unable to load or save\n    - generic [ref=e9]:\n      - text: Cannot reach the local API. Check the API and database services, then retry.\n      - button \"Retry\" [ref=e10] [cursor=pointer]",
+    "recovered": {
+      "exactSavedContent": true,
+      "hash": "#/incidents/7194f2e9-d623-402a-8f51-a7d6544d9ce0?run=b80d2b5c-2f35-49fe-8806-1265ac59ee1c&resolution=eb1201ed-de8b-4b4d-a511-edd39d722c9e"
+    }
+  },
+  "saved_clipboard_private_context": {
+    "stage": "passed",
+    "permissions": {
+      "read": "granted",
+      "write": "granted"
+    },
+    "clipboard": {
+      "copied": true,
+      "matches": true,
+      "domMatches": true,
+      "sha256": "973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6"
+    },
+    "geometry": {
+      "width": 320,
+      "scrollWidth": 320,
+      "fontSize": "14px",
+      "readOnly": true
+    },
+    "contextDisposed": true
+  },
+  "current_clipboard_private_context": {
+    "same": true,
+    "sha256": "cd6d72d89f8b5f80d9c91b9890abe139c5b99c9cbb40177b407d2a1fce9d1625",
+    "runCount": 2,
+    "citations": "unavailable",
+    "findings": "unavailable",
+    "workload": {
+      "id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+      "cluster": "local-k3s",
+      "namespace": "demo",
+      "name": "checkout",
+      "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+      "active": false,
+      "source": "live_kubernetes",
+      "retirement_reason": "replaced"
+    },
+    "selectedSaved": false,
+    "contextDisposed": true
+  },
+  "downloads": {
+    "saved": {
+      "filename": "saved-handoff.md",
+      "bytes": 4937,
+      "sha256": "973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6"
+    },
+    "current": {
+      "filename": "current-handoff.md",
+      "bytes": 6272,
+      "sha256": "cd6d72d89f8b5f80d9c91b9890abe139c5b99c9cbb40177b407d2a1fce9d1625"
+    }
+  },
+  "visuals": {
+    "saved_320": {
+      "browser": "Isolated managed Chromium150 context, Viewer",
+      "width": 320,
+      "scrollWidth": 320,
+      "fontSize": "14px"
+    },
+    "queue_390": {
+      "browser": "Separate managed Chromium150 lab tab, Viewer, dark theme",
+      "width": 390,
+      "scrollWidth": 390,
+      "fontSize": "14px"
+    }
+  },
+  "limits": [
+    "Primary interactions/keyboard/roles/session/error-retry used the running Edge; Edge clipboard read and profile/certificate permissions were not changed.",
+    "Edge relay screenshot/download and synthetic-paste capture did not establish artifact bytes. Actual clipboard-byte proof used explicitly authorized temporary isolated contexts; all were disposed. Actual files came from the registered managed download path.",
+    "Browser HTTP loopback is separate from CA/hostname-validated HTTPS sender/API checks. No certificate warning was bypassed.",
+    "Saved exports intentionally retain the old UID/state after replacement; current output discloses the old workload as retired/replaced.",
+    "Browser transport failure was deliberately scoped to selected preview GET; it is not claimed as a real API outage. The transient sender scenario separately stopped the actual owned K3s provider."
+  ]
+}

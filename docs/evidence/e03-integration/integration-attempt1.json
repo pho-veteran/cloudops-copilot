@@ -1,0 +1,136 @@
+{
+  "project": "cloudops-issue39-live",
+  "checks": {
+    "wrong_auth_no_database_writes": {
+      "http_status": 401,
+      "before": {
+        "episodes": 4,
+        "receipts": 51,
+        "incidents": 5,
+        "runs": 6,
+        "jobs": 8
+      }
+    }
+  },
+  "steps": [],
+  "status": "failed",
+  "limits": [
+    "Collection is synthetic; no live AI or remediation is asserted.",
+    "Direct v4 deliveries are labeled separately from the real Alertmanager sender.",
+    "No fairness is claimed under continuous competing admissions.",
+    "Lifecycle/claim/callback races require separate acceptance evidence."
+  ],
+  "runner_commit": "f0b69bae168e3f40d700bf20297b6beb910248d5",
+  "runner_script_sha256": "bc250b5530a289c52d43e9b024735e5eca3b2d79d0de1509da273c0759524ef6",
+  "runtime_images": [
+    {
+      "ID": "sha256:abf8a7fbdb60ecfe2c3ffcd6f88eddf536bdf87ef31a4bbc3193e85fac1520d8",
+      "ContainerName": "cloudops-issue39-live-https-1",
+      "Repository": "cloudops-local-https",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 83975076,
+      "Created": "2026-11-04T22:50:25.793912635+07:00",
+      "LastTagTime": "2026-11-04T16:33:53.030898839Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-browser-api",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-api-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-migrate-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-worker-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
+      "ContainerName": "cloudops-issue39-live-db-1",
+      "Repository": "postgres",
+      "Tag": "17.11-bookworm",
+      "Platform": "linux/amd64",
+      "Size": 619679410,
+      "Created": "2026-10-28T01:31:24.32855846Z",
+      "LastTagTime": "2026-11-03T16:20:15.268058291Z"
+    },
+    {
+      "ID": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "ContainerName": "cloudops-issue39-live-k3s-1",
+      "Repository": "rancher/k3s",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 378067427,
+      "Created": "2026-09-30T16:10:12.488362139Z",
+      "LastTagTime": "2026-11-03T16:18:09.384732978Z"
+    },
+    {
+      "ID": "sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+      "ContainerName": "cloudops-issue39-live-alertmanager-1",
+      "Repository": "prom/alertmanager",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 124714093,
+      "Created": "2026-10-29T09:57:45.314667954Z",
+      "LastTagTime": "2026-11-03T16:21:03.451790885Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-executor-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    }
+  ],
+  "sender_image": {
+    "reference": "prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+    "image_id": "sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b"
+  },
+  "sender_version": "alertmanager, version 0.34.2 (branch: HEAD, revision: e8349048265ccc0871c3d0d668b05eacc68baf50)",
+  "capacity": {
+    "J": 100,
+    "D": 2
+  },
+  "deployment": {
+    "cluster": "local-k3s",
+    "namespace": "demo",
+    "name": "checkout",
+    "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77"
+  },
+  "failure_type": "RuntimeError",
+  "failure": "Timed out waiting for two isolated sender deliveries",
+  "sender_cleanup": "removed only probe-created sender containers and configuration",
+  "worker_restore": "started"
+}

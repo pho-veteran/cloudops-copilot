@@ -1,0 +1,77 @@
+{
+  "source": "live_local_k3s_https_alertmanager",
+  "implementation_commit": "db340571fc7132d90413b173e0cf6a80be7ef777",
+  "sender_image": "prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+  "sender_version": "alertmanager, version 0.34.2 (branch: HEAD, revision: e8349048265ccc0871c3d0d668b05eacc68baf50)",
+  "checks": {
+    "wrong_credential_401_without_receipt": true,
+    "direct_deployment_uid_bound_incident": true,
+    "repeat_is_duplicate_without_new_incident": true,
+    "pod_owner_chain_maps_same_uid": true,
+    "out_of_scope_rejected_without_incident": true,
+    "resolved_alert_is_signal_only": true,
+    "new_firing_start_is_new_incident": true,
+    "receipts_redacted": true
+  },
+  "steps": [
+    {
+      "step": "direct_firing",
+      "outcome": "accepted",
+      "reason": null,
+      "alert_status": "firing",
+      "incident_id": "01189c36-0efb-4e1a-b9e0-2b6a51e5f969",
+      "run_id": "51969dfd-ed10-48c0-a3c8-bd644e49e77a",
+      "received_at": "2026-11-04T16:37:59.532068Z"
+    },
+    {
+      "step": "repeat",
+      "outcome": "duplicate",
+      "reason": null,
+      "alert_status": "firing",
+      "incident_id": "01189c36-0efb-4e1a-b9e0-2b6a51e5f969",
+      "run_id": "51969dfd-ed10-48c0-a3c8-bd644e49e77a",
+      "received_at": "2026-11-04T16:38:19.443964Z"
+    },
+    {
+      "step": "pod_owner_chain",
+      "outcome": "accepted",
+      "reason": null,
+      "alert_status": "firing",
+      "incident_id": "2a7637fb-5b88-4760-a75e-b660e51c4618",
+      "run_id": "8e4d8e92-5d41-4ea2-831a-966af93ab5c9",
+      "received_at": "2026-11-04T16:38:21.025657Z"
+    },
+    {
+      "step": "out_of_scope",
+      "outcome": "rejected",
+      "reason": "out_of_scope",
+      "alert_status": "firing",
+      "incident_id": null,
+      "run_id": null,
+      "received_at": "2026-11-04T16:38:23.151606Z"
+    },
+    {
+      "step": "resolved_signal",
+      "outcome": "resolved_signal",
+      "reason": null,
+      "alert_status": "resolved",
+      "incident_id": "01189c36-0efb-4e1a-b9e0-2b6a51e5f969",
+      "run_id": "51969dfd-ed10-48c0-a3c8-bd644e49e77a",
+      "received_at": "2026-11-04T16:38:24.443526Z"
+    },
+    {
+      "step": "new_episode",
+      "outcome": "accepted",
+      "reason": null,
+      "alert_status": "firing",
+      "incident_id": "58ee3dc8-8461-4fcd-82ef-71712e9e0b0b",
+      "run_id": "9408827d-4e93-4803-9195-1527db74a892",
+      "received_at": "2026-11-04T16:38:27.420823Z"
+    }
+  ],
+  "limits": [
+    "Investigation collection remains synthetic; no diagnosis or model call is made.",
+    "One configured source and one pinned cluster; no rate limiting is claimed.",
+    "Alerts are injected into the real Alertmanager with amtool; Prometheus rules are not part of this receipt."
+  ]
+}

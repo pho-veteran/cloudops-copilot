@@ -1,0 +1,93 @@
+# E03 integrated incident acceptance
+
+Acceptance record for [E03 #6](https://github.com/pho-veteran/cloudops-copilot/issues/6) and [integration task #39](https://github.com/pho-veteran/cloudops-copilot/issues/39). This record covers the bounded current producers specified by E03 D6, not live AI diagnosis or a cloud release.
+
+## Source and environment binding
+
+The application core is unchanged from `465dc5ab8d751b799268f0e17b64177076654015` (D/#38). The new implementation is the bounded integration CLI, its operational instructions and the local-operation preference. [Source binding](evidence/e03-integration/source.json) and [actual environment](evidence/e03-integration/environment.json) identify the checked program files and container images.
+
+The complete sender/capacity/replacement run recorded driver SHA-256 `a8f4bb686a4f06913e78b8142a18262b1eea6b4f459c8f737c76cdce2cfd250e` and preparation HEAD `f0b69bae168e3f40d700bf20297b6beb910248d5`, including its recorded uncommitted input-metadata change. The final source was subsequently formatted with the exact CI Ruff configuration. Its SHA-256 is `87d23f64b4131091b2066d54f5f56ade48477f7f086d1996e526d4341013ce0a`; the normalized AST is identical. [Format binding](evidence/e03-integration/format-binding.json) preserves both identities rather than relabeling the executed receipt. The final CLI entry point was also smoke-run with `--help`.
+
+The disposable project was `cloudops-issue39-live`: PostgreSQL 17.11, Python 3.13.11, K3s `v1.37.1+k3s1`, Caddy 2.10.2 and digest-pinned Alertmanager 0.34.2. The web checks used Node 24.21.0/npm 11.19.0. Capacity was **J=100, D=2**, one worker and zero synthetic collector delay. This is a controlled acceptance configuration, not a throughput measurement.
+
+## Issue #39 acceptance
+
+| Criterion | Demonstrated behavior and evidence | Boundary |
+| --- | --- | --- |
+| 1 · Real intake and identity | [Pinned sender](evidence/e03-integration/sender.json) covers Deployment/Pod-owner mapping, repeat, new firing start, out-of-scope rejection and signal-only resolution. [Two real senders](evidence/e03-integration/integration.json) each delivered successfully and produced one accepted episode/incident/initial Run plus a duplicate. Wrong auth left every counted table unchanged. [Actual provider stop/start](evidence/e03-integration/transient.json) produced retryable mapping with no domain admission, then accepted the same recorded episode once and deduplicated it. The guarded replacement kept the old binding and created a distinct new-UID admission. | Direct concurrent v4 batches are labeled separately from actual Alertmanager delivery. No Prometheus-rule production, rate limiting or mTLS claim. |
+| 2 · Bounded automatic dispatch | The [complete probe](evidence/e03-integration/integration.json) filled J/D through real APIs, observed a queued/capacity Run without a Job, verified mixed-batch 503 without partial initial admission, retried the entire unchanged batch once, and deduplicated its next delivery. Worker recreation preserved reservations. With one free slot and two deferred Runs, ordinary worker cycles created one Job per same Run in oldest-first order; the probe made **zero manual promotion calls**. | No competing admissions were submitted during this dispatch observation. Continuous-admission fairness is not guaranteed. |
+| 3 · No resurrection and persistence | The complete **843-test PostgreSQL/unit suite** exercised cancellation/resolve/retirement versus promotion/claim, started/requeue/failed/publish callbacks, actual lease expiry, replacement worker processes and fresh/populated/repeated migrations. [Browser/server records](evidence/e03-integration/browser.json) retain the original and attached Run IDs, evidence, notes and saved export through the actual API/worker restart used for reader renewal and later UID replacement. | Destructive migration/race tests used only `cloudops_ci39_test`, never the application database. Controlled source observations in these transaction tests are not presented as live Kubernetes race injection. |
+| 4 · Trusted browser outcomes | Running Edge performed keyboard manual admission, a 15-minute question, original multiline literal note, acknowledge/resolve/reopen, explicit saved selection and a separate 60-minute attached Run. [Browser receipt](evidence/e03-integration/browser.json) records exact identities/windows, server-filter/UI equality and back-navigation preservation. A real eight-second session expired while a note request was held: the actual server returned 401; re-sign-in retained the exact saved route, history stayed at four rows and the denied note was absent. Viewer note/resolve requests returned 403 with no history change and no mutation controls. Selected-preview transport failure/retry retained the exact resolution. | Primary interactions used the running Edge. Artifact pixels and clipboard read/file retrieval used separately disclosed managed lab contexts because relay artifact capture was unavailable. No Edge permission/trust changes or certificate bypass. |
+| 5 · Recovery/admission safety | Current-candidate PostgreSQL cases cover drafts at deferral/promotion/claim, nonterminal-Run approval refusal without authority consumption, explicit cancellation followed by a fresh decision, unsupported/active execution refusal before provider attempt, eligible same-Job lease retry and controlled claim/approve/resolve/cancel lock races. [Actual recovery](evidence/e03-integration/recovery.json) acknowledged a UID-conditional 1→2 scale, then a controlled executor outage produced a matching completed-Job `outcome_unknown`. Resolve/reopen and another incident's handoff retained its cross-incident attribution/lock. [Replacement proof](evidence/e03-integration/integration.json) preserved that unknown and the old writer pin. | Scale acknowledgment is not application verification: verification remained inconclusive. No unknown lock was released, no elapsed-time unlock occurred and no authority was granted to the replacement UID. Future verifying/reconciliation/analysis/quota states are explicitly controlled contract fixtures feeding the real guards. |
+| 6 · Useful stored handoff | Current and explicitly selected saved DOM preview, actual clipboard and exported files matched their respective server Markdown. The old report stayed immutable through reopen, another Run, restarts and UID retirement. [Real K3s outage](evidence/e03-integration/transient.json) did not prevent reading its stored export. Provider tripwires in the complete suite cover notes/current preview/selected saved preview/export with zero attempts. Production findings/citations stay unavailable; validated findings fixtures remain labeled. | No live E06 analysis/citation producer or model-quality claim. The outage probe is a real cluster outage, not an invented model-service outage; application model-call exclusion is separately established by the tripwire cases and unchanged stored-data composer. |
+| 7 · Parent ledger and limits | Every original parent AC is mapped below to current receipts, exact software/source binding and its proof class. [Checks](evidence/e03-integration/checks.json), [failed attempts](evidence/e03-integration/failed-attempts.json) and [cleanup/retained volumes](evidence/e03-integration/cleanup.json) remain explicit. | E04 live packs, E06 live diagnosis, later E07 engines and E10 cloud/release validation remain their owning release gates. |
+
+### Exact transaction and producer-consumer checks
+
+The complete current-candidate suite passed, including these behavioral nodes:
+
+- `test_incident_requests.py`: `test_promotion_is_bounded_oldest_first_and_survives_restart`, `test_promotion_retires_ineligible_requests_without_remapping`, `test_cancel_retires_the_job_and_claim_never_attempts_it`, `test_claimed_collection_is_not_cancelled_and_its_result_stays_history`, `test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries`, `test_cancel_does_not_wait_for_a_claimer_holding_the_job`, `test_claim_waiting_on_a_cancelling_run_retires_the_job`, `test_late_callbacks_cannot_resurrect_a_cancelled_run`, `test_drafts_are_invalidated_at_promotion_and_claim`, `test_approval_waits_for_a_pending_investigation`, `test_promotion_cancels_behind_an_active_execution_without_touching_its_lock`, `test_worker_cycle_promotes_before_claiming`, and populated/legacy upgrade cases.
+- `test_incident_lock_order.py`: resolve/claim/proposed-plan contention, approval state rechecks, nonterminal refusal before live reads, manual/automatic/promotion contention and retained-lock classification.
+- `test_handoff_three_way_race.py::test_resolve_new_run_and_claim_have_one_consistent_outcome` and `test_deferred_restart.py::test_deferred_run_is_promoted_by_a_replacement_worker_process`.
+- `test_jobs.py`: concurrent single-owner claim, fresh process/registry behavior, killed-worker real lease expiry, fenced late publication and bounded failure/retry histories.
+- `test_incident_handoff.py`, `test_consumers.py` and the intake/queue cases: immutable legacy/versioned rendering, current real-state consumer contracts, old/cross-incident locks, provider tripwires, same-admission dedup under capacity, permission boundaries and explicit future-state fixtures.
+
+These are actual PostgreSQL transactions/processes with the suite's controlled observations. The live receipts separately identify K3s/Alertmanager/executor producers; the two proof classes are not interchangeable.
+
+## Parent E03 AC1–AC6 ledger
+
+| Parent criterion | Evidence |
+| --- | --- |
+| AC1 · Authenticated bounded intake | Sender + two-sender dedup, wrong-auth no-write, actual retryable outage recovery, complete J/D/full-batch retry and automatic promotion receipts. |
+| AC2 · Durable accessible work | Native Edge new/attach/windows/filter/back flow, persisted original/attached Run and evidence IDs after API/worker restart, real worker replacement and migration/process tests. |
+| AC3 · Independent operational state | Signal-resolved/human-open sender receipt; actor/time/original notes; real queue shows both terminal-known and held terminal-unknown executions instead of selecting only the latest result. |
+| AC4 · Immutable resolve/reopen | Native resolve/reopen/attachment, exact frozen selected document, actual file hashes, restart/retirement readback and current-candidate atomicity/legacy migration cases. |
+| AC5 · Recovery cannot disappear | Real conditional scale and completed-Job unknown producer, actual cross-incident frozen handoff, retained old-UID lock after replacement, transaction races and labeled future active-state guards. |
+| AC6 · Stored useful handoff | Both selection classes match preview/clipboard/download; actual outage preserves export; zero-attempt tripwires and explicit unavailable production RCA/citations. |
+
+## Operator-visible artifacts
+
+| Selection | Actual file | SHA-256 |
+| --- | --- | --- |
+| Saved resolution `eb1201ed-de8b-4b4d-a511-edd39d722c9e` | [saved-handoff.md](evidence/e03-integration/saved-handoff.md) · 4,937 bytes | `973fc5f2d1b496fce71af8840d8389927d2b589c87d594cc91d1a5437be0e7c6` |
+| Current handoff after attachment and retirement | [current-handoff.md](evidence/e03-integration/current-handoff.md) · 6,272 bytes | `cd6d72d89f8b5f80d9c91b9890abe139c5b99c9cbb40177b407d2a1fce9d1625` |
+
+The different hashes are intentional: current content includes later work/retirement, while saved content remains frozen. Clipboard equality was checked only after copying the owned report in explicitly authorized private contexts. Those contexts were disposed; no permission override remains there and Edge's clipboard-read permission was not granted.
+
+- [Saved Viewer handoff at 320px](evidence/e03-integration/saved-lock-320.png): 14px literal Markdown, retained unknown/completed Job/lock and inconclusive verification.
+- [Actual independent-state queue at 390px, dark](evidence/e03-integration/unknown-queue-390.png): open incident, insufficient-evidence Run, retained unknown and a separate terminal-known outcome. Both narrow surfaces had no horizontal document overflow.
+
+## Reproduce in a fresh owned lab
+
+Do not run this destructive acceptance workflow against a shared or production project. The script requires an explicit `cloudops-*` project, exactly one worker, the pinned sender and empty active/deferred queues; its checks do not replace operator ownership of the selected project. Do not select a host Kubernetes context.
+
+1. Follow [local K3s/HTTPS setup](e01-local-lab.md) and [real sender setup](alert-intake.md#local-lab), with a fresh project name and its own password. Use `DEFERRED_RUN_LIMIT=2` and `COLLECTOR_DELAY_SECONDS=0` for API/worker; J remains the current default 100. Copy only that proxy's CA for the HTTPS probes. Bootstrap tokens last eight hours.
+2. Publish the v2 `demo/checkout` reader scope with `sync-workloads`; `probe-alert-intake.py` follows this existing setup and covers the pinned sender/owner-chain/signal cases. Provision disposable Operator/Viewer accounts through `--password-stdin`; never print bearer tokens, CSRF tokens or session cookies.
+3. Establish actual recovery readiness through the existing isolated deployment-root `enable_target` and `exit_recovery_mode` operations for the exact live UID. Their audit reference is not the safety proof: the executor performs the real UID/resourceVersion annotation fence and readback. Do not edit PostgreSQL/authority flags or bypass quarantine.
+4. Seed the actual producer on that UID through the HTTPS API: create an incident, wait for its stored synthetic Run to become terminal, propose a 1→2 plan (`POST /api/incidents/{id}/plans` with `replicas` and `rationale`), read `/api/plans/{id}`, and explicitly decide with its current `version`, `digest`, `review_token` and `decision=approve`. Wait for acknowledged/inconclusive outcome and released known lock; check the actual Deployment UID/spec. This is not a verified-remediation assertion.
+5. Honor the documented admission cooldown. Stop only the project worker; while the executor is still available, propose/read/approve the reverse plan. Stop that executor, start the worker and wait for an actual `outcome_unknown` with a matching completed Job and held lock. Restart the executor only after terminal publication; it returns in quarantine. Do **not** release the unknown, enable it again or blindly retry its write.
+6. Before replacement, perform the browser new/attach/question/window/note/acknowledge/resolve/reopen/saved-selection journey on that same old UID. Keep exact IDs and original human text. Verify a Viewer denial and actual expiry/re-sign-in without replay. Use the running Edge in a separate lab tab; do not change its profile permissions/certificate trust. If separate artifact contexts are required, disclose them and remove their temporary grants.
+7. Exercise real transient mapping without a fixture response: record a unique alert's exact labels/start, stop only this project's K3s service, inject that alert through the pinned Alertmanager, observe a retryable receipt and unchanged episode/incident/Run/Job counts, then restore the same K3s service/UID. The same sender retries the same episode; observe one admission and a duplicate. End the alert and verify signal resolution leaves human lifecycle open. Stored export must remain available during the outage. Do not claim a historical failed notification was replayed if its exact start was not retained.
+8. With current reader credentials and no active/deferred work or competing admissions, run the bounded CLI:
+
+   ```sh
+   export CLOUDOPS_LAB_PROJECT=cloudops-e03-acceptance
+   export DEFERRED_RUN_LIMIT=2 COLLECTOR_DELAY_SECONDS=0
+   uv run --project services/backend python scripts/probe-e03-integration.py \
+     --ca tmp/local-https-root.crt \
+     --output tmp/e03-integration-receipt.json \
+     --replace-owned-checkout
+   ```
+
+   `--replace-owned-checkout` deletes/recreates only the UID/resourceVersion-checked bootstrap Deployment. It requires a real retained unknown first, preserves the old episode/Run/lock and writer allowlist, and publishes a distinct replacement identity. Replacement does not authorize a new writer. Do not reuse that old writer configuration to repeat the replacement scenario; start a fresh isolated lab for another complete destructive run.
+
+9. Inspect partial/final receipts and `sender_cleanup`/`worker_restore`, including failures. An eight-hour reader expiry is a prerequisite failure, not a permanent alert rejection: renew only the same owned read-only ServiceAccount credentials, preserve its scope and all writer/authority files, `sync-workloads`, then restart that API/worker. Confirm a successful same-UID read before a new attempt. Preserve the original failed receipt and exact new input identity.
+10. Run the repository CI commands with its explicit Ruff configuration. Destructive tests require a dedicated database ending in `_test`; never run pytest against the live acceptance database. Do not hand-edit generated contracts. Stop only owned services after checking no active/deferred work. Keep or remove only those selected disposable volumes according to the documented reconciliation/audit decision.
+
+## Check results, failures and cleanup
+
+[Checks](evidence/e03-integration/checks.json): **843 backend tests**, **138 web tests**, production web build, exact-config Ruff (138 files), OpenAPI/TypeScript synchronization and deliberate drift rejection passed. The actual HTTPS workflows validated their certificate chain/hostname; browser HTTP loopback is a separate development surface. Existing jsdom `scrollTo` diagnostics and the Starlette/httpx deprecation warning are not hidden as new feature regressions.
+
+[Failed attempts](evidence/e03-integration/failed-attempts.json) preserve the original reader-unavailable probe and prerequisite/harness mistakes, their corrections and their limits. No failed invocation is relabeled as a pass. Historical E01/E02/D receipts support reuse; the new receipts above establish the newly executed outcomes.
+
+[Cleanup](evidence/e03-integration/cleanup.json): no active/deferred work remained before stopping the owned live services. Secondary sender containers/configuration were removed and the worker restored before final stop. Application, K3s and executor-authority volumes were intentionally retained for audit/reconciliation; unknown history/lock was not released or erased. Owned browser sessions/tabs were closed and private contexts disposed. Unrelated containers, host contexts and Edge tabs/permissions/trust were preserved.

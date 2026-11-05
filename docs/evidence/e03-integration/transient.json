@@ -1,0 +1,114 @@
+{
+  "source": "real pinned Alertmanager during owned K3s stop/start",
+  "input": {
+    "labels": {
+      "alertname": "E03Transient45e7cce894",
+      "namespace": "demo",
+      "deployment": "checkout"
+    },
+    "startsAt": "2026-11-05T01:58:34Z"
+  },
+  "checks": {
+    "retryable_without_domain_admission": {
+      "receipt": {
+        "id": "1c3e6976-337f-4ddd-8851-2d663461f940",
+        "delivery_id": "e6490853-77c8-43b0-9a27-a146abe6fb95",
+        "received_at": "2026-11-05T01:59:07.510149Z",
+        "source_id": "lab-alertmanager",
+        "alert_status": "firing",
+        "fingerprint": "df39c9f9e47cfc5e",
+        "alertname": "E03Transient45e7cce894",
+        "namespace": "demo",
+        "target_kind": "deployment",
+        "target_name": "checkout",
+        "outcome": "retryable",
+        "reason": "cluster_unavailable",
+        "incident_id": null,
+        "run_id": null,
+        "workload_id": null
+      },
+      "counts_before": {
+        "episodes": 4,
+        "incidents": 5,
+        "runs": 6,
+        "jobs": 8
+      },
+      "counts_after": {
+        "episodes": 4,
+        "incidents": 5,
+        "runs": 6,
+        "jobs": 8
+      }
+    },
+    "stored_export_during_actual_cluster_outage": true,
+    "same_episode_accepted_once": {
+      "accepted": {
+        "id": "87cca907-b5f8-4f7b-bb8e-677d64fb4c50",
+        "delivery_id": "ffcbbaf0-6924-4ef5-9878-580047ae8b08",
+        "received_at": "2026-11-05T01:59:11.515195Z",
+        "source_id": "lab-alertmanager",
+        "alert_status": "firing",
+        "fingerprint": "df39c9f9e47cfc5e",
+        "alertname": "E03Transient45e7cce894",
+        "namespace": "demo",
+        "target_kind": "deployment",
+        "target_name": "checkout",
+        "outcome": "accepted",
+        "reason": null,
+        "incident_id": "3b8273dd-3f3f-45e7-ac1c-1adfbf406a2b",
+        "run_id": "c167a47b-c13c-4e0f-9b68-aa631a7854fb",
+        "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+      },
+      "duplicate": {
+        "id": "65bb156a-6ab4-469b-856a-aff5ee41e559",
+        "delivery_id": "c90cb4ee-21b9-414f-b540-de26c5018d78",
+        "received_at": "2026-11-05T01:59:27.033042Z",
+        "source_id": "lab-alertmanager",
+        "alert_status": "firing",
+        "fingerprint": "df39c9f9e47cfc5e",
+        "alertname": "E03Transient45e7cce894",
+        "namespace": "demo",
+        "target_kind": "deployment",
+        "target_name": "checkout",
+        "outcome": "duplicate",
+        "reason": null,
+        "incident_id": "3b8273dd-3f3f-45e7-ac1c-1adfbf406a2b",
+        "run_id": "c167a47b-c13c-4e0f-9b68-aa631a7854fb",
+        "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+      },
+      "after": {
+        "episodes": 5,
+        "incidents": 6,
+        "runs": 7,
+        "jobs": 9
+      },
+      "same_uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77"
+    },
+    "resolved_signal_not_human_resolution": {
+      "receipt": {
+        "id": "c8c63271-c51c-4d16-9921-5591b19dee25",
+        "delivery_id": "32765cd0-6a09-4767-8b31-377d61003eae",
+        "received_at": "2026-11-05T01:59:32.033351Z",
+        "source_id": "lab-alertmanager",
+        "alert_status": "resolved",
+        "fingerprint": "df39c9f9e47cfc5e",
+        "alertname": "E03Transient45e7cce894",
+        "namespace": "demo",
+        "target_kind": "deployment",
+        "target_name": "checkout",
+        "outcome": "resolved_signal",
+        "reason": null,
+        "incident_id": "3b8273dd-3f3f-45e7-ac1c-1adfbf406a2b",
+        "run_id": "c167a47b-c13c-4e0f-9b68-aa631a7854fb",
+        "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+      },
+      "incident_state": "open"
+    }
+  },
+  "limits": [
+    "Synthetic collection, no model/AI or verified remediation claim.",
+    "Only the owned disposable cluster is stopped; reader scope/UID and unknown writer lock must remain unchanged."
+  ],
+  "status": "passed_exercised_checks",
+  "cluster_restore": "running"
+}

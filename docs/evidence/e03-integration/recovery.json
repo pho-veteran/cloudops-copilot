@@ -1,0 +1,111 @@
+{
+  "status": "passed_exercised_checks",
+  "source": "actual scoped K3s conditional scale, followed by controlled executor unavailability",
+  "workload": {
+    "id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+    "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+    "name": "checkout",
+    "namespace": "demo",
+    "cluster": "local-k3s"
+  },
+  "admission": {
+    "incident_id": "20c060aa-e933-418c-a431-7d7f91476c29",
+    "run_id": "6c627a4f-48f3-409b-ba6b-313db838a943",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-04T16:17:20.882641Z",
+      "end": "2026-11-04T16:47:20.882641Z",
+      "source": "legacy_default"
+    }
+  },
+  "run": {
+    "id": "6c627a4f-48f3-409b-ba6b-313db838a943",
+    "incident_id": "20c060aa-e933-418c-a431-7d7f91476c29",
+    "state": "insufficient_evidence",
+    "question": "E03 actual recovery integration",
+    "window": {
+      "start": "2026-11-04T16:17:20.882641Z",
+      "end": "2026-11-04T16:47:20.882641Z",
+      "source": "legacy_default"
+    },
+    "origin": {
+      "kind": "operator",
+      "source_id": null
+    }
+  },
+  "evidence_references": [
+    {
+      "id": "82f7bed3-b005-418f-b99f-3397a0d86382"
+    }
+  ],
+  "conditional_scale": {
+    "plan": {
+      "id": "9f8f4d9a-a9bb-40c4-a6f8-3dc3158f067d",
+      "digest": "ba88693f6b547b1945c5c6fd3ebb03d04825316a5f55cf8bd4fd2af43edf4f18",
+      "replicas": 2
+    },
+    "before_replicas": 1,
+    "after_replicas": 2,
+    "same_uid": true,
+    "execution": {
+      "id": "a03e7129-5658-4c5c-88df-42c726858263",
+      "plan_id": "9f8f4d9a-a9bb-40c4-a6f8-3dc3158f067d",
+      "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+      "state": "manual_intervention",
+      "holds_lock": false,
+      "created_at": "2026-11-05T00:17:59.593844Z",
+      "finished_at": "2026-11-05T00:18:00.190786Z",
+      "result": {
+        "outcome": "acknowledged",
+        "verification": "inconclusive",
+        "reason": "Kubernetes acknowledged the conditional replica change. Application traffic/metric coverage is unavailable; verify manually."
+      }
+    }
+  },
+  "terminal_unknown": {
+    "plan": {
+      "id": "54140fb2-4fb7-4a15-a541-a5ae258e687e",
+      "digest": "e1c5deafc1151f3f593e056f237a638d1e357b0379fc32f96d34fe035ca29474",
+      "replicas": 1
+    },
+    "execution": {
+      "id": "6e61f0af-0761-4e28-8e63-d4ed98b86f74",
+      "plan_id": "54140fb2-4fb7-4a15-a541-a5ae258e687e",
+      "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+      "state": "outcome_unknown",
+      "holds_lock": true,
+      "created_at": "2026-11-05T00:18:42.405222Z",
+      "finished_at": "2026-11-05T00:18:45.895077Z",
+      "result": {
+        "outcome": "outcome_unknown",
+        "verification": "inconclusive",
+        "reason": "Executor response unavailable. Keep the target lock and use trusted maintenance proof; no blind repeat write is permitted."
+      }
+    },
+    "handoff_projection": {
+      "id": "6e61f0af-0761-4e28-8e63-d4ed98b86f74",
+      "plan_id": "54140fb2-4fb7-4a15-a541-a5ae258e687e",
+      "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+      "state": "outcome_unknown",
+      "holds_lock": true,
+      "maintenance_released": false,
+      "result": {
+        "reason": "Executor response unavailable. Keep the target lock and use trusted maintenance proof; no blind repeat write is permitted.",
+        "outcome": "outcome_unknown",
+        "verification": "inconclusive"
+      },
+      "created_at": "2026-11-05T00:18:42.405222+00:00",
+      "finished_at": "2026-11-05T00:18:45.895077+00:00",
+      "incident_id": "20c060aa-e933-418c-a431-7d7f91476c29",
+      "classification": "terminal_unknown_locked",
+      "job_state": "completed",
+      "terminal_unknown_handoff_eligible": true
+    }
+  },
+  "executor_restored_without_replay": true,
+  "limits": [
+    "Synthetic investigation collection; no live AI or verified remediation.",
+    "Unknown outcome retains its target lock; restarting the executor must not retry a completed unknown Job."
+  ]
+}
