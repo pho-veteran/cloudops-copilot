@@ -10,13 +10,16 @@ from sqlalchemy.orm import Session
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.investigations.schemas import (
     AttemptView,
-    EvidenceView,
+    EvidenceContent,
     OriginView,
     RequestWindow,
     RunPage,
     RunView,
 )
 from cloudops.features.investigations.states import COLLECTION_JOB, nonterminal_run
+from cloudops.features.investigations.storage import evidence_views
+from cloudops.features.incidents.models import Incident
+from cloudops.features.workloads.models import Workload
 from cloudops.features.recovery.classification import blocking_execution
 from cloudops.shared.database import database_now
 from cloudops.shared.errors import DomainError
@@ -141,7 +144,14 @@ def window_view(row: InvestigationRun) -> RequestWindow | None:
 
 
 def run_view(db: Session, row: InvestigationRun) -> RunView:
-    evidence = db.scalars(select(Evidence).where(Evidence.run_id == row.id)).all()
+    evidence = db.scalars(
+        select(Evidence)
+        .join(InvestigationRun, Evidence.run_id == InvestigationRun.id)
+        .join(Incident, InvestigationRun.incident_id == Incident.id)
+        .join(Workload, Incident.workload_id == Workload.id)
+        .where(Evidence.run_id == row.id, Evidence.workload_uid == Workload.uid)
+        .order_by(Evidence.source_key)
+    ).all()
     attempts = db.scalars(
         select(JobAttempt)
         .join(Job)
@@ -167,7 +177,8 @@ def run_view(db: Session, row: InvestigationRun) -> RunView:
         },
         origin=OriginView(kind=row.origin_kind, source_id=row.origin_source_id),
         window=window_view(row),
-        evidence=[EvidenceView.model_validate(e) for e in evidence],
+        pack_coverage=row.pack_coverage,
+        evidence=evidence_views(db, evidence),
         attempts=[AttemptView.model_validate(a) for a in attempts],
     )
 
@@ -190,4 +201,47 @@ def list_runs(db: Session, incident_id: UUID, limit: int, offset: int):
     return RunPage(
         items=[run_view(db, r) for r in rows[:limit]],
         next_offset=offset + limit if len(rows) > limit else None,
+    )
+
+
+def scoped_evidence(db: Session, incident_id: UUID, run_id: UUID, evidence_id: UUID) -> Evidence:
+    row = db.scalar(
+        select(Evidence)
+        .join(InvestigationRun, Evidence.run_id == InvestigationRun.id)
+        .join(Incident, InvestigationRun.incident_id == Incident.id)
+        .join(Workload, Incident.workload_id == Workload.id)
+        .where(
+            Evidence.id == evidence_id,
+            Evidence.run_id == run_id,
+            InvestigationRun.incident_id == incident_id,
+            Evidence.workload_uid == Workload.uid,
+        )
+    )
+    if row is None:
+        raise DomainError(404, "evidence_not_found", "Evidence not found for this investigation.")
+    return row
+
+
+def evidence_metadata(db: Session, incident_id: UUID, run_id: UUID, evidence_id: UUID):
+    return evidence_views(db, [scoped_evidence(db, incident_id, run_id, evidence_id)])[0]
+
+
+def evidence_content(db: Session, incident_id: UUID, run_id: UUID, evidence_id: UUID):
+    row = scoped_evidence(db, incident_id, run_id, evidence_id)
+    view = evidence_views(db, [row])[0]
+    if view.content_status == "expired":
+        raise DomainError(410, "evidence_expired", "Evidence content has expired.")
+    if view.content_status == "unavailable":
+        raise DomainError(409, "evidence_unavailable", "Evidence content is unavailable.")
+    payload = row.payload
+    if payload is None:
+        raise DomainError(410, "evidence_expired", "Evidence content has expired.")
+    return EvidenceContent(
+        evidence_id=row.id,
+        run_id=row.run_id,
+        schema_version=row.schema_version,
+        payload_kind=row.payload_kind,
+        payload_version=row.payload_version,
+        sha256=row.sha256,
+        payload=payload,
     )

@@ -9,12 +9,25 @@ describe("safe return navigation", () => {
       page: "incidents",
       id,
       run: id,
+      evidence: "",
       resolution: "",
       baseline: "",
     });
   });
+  it("round-trips an exact historical evidence route", () => {
+    const evidence = "44483c3e-adc2-4d05-93a6-c218afc6ebe7";
+    const hash = buildIncidentHash(id, id, "#/queue", "", evidence);
+    window.history.replaceState(null, "", `/${hash}`);
+    expect(readRoute()).toMatchObject({
+      page: "incidents",
+      id,
+      run: id,
+      evidence,
+    });
+    expect(window.location.hash).toBe(hash);
+  });
   it("retains an exact workload identity for read-only navigation", () => {
-    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "", resolution: "", baseline: "" });
+    expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "", evidence: "", resolution: "", baseline: "" });
     expect(safeRoute(`#/workloads?workload=${id}&baseline=${id}`).baseline).toBe(id);
   });
   it.each(["queue", "workloads", "connections", "reports"])(
@@ -33,13 +46,16 @@ describe("safe return navigation", () => {
     `#/incidents/${id}?token=secret`,
     "#/incidents/not-a-uuid",
     `#/incidents/${id}?run=raw-evidence`,
+    `#/incidents/${id}?evidence=${id}`,
+    `#/incidents/${id}?run=${id}&evidence=raw`,
+    `#/incidents/${id}?run=${id}&evidence=${id}&evidence=${id}`,
     `#/incidents/${id}?run=${id}&next=bad`,
     `#/incidents/${id}?resolution=not-a-uuid`,
     `#/incidents/${id}?resolution=${id}&resolution=${id}`,
     "#/workloads?workload=not-a-uuid",
     `#/workloads?workload=${id}&next=https://foreign.test`,
   ])("falls back safely for %s", (hash) => {
-    expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "", resolution: "", baseline: "" });
+    expect(safeRoute(hash)).toEqual({ page: "queue", id: "", run: "", evidence: "", resolution: "", baseline: "" });
   });
 });
 
@@ -134,6 +150,7 @@ describe("work queue URL state", () => {
       page: "queue",
       id: "",
       run: "",
+      evidence: "",
       resolution: "",
       baseline: "",
     });

@@ -7,10 +7,22 @@ from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
 from cloudops.features.incidents.schemas import AdmissionView
 from cloudops.features.incidents.service import admit, cancel_run, get_incident
-from cloudops.features.investigations.schemas import CancelRequest, RunPage, RunRequest, RunView
-from cloudops.features.investigations.service import get_run, list_runs
+from cloudops.features.investigations.schemas import (
+    CancelRequest,
+    EvidenceContent,
+    EvidenceView,
+    RunPage,
+    RunRequest,
+    RunView,
+)
+from cloudops.features.investigations.service import (
+    evidence_content,
+    evidence_metadata,
+    get_run,
+    list_runs,
+)
 from cloudops.shared.database import get_db
-from cloudops.shared.errors import ERROR_RESPONSES
+from cloudops.shared.errors import ERROR_RESPONSES, ErrorEnvelope
 
 router = APIRouter(
     prefix="/api/incidents/{incident_id}/runs", tags=["investigations"], responses=ERROR_RESPONSES
@@ -63,3 +75,24 @@ def runs(
 )
 def run(incident_id: UUID, run_id: UUID, db: Session = Depends(get_db)):
     return get_run(db, incident_id, run_id)
+
+
+@router.get(
+    "/{run_id}/evidence/{evidence_id}",
+    operation_id="get_evidence",
+    response_model=EvidenceView,
+    dependencies=[Depends(current_session)],
+)
+def evidence(incident_id: UUID, run_id: UUID, evidence_id: UUID, db: Session = Depends(get_db)):
+    return evidence_metadata(db, incident_id, run_id, evidence_id)
+
+
+@router.get(
+    "/{run_id}/evidence/{evidence_id}/content",
+    operation_id="get_evidence_content",
+    response_model=EvidenceContent,
+    responses={410: {"model": ErrorEnvelope}},
+    dependencies=[Depends(current_session)],
+)
+def content(incident_id: UUID, run_id: UUID, evidence_id: UUID, db: Session = Depends(get_db)):
+    return evidence_content(db, incident_id, run_id, evidence_id)

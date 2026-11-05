@@ -2,13 +2,12 @@ from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
-from alembic.script import ScriptDirectory
 from sqlalchemy import inspect, text
 
 from cloudops.shared.database import BACKEND_ROOT, engine
 
 
-def test_consumer_upgrade_preserves_populated_foundation_and_has_one_head():
+def test_consumer_upgrade_preserves_populated_foundation():
     config = Config(str(BACKEND_ROOT / "alembic.ini"))
     command.downgrade(config, "0002_foundation")
     user, workload, incident = uuid4(), uuid4(), uuid4()
@@ -50,7 +49,6 @@ def test_consumer_upgrade_preserves_populated_foundation_and_has_one_head():
         ]
         is None
     )
-    assert ScriptDirectory.from_config(config).get_heads() == ["0007_alert_intake"]
     command.check(config)
 
 

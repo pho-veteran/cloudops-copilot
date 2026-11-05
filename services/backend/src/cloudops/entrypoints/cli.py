@@ -51,6 +51,10 @@ def main():
         "revoke-all-sessions",
         help="Trusted restore step: discard every restored browser session before starting the API.",
     )
+    purge = sub.add_parser(
+        "evidence-purge", help="Report expired unpinned evidence; use --apply to clear content."
+    )
+    purge.add_argument("--apply", action="store_true", help="Permanently clear eligible content.")
     args = parser.parse_args()
     try:
         run(args)
@@ -83,6 +87,13 @@ def run(args):
                     "Partial observation: prior admission is preserved for unreadable identities; inspect scope status and retry explicitly.",
                     file=sys.stderr,
                 )
+        elif args.command == "evidence-purge":
+            from cloudops.features.investigations.retention import purge_expired
+
+            count = purge_expired(db, apply=args.apply)
+            print(
+                f"{'Purged' if args.apply else 'Would purge'} {count} expired unpinned evidence payloads."
+            )
         elif args.command == "account":
             password = (
                 sys.stdin.readline().rstrip("\r\n")

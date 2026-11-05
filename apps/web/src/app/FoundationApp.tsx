@@ -266,15 +266,15 @@ export function Workspace() {
           <p className="muted">
             Saved application data.
             <br />
-            Synthetic external evidence.
+            External evidence depends on configured source adapters.
           </p>
           <a href="/?simulation=1">Open fixture simulation ↗</a>
         </aside>
         <main className="foundation-main" id="main-content">
           <div className="foundation-notice">
             <span>
-              Synthetic investigation collector · AI diagnosis unavailable ·
-              Live manual plans require an enabled scoped target
+              Source-aware evidence collection · AI diagnosis unavailable · Live
+              manual plans require an enabled scoped target
             </span>
             {canMutate && (
               <Button size="sm" onClick={() => setCreating({})}>
@@ -311,6 +311,7 @@ export function Workspace() {
               key={route.id}
               id={route.id}
               selectedRun={route.run}
+              selectedEvidence={route.evidence}
               selectedResolution={route.resolution}
               canMutate={canMutate}
             />

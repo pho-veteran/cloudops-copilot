@@ -70,6 +70,7 @@ class Claim:
     subject_id: UUID
     token: UUID
     attempt: int
+    max_attempts: int
 
 
 def claim_next(handlers: dict[str, JobHandler]) -> Claim | None:
@@ -128,7 +129,9 @@ def claim_next(handlers: dict[str, JobHandler]) -> Claim | None:
             )
         )
         handler.started(db, job.subject_id)
-        return Claim(job.id, job.kind, job.subject_id, job.lease_token, job.attempts)
+        return Claim(
+            job.id, job.kind, job.subject_id, job.lease_token, job.attempts, job.max_attempts
+        )
 
 
 def owned(db: Session, claim: Claim) -> Job | None:

@@ -18,6 +18,7 @@ from cloudops.features.incidents import handoff as composer
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.incidents.schemas import IncidentDetail
 from cloudops.features.incidents.service import cancel_pending, get_incident
+from cloudops.features.investigations.storage import pin_latest_on_reopen, pin_resolution
 from cloudops.features.recovery.classification import blocking_execution
 from cloudops.features.recovery.service import invalidate
 from cloudops.shared.database import get_db
@@ -125,7 +126,7 @@ def _preview(db, incident_id, resolution_id):
             markdown=composer.legacy_markdown(stored),
         )
     if (
-        stored.get("schema_version") != composer.SCHEMA_VERSION
+        stored.get("schema_version") not in ("HandoffSnapshot/v1", composer.SCHEMA_VERSION)
         or not isinstance(stored.get("snapshot"), dict)
         or not isinstance(stored.get("markdown"), str)
     ):
@@ -135,7 +136,7 @@ def _preview(db, incident_id, resolution_id):
     return HandoffPreview(
         incident_id=incident_id,
         resolution_id=resolution_id,
-        schema_version=composer.SCHEMA_VERSION,
+        schema_version=stored["schema_version"],
         snapshot=stored["snapshot"],
         markdown=stored["markdown"],
     )
@@ -208,12 +209,15 @@ def transition(
         db.add(row)
         db.flush()
         if body.action == "resolve":
+            pin_resolution(db, incident_id, row.id)
             snapshot = composer.compose(db, incident_id)
             row.snapshot = {
                 "schema_version": composer.SCHEMA_VERSION,
                 "snapshot": snapshot,
                 "markdown": composer.render(snapshot),
             }
+        if body.action == "reopen":
+            pin_latest_on_reopen(db, incident_id)
         return get_incident(db, incident_id)
 
 

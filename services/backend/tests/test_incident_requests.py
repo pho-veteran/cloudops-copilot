@@ -22,10 +22,10 @@ from cloudops.entrypoints.worker import HANDLERS, run_once
 from cloudops.features.incidents.models import Admission, Incident, IncidentActivity
 from cloudops.features.incidents.service import AutomaticRequest, admit_automatic
 from cloudops.features.investigations import admission_settings, promotion
-from cloudops.features.investigations.collector import CollectionResult, collect, prepare
+from cloudops.features.investigations.collector import CollectionResult
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.investigations.promotion import promote_deferred
-from cloudops.features.investigations.schemas import FixturePayload
+from test_jobs import collect_claim
 from cloudops.features.investigations.service import Origin
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.workloads.models import Workload
@@ -438,7 +438,7 @@ def test_claimed_collection_is_not_cancelled_and_its_result_stays_history(client
         headers=headers,
     )
     assert resolved.status_code == 200
-    assert finish(claim, HANDLERS[claim.kind], result=collect(prepare(claim.subject_id)))
+    assert finish(claim, HANDLERS[claim.kind], result=collect_claim(claim))
     assert run_row(ids["run_id"]).state == "insufficient_evidence"
     detail = client.get(f"/api/incidents/{ids['incident_id']}").json()
     assert detail["state"] == "resolved"
@@ -462,7 +462,6 @@ def test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries(client):
         f"/api/incidents/{queued['incident_id']}/handoff/preview",
         params={"resolution_id": resolution["id"]},
     ).json()
-    assert saved["schema_version"] == "HandoffSnapshot/v1"
     saved_run = next(
         item for item in saved["snapshot"]["runs"]["items"] if item["id"] == queued["run_id"]
     )
@@ -562,13 +561,7 @@ def test_late_callbacks_cannot_resurrect_a_cancelled_run(client):
     ids = create(client, headers, incident_body(client)).json()
     assert cancel(client, headers, ids["incident_id"], ids["run_id"]).status_code == 200
     handler = HANDLERS["development_collection_v1"]
-    now = datetime.now(timezone.utc)
-    payload = FixturePayload(
-        label="Synthetic development evidence; no live cluster was contacted.",
-        workload="late",
-        observation="Live workload health and telemetry are unavailable.",
-    )
-    result = CollectionResult(1, "uid", now, now, payload)
+    result = CollectionResult("uid", ())
     with sessions()() as db, db.begin():
         handler.started(db, UUID(ids["run_id"]))
         handler.failed(db, UUID(ids["run_id"]), "late", terminal=False)

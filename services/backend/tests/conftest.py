@@ -22,6 +22,7 @@ def test_database():
     os.environ.update(
         DATABASE_URL=url,
         COOKIE_SECURE="false",
+        COLLECTION_SOURCE_MODE="development_fixture",
         WEB_ORIGIN="http://localhost:5173",
         WORKLOADS_FILE=str(
             Path(__file__).resolve().parents[3] / "config/development-workloads.json"

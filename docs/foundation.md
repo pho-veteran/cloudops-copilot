@@ -1,8 +1,8 @@
 # Foundation operation and contributor handoff
 
-The local foundation stores application state and runs collection jobs. External evidence is synthetic. Scope and acceptance stay in [E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) and the linked feature EPICs, rather than a second repository backlog.
+The local foundation stores application state and source-aware collection outcomes. The only installed investigation adapter is an optional synthetic development fixture; uninstalled live source slots remain unavailable. Scope and acceptance stay in [E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) and the linked feature EPICs, rather than a second repository backlog.
 
-Configured live workload health/context uses the separate [read-only workload observer](workload-observation.md). These rollout observations do not change the synthetic investigation collector or authorize remediation.
+Configured live workload health/context uses the separate [read-only workload observer](workload-observation.md). These rollout observations do not install investigation source adapters or authorize remediation.
 
 ## Delivered behavior and evidence
 
@@ -38,7 +38,7 @@ The images document local behavior. They do not prove live source collection, mo
 The persisted incident workspace has a **Current handoff** and explicit **View saved resolution** selections in activity history. The preview is a readable, literal Markdown document; HTML and human-authored text are not executed. Copy and download use the exact loaded server Markdown, not a second client formatter. Successful notes and lifecycle transitions refresh the current preview automatically; explicit refresh includes other later changes. Saved selections never silently fall back to another resolution or Run and are not invalidated by those current-preview refreshes.
 
 - `GET /api/incidents/{incident_id}/handoff/preview` returns the selected content, schema version and Markdown. The existing `/handoff` download returns the same Markdown bytes when the stored inputs are unchanged. Both roles may preview/copy/export; lifecycle and note writes remain Operator-only.
-- Resolve freezes `HandoffSnapshot/v1` content and Markdown with the reason, actor and timestamp in the same transaction as lifecycle invalidation and queued cancellation. Reopen, later notes/Runs and renderer upgrades do not regenerate saved Markdown. Existing unversioned JSON-fence exports retain their original renderer and bytes. Unknown versions fail explicitly.
+- Resolve freezes `HandoffSnapshot/v2` source-metadata content and Markdown with the reason, actor and timestamp in the same transaction as lifecycle invalidation and queued cancellation. Saved `HandoffSnapshot/v1` envelopes retain their original version, content and Markdown; current previews and new saves use v2. Reopen, later notes/Runs and renderer upgrades do not regenerate saved Markdown. Existing unversioned JSON-fence exports retain their original renderer and bytes. Unknown versions fail explicitly. Legacy evidence coverage is displayed as **Not captured (legacy)**, independently of whether its original content remains available or has expired.
 - Identity, Runs, evidence references, action outcomes, checks, questions, notes and completeness/counts come from stored records. Creator/requester/plan-decision attribution includes usernames where recorded, with IDs retained. Missing impact, findings and citations are explicitly unavailable or unrecorded. Labeled findings fixtures validate stored Run/evidence references and derive citation pairs; they are composer contracts, not a live diagnosis producer.
 - E07 owns execution eligibility. Terminal unknown needs matching terminal job/result proof; transient unknown, active, unsupported or ambiguous states fail closed. Eligible handoff still shows the unknown outcome, cross-incident plan attribution and retained target lock. Lifecycle changes do not grant writer authority or unlock a target.
 - Activity is keyset-paginated, newest first, with actor/time and an explicit total. List items contain metadata and text, never embedded saved reports; read one selected report through the preview/export endpoints. Queries defer saved snapshots and evidence payloads so report composition does not load nested prior reports or unused payloads. A full report remains proportional to its disclosed stored records rather than silently truncating history, referenced records or held/uncertain locks. **Load older activity** keeps resolutions beyond the former 100-row boundary reachable.
@@ -53,6 +53,60 @@ The [producer receipt](evidence/incident-handoff/producers.json) records an actu
 The [correction checks](evidence/incident-handoff/corrections.json) bind the updated program sources to the complete backend/web suites, production HTTPS smoke, before/after regressions and a repeated Edge resolve/reopen/history-retry journey. Legacy and structured golden exports remain byte-identical. [Corrected actor and timestamp metadata at 320px](evidence/incident-handoff/corrected-metadata-320.png) uses the separate managed lab browser: Edge interactions worked, but relay screenshot capture timed out. No Edge permission or trust setting changed.
 
 The browser uses a separate loopback HTTP development origin; API/producer probes validate the HTTPS chain and hostname with the lab CA. No browser certificate warning is bypassed. Investigation collection remains synthetic, scale acknowledgment is not verified remediation, and future-state/RCA fixtures are labeled separately. This D slice does not by itself complete E03 integration.
+
+### Source-aware evidence and retention
+
+The persisted workspace reads real stored Run/evidence records, not simulation state. `standard_v1` declares five Kubernetes slots, six fixed Prometheus query slots and the explicitly synthetic `development_fixture`. Only the fixture adapter is installed. Compose and `.env.example` enable it with `COLLECTION_SOURCE_MODE=development_fixture`; host processes without this setting default to `none`. `none` publishes honest `source_not_configured` outcomes for every slot. Unknown modes or adapter/query bindings fail closed, never silently selecting the fixture.
+
+Each new completed batch stores all catalog outcomes and coverage for CrashLoop/startup, OOM/restarts, traffic latency/errors, Pending and ImagePull. Missing required sources and optional gaps stay distinct. Conditional logs can be `not_applicable`; a fixture never satisfies live pack coverage. Any completed collection, even all-unavailable, ends `insufficient_evidence` / `analysis_unavailable`. Only exhausted job/infrastructure failures end `failed` / `collection_failed`; historical null outcomes remain null.
+
+The non-checkpointed runner uses the existing fenced `development_collection_v1` job and its locked attempt/max-attempts snapshot, not a separate retry budget. Reads run sequentially, below the four-read maximum, with a five-second adapter deadline and a 90-second collection deadline per attempt. Adapters must bound their actual underlying read; no timed-out background read is left running. Transient failures retry the uncommitted batch within the existing at-most-three attempts; the final attempt publishes unavailable source outcomes instead of inventing success. Durable per-source checkpoints, recovered-job permits and live providers remain their owning E04 child work.
+
+New records are immutable per `(run_id, source_key, catalog_version)`. Identical publication preserves IDs; conflicting content/provenance is rejected. Storage independently whitelists, redacts credential-shaped strings, deterministically truncates and hashes the stored canonical JSON. ConfigMap evidence permits identifiers/references only, never full contents; arbitrary raw Kubernetes objects and Secret objects are not accepted. Redaction is not a general detector for every possible sensitive value. Historical v1 payloads/hashes are not rewritten by the new policy.
+
+Canonical ordering and credential redaction do not reduce coverage by themselves. `truncated` means fields, items or text were actually omitted by an allowlist or storage bound, including unknown fields on fixture payloads; missing/invalid metric samples retain explicit `no_samples` semantics.
+
+| Stored content allocation | Bound |
+| --- | --- |
+| Kubernetes state / events | 1 MiB / 512 KiB |
+| Current / previous logs | 2 MiB each; 200 lines and 32 KiB UTF-8 per container |
+| ConfigMap metadata / development fixture | 256 KiB each |
+| Each of six metric query slots | 256 KiB; 25 series per query |
+| Run-wide resources / samples | 10 Pods, 20 containers, 20,000 samples |
+| All content / metadata envelopes | 7.5 MiB / 512 KiB; 8 MiB total |
+
+Run list/detail evidence is **metadata-only**, including original coverage and a separate current `content_status`, pin and expiry projection. The viewer uses refreshed scoped Run metadata rather than a second stale cache of pin/availability, and fetches content only for the exact selected record. `GET /api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}` reads one metadata record; `/content` reads its bounded payload. Both roles may read. Wrong incident/Run/original UID relationships return 404, unavailable content returns 409 `evidence_unavailable`, and expired content returns 410 `evidence_expired`. Metadata and digest remain navigable after purge. Historical retired identities remain readable; this does not add per-user/tenant ownership.
+
+Default payload retention is 30 days from collection. Resolution pins available referenced content in the same transaction as its frozen snapshot; already-expired references remain honest tombstones, not falsely retained payloads. Historical resolutions are pinned conservatively during migration. An unresolved incident additionally retains its last useful Run with stored available/partial content, even when analysis is unavailable. Failed/all-unavailable successors do not replace that pin. A later useful Run replaces only latest-useful pins, independently of saved-resolution or retained-reference pins; reopening selects the newest still-usable original-UID Run. Saved and unversioned legacy exports retain their original bytes.
+
+Purge is deployment-owner maintenance, never an Operator/Viewer endpoint:
+
+```sh
+# Inspect candidates; no payload is changed.
+docker compose exec api python -m cloudops.entrypoints.cli evidence-purge
+# Explicitly clear only expired, unpinned payloads; metadata/digest remain.
+docker compose exec api python -m cloudops.entrypoints.cli evidence-purge --apply
+```
+
+Pinning and purge lock evidence rows in the same order and recheck availability/pins under the lock. Repeating apply is idempotent. Destructive verification must use an owned database ending in `_test`, separate from application data and from a concurrently running pytest database.
+
+Migration `0008_evidence_sources` preserves v1 IDs, payloads, hashes and frozen reports, maps them to `development_fixture` / `legacy_v1`, and does not invent historical windows or source coverage. It removes one-evidence-per-Run uniqueness and adds independent pins. Queued/running job IDs, kinds, tokens and attempt budgets are not migrated or reset. Downgrade refuses to discard evidence or captured coverage. Take a deployment-owner backup and stop old consumers before this breaking transport/schema cutover:
+
+```sh
+docker compose stop api worker web
+docker compose build api web
+docker compose run --rm migrate
+docker compose up -d api worker web
+```
+
+Update external consumers to `source_key` and metadata-only evidence, fetching `/content` explicitly; do not mix old API/worker/web versions or hand-edit generated OpenAPI/TypeScript.
+
+The local evidence exercise used real API/PostgreSQL/worker processes and the running Microsoft Edge 156 for admission, exact source selection, back/refresh, keyboard focus, 320/390px light/dark layouts, Viewer denial and session recovery. Normal restarted-worker Runs changed latest-useful pins without changing the selected old evidence. A 31,528-byte saved report remained byte-identical through later notes, reopening and new Runs; an isolated Viewer download matched those exact bytes. Trusted purge on a separate owned `_test` database reported one candidate, cleared one payload and then reported zero, preserving the expired record's digest and typed 410.
+
+Partial redaction and historical legacy/expiry examples were explicitly controlled source-result/database fixtures, not live providers or a real 30-day wait. The images below show actual rendered Viewer records in a separate managed Chromium 150 capture context because relay screenshot capture was unavailable; Edge interactions remained the primary journey. No Edge permission or certificate trust was changed.
+
+- [Available pinned content and provenance on desktop](evidence/evidence-storage/available-desktop.png)
+- [Expired legacy metadata/digest at 390px in dark mode](evidence/evidence-storage/expired-390-dark.png)
 
 ### Work queue search and prioritization
 
@@ -234,11 +288,11 @@ Transport shapes live in feature Pydantic schemas, `contracts/openapi.json` and 
 
 The implemented operation families are session/login/logout, workload inventory, manual incident create/list/detail, incident run create/list/detail and health observations. Use the generated artifact or the running [API documentation](http://localhost:8000/docs) for exact operations and field shapes.
 
-- IDs are UUIDs; timestamps are UTC RFC3339. Synthetic evidence includes its schema version, source, workload UID, observed/collected time, payload and SHA-256 of canonical JSON (sorted keys, compact separators).
+- IDs are UUIDs; timestamps are UTC RFC3339. Run evidence contains versioned source/coverage/retention metadata; the scoped content endpoint supplies the stored payload and its canonical post-redaction SHA-256. Legacy content retains its original version/hash.
 - List APIs use `limit` 1..100 (default 25), `offset` 0..100000 and `next_offset`. Incident/run order is creation time descending with UUID tie-break; workload order is UUID ascending. Concurrent inserts can shift offset pages; this foundation does not promise snapshot pagination.
 - Operator mutations require exact Origin, session cookie, session-bound `X-CSRF-Token` and an `Idempotency-Key` UUID on admissions. The key is bound to actor, operation and canonical request. Identical replay returns the same IDs; a changed request with the same key returns 409. No client automatic mutation retry occurs.
-- Errors use `{error: {code, message}}`: 401 for anonymous/expired session, 403 for Viewer/Origin/CSRF denial, 404 for missing or mismatched records, 409 for conflicting admission/active work/capacity, 422 for invalid fields/scope and 503 for database unavailability.
-- Run states in this slice are `queued`, `collecting`, `insufficient_evidence`, `failed`. Successful synthetic collection ends `insufficient_evidence` with diagnosis/recovery unavailable, never completed RCA. Terminal runs are immutable; explicit retry creates a new run. There are no plan/execution or live collection endpoints.
+- Errors use `{error: {code, message}}`: 401 for anonymous/expired session, 403 for Viewer/Origin/CSRF denial, 404 for missing or mismatched records, 409 for conflicts/unavailable content, 410 for expired evidence, 422 for invalid fields/scope and 503 for database unavailability.
+- Collection uses `queued`, `collecting`, `insufficient_evidence`, `failed` and existing queued cancellation. Completed source collection ends `insufficient_evidence` / `analysis_unavailable`; exhausted infrastructure failures use `collection_failed`. Explicit reinvestigation creates a new Run. AI diagnosis remains unavailable; existing manual plan/execution APIs are separate and do not establish live investigation collection.
 
 ## Available-operation authorization checks
 
@@ -303,7 +357,7 @@ it is absent from run responses. Password/session secrets are forbidden in respo
 bodies; the session's own CSRF field and evidence SHA-256 remain permitted outputs.
 Existing workspace records are shared between application roles; this does not
 introduce tenant or per-user record ownership. A run must still belong to its URL's
-incident. Background worker processes must not target the disposable test database.
+incident and original workload UID. Ordinary background workers must not target the pytest database, which tests clear.
 
 Implemented consumer boundaries and their continuing feature owners:
 

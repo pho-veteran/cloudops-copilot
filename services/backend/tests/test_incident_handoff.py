@@ -81,6 +81,7 @@ def test_saved_and_legacy_bytes_survive_reopen_later_records_and_renderer_change
     params = {"resolution_id": resolution["id"]}
     saved = client.get(url, params=params).content
     preview = client.get(url + "/preview", params=params).json()
+    assert preview["schema_version"] == current["schema_version"]
     assert preview["markdown"].encode() == saved
     assert preview["snapshot"]["activity"]["items"][-1]["text"] == "Restored by operator"
     assert preview["snapshot"]["activity"]["items"][-1]["actor_name"] == "operator"
@@ -131,11 +132,15 @@ def test_saved_and_legacy_bytes_survive_reopen_later_records_and_renderer_change
     )
 
 
-def test_current_handoff_discloses_retirement_without_changing_saved_v2(client):
+@pytest.mark.parametrize("schema_version", ["HandoffSnapshot/v1", "HandoffSnapshot/v2"])
+def test_current_handoff_discloses_retirement_without_changing_saved_snapshot(
+    client, schema_version
+):
     headers = sign_in(client)
     incident_id = create(client, headers, incident_body(client)).json()["incident_id"]
     url = f"/api/incidents/{incident_id}/handoff"
     before = client.get(url + "/preview").json()
+    assert before["schema_version"] == "HandoffSnapshot/v2"
     assert before["snapshot"]["workload"]["active"] is True
     assert "Workload status: Active" in before["markdown"]
     old_markdown = "# Incident handoff\n\nPrior v2 saved bytes\n"
@@ -149,7 +154,7 @@ def test_current_handoff_discloses_retirement_without_changing_saved_v2(client):
             text="Prior resolution",
             actor_id=incident.created_by,
             snapshot={
-                "schema_version": handoff.SCHEMA_VERSION,
+                "schema_version": schema_version,
                 "snapshot": before["snapshot"],
                 "markdown": old_markdown,
             },
@@ -180,7 +185,10 @@ def test_current_handoff_discloses_retirement_without_changing_saved_v2(client):
     assert client.get(url).content == current["markdown"].encode()
     params = {"resolution_id": str(resolution_id)}
     assert client.get(url, params=params).content == old_markdown.encode()
-    assert client.get(url + "/preview", params=params).json()["markdown"] == old_markdown
+    saved_preview = client.get(url + "/preview", params=params).json()
+    assert saved_preview["schema_version"] == schema_version
+    assert saved_preview["markdown"] == old_markdown
+    assert saved_preview["snapshot"] == before["snapshot"]
     with sessions()() as db:
         assert db.get(Incident, UUID(incident_id)).workload_id == old_id
         assert db.get(Workload, replacement_id).active is True
@@ -439,8 +447,17 @@ def test_full_history_evidence_references_and_cross_incident_lock(client):
             db.add(
                 Evidence(
                     run_id=run.id,
-                    workload_uid="fixture-uid",
-                    source="development_fixture",
+                    workload_uid=db.get(Workload, incident.workload_id).uid,
+                    source_key="development_fixture",
+                    source_kind="fixture",
+                    catalog_version="legacy_v1",
+                    schema_version=1,
+                    payload_kind="fixture",
+                    payload_version=1,
+                    time_relation="not_captured",
+                    coverage={"status": "available", "reason_codes": ["not_captured"]},
+                    redaction_policy_version="legacy_v1",
+                    expires_at=now + timedelta(days=30),
                     observed_at=now,
                     collected_at=now,
                     sha256="0" * 64,
@@ -529,6 +546,8 @@ def test_full_history_evidence_references_and_cross_incident_lock(client):
     assert plans[lock_plan_id]["incident_id"] == other_id
     assert data["target_locks"]["items"][0]["plan_id"] == lock_plan_id
     markdown = client.get(url).json()["markdown"]
+    assert markdown.count("Coverage: Not captured (legacy)") == 30
+    assert "Coverage: available" not in markdown
     assert lock_id in markdown and lock_plan_id in markdown and other_id in markdown
     assert "Historical unknown" in markdown
     assert data["actions"]["execution_count"] == 31
