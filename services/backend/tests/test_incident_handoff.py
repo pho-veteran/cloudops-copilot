@@ -131,6 +131,71 @@ def test_saved_and_legacy_bytes_survive_reopen_later_records_and_renderer_change
     )
 
 
+def test_current_handoff_discloses_retirement_without_changing_saved_v2(client):
+    headers = sign_in(client)
+    incident_id = create(client, headers, incident_body(client)).json()["incident_id"]
+    url = f"/api/incidents/{incident_id}/handoff"
+    before = client.get(url + "/preview").json()
+    assert before["snapshot"]["workload"]["active"] is True
+    assert "Workload status: Active" in before["markdown"]
+    old_markdown = "# Incident handoff\n\nPrior v2 saved bytes\n"
+    with sessions()() as db, db.begin():
+        incident = db.get(Incident, UUID(incident_id))
+        old = db.get(Workload, incident.workload_id)
+        old_id, old_uid = old.id, old.uid
+        row = IncidentActivity(
+            incident_id=incident.id,
+            kind="resolve",
+            text="Prior resolution",
+            actor_id=incident.created_by,
+            snapshot={
+                "schema_version": handoff.SCHEMA_VERSION,
+                "snapshot": before["snapshot"],
+                "markdown": old_markdown,
+            },
+        )
+        db.add(row)
+        old.active = False
+        old.retirement_reason = "replaced"
+        replacement = Workload(
+            cluster=old.cluster,
+            namespace=old.namespace,
+            name=old.name,
+            uid=old.uid + "-replacement",
+            active=True,
+            source=old.source,
+        )
+        db.add(replacement)
+        db.flush()
+        resolution_id, replacement_id, replacement_uid = row.id, replacement.id, replacement.uid
+
+    current = client.get(url + "/preview").json()
+    workload = current["snapshot"]["workload"]
+    assert (workload["id"], workload["uid"]) == (str(old_id), old_uid)
+    assert workload["active"] is False and workload["retirement_reason"] == "replaced"
+    assert "Workload status: Retired" in current["markdown"]
+    assert "retirement reason: replaced" in current["markdown"]
+    assert "does not grant authority over another UID" in current["markdown"]
+    assert replacement_uid not in current["markdown"]
+    assert client.get(url).content == current["markdown"].encode()
+    params = {"resolution_id": str(resolution_id)}
+    assert client.get(url, params=params).content == old_markdown.encode()
+    assert client.get(url + "/preview", params=params).json()["markdown"] == old_markdown
+    with sessions()() as db:
+        assert db.get(Incident, UUID(incident_id)).workload_id == old_id
+        assert db.get(Workload, replacement_id).active is True
+
+    workload.pop("active")
+    workload.pop("retirement_reason")
+    unknown = handoff.render(current["snapshot"])
+    assert "Workload status: Not recorded; retirement reason: Not recorded" in unknown
+    assert "Workload status: Active" not in unknown
+    workload["active"] = False
+    assert "Workload status: Retired; retirement reason: Not recorded" in handoff.render(
+        current["snapshot"]
+    )
+
+
 def test_activity_cursor_rejects_non_string_identity(client):
     headers = sign_in(client)
     incident_id = create(client, headers, incident_body(client)).json()["incident_id"]

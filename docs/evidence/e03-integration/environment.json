@@ -1,0 +1,24 @@
+{
+  "scope": "Historical initial acceptance images. The corrected image and complete 68-file source comparisons are recorded separately in runtime-source-binding.json.",
+  "versions": {
+    "python": "Python 3.13.11",
+    "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-1.pgdg12+2)",
+    "k3s": "v1.37.1+k3s1",
+    "caddy": "v2.10.2 h1:g/gTYjGMD0dec+UgMw8SnfmJ3I9+M2TdvoRL/Ovu6U8="
+  },
+  "container_images": {
+    "api": "cloudops-local-backend sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+    "worker": "cloudops-local-backend sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+    "executor": "cloudops-local-backend sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+    "https": "cloudops-local-https sha256:abf8a7fbdb60ecfe2c3ffcd6f88eddf536bdf87ef31a4bbc3193e85fac1520d8",
+    "db": "postgres:17.11-bookworm sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
+    "k3s": "rancher/k3s:v1.37.1-k3s1@sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+    "alertmanager": "prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b"
+  },
+  "core_base": "465dc5ab8d751b799268f0e17b64177076654015",
+  "core_program_fingerprint": "d127a0d9dd10049f9421228e10117dda3db21742aa8265fee34ef1d3d76bfda1",
+  "limits": [
+    "The historical backend image's 68 Python files retrospectively match base main465dc5a exactly. The original selected 21-file fingerprint alone was not a whole-runtime binding; no build-time revision attestation is claimed.",
+    "No live AI, live collection pack, verified application recovery or cloud deployment claim."
+  ]
+}

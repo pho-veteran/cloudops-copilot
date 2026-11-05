@@ -1,0 +1,397 @@
+{
+  "project": "cloudops-issue39-live",
+  "checks": {
+    "wrong_auth_no_database_writes": {
+      "http_status": 401,
+      "before": {
+        "episodes": 5,
+        "receipts": 82,
+        "incidents": 6,
+        "runs": 7,
+        "jobs": 9
+      }
+    },
+    "two_real_concurrent_senders": {
+      "sender_container_ids": [
+        "419d535c28a6243fa988ca85c4860e00691eaae61e6708dd08c97ad62c57359c",
+        "2b3f68b94c7823a702c886395fa69c6b96a0bc828f0fa83c0cac83279e9eef64"
+      ],
+      "metrics": [
+        {
+          "alertmanager_notifications_total": 1.0,
+          "alertmanager_notifications_failed_total": 0.0
+        },
+        {
+          "alertmanager_notifications_total": 1.0,
+          "alertmanager_notifications_failed_total": 0.0
+        }
+      ],
+      "deliveries": [
+        {
+          "id": "ff81f840-30af-470e-8d0e-641b2c7e226a",
+          "delivery_id": "25c898cf-d495-4bc3-a691-e3ff69714e26",
+          "received_at": "2026-11-05T02:03:49.278537Z",
+          "source_id": "lab-alertmanager",
+          "alert_status": "firing",
+          "fingerprint": "19ca1c04d85067fd",
+          "alertname": "E03RealConcurrent0b26dcee8f8d",
+          "namespace": "demo",
+          "target_kind": "deployment",
+          "target_name": "checkout",
+          "outcome": "duplicate",
+          "reason": null,
+          "incident_id": "c51eb825-65f6-4b26-9178-3791f40db2d0",
+          "run_id": "a3681c89-3062-4f9e-a4ad-24b0b4c2c117",
+          "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+        },
+        {
+          "id": "254a88b5-c38b-41d7-aa8e-f152b9e3e7ba",
+          "delivery_id": "a7d0a4ec-8ddf-4fb2-9fe9-9986e48e1a24",
+          "received_at": "2026-11-05T02:03:49.268980Z",
+          "source_id": "lab-alertmanager",
+          "alert_status": "firing",
+          "fingerprint": "19ca1c04d85067fd",
+          "alertname": "E03RealConcurrent0b26dcee8f8d",
+          "namespace": "demo",
+          "target_kind": "deployment",
+          "target_name": "checkout",
+          "outcome": "accepted",
+          "reason": null,
+          "incident_id": "c51eb825-65f6-4b26-9178-3791f40db2d0",
+          "run_id": "a3681c89-3062-4f9e-a4ad-24b0b4c2c117",
+          "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29"
+        }
+      ],
+      "episode": {
+        "episodes": 1,
+        "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+        "incidents": 1,
+        "runs": 1,
+        "initial_runs": 1
+      }
+    },
+    "direct_concurrent_and_new_episode": {
+      "concurrent_outcomes": [
+        [
+          200,
+          {
+            "duplicate": 1
+          }
+        ],
+        [
+          200,
+          {
+            "duplicate": 1
+          }
+        ],
+        [
+          200,
+          {
+            "accepted": 1
+          }
+        ],
+        [
+          200,
+          {
+            "duplicate": 1
+          }
+        ]
+      ],
+      "first": "f3ec3de2-7275-41ba-999f-9d3be8e1ee0b",
+      "second": "35bac203-8db8-4a9c-b1fb-57e2b53650ed",
+      "persisted": {
+        "episodes": 2,
+        "incidents": 2,
+        "runs": 2
+      }
+    },
+    "real_sender_repeat_uid_binding": {
+      "incident_id": "82d48847-82a9-4918-940b-835cfcc5fdaa",
+      "run_id": "9c5d35eb-86e7-443e-847f-0b79401c7d9c",
+      "episode": {
+        "count": 1,
+        "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+        "runs": 1
+      }
+    },
+    "mixed_batch_saturated": {
+      "http_status": 503,
+      "duplicate_run": "a9b06243-4473-4d37-9cd4-cd84b7255259",
+      "rejected_reason": "out_of_scope",
+      "retry_reason": "capacity_exhausted",
+      "overflow_episodes": 0
+    },
+    "retry_once": {
+      "incident_id": "3b38da35-9b5b-4903-af6a-d19f112291dd",
+      "run_id": "dbf76dcd-2a33-4e96-b9a5-45c176695172"
+    },
+    "automatic_promotion_context": {
+      "initial_available_slots": 1,
+      "deferred_runs": 2,
+      "manual_promotion_calls": 0,
+      "competing_admissions": false
+    },
+    "automatic_same_run_promotion_and_restart": [
+      {
+        "id": "a9b06243-4473-4d37-9cd4-cd84b7255259",
+        "state": "queued",
+        "queue_reason": null,
+        "created_at": "2026-11-05T02:04:13.702854+00:00",
+        "jobs": [
+          {
+            "id": "b24758ab-1604-449c-a55b-73b18b4f4b71",
+            "state": "queued",
+            "attempts": 0,
+            "created_at": "2026-11-05T02:04:19.197776+00:00"
+          }
+        ]
+      },
+      {
+        "id": "dbf76dcd-2a33-4e96-b9a5-45c176695172",
+        "state": "queued",
+        "queue_reason": null,
+        "created_at": "2026-11-05T02:04:14.294919+00:00",
+        "jobs": [
+          {
+            "id": "bfb8f415-13fa-4dc3-a2ef-f967e8fab270",
+            "state": "queued",
+            "attempts": 0,
+            "created_at": "2026-11-05T02:04:20.265209+00:00"
+          }
+        ]
+      }
+    ],
+    "oldest_first_without_competing_admissions": [
+      "a9b06243-4473-4d37-9cd4-cd84b7255259",
+      "dbf76dcd-2a33-4e96-b9a5-45c176695172"
+    ],
+    "receipt_redaction": true,
+    "guarded_uid_replacement": {
+      "old_uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+      "new_uid": "368bc881-8abb-44c8-824b-f758c5af6c7c",
+      "bindings": [
+        {
+          "id": "ac883311-89e8-4be2-adf9-1644117f8781",
+          "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+          "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+          "incident_id": "82d48847-82a9-4918-940b-835cfcc5fdaa",
+          "run_id": "9c5d35eb-86e7-443e-847f-0b79401c7d9c",
+          "starts_at_key": "2026-11-05T02:03:51.042257180Z"
+        },
+        {
+          "id": "3d06faff-4465-4c9e-bbdb-48a1dba7c995",
+          "uid": "368bc881-8abb-44c8-824b-f758c5af6c7c",
+          "workload_id": "868aaac9-8b10-46a5-953a-e4c0da286360",
+          "incident_id": "d5b024e7-8d62-4123-bd28-dee1035d7ea8",
+          "run_id": "8b2f057a-e79c-4c0a-aca9-924752e9043d",
+          "starts_at_key": "2026-11-05T02:06:22.246620000Z"
+        }
+      ],
+      "retained_unknowns": [
+        {
+          "id": "6e61f0af-0761-4e28-8e63-d4ed98b86f74",
+          "plan_id": "54140fb2-4fb7-4a15-a541-a5ae258e687e",
+          "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+          "state": "outcome_unknown",
+          "holds_lock": true,
+          "maintenance_released": false,
+          "result_hash": "b6d50d003b598dcb3206b6b7d5bc644a"
+        }
+      ],
+      "writer_allowlist": "unchanged; still pinned to old UID"
+    }
+  },
+  "steps": [
+    {
+      "step": "concurrent_sender_input",
+      "labels": {
+        "alertname": "E03RealConcurrent0b26dcee8f8d",
+        "namespace": "demo",
+        "deployment": "checkout"
+      },
+      "starts_at": "2026-11-05T02:03:19Z",
+      "sender_container_ids": [
+        "419d535c28a6243fa988ca85c4860e00691eaae61e6708dd08c97ad62c57359c",
+        "2b3f68b94c7823a702c886395fa69c6b96a0bc828f0fa83c0cac83279e9eef64"
+      ]
+    },
+    {
+      "step": "real_deferred_reservations",
+      "runs": [
+        "a9b06243-4473-4d37-9cd4-cd84b7255259",
+        "b9fbddfd-1b32-4ba9-b88f-cd91c43be509"
+      ]
+    },
+    {
+      "step": "stopped_worker_recreated",
+      "reserved_runs": [
+        {
+          "id": "a9b06243-4473-4d37-9cd4-cd84b7255259",
+          "state": "queued",
+          "queue_reason": "capacity",
+          "created_at": "2026-11-05T02:04:13.702854+00:00",
+          "jobs": []
+        },
+        {
+          "id": "dbf76dcd-2a33-4e96-b9a5-45c176695172",
+          "state": "queued",
+          "queue_reason": "capacity",
+          "created_at": "2026-11-05T02:04:14.294919+00:00",
+          "jobs": []
+        }
+      ],
+      "old_container": "dd239eda5b27539762d2be005cdae447425976b90feffb3be0bf77c98f63f47f",
+      "new_container": "4f041f84d7e524e1f17f33b9fe50e6ab9d099dd3fb0aacdd4c66303792ede75e"
+    },
+    {
+      "step": "replacement_precondition",
+      "old_episode": {
+        "id": "ac883311-89e8-4be2-adf9-1644117f8781",
+        "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+        "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+        "incident_id": "82d48847-82a9-4918-940b-835cfcc5fdaa",
+        "run_id": "9c5d35eb-86e7-443e-847f-0b79401c7d9c",
+        "fingerprint": "9a190060c859ceda",
+        "starts_at_key": "2026-11-05T02:03:51.042257180Z"
+      },
+      "retained_unknowns": [
+        {
+          "id": "6e61f0af-0761-4e28-8e63-d4ed98b86f74",
+          "plan_id": "54140fb2-4fb7-4a15-a541-a5ae258e687e",
+          "workload_id": "39692be3-9bfc-4ad0-9a61-5563b4215a29",
+          "state": "outcome_unknown",
+          "holds_lock": true,
+          "maintenance_released": false,
+          "result_hash": "b6d50d003b598dcb3206b6b7d5bc644a"
+        }
+      ]
+    },
+    {
+      "step": "old_deployment_delete_requested",
+      "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77"
+    },
+    {
+      "step": "replacement_created",
+      "old_uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77",
+      "new_uid": "368bc881-8abb-44c8-824b-f758c5af6c7c"
+    }
+  ],
+  "status": "passed_exercised_checks",
+  "limits": [
+    "Collection is synthetic; no live AI or remediation is asserted.",
+    "Direct v4 deliveries are labeled separately from the real Alertmanager sender.",
+    "No fairness is claimed under continuous competing admissions.",
+    "Lifecycle/claim/callback races require separate acceptance evidence."
+  ],
+  "runner_commit": "f0b69bae168e3f40d700bf20297b6beb910248d5",
+  "runner_script_sha256": "a8f4bb686a4f06913e78b8142a18262b1eea6b4f459c8f737c76cdce2cfd250e",
+  "runtime_images": [
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-migrate-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-browser-api",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "ContainerName": "cloudops-issue39-live-k3s-1",
+      "Repository": "rancher/k3s",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 378067427,
+      "Created": "2026-09-30T16:10:12.488362139Z",
+      "LastTagTime": "2026-11-03T16:18:09.384732978Z"
+    },
+    {
+      "ID": "sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+      "ContainerName": "cloudops-issue39-live-alertmanager-1",
+      "Repository": "prom/alertmanager",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 124714093,
+      "Created": "2026-10-29T09:57:45.314667954Z",
+      "LastTagTime": "2026-11-03T16:21:03.451790885Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-worker-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-executor-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    },
+    {
+      "ID": "sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5",
+      "ContainerName": "cloudops-issue39-live-db-1",
+      "Repository": "postgres",
+      "Tag": "17.11-bookworm",
+      "Platform": "linux/amd64",
+      "Size": 619679410,
+      "Created": "2026-10-28T01:31:24.32855846Z",
+      "LastTagTime": "2026-11-03T16:20:15.268058291Z"
+    },
+    {
+      "ID": "sha256:abf8a7fbdb60ecfe2c3ffcd6f88eddf536bdf87ef31a4bbc3193e85fac1520d8",
+      "ContainerName": "cloudops-issue39-live-https-1",
+      "Repository": "cloudops-local-https",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 83975076,
+      "Created": "2026-11-04T22:50:25.793912635+07:00",
+      "LastTagTime": "2026-11-04T16:33:53.030898839Z"
+    },
+    {
+      "ID": "sha256:a57ef232f1da9bc1289e216939a73c9615614f9568af7474ca01d34f21b646e9",
+      "ContainerName": "cloudops-issue39-live-api-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 378669300,
+      "Created": "2026-11-04T23:33:55.272873383+07:00",
+      "LastTagTime": "2026-11-04T16:33:55.65680025Z"
+    }
+  ],
+  "sender_image": {
+    "reference": "prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+    "image_id": "sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b"
+  },
+  "sender_version": "alertmanager, version 0.34.2 (branch: HEAD, revision: e8349048265ccc0871c3d0d668b05eacc68baf50)",
+  "capacity": {
+    "J": 100,
+    "D": 2
+  },
+  "deployment": {
+    "cluster": "local-k3s",
+    "namespace": "demo",
+    "name": "checkout",
+    "uid": "cf8ad9aa-2479-45ec-a1d8-008d69f56a77"
+  },
+  "sender_cleanup": "removed only probe-created sender containers and configuration",
+  "worker_restore": "started"
+}

@@ -141,8 +141,93 @@ The [browser receipt](evidence/intake36-browser.json) records actual Connections
 
 These browser journeys use a separate HTTP development origin over the real disposable PostgreSQL records; no certificate warning was bypassed or OS/browser trust changed. Loading and transport errors were deliberately induced in the browser, not claimed as a live cluster outage. The sender receipt separately validates HTTPS with the lab CA. Its labeled capacity fixture used authenticated intake with live UID mapping and a stopped worker to reach the dispatch bound, then resumed the normal worker and observed promotion of the same Run.
 
+## E03 bounded integration probe
+
+`scripts/probe-e03-integration.py` has a recorded run in the
+[E03 acceptance ledger](incident-integration-acceptance.md), including source binding,
+failures, producer limits and retained-volume cleanup. Run it only against a
+**disposable, isolated** `cloudops-*` Compose project,
+after the local lab above has been bootstrapped, the v2 `demo/checkout` scope
+published with `sync-workloads`, and the API, HTTPS proxy, PostgreSQL, K3s, exactly
+one worker and pinned Alertmanager are running. The lab CA must validate the
+`localhost` hostname. The API and worker must have the same effective J, D and
+collector delay, with J and D each between 2 and 100; the probe reads their
+effective settings and checks the recreated worker's image and settings. The
+project's active Job and deferred queues must be empty, and no other process or
+user may submit work while it runs. The script does not use host kubeconfig.
+The reserved `cloudops-local` and `cloudops-e01-https` projects are refused.
+
+For example, export these values **before starting the lab services** and retain
+the same explicit project, password and settings when invoking the probe. The
+default J is 100; this example sets D to 100 and the collector delay to 2 seconds:
+
+```sh
+export CLOUDOPS_LAB_PROJECT=cloudops-e03-acceptance
+export DEFERRED_RUN_LIMIT=100
+export COLLECTOR_DELAY_SECONDS=2
+uv run --project services/backend python scripts/probe-e03-integration.py \
+  --ca tmp/local-https-root.crt --output tmp/e03-integration-receipt.json
+```
+
+The repeat path uses the configured Alertmanager. For concurrent real delivery,
+the probe starts two additional pinned Alertmanager containers sharing only the
+project proxy network, with separate listen ports and storage, clustering disabled
+and repeats delayed. Before injection, it records the identical alert labels and
+start time in the partial receipt. It observes both webhook-success metrics and
+separate intake deliveries, and removes only these two probe-created containers
+and their temporary configuration. An absent
+webhook-failure counter series remains `null` in the receipt (the counter vector
+has not been incremented), rather than being reported as an observed zero. Direct
+concurrent and mixed-batch v4 deliveries are labeled separately. After a saturated
+mixed batch returns 503, the probe retries the entire unchanged batch after freeing
+capacity, and sends it again to check deduplication.
+The probe stops and recreates its own worker without starting it, creates
+a disposable Operator and durable incidents, Runs, Jobs, episodes and receipts,
+fills the configured capacities through actual APIs, and cancels selected queued
+Runs through the Operator API. It records actual image metadata, runner commit,
+script SHA-256 (including uncommitted edits), Deployment UID, identifiers and observed
+results in a sanitized receipt, including
+partial results on failure or interruption. It attempts to restart a stopped worker
+unless its recreated image or environment could not be verified; inspect
+`worker_restore` and manually start that project's worker if needed. Do not reuse
+the project for production or unrelated work.
+After retaining the receipt and inspecting the project, remove only the selected
+disposable project (including its volumes):
+
+```sh
+docker compose -p "$CLOUDOPS_LAB_PROJECT" -f compose.yaml -f compose.https.yaml \
+  -f compose.integration.yaml -f compose.alertmanager.yaml down -v
+```
+
+To include UID replacement, explicitly add `--replace-owned-checkout` to the
+invocation. This **deletes and recreates** the project's `demo/checkout`
+Deployment, replacing its UID and Pods; it does not replace any other target.
+The probe requires that the live Deployment match the bootstrap writer's pinned
+UID, the expected demo container and the v2 scope, and uses UID/resource-version
+delete preconditions. It recreates the spec without server identity, status,
+owner references or authority annotations, synchronizes scope, and checks the
+old episode/Run binding and a new episode's replacement UID. The old writer
+allowlist remains pinned to the old UID; replacement does not authorize a new
+writer. Before deletion, the probe requires at least one old-UID unknown execution
+that still holds its lock. All old-UID unknown-execution rows and locks are compared,
+not released. Seed the real retained execution separately; the probe does not create
+one. A failure after deletion can leave checkout absent or scope unsynchronized; inspect the receipt
+and repair only this disposable lab before using it again. Without the flag the
+replacement scenario is explicitly unexercised.
+
+Lifecycle/claim/callback races and full browser acceptance require separate
+evidence. Worker recreation occurs while reservations are full and stopped;
+the probe frees exactly one Job slot, then starts the replacement worker.
+All deferred Runs promote automatically on ordinary worker cycles; the probe
+never invokes promotion itself. With at least two deferred Runs and only one
+initial slot, later promotion requires capacity freed by worker progress.
+This is not a transaction-level fault injection. Oldest-first is checked only
+for these deferred Runs without competing admissions; continuous-admission
+fairness is not guaranteed. Collection remains synthetic and direct HTTP
+fixtures are not live AI or remediation.
+
 ## Limits
 
 - One configured source per deployment. There is no rate limiting or mTLS.
 - The lab receipt injects alerts through Alertmanager's API; Prometheus alert rules are not part of it.
-- Collection is synthetic. Integrated E03 acceptance with the work queue and handoff remains [#39](https://github.com/pho-veteran/cloudops-copilot/issues/39).
+- Collection is synthetic. The [integrated E03 ledger](incident-integration-acceptance.md) maps [#39](https://github.com/pho-veteran/cloudops-copilot/issues/39) and every parent criterion to actual sender/browser/persistence evidence without claiming future RCA or recovery engines.

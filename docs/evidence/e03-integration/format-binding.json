@@ -1,0 +1,7 @@
+{
+  "executed_script_sha256": "a8f4bb686a4f06913e78b8142a18262b1eea6b4f459c8f737c76cdce2cfd250e",
+  "final_script_sha256": "87d23f64b4131091b2066d54f5f56ade48477f7f086d1996e526d4341013ce0a",
+  "normalized_ast_sha256": "3b3d563d5c6476ad2d7f919cfb63ebb0a25282e072bc131e7b4b2489d9b56186",
+  "ast_equal": true,
+  "change": "Only Ruff formatting under the exact repository CI configuration after the full probe; original exercised bytes preserved privately. Runtime feature sources unchanged from independently approved c8fbbad/main465dc5a."
+}

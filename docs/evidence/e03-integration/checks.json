@@ -1,0 +1,141 @@
+{
+  "core_base": "465dc5ab8d751b799268f0e17b64177076654015",
+  "core_program_fingerprint": "d127a0d9dd10049f9421228e10117dda3db21742aa8265fee34ef1d3d76bfda1",
+  "core_changed": false,
+  "backend": {
+    "command": "pytest -q services/backend/tests_unit services/backend/tests",
+    "database": "owned cloudops_ci39_test (PostgreSQL17.11)",
+    "result": "843 passed; one existing Starlette/httpx deprecation warning",
+    "seconds": 199.16
+  },
+  "web": {
+    "command": "npm --prefix apps/web test && npm --prefix apps/web run build",
+    "result": "138 passed; TypeScript/Vite production build passed",
+    "node": "24.21.0",
+    "npm": "11.19.0",
+    "assets": [
+      "index-BlWG07Lc.js",
+      "App-CC_c1R4L.js"
+    ]
+  },
+  "lint": {
+    "commands": [
+      "ruff check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr"
+    ],
+    "result": "Passed; 138 files already formatted"
+  },
+  "contracts": {
+    "commands": [
+      "python scripts/contracts.py",
+      "python scripts/test-contract-drift.py"
+    ],
+    "result": "Artifacts synchronized; deliberate schema drift rejected and regenerated consumer accepted; working tree untouched"
+  },
+  "cli": "Final CI-formatted probe --help ran successfully; complete domain scenario uses the exact exercised driver SHA and AST-equivalent formatter binding in format-binding.json",
+  "runtime": "Actual current scoped K3s/HTTPS/API/worker/executor and pinned Alertmanager checks are in sender/integration/transient/recovery/browser receipts. HTTPS clients validated lab CA and localhost hostname.",
+  "limits": [
+    "PostgreSQL guard/race/migration cases use _test only and controlled source observations; they are not claimed as live Kubernetes race injection.",
+    "Browser transport failure/held expiry request are deliberate client-side timing/fault controls over actual server responses, not fabricated API results.",
+    "Future quota/analysis/verifying/reconciliation and finding producer states remain labeled contract fixtures; no live diagnosis or verified remediation."
+  ],
+  "scope": "Historical initial acceptance before R1 corrections; original counts/times/artifacts retained.",
+  "source_binding": {
+    "execution_checkout": "f0b69bae168e3f40d700bf20297b6beb910248d5 plus probe/receipt-only uncommitted changes",
+    "application_and_test_sources_match_commit": "465dc5ab8d751b799268f0e17b64177076654015",
+    "published_initial_head": "b2a039f2e0809cce0d716964823fbdb862ad3f49",
+    "published_initial_tree": "6957a69ef9782fa5b18ed2c011c163f2dc39986e",
+    "exact_head_remote_ci": "https://github.com/pho-veteran/cloudops-copilot/actions/runs/41959906006",
+    "remote_backend": "843 passed,1 warning in238.15s",
+    "image_binding": "runtime-source-binding.json",
+    "limits": "Not an exact clean-checkout claim for the local historical run; complete runtime/test source equality, not only the21selectedfiles, supplies the binding."
+  },
+  "corrected_checks": {
+    "backend": {
+      "result": "844 passed,1 existing Starlette/httpx warning",
+      "seconds": 209.57,
+      "image_id": "sha256:f9893a1a003f0073bb75f73c641005e88f45021836b655cbe5f89def97289df8",
+      "database": "cloudops_ci39_r1_test",
+      "source": "Current R1-02 backend source and behavioral test copied in the immutable image; exact68runtimefilemap in runtime-source-binding.json."
+    },
+    "web": {
+      "result": "138 passed; TypeScript/Vite production build passed",
+      "source": "R1-06 WorkQueue foreground correction; source baseb2a039f plus exactly that one frontend line",
+      "node": "24.21.0",
+      "npm": "11.19.0",
+      "assets": [
+        "App-Dx0wyDDP.js",
+        "index-DQ3U0WFn.js"
+      ]
+    },
+    "probe": {
+      "full_nonreplacement": "integration-confirmation.json",
+      "exact_exercised_sha256": "93feedef6a84ddc042b2a7fa3365040bcca56bfc2712acc151d1caedf1ee20e1",
+      "interrupted": "interrupted.json",
+      "unsafe_scalar_refusals": {
+        "cases": [
+          {
+            "kind": "uuid",
+            "rejected": true
+          },
+          {
+            "kind": "uuid",
+            "rejected": true
+          },
+          {
+            "kind": "uuid",
+            "rejected": true
+          },
+          {
+            "kind": "uuid",
+            "rejected": true
+          },
+          {
+            "kind": "fingerprint",
+            "rejected": true
+          },
+          {
+            "kind": "fingerprint",
+            "rejected": true
+          },
+          {
+            "kind": "fingerprint",
+            "rejected": true
+          },
+          {
+            "kind": "fingerprint",
+            "rejected": true
+          },
+          {
+            "kind": "fingerprint",
+            "rejected": true
+          }
+        ],
+        "owner_db_calls": 0
+      },
+      "reserved_project_refusals": [
+        {
+          "project": "cloudops-local",
+          "exit_code": 1,
+          "receipt_created": false,
+          "guard_error": true
+        },
+        {
+          "project": "cloudops-e01-https",
+          "exit_code": 1,
+          "receipt_created": false,
+          "guard_error": true
+        }
+      ]
+    },
+    "native_browser": "browser-confirmation.json",
+    "source_state": "b2a039f plus recorded corrections; final program/image byte equality checked at publication. Interactive browser/recovery/transient steps do not have a committed replay harness.",
+    "source_subtrees": {
+      "services/backend/src": "a0fd22c212929d6efb07864caefa23b7cfa6b5dd",
+      "services/backend/tests": "dce53cc55a0b35129985c05e05fbf2307a43358f",
+      "services/backend/tests_unit": "708ed6d5b82748dee7a2b0d0deff4ad925a94843",
+      "apps/web/src": "f9fd434935ff1412b585921ce9ae97646b1f5104"
+    },
+    "lint_contracts": "Exact-config Ruff check/format138 files, synchronized OpenAPI/TypeScript and deliberate drift reject/regenerate/accept passed after all code fixes."
+  }
+}

@@ -22,6 +22,11 @@
 - Prefer the user's already-running Microsoft Edge for interactive E2E verification. Verify that the relay is connected to Edge, open a separate lab tab and preserve unrelated tabs. Use a disposable managed browser only when Edge is unavailable or an isolated profile is explicitly needed; disclose that choice.
 - Do not change browser profile permissions or certificate trust without explicit authorization for the target and scope.
 
+## Owned local acceptance environments
+
+- Proceed without repeated confirmation for localhost/Docker setup, interaction, fixture operations, restarts and cleanup within this task's owned local development or acceptance lab. Keep unrelated projects, containers, volumes and host Kubernetes contexts untouched.
+- Local-lab authorization does not extend to shared/production targets, real-account changes, private-data disclosure, user-browser permission/trust changes or bypassing a provider safety gate. Preserve explicit target/UID and authority boundaries.
+
 ## Implemented foundation boundaries
 
 - The persisted app is the default web entry; `?simulation=1` retains the localStorage simulation. Never promote simulation RCA/actions into API results.

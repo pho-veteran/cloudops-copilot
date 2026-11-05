@@ -336,9 +336,17 @@ def _actor(snapshot, identity):
 
 
 def render(snapshot):
+    """Render current Markdown; saved reports are returned from their stored bytes."""
+    return _render_v3(snapshot)
+
+
+def _render_v3(snapshot):
     """Render the stored projection as readable Markdown, without interpreting human text."""
     incident = snapshot["incident"]
     workload = snapshot["workload"]
+    active = workload.get("active")
+    status = "Active" if active is True else "Retired" if active is False else "Not recorded"
+    retirement_reason = _inline(workload.get("retirement_reason"))
     severity = incident["severity"]
     sections = [
         "# Incident handoff\n\n",
@@ -349,6 +357,15 @@ def render(snapshot):
         f"- Origin: {_inline(incident['origin']['kind'])}; source: {_inline(incident['origin']['source_id'])}\n",
         f"- Workload: {_inline(workload['name'])}; namespace: {_inline(workload['namespace'])}; cluster: {_inline(workload['cluster'])}\n",
         f"- Workload ID: {_inline(workload['id'])}; UID: {_inline(workload['uid'])}; source: {_inline(workload['source'])}\n",
+        f"- Workload status: {status}; retirement reason: {retirement_reason}\n",
+        *(
+            [
+                "  This incident remains bound to the recorded workload ID and UID; "
+                "replacement does not grant authority over another UID.\n"
+            ]
+            if active is False
+            else []
+        ),
         f"- Severity: {_inline(severity['value'])}; provenance: {_inline(severity['provenance'])}\n",
         f"- Alert signal: {_inline(incident['alert_signal'])}; first seen: {_inline(incident['first_seen_at'])}; last seen: {_inline(incident['last_seen_at'])}\n\n",
         "**Title**\n\n",
