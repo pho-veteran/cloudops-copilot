@@ -6,10 +6,12 @@ import time
 from sqlalchemy.dialects.postgresql import insert
 
 from cloudops.entrypoints import metadata  # noqa: F401
+from cloudops.entrypoints.dispatch import GATE, PERMIT_CLASSES
 from cloudops.features.investigations.admission_settings import deferred_run_limit
 from cloudops.features.investigations.collector import (
     CollectionHandler,
-    collect,
+    Interrupted,
+    collect_checkpointed,
     configured_adapters,
     prepare,
 )
@@ -18,14 +20,17 @@ from cloudops.features.recommendations.worker import ReportHandler, generate
 from cloudops.features.recovery.service import ExecutionHandler, execute
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, require_schema, sessions
-from cloudops.shared.jobs import claim_next, finish, renew
+from cloudops.shared.jobs import Claim, claim_next, finish, renew
 
 HANDLERS = {
     "development_collection_v1": CollectionHandler(),
     "recommendation_report_v1": ReportHandler(),
     "recovery_execution_v1": ExecutionHandler(),
 }
+if HANDLERS.keys() != PERMIT_CLASSES.keys():
+    raise RuntimeError("Every worker job kind needs exactly one dispatch permit class.")
 logger = logging.getLogger(__name__)
+_last_denial: list[str | None] = [None]
 
 
 def heartbeat():
@@ -38,20 +43,42 @@ def heartbeat():
         )
 
 
+def _report_denial():
+    _, kinds, reason = GATE.current()
+    reason = reason if not kinds else None
+    if reason != _last_denial[0]:
+        _last_denial[0] = reason
+        if reason:
+            logger.warning(
+                "Job dispatch denied by trusted authority (%s); nothing is claimed.", reason
+            )
+        else:
+            logger.info("Job dispatch permit accepted.")
+
+
+def _require_dispatch(claim: Claim) -> None:
+    """Recheck the host permit before a new external call; late calls cannot publish anyway."""
+    if not GATE.allows(claim.kind, claim.permit_authority, claim.permit_generation):
+        raise Interrupted()
+
+
 def run_once() -> bool:
     heartbeat()
+    _report_denial()
     # Deferred investigations take free dispatch slots before the next claim.
-    promote_deferred()
-    claim = claim_next(HANDLERS)
+    promote_deferred(gate=GATE)
+    claim = claim_next(HANDLERS, GATE)
     if not claim:
         return False
     stopped = threading.Event()
+    lease_lost = threading.Event()
 
     def keep_lease():
         while not stopped.wait(settings().heartbeat_seconds):
             try:
                 heartbeat()
                 if not renew(claim):
+                    lease_lost.set()
                     return
             except Exception:
                 logger.warning("Worker lease renewal unavailable; expired output will be rejected.")
@@ -65,19 +92,28 @@ def run_once() -> bool:
             context = prepare(
                 claim.subject_id, attempt_number=claim.attempt, max_attempts=claim.max_attempts
             )
-            result = collect(context, adapters)
+            result = collect_checkpointed(claim, context, adapters, GATE, lease_lost)
         elif claim.kind == "recommendation_report_v1":
+            _require_dispatch(claim)
             result = generate(claim.subject_id)
-        else:
+        elif claim.kind == "recovery_execution_v1":
+            _require_dispatch(claim)
             result = execute(claim.subject_id)
-        if not finish(claim, HANDLERS[claim.kind], result=result):
+        else:
+            raise RuntimeError("Unknown job kind; dispatch fails closed.")
+        if not finish(claim, HANDLERS[claim.kind], result=result, gate=GATE):
             logger.info("Obsolete job result rejected.")
+    except Interrupted:
+        # No publication under a lost lease or retired permit generation; the lease expires.
+        logger.info("Job attempt stopped at a dispatch or lease boundary.")
     except Exception:
-        finish(
+        if not finish(
             claim,
             HANDLERS[claim.kind],
             error="Bounded job attempt failed; inspect its recorded feature outcome.",
-        )
+            gate=GATE,
+        ):
+            logger.info("Obsolete job failure rejected; its lease will expire.")
     finally:
         stopped.set()
         keeper.join(timeout=2)

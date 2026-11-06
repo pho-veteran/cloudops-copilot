@@ -9,6 +9,7 @@ from conftest import sign_in
 from sqlalchemy import select, text
 from test_access_admission import create, incident_body, rerun
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.entrypoints.worker import HANDLERS
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.models import InvestigationRun
@@ -54,7 +55,7 @@ def test_resolve_new_run_and_claim_have_one_consistent_outcome(client):
             ),
         )
         admit = pool.submit(contend, lambda: rerun(client, headers, iid))
-        claim = pool.submit(contend, lambda: claim_next(HANDLERS))
+        claim = pool.submit(contend, lambda: claim_next(HANDLERS, GATE))
         resolved, admitted, claimed = (
             resolve.result(timeout=20),
             admit.result(timeout=20),

@@ -1,5 +1,6 @@
 """Bounded source collection and fenced publication for investigation jobs."""
 
+import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -159,7 +160,30 @@ def _unavailable(key: str, reason: str) -> SourceResult:
     )
 
 
-def collect(context: CollectionContext, adapters: Mapping[str, SourceAdapter]) -> CollectionResult:
+def collect_one(
+    context: CollectionContext, key: str, adapter: SourceAdapter | None, deadline: float
+) -> SourceResult:
+    """One source under the slice A policy; shared by the batch and checkpointed runners."""
+    if adapter is None:
+        return _unavailable(key, "source_not_configured")
+    remaining = deadline - time.monotonic()
+    try:
+        if remaining <= 0:
+            raise SourceTimeout()
+        result = adapter(context, min(5.0, remaining))
+        if result.source_key != key or result.payload_kind != SOURCES[key].payload_kind:
+            raise ValueError("Adapter returned a mismatched source result.")
+        return result
+    except (TransientSourceError, TimeoutError, ConnectionError) as exc:
+        if context.attempt_number < context.max_attempts:
+            raise
+        reason = (
+            "timeout" if isinstance(exc, (SourceTimeout, TimeoutError)) else "source_unavailable"
+        )
+        return _unavailable(key, reason)
+
+
+def _validate(context: CollectionContext, adapters: Mapping[str, SourceAdapter]) -> None:
     if context.configured_catalog_version != CATALOG_VERSION:
         raise ValueError("Unknown collection catalog.")
     if not 1 <= context.attempt_number <= context.max_attempts <= 3:
@@ -167,33 +191,73 @@ def collect(context: CollectionContext, adapters: Mapping[str, SourceAdapter]) -
     for key, adapter in adapters.items():
         if key not in SOURCES or REGISTERED_ADAPTERS.get(key) is not adapter:
             raise ValueError("Unknown collection adapter binding.")
+
+
+def collect(context: CollectionContext, adapters: Mapping[str, SourceAdapter]) -> CollectionResult:
+    _validate(context, adapters)
     deadline = time.monotonic() + 90
-    results = []
     # Sequential reads intentionally use less than the four-read maximum. There
     # are no thread-based pseudo-timeouts or unbounded background provider calls.
+    results = [collect_one(context, key, adapters.get(key), deadline) for key in SOURCES]
+    return CollectionResult(context.workload_uid, tuple(results))
+
+
+@dataclass(frozen=True)
+class FinalizeCollection:
+    """Every adapter read is checkpointed; the fenced finish derives coverage and pins.
+
+    Slots without an installed adapter make no external call, so they are published as
+    ``source_not_configured`` only in this final stage, never as partial failure evidence.
+    """
+
+    workload_uid: str
+    unconfigured: tuple[str, ...] = ()
+    checkpoint_stage: str = "finalize_collection"
+
+
+class Interrupted(Exception):
+    """The attempt lost its lease or dispatch permit; stop without another external call."""
+
+
+def source_stage(key: str) -> str:
+    return f"collect_source:{key}"
+
+
+def collect_checkpointed(
+    claim,
+    context: CollectionContext,
+    adapters: Mapping[str, SourceAdapter],
+    gate,
+    lease_lost: threading.Event | None = None,
+) -> FinalizeCollection:
+    """Collect missing sources one fenced checkpoint at a time; committed ones are reused."""
+    from cloudops.features.investigations.storage import store_source
+    from cloudops.shared.jobs import checkpoint, committed_stages
+
+    _validate(context, adapters)
+    done = committed_stages(claim)
+    deadline = time.monotonic() + 90
+    unconfigured = []
     for key in SOURCES:
         adapter = adapters.get(key)
         if adapter is None:
-            results.append(_unavailable(key, "source_not_configured"))
+            unconfigured.append(key)
             continue
-        remaining = deadline - time.monotonic()
-        try:
-            if remaining <= 0:
-                raise SourceTimeout()
-            result = adapter(context, min(5.0, remaining))
-            if result.source_key != key or result.payload_kind != SOURCES[key].payload_kind:
-                raise ValueError("Adapter returned a mismatched source result.")
-            results.append(result)
-        except (TransientSourceError, TimeoutError, ConnectionError) as exc:
-            if context.attempt_number < context.max_attempts:
-                raise
-            reason = (
-                "timeout"
-                if isinstance(exc, (SourceTimeout, TimeoutError))
-                else "source_unavailable"
-            )
-            results.append(_unavailable(key, reason))
-    return CollectionResult(context.workload_uid, tuple(results))
+        stage = source_stage(key)
+        if stage in done:
+            continue
+        if (lease_lost is not None and lease_lost.is_set()) or not gate.allows(
+            claim.kind, claim.permit_authority, claim.permit_generation
+        ):
+            raise Interrupted()
+        result = collect_one(context, key, adapter, deadline)
+
+        def write(db, carry, result=result):
+            return store_source(db, context.run_id, context.workload_uid, result, carry)
+
+        if not checkpoint(claim, stage, gate, write):
+            raise Interrupted()
+    return FinalizeCollection(context.workload_uid, tuple(unconfigured))
 
 
 class CollectionHandler:
@@ -230,13 +294,23 @@ class CollectionHandler:
         run.outcome_code = "collection_failed" if terminal else None
         run.finished_at = database_now(db) if terminal else None
 
-    def publish(self, db: Session, subject_id: UUID, result: CollectionResult):
-        from cloudops.features.investigations.storage import store_batch
+    def publish(self, db: Session, subject_id: UUID, result):
+        from cloudops.features.investigations.storage import finalize_batch, store_batch
 
         run = db.get(InvestigationRun, subject_id)
         if run.state == "cancelled":
             return
-        store_batch(db, subject_id, result.workload_uid, result.source_results)
+        if isinstance(result, FinalizeCollection):
+            if set(result.unconfigured) - SOURCES.keys():
+                raise ValueError("Unknown catalog source.")
+            finalize_batch(
+                db,
+                subject_id,
+                result.workload_uid,
+                [_unavailable(key, "source_not_configured") for key in result.unconfigured],
+            )
+        else:
+            store_batch(db, subject_id, result.workload_uid, result.source_results)
         run.state = "insufficient_evidence"
         run.outcome_code = "analysis_unavailable"
         run.reason = "Evidence collection saved. Analysis and recovery planning are unavailable."

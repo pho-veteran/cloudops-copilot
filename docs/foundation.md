@@ -60,7 +60,7 @@ The persisted workspace reads real stored Run/evidence records, not simulation s
 
 Each new completed batch stores all catalog outcomes and coverage for CrashLoop/startup, OOM/restarts, traffic latency/errors, Pending and ImagePull. Missing required sources and optional gaps stay distinct. Conditional logs can be `not_applicable`; a fixture never satisfies live pack coverage. Any completed collection, even all-unavailable, ends `insufficient_evidence` / `analysis_unavailable`. Only exhausted job/infrastructure failures end `failed` / `collection_failed`; historical null outcomes remain null.
 
-The non-checkpointed runner uses the existing fenced `development_collection_v1` job and its locked attempt/max-attempts snapshot, not a separate retry budget. Reads run sequentially, below the four-read maximum, with a five-second adapter deadline and a 90-second collection deadline per attempt. Adapters must bound their actual underlying read; no timed-out background read is left running. Transient failures retry the uncommitted batch within the existing at-most-three attempts; the final attempt publishes unavailable source outcomes instead of inventing success. Durable per-source checkpoints, recovered-job permits and live providers remain their owning E04 child work.
+The non-checkpointed runner uses the existing fenced `development_collection_v1` job and its locked attempt/max-attempts snapshot, not a separate retry budget. Reads run sequentially, below the four-read maximum, with a five-second adapter deadline and a 90-second collection deadline per attempt. Adapters must bound their actual underlying read; no timed-out background read is left running. Transient failures before the last attempt end that attempt within the existing at-most-three budget; the final attempt publishes unavailable source outcomes instead of inventing success. The worker now runs the same per-source policy through durable [collection checkpoints](job-dispatch.md#collection-checkpoints) behind a [trusted dispatch permit](job-dispatch.md#dispatchpermitv1); live providers remain their owning E04 child work.
 
 New records are immutable per `(run_id, source_key, catalog_version)`. Identical publication preserves IDs; conflicting content/provenance is rejected. Storage independently whitelists, redacts credential-shaped strings, deterministically truncates and hashes the stored canonical JSON. ConfigMap evidence permits identifiers/references only, never full contents; arbitrary raw Kubernetes objects and Secret objects are not accepted. Redaction is not a general detector for every possible sensitive value. Historical v1 payloads/hashes are not rewritten by the new policy.
 
@@ -107,6 +107,8 @@ Partial redaction and historical legacy/expiry examples were explicitly controll
 
 - [Available pinned content and provenance on desktop](evidence/evidence-storage/available-desktop.png)
 - [Expired legacy metadata/digest at 390px in dark mode](evidence/evidence-storage/expired-390-dark.png)
+
+Checkpoint progress, trusted dispatch pauses and safe cancellation have their own [API](evidence/job-dispatch/api.json) and [browser](evidence/job-dispatch/browser.json) receipts, with [paused queued work](evidence/job-dispatch/paused-queued-desktop.png), [collection after worker loss and API restart](evidence/job-dispatch/collecting-restart-320-dark.png) and [a failed Run offering reinvestigation](evidence/job-dispatch/failed-390.png). See [trusted job dispatch](job-dispatch.md).
 
 ### Work queue search and prioritization
 
@@ -264,7 +266,9 @@ docker compose up -d --no-deps --force-recreate worker
 
 With forced failure, an investigation has at most three failed attempts, ends `failed` and has no published evidence. Restore the normal worker and explicitly start a new investigation; the failed run and earlier successful fixture snapshots stay readable.
 
-For interruption, set `COLLECTOR_DELAY_SECONDS=60` on the worker with the same environment-override pattern, start a new run, then `docker compose kill -s SIGKILL worker` while it is collecting. Restore ordinary worker configuration. After the old 30-second lease expires, the next worker claims a new token. The old attempt becomes expired and cannot publish. The process interruption test reproduces this with a dedicated test database and a real elapsed lease, without modifying its deadline.
+For interruption, set `COLLECTOR_DELAY_SECONDS=60` on the worker with the same environment-override pattern, start a new run, then `docker compose kill -s SIGKILL worker` while it is collecting. Restore ordinary worker configuration. After the old 30-second lease expires, the next worker claims a new token. The old attempt becomes expired and cannot publish. Sources already checkpointed by the killed attempt are reused with their original evidence IDs. The process interruption tests reproduce this before and after a committed checkpoint with a dedicated test database and a real elapsed lease, without modifying its deadline.
+
+To pause all background jobs, run `docker compose run --rm dispatch-admin enter-recovery --reason ... --evidence ...`. Queued Runs then show **Dispatch is paused** and stay cancellable; resume with `resume --class ...` or `exit-recovery`. See [trusted job dispatch](job-dispatch.md#trusted-administration).
 
 **Connections** observes worker heartbeats with a 45-second freshness threshold. A stale worker is separate from database readiness. API readiness requires the current Alembic head; worker unavailability does not make saved reads unavailable. A database outage returns an actionable API error. A missing/failed schema prevents startup readiness; follow README migration recovery instructions instead of stamping a revision or deleting data.
 

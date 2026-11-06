@@ -35,6 +35,12 @@ class InvestigationRun(Base):
             "queue_reason IS NULL OR (state = 'queued' AND queue_reason = 'capacity')",
             name="run_queue_reason",
         ),
+        # A feature-declared boundary: E06 analysis reports whether a provider call is in flight.
+        CheckConstraint(
+            "provider_call IS NULL OR (provider_call IN ('none', 'in_flight') "
+            "AND state IN ('analyzing', 'waiting_for_quota'))",
+            name="run_provider_call",
+        ),
         Index(
             "one_open_run_per_incident", "incident_id", unique=True, postgresql_where=text(OPEN_RUN)
         ),
@@ -69,6 +75,7 @@ class InvestigationRun(Base):
     queue_reason: Mapped[str | None] = mapped_column(String(16))
     outcome_code: Mapped[str | None] = mapped_column(String(32))
     pack_coverage: Mapped[list | None] = mapped_column(JSONB(none_as_null=True))
+    provider_call: Mapped[str | None] = mapped_column(String(16))
 
 
 class Evidence(Base):

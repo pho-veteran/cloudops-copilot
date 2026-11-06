@@ -1,13 +1,28 @@
+import json
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, and_, func, or_, select
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    and_,
+    func,
+    or_,
+    select,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from cloudops.shared.config import settings
 from cloudops.shared.database import Base, database_now, sessions
+from cloudops.shared.dispatch_permit import DispatchGate
 
 
 class Job(Base):
@@ -35,9 +50,36 @@ class JobAttempt(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error: Mapped[str | None] = mapped_column(String(256))
+    # Evidence of the host permit that admitted this attempt; it never grants permission.
+    permit_authority: Mapped[UUID | None] = mapped_column()
+    permit_generation: Mapped[int | None] = mapped_column(BigInteger)
 
 
-# These mechanics own leases only. Entrypoints inject feature transition policies.
+STAGE = re.compile(r"[a-z_]+(:[a-z0-9_.]+)?")
+
+
+class JobCheckpoint(Base):
+    """One committed, fenced stage of a job. Stage meaning belongs to the job's feature."""
+
+    __tablename__ = "job_checkpoints"
+    __table_args__ = (
+        UniqueConstraint("job_id", "sequence", name="job_checkpoint_sequence"),
+        CheckConstraint("stage ~ '^[a-z_]+(:[a-z0-9_.]+)?$'", name="job_checkpoint_stage"),
+    )
+    job_id: Mapped[UUID] = mapped_column(ForeignKey("jobs.id"), primary_key=True)
+    stage: Mapped[str] = mapped_column(String(96), primary_key=True)
+    sequence: Mapped[int] = mapped_column()
+    attempt_number: Mapped[int] = mapped_column()
+    lease_token: Mapped[UUID] = mapped_column()
+    permit_authority: Mapped[UUID] = mapped_column()
+    permit_generation: Mapped[int] = mapped_column(BigInteger)
+    committed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    carry: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+
+
+# These mechanics own leases, checkpoints and permit fences only. Entrypoints inject feature
+# transition policies and the job-kind to permit-class mapping through ``DispatchGate``.
+# Lock order: host shared permit lock -> one short PostgreSQL transaction. Never the reverse.
 
 
 class JobHandler(Protocol):
@@ -71,16 +113,22 @@ class Claim:
     token: UUID
     attempt: int
     max_attempts: int
+    permit_authority: UUID | None = None
+    permit_generation: int | None = None
 
 
-def claim_next(handlers: dict[str, JobHandler]) -> Claim | None:
-    with sessions()() as db, db.begin():
+def claim_next(handlers: dict[str, JobHandler], gate: DispatchGate) -> Claim | None:
+    """Claim one permitted job. Denied kinds are not touched and consume no attempt."""
+    with gate.admitted() as admission, sessions()() as db, db.begin():
+        kinds = [kind for kind in handlers if kind in admission.kinds]
+        if not kinds:
+            return None
         now = database_now(db)
         while True:
             job = db.scalar(
                 select(Job)
                 .where(
-                    Job.kind.in_(handlers),
+                    Job.kind.in_(kinds),
                     or_(
                         Job.state == "queued",
                         and_(Job.state == "running", Job.lease_until <= now),
@@ -119,6 +167,7 @@ def claim_next(handlers: dict[str, JobHandler]) -> Claim | None:
         job.attempts += 1
         job.state, job.lease_token = "running", uuid4()
         job.lease_until = now + timedelta(seconds=settings().lease_seconds)
+        permit = admission.permit
         db.add(
             JobAttempt(
                 job_id=job.id,
@@ -126,11 +175,20 @@ def claim_next(handlers: dict[str, JobHandler]) -> Claim | None:
                 lease_token=job.lease_token,
                 state="running",
                 started_at=now,
+                permit_authority=permit.authority_id,
+                permit_generation=permit.generation,
             )
         )
         handler.started(db, job.subject_id)
         return Claim(
-            job.id, job.kind, job.subject_id, job.lease_token, job.attempts, job.max_attempts
+            job.id,
+            job.kind,
+            job.subject_id,
+            job.lease_token,
+            job.attempts,
+            job.max_attempts,
+            permit.authority_id,
+            permit.generation,
         )
 
 
@@ -143,6 +201,17 @@ def owned(db: Session, claim: Claim) -> Job | None:
     return job
 
 
+def _fenced(db: Session, claim: Claim, admission) -> tuple[Job, JobAttempt] | None:
+    """Current token, unexpired lease and the same permit generation that admitted the claim."""
+    job = owned(db, claim)
+    if not job:
+        return None
+    attempt = db.scalar(select(JobAttempt).where(JobAttempt.lease_token == claim.token))
+    if not admission.permits(claim.kind, attempt.permit_authority, attempt.permit_generation):
+        return None
+    return job, attempt
+
+
 def renew(claim: Claim) -> bool:
     with sessions()() as db, db.begin():
         job = owned(db, claim)
@@ -152,13 +221,70 @@ def renew(claim: Claim) -> bool:
         return True
 
 
-def finish(claim: Claim, handler: JobHandler, result: Any = None, error: str | None = None) -> bool:
-    with sessions()() as db, db.begin():
-        job = owned(db, claim)
-        if not job:
+def committed_stages(claim: Claim) -> set[str]:
+    with sessions()() as db:
+        return set(db.scalars(select(JobCheckpoint.stage).where(JobCheckpoint.job_id == claim.id)))
+
+
+def checkpoint(
+    claim: Claim,
+    stage: str,
+    gate: DispatchGate,
+    write: Callable[[Session, dict | None], dict | None],
+) -> bool:
+    """Commit one stage atomically with its feature output under the current lease and permit.
+
+    ``write`` receives the previous stage's carry and returns the next. A committed stage is
+    never rewritten; False means the claim is obsolete and nothing was written.
+    """
+    if len(stage) > 96 or not STAGE.fullmatch(stage):
+        raise ValueError("Invalid checkpoint stage.")
+    with gate.admitted() as admission, sessions()() as db, db.begin():
+        fenced = _fenced(db, claim, admission)
+        if not fenced:
             return False
+        job, attempt = fenced
+        if db.get(JobCheckpoint, (job.id, stage)):
+            return True
+        previous = db.scalar(
+            select(JobCheckpoint)
+            .where(JobCheckpoint.job_id == job.id)
+            .order_by(JobCheckpoint.sequence.desc())
+            .limit(1)
+        )
+        carry = write(db, previous.carry if previous else None)
+        if carry is not None and len(json.dumps(carry, separators=(",", ":"))) > 16384:
+            raise ValueError("Checkpoint carry exceeds its bound.")
+        db.add(
+            JobCheckpoint(
+                job_id=job.id,
+                stage=stage,
+                sequence=(previous.sequence + 1) if previous else 1,
+                attempt_number=attempt.number,
+                lease_token=claim.token,
+                permit_authority=attempt.permit_authority,
+                permit_generation=attempt.permit_generation,
+                committed_at=database_now(db),
+                carry=carry,
+            )
+        )
+        return True
+
+
+def finish(
+    claim: Claim,
+    handler: JobHandler,
+    result: Any = None,
+    error: str | None = None,
+    *,
+    gate: DispatchGate,
+) -> bool:
+    with gate.admitted() as admission, sessions()() as db, db.begin():
+        fenced = _fenced(db, claim, admission)
+        if not fenced:
+            return False
+        job, attempt = fenced
         now = database_now(db)
-        attempt = db.scalar(select(JobAttempt).where(JobAttempt.lease_token == claim.token))
         attempt.finished_at = now
         if error:
             terminal = job.attempts >= job.max_attempts
@@ -168,6 +294,26 @@ def finish(claim: Claim, handler: JobHandler, result: Any = None, error: str | N
         else:
             # Feature output and completion are one commit; rollback leaves the lease recoverable.
             handler.publish(db, job.subject_id, result)
+            stage = getattr(result, "checkpoint_stage", None)
+            if stage:
+                if len(stage) > 96 or not STAGE.fullmatch(stage):
+                    raise ValueError("Invalid checkpoint stage.")
+                last = db.scalar(
+                    select(func.max(JobCheckpoint.sequence)).where(JobCheckpoint.job_id == job.id)
+                )
+                db.add(
+                    JobCheckpoint(
+                        job_id=job.id,
+                        stage=stage,
+                        sequence=(last or 0) + 1,
+                        attempt_number=attempt.number,
+                        lease_token=claim.token,
+                        permit_authority=attempt.permit_authority,
+                        permit_generation=attempt.permit_generation,
+                        committed_at=now,
+                        carry=None,
+                    )
+                )
             job.state, job.error, attempt.state = "completed", None, "succeeded"
         job.lease_token, job.lease_until = None, None
         return True

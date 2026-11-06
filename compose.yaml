@@ -14,6 +14,8 @@ x-backend: &backend
     COLLECTOR_FAIL: ${COLLECTOR_FAIL:-false}
     COLLECTION_SOURCE_MODE: ${COLLECTION_SOURCE_MODE:-development_fixture}
     DEFERRED_RUN_LIMIT: ${DEFERRED_RUN_LIMIT:-100}
+    # Trusted DispatchPermit/v1 outside PostgreSQL; read-only for api/worker.
+    JOB_DISPATCH_ROOT: /run/cloudops-job-permit
   depends_on:
     db:
       condition: service_healthy
@@ -36,6 +38,7 @@ services:
   api:
     <<: *backend
     ports: ['127.0.0.1:8000:8000']
+    volumes: [job_dispatch:/run/cloudops-job-permit:ro]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -47,9 +50,22 @@ services:
   worker:
     <<: *backend
     command: [python, -m, cloudops.entrypoints.worker]
+    volumes: [job_dispatch:/run/cloudops-job-permit:ro]
     depends_on:
       migrate:
         condition: service_completed_successfully
+  # Trusted host-side permit administration. No database URL or writer credential.
+  # Usage: docker compose run --rm dispatch-admin bootstrap --fresh-install --reason ... --evidence ...
+  dispatch-admin:
+    image: cloudops-local-backend
+    build:
+      context: .
+      dockerfile: services/backend/Dockerfile
+    profiles: [dispatch-admin]
+    entrypoint: [python, -m, cloudops.entrypoints.dispatch_admin]
+    environment:
+      JOB_DISPATCH_ROOT: /run/cloudops-job-permit
+    volumes: [job_dispatch:/run/cloudops-job-permit]
   observer:
     <<: *backend
     profiles: [observation]
@@ -76,3 +92,4 @@ services:
     command: [pytest, -q, services/backend/tests_unit, services/backend/tests]
 volumes:
   database:
+  job_dispatch:

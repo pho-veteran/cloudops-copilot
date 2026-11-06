@@ -18,6 +18,8 @@ From the repository root:
 cp .env.example .env
 # Edit .env: choose a local POSTGRES_PASSWORD containing URL-safe letters/digits/hyphens.
 docker compose up -d --build
+# Issue the fresh-install job dispatch permit once (trusted host step; see docs/job-dispatch.md).
+docker compose run --rm dispatch-admin bootstrap --fresh-install --reason "Local fresh install" --evidence "README quick start"
 # Provision accounts; each command prompts for a password (12..256 characters).
 docker compose exec api python -m cloudops.entrypoints.cli account operator --role operator
 docker compose exec api python -m cloudops.entrypoints.cli account viewer --role viewer
@@ -27,7 +29,7 @@ Open [http://localhost:5173](http://localhost:5173). Use that exact origin: logi
 
 `WEB_ORIGIN` must use the browser's exact origin spelling, with no trailing slash, credentials, path, query, fragment or explicit default port. HTTP requires exactly `localhost` or `127.0.0.1` and `COOKIE_SECURE=false`; HTTPS requires `COOKIE_SECURE=true`. Contradictory configurations fail at startup. See the [browser session configuration and HTTPS handoff](docs/foundation.md#browser-session-configuration-and-https-handoff) for accepted examples and the remaining E10 proxy checks.
 
-`migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Provisioning an existing username resets its password/role and revokes its sessions. To change only the role or revoke all sessions without touching the stored password, use `account-role <username> <viewer|operator>` or `revoke-sessions <username>`. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
+`migrate` runs Alembic and synchronizes `config/development-workloads.json` before API/worker start. PostgreSQL uses a named volume. No accounts or default passwords are seeded. Until the dispatch permit exists, the worker claims nothing and queued Runs explain the pause; the permit lives in its own `job_dispatch` volume, outside PostgreSQL. Provisioning an existing username resets its password/role and revokes its sessions. To change only the role or revoke all sessions without touching the stored password, use `account-role <username> <viewer|operator>` or `revoke-sessions <username>`. For automation, `account ... --password-stdin` reads one password from stdin; keep it out of command arguments and source control.
 
 ## First interactive journey
 

@@ -157,6 +157,43 @@ class AttemptView(View):
     started_at: datetime
     finished_at: datetime | None
     error: str | None
+    # Source checkpoints committed by this attempt; null for non-checkpointed history.
+    sources_committed: int | None
+
+
+class RunProgress(BaseModel):
+    sources_total: int
+    sources_committed: int
+    sources_reused: int
+    finalized: bool
+    attempt: int | None
+    max_attempts: int
+
+
+DispatchReason = Literal[
+    "recovery_mode", "class_denied", "permit_missing", "permit_stale", "permit_invalid"
+]
+
+
+class DispatchStatus(BaseModel):
+    status: Literal["allowed", "paused"]
+    reason: DispatchReason | None
+
+
+CancelReason = Literal[
+    "queued",
+    "waiting_without_provider_call",
+    "collection_started",
+    "analysis_started",
+    "provider_call_in_flight",
+    "finished",
+    "already_cancelled",
+]
+
+
+class CancelState(BaseModel):
+    allowed: bool
+    reason: CancelReason
 
 
 class RunView(View):
@@ -176,6 +213,9 @@ class RunView(View):
     pack_coverage: list[PackCoverage] | None
     evidence: list[EvidenceView]
     attempts: list[AttemptView]
+    progress: RunProgress | None
+    dispatch: DispatchStatus | None
+    cancel: CancelState
     diagnosis: Literal["unavailable"] = "unavailable"
     recovery: Literal["unavailable"] = "unavailable"
 

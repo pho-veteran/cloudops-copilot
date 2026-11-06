@@ -31,6 +31,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from test_incident_requests import capacity as _capacity, free_capacity
 
 from cloudops.entrypoints.api import create_app
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.incidents import intake_service
 from cloudops.features.incidents.intake_models import AlertEpisode, AlertReceipt
 from cloudops.features.incidents.intake_schemas import canonical_start
@@ -516,7 +517,7 @@ def test_capacity_defers_refuses_replays_and_promotes_the_same_run(client, intak
     link = rows(AlertReceipt, AlertReceipt.outcome == "duplicate")[0]
     assert (link.incident_id, link.run_id) == (accepted.incident_id, accepted.run_id)
     free_capacity()
-    assert promote_deferred() == 1
+    assert promote_deferred(gate=GATE) == 1
     with sessions()() as db:
         run = db.get(InvestigationRun, accepted.run_id)
         assert run.queue_reason is None

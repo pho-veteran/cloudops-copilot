@@ -53,6 +53,9 @@ function run(overrides: Partial<components["schemas"]["RunView"]> = {}) {
     pack_coverage: null,
     evidence: [],
     attempts: [],
+    progress: null,
+    dispatch: null,
+    cancel: { allowed: false, reason: "finished" },
     diagnosis: "unavailable",
     recovery: "unavailable",
     ...overrides,
@@ -188,17 +191,60 @@ describe("investigation requests", () => {
 
   it("shows a deferred request with its saved window and cancels it after confirmation", async () => {
     const posts = mount([
-      run({ state: "queued", queue_reason: "capacity", finished_at: null, question_source: "automatic" }),
+      run({
+        state: "queued",
+        queue_reason: "capacity",
+        finished_at: null,
+        question_source: "automatic",
+        cancel: { allowed: true, reason: "queued" },
+      }),
     ]);
     const user = userEvent.setup();
     expect((await screen.findAllByText("waiting for capacity")).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText("Why is a new investigation needed?")).toBeNull();
     expect(await screen.findByText(/UTC\) · Last 30 minutes at admission/)).toBeTruthy();
-    await user.click(await screen.findByRole("button", { name: "Cancel queued investigation" }));
+    await user.click(await screen.findByRole("button", { name: "Cancel investigation" }));
     expect(posts).toHaveLength(0);
     await user.click(screen.getByRole("button", { name: "Confirm cancellation" }));
     await vi.waitFor(() => expect(posts).toHaveLength(1));
     expect(posts[0].path).toBe(`/api/incidents/${incidentId}/runs/${run().id}/cancel`);
+  });
+
+  it("keeps saved sources of a failed run readable and focuses manual reinvestigation", async () => {
+    mount([
+      run({
+        state: "failed",
+        outcome_code: "collection_failed",
+        reason: "Collection attempt budget exhausted after worker lease expiry.",
+        progress: {
+          sources_total: 12, sources_committed: 3, sources_reused: 3,
+          finalized: false, attempt: 3, max_attempts: 3,
+        },
+        attempts: [1, 2, 3].map((number) => ({
+          number, state: "expired" as const, started_at: "2026-11-01T00:00:00Z",
+          finished_at: "2026-11-01T00:00:30Z", error: "Worker lease expired; collection may be retried.",
+          sources_committed: number === 1 ? 3 : 0,
+        })),
+      }),
+    ]);
+    const user = userEvent.setup();
+    expect(await screen.findByText(/3 of 12 catalog sources saved · Attempt 3 of 3/)).toBeTruthy();
+    expect(screen.getByText(/Attempt 1 · expired/).parentElement?.textContent).toMatch(/3 sources saved/);
+    expect(screen.getByText("Coverage was not captured for this run.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Request a new investigation" }));
+    expect(document.activeElement).toBe(screen.getByLabelText("Why is a new investigation needed?"));
+  });
+
+  it("explains derived coverage while collection is still saving sources", async () => {
+    mount([
+      run({
+        state: "collecting", finished_at: null,
+        cancel: { allowed: false, reason: "collection_started" },
+        dispatch: { status: "allowed", reason: null },
+      }),
+    ]);
+    expect(await screen.findByText("Pack coverage is derived after every source is saved.")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Cancel investigation" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("labels legacy requests honestly and asks to reopen a resolved incident", async () => {

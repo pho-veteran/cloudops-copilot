@@ -1,29 +1,39 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from typing import Callable, Literal
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from cloudops.features.investigations.catalog import CATALOG_VERSION, SOURCES
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.investigations.schemas import (
     AttemptView,
+    CancelState,
+    DispatchStatus,
     EvidenceContent,
     OriginView,
     RequestWindow,
     RunPage,
+    RunProgress,
     RunView,
 )
-from cloudops.features.investigations.states import COLLECTION_JOB, nonterminal_run
+from cloudops.features.investigations.states import (
+    COLLECTION_JOB,
+    NONTERMINAL_RUN,
+    nonterminal_run,
+)
 from cloudops.features.investigations.storage import evidence_views
 from cloudops.features.incidents.models import Incident
 from cloudops.features.workloads.models import Workload
 from cloudops.features.recovery.classification import blocking_execution
 from cloudops.shared.database import database_now
 from cloudops.shared.errors import DomainError
-from cloudops.shared.jobs import Job, JobAttempt, retire_queued
+from cloudops.shared.jobs import Job, JobAttempt, JobCheckpoint, retire_queued
+
+FINAL_STAGE = "finalize_collection"
 
 DEFERRED_REASON = "Accepted; waiting for dispatch capacity. It starts automatically."
 DISPATCH_REASON = "Waiting for a collection worker."
@@ -116,6 +126,7 @@ def admit_run(
 def terminalize(db: Session, run: InvestigationRun, code: str) -> None:
     """Cancel pending work; the caller holds the Run row lock."""
     run.state, run.queue_reason, run.outcome_code = "cancelled", None, code
+    run.provider_call = None
     run.reason = OUTCOME_REASONS[code]
     run.finished_at = database_now(db)
     retire_queued(db, COLLECTION_JOB, run.id, OUTCOME_REASONS[code])
@@ -143,6 +154,53 @@ def window_view(row: InvestigationRun) -> RequestWindow | None:
     return RequestWindow(start=row.window_start, end=row.window_end, source=row.window_source)
 
 
+# Display-only collection dispatch status. Entrypoints that mount the trusted permit register
+# a reader; without one the status is not reported. It never grants or denies any operation.
+_dispatch_status: Callable[[], tuple[bool, str | None]] | None = None
+
+
+def configure_dispatch_status(reader: Callable[[], tuple[bool, str | None]] | None) -> None:
+    global _dispatch_status
+    _dispatch_status = reader
+
+
+def cancel_state(row: InvestigationRun) -> CancelState:
+    """The feature-declared cancellation boundary: only work with no call already sent."""
+    if row.state == "cancelled":
+        return CancelState(allowed=False, reason="already_cancelled")
+    if row.state == "queued":
+        return CancelState(allowed=True, reason="queued")
+    if row.state == "waiting_for_quota":
+        if row.provider_call == "none":
+            return CancelState(allowed=True, reason="waiting_without_provider_call")
+        return CancelState(allowed=False, reason="provider_call_in_flight")
+    if row.state == "collecting":
+        return CancelState(allowed=False, reason="collection_started")
+    if row.state == "analyzing":
+        return CancelState(allowed=False, reason="analysis_started")
+    return CancelState(allowed=False, reason="finished")
+
+
+def _progress(row, job, attempts, checkpoints, evidence) -> RunProgress | None:
+    current = [e for e in evidence if e.catalog_version == CATALOG_VERSION]
+    if job is None and not current:
+        return None
+    latest = attempts[-1] if attempts else None
+    reused = (
+        sum(1 for c in checkpoints if c.attempt_number < latest.number and c.stage != FINAL_STAGE)
+        if latest
+        else 0
+    )
+    return RunProgress(
+        sources_total=len(SOURCES),
+        sources_committed=len(current),
+        sources_reused=reused,
+        finalized=row.pack_coverage is not None,
+        attempt=latest.number if latest else None,
+        max_attempts=job.max_attempts if job else 3,
+    )
+
+
 def run_view(db: Session, row: InvestigationRun) -> RunView:
     evidence = db.scalars(
         select(Evidence)
@@ -152,12 +210,25 @@ def run_view(db: Session, row: InvestigationRun) -> RunView:
         .where(Evidence.run_id == row.id, Evidence.workload_uid == Workload.uid)
         .order_by(Evidence.source_key)
     ).all()
-    attempts = db.scalars(
-        select(JobAttempt)
-        .join(Job)
-        .where(Job.subject_id == row.id, Job.kind == COLLECTION_JOB)
-        .order_by(JobAttempt.number)
-    ).all()
+    job = db.scalar(select(Job).where(Job.subject_id == row.id, Job.kind == COLLECTION_JOB))
+    attempts = (
+        db.scalars(
+            select(JobAttempt).where(JobAttempt.job_id == job.id).order_by(JobAttempt.number)
+        ).all()
+        if job
+        else []
+    )
+    checkpoints = (
+        db.scalars(select(JobCheckpoint).where(JobCheckpoint.job_id == job.id)).all() if job else []
+    )
+    per_attempt: dict[int, int] = {}
+    for item in checkpoints:
+        if item.stage != FINAL_STAGE:
+            per_attempt[item.attempt_number] = per_attempt.get(item.attempt_number, 0) + 1
+    dispatch = None
+    if row.state in NONTERMINAL_RUN and _dispatch_status is not None:
+        allowed, reason = _dispatch_status()
+        dispatch = DispatchStatus(status="allowed" if allowed else "paused", reason=reason)
     return RunView(
         **{
             field: getattr(row, field)
@@ -179,7 +250,22 @@ def run_view(db: Session, row: InvestigationRun) -> RunView:
         window=window_view(row),
         pack_coverage=row.pack_coverage,
         evidence=evidence_views(db, evidence),
-        attempts=[AttemptView.model_validate(a) for a in attempts],
+        attempts=[
+            AttemptView(
+                number=a.number,
+                state=a.state,
+                started_at=a.started_at,
+                finished_at=a.finished_at,
+                error=a.error,
+                sources_committed=per_attempt.get(a.number, 0)
+                if a.permit_generation is not None
+                else None,
+            )
+            for a in attempts
+        ],
+        progress=_progress(row, job, attempts, checkpoints, evidence),
+        dispatch=dispatch,
+        cancel=cancel_state(row),
     )
 
 

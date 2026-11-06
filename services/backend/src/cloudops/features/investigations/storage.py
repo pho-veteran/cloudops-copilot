@@ -510,29 +510,12 @@ def _bounded(payload, kind, byte_limit, budget, source_key):
 def store_batch(
     db: Session, run_id: UUID, workload_uid: str, results: list[SourceResult]
 ) -> list[Evidence]:
-    # Read the foreign key without a Run lock, then establish Incident -> Run order.
-    incident_id = db.scalar(
-        select(InvestigationRun.incident_id).where(InvestigationRun.id == run_id)
-    )
-    if incident_id is None:
-        raise ValueError("Unknown investigation.")
-    incident = db.scalar(select(Incident).where(Incident.id == incident_id).with_for_update())
-    run = db.scalar(select(InvestigationRun).where(InvestigationRun.id == run_id).with_for_update())
-    workload = db.get(Workload, incident.workload_id)
-    if not workload or workload.uid != workload_uid or len(workload_uid) > 100:
-        raise ValueError("Investigation workload identity mismatch.")
+    """Non-checkpointed publication of a complete source batch (the slice A runner)."""
+    incident, run, workload = _locked_run(db, run_id, workload_uid)
     keys = [r.source_key for r in results]
     if len(keys) != len(set(keys)) or set(keys) != set(SOURCES):
         raise ValueError("Collection must contain each catalog source exactly once.")
-    window = (
-        None
-        if run.window_start is None
-        else {
-            "start": run.window_start.isoformat(),
-            "end": run.window_end.isoformat(),
-            "source": run.window_source,
-        }
-    )
+    window = _window(run)
     existing = {
         e.source_key: e
         for e in db.scalars(
@@ -544,111 +527,12 @@ def store_batch(
     rows = []
     envelopes = []
     total = 0
-    samples_left = 20000
-    pods_seen, containers_seen = set(), set()
+    state = {"pods_seen": set(), "containers_seen": set(), "samples": 20000}
     for result in sorted(results, key=lambda r: r.source_key):
-        spec = SOURCES[result.source_key]
-        if result.payload_kind != spec.payload_kind or result.payload_version != 1:
-            raise ValueError("Invalid source payload version or kind.")
-        if len(result.coverage.reason_codes) > 16 or set(result.coverage.reason_codes) - REASONS:
-            raise ValueError("Unknown evidence coverage reason.")
-        if result.coverage.status == "not_applicable" and result.source_key not in {
-            "kubernetes.logs.current",
-            "kubernetes.logs.previous",
-        }:
-            raise ValueError("Only conditional log sources may be not applicable.")
-        if (
-            result.source_times.time_relation != "not_captured"
-            and window is None
-            and result.source_key != "development_fixture"
-        ):
-            raise ValueError("A historical request has no captured window.")
-        if result.query_metadata is not None:
-            if spec.query_id is None or result.query_metadata.get("query_id") != spec.query_id:
-                raise ValueError("Invalid query identifier.")
-            query = _clean(result.query_metadata, fields=QUERY_FIELDS)
-            identity = query.get("source_identity", {})
-            if any(
-                key in identity and identity[key] != expected
-                for key, expected in (
-                    ("cluster_id", workload.cluster),
-                    ("namespace", workload.namespace),
-                    ("workload_uid", workload_uid),
-                )
-            ):
-                raise ValueError("Query metadata workload identity mismatch.")
-            if len(_canonical(query)) > 16384:
-                raise ValueError("Query metadata exceeds allocation.")
-        else:
-            query = None
-        payload = result.redacted_bounded_payload
-        if payload is not None and window is None and result.payload_kind in {"logs", "series"}:
-            raise ValueError("Live log and metric payloads require a captured request window.")
-        if (payload is None) != (result.coverage.status in {"unavailable", "not_applicable"}):
-            raise ValueError("Coverage and payload disagree.")
-        coverage = result.coverage.model_dump()
-        digest = None
-        if payload is not None:
-            budget = {
-                "pods_seen": pods_seen,
-                "containers_seen": containers_seen,
-                "samples": samples_left,
-                "series": 25,
-                "sample_gaps": False,
-            }
-            payload, truncated = _bounded(
-                payload, result.payload_kind, spec.byte_limit, budget, result.source_key
-            )
-            samples_left = budget["samples"]
-            if result.payload_kind == "series":
-                count = _count_samples(payload)
-                if budget["sample_gaps"] or count == 0:
-                    coverage["reason_codes"] = sorted(
-                        set(coverage["reason_codes"] + ["no_samples"])
-                    )
-                    coverage["status"] = "partial" if count else "unavailable"
-                if count == 0:
-                    payload = None
-            if payload is not None:
-                data = _canonical(payload)
-                total += len(data)
-                digest = hashlib.sha256(data).hexdigest()
-            if truncated:
-                if coverage["status"] == "available":
-                    coverage["status"] = "partial"
-                coverage["reason_codes"] = sorted(set(coverage["reason_codes"] + ["truncated"]))
-        values = dict(
-            workload_uid=workload_uid,
-            source_kind=spec.source_kind,
-            schema_version=2,
-            payload_kind=result.payload_kind,
-            payload_version=result.payload_version,
-            observed_at=result.source_times.observed_at,
-            collected_at=result.source_times.collected_at,
-            requested_window=window,
-            time_relation=result.source_times.time_relation,
-            coverage=coverage,
-            query_metadata=query,
-            sha256=digest,
-            redaction_policy_version="v1",
-            expires_at=result.source_times.collected_at + timedelta(days=30)
-            if payload is not None
-            else None,
+        payload, values, envelope, size = _source_values(
+            result, workload, workload_uid, window, run_id, state
         )
-        # Measure the actual bounded metadata shape, including IDs and nullable references.
-        envelope = {
-            key: value.isoformat() if isinstance(value, datetime) else value
-            for key, value in values.items()
-        }
-        envelope.update(
-            id="0" * 36,
-            run_id=str(run_id),
-            source_key=result.source_key,
-            catalog_version=CATALOG_VERSION,
-            pinned=False,
-            payload_ref="0" * 36 if payload is not None else None,
-            content_status="available" if payload is not None else "unavailable",
-        )
+        total += size
         envelopes.append(envelope)
         old = existing.get(result.source_key)
         if old:
@@ -686,14 +570,314 @@ def store_batch(
         if v.content_status == "available" and v.coverage.status in {"available", "partial"}
     ]
     if useful and not existing and incident.state != "resolved":
-        db.execute(
-            delete(EvidencePin).where(
-                EvidencePin.kind == "latest", EvidencePin.owner_id == incident.id
+        _replace_latest_pins(db, incident.id, useful)
+    return rows
+
+
+def _window(run: InvestigationRun) -> dict | None:
+    if run.window_start is None:
+        return None
+    return {
+        "start": run.window_start.isoformat(),
+        "end": run.window_end.isoformat(),
+        "source": run.window_source,
+    }
+
+
+def _replace_latest_pins(db: Session, incident_id: UUID, useful: list[EvidenceView]) -> None:
+    db.execute(
+        delete(EvidencePin).where(EvidencePin.kind == "latest", EvidencePin.owner_id == incident_id)
+    )
+    db.add_all([EvidencePin(evidence_id=v.id, kind="latest", owner_id=incident_id) for v in useful])
+
+
+def _envelope(values: dict, run_id: UUID, source_key: str, has_payload: bool) -> dict:
+    # Measure the actual bounded metadata shape, including IDs and nullable references.
+    envelope = {
+        key: value.isoformat() if isinstance(value, datetime) else value
+        for key, value in values.items()
+    }
+    envelope.update(
+        id="0" * 36,
+        run_id=str(run_id),
+        source_key=source_key,
+        catalog_version=CATALOG_VERSION,
+        pinned=False,
+        payload_ref="0" * 36 if has_payload else None,
+        content_status="available" if has_payload else "unavailable",
+    )
+    return envelope
+
+
+def _source_values(result: SourceResult, workload, workload_uid, window, run_id, state: dict):
+    """Validate, redact, bound and hash one source; ``state`` carries cross-source budgets."""
+    spec = SOURCES[result.source_key]
+    if result.payload_kind != spec.payload_kind or result.payload_version != 1:
+        raise ValueError("Invalid source payload version or kind.")
+    if len(result.coverage.reason_codes) > 16 or set(result.coverage.reason_codes) - REASONS:
+        raise ValueError("Unknown evidence coverage reason.")
+    if result.coverage.status == "not_applicable" and result.source_key not in {
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous",
+    }:
+        raise ValueError("Only conditional log sources may be not applicable.")
+    if (
+        result.source_times.time_relation != "not_captured"
+        and window is None
+        and result.source_key != "development_fixture"
+    ):
+        raise ValueError("A historical request has no captured window.")
+    if result.query_metadata is not None:
+        if spec.query_id is None or result.query_metadata.get("query_id") != spec.query_id:
+            raise ValueError("Invalid query identifier.")
+        query = _clean(result.query_metadata, fields=QUERY_FIELDS)
+        identity = query.get("source_identity", {})
+        if any(
+            key in identity and identity[key] != expected
+            for key, expected in (
+                ("cluster_id", workload.cluster),
+                ("namespace", workload.namespace),
+                ("workload_uid", workload_uid),
+            )
+        ):
+            raise ValueError("Query metadata workload identity mismatch.")
+        if len(_canonical(query)) > 16384:
+            raise ValueError("Query metadata exceeds allocation.")
+    else:
+        query = None
+    payload = result.redacted_bounded_payload
+    if payload is not None and window is None and result.payload_kind in {"logs", "series"}:
+        raise ValueError("Live log and metric payloads require a captured request window.")
+    if (payload is None) != (result.coverage.status in {"unavailable", "not_applicable"}):
+        raise ValueError("Coverage and payload disagree.")
+    coverage = result.coverage.model_dump()
+    digest = None
+    size = 0
+    if payload is not None:
+        budget = {
+            "pods_seen": state["pods_seen"],
+            "containers_seen": state["containers_seen"],
+            "samples": state["samples"],
+            "series": 25,
+            "sample_gaps": False,
+        }
+        payload, truncated = _bounded(
+            payload, result.payload_kind, spec.byte_limit, budget, result.source_key
+        )
+        state["samples"] = budget["samples"]
+        if result.payload_kind == "series":
+            count = _count_samples(payload)
+            if budget["sample_gaps"] or count == 0:
+                coverage["reason_codes"] = sorted(set(coverage["reason_codes"] + ["no_samples"]))
+                coverage["status"] = "partial" if count else "unavailable"
+            if count == 0:
+                payload = None
+        if payload is not None:
+            data = _canonical(payload)
+            size = len(data)
+            digest = hashlib.sha256(data).hexdigest()
+        if truncated:
+            if coverage["status"] == "available":
+                coverage["status"] = "partial"
+            coverage["reason_codes"] = sorted(set(coverage["reason_codes"] + ["truncated"]))
+    values = dict(
+        workload_uid=workload_uid,
+        source_kind=spec.source_kind,
+        schema_version=2,
+        payload_kind=result.payload_kind,
+        payload_version=result.payload_version,
+        observed_at=result.source_times.observed_at,
+        collected_at=result.source_times.collected_at,
+        requested_window=window,
+        time_relation=result.source_times.time_relation,
+        coverage=coverage,
+        query_metadata=query,
+        sha256=digest,
+        redaction_policy_version="v1",
+        expires_at=result.source_times.collected_at + timedelta(days=30)
+        if payload is not None
+        else None,
+    )
+    envelope = _envelope(values, run_id, result.source_key, payload is not None)
+    return payload, values, envelope, size
+
+
+class _DigestSet:
+    """A bounded identity set persisted as digests; membership semantics match ``set``."""
+
+    def __init__(self, digests=()):
+        self.digests = set(digests)
+
+    @staticmethod
+    def _key(item) -> str:
+        return hashlib.sha256(
+            _canonical(list(item) if isinstance(item, tuple) else item)
+        ).hexdigest()
+
+    def __contains__(self, item) -> bool:
+        return self._key(item) in self.digests
+
+    def __len__(self) -> int:
+        return len(self.digests)
+
+    def add(self, item) -> None:
+        self.digests.add(self._key(item))
+
+
+def _locked_run(db: Session, run_id: UUID, workload_uid: str):
+    # Read the foreign key without a Run lock, then establish Incident -> Run order.
+    incident_id = db.scalar(
+        select(InvestigationRun.incident_id).where(InvestigationRun.id == run_id)
+    )
+    if incident_id is None:
+        raise ValueError("Unknown investigation.")
+    incident = db.scalar(select(Incident).where(Incident.id == incident_id).with_for_update())
+    run = db.scalar(select(InvestigationRun).where(InvestigationRun.id == run_id).with_for_update())
+    workload = db.get(Workload, incident.workload_id)
+    if not workload or workload.uid != workload_uid or len(workload_uid) > 100:
+        raise ValueError("Investigation workload identity mismatch.")
+    return incident, run, workload
+
+
+def store_source(
+    db: Session, run_id: UUID, workload_uid: str, result: SourceResult, carry: dict | None
+) -> dict | None:
+    """Publish one source checkpoint inside the caller's fenced transaction.
+
+    Pins and pack coverage are derived only by ``finalize_batch``. Cross-source budgets are
+    applied in commit order (catalog order) and carried between checkpoints as digests.
+    """
+    incident, run, workload = _locked_run(db, run_id, workload_uid)
+    if result.source_key not in SOURCES:
+        raise ValueError("Unknown catalog source.")
+    if run.state == "cancelled":
+        return carry
+    if run.state != "collecting":
+        raise ValueError("Only a collecting investigation accepts source checkpoints.")
+    carry = carry or {"pods_seen": [], "containers_seen": [], "samples": 20000, "content_bytes": 0}
+    state = {
+        "pods_seen": _DigestSet(carry["pods_seen"]),
+        "containers_seen": _DigestSet(carry["containers_seen"]),
+        "samples": carry["samples"],
+    }
+    payload, values, _, size = _source_values(
+        result, workload, workload_uid, _window(run), run_id, state
+    )
+    total = carry["content_bytes"] + size
+    if total > 7_864_320:
+        raise ValueError("Evidence batch exceeds content budget.")
+    old = db.scalar(
+        select(Evidence).where(
+            Evidence.run_id == run_id,
+            Evidence.source_key == result.source_key,
+            Evidence.catalog_version == CATALOG_VERSION,
+        )
+    )
+    if old:
+        if any(getattr(old, k) != v for k, v in values.items()):
+            raise ValueError("Conflicting immutable evidence publication.")
+    else:
+        db.add(
+            Evidence(
+                run_id=run_id,
+                source_key=result.source_key,
+                catalog_version=CATALOG_VERSION,
+                payload=payload,
+                **values,
             )
         )
-        db.add_all(
-            [EvidencePin(evidence_id=v.id, kind="latest", owner_id=incident.id) for v in useful]
+    return {
+        "pods_seen": sorted(state["pods_seen"].digests),
+        "containers_seen": sorted(state["containers_seen"].digests),
+        "samples": state["samples"],
+        "content_bytes": total,
+    }
+
+
+ENVELOPE_FIELDS = (
+    "workload_uid",
+    "source_kind",
+    "schema_version",
+    "payload_kind",
+    "payload_version",
+    "observed_at",
+    "collected_at",
+    "requested_window",
+    "time_relation",
+    "coverage",
+    "query_metadata",
+    "sha256",
+    "redaction_policy_version",
+    "expires_at",
+)
+
+
+def finalize_batch(
+    db: Session, run_id: UUID, workload_uid: str, unconfigured: list[SourceResult] = ()
+) -> list[Evidence]:
+    """Derive pack coverage and the latest useful pin once every source has an outcome.
+
+    ``unconfigured`` holds ``source_not_configured`` outcomes for slots without an installed
+    adapter; they made no external call and are published only here.
+    """
+    incident, run, _ = _locked_run(db, run_id, workload_uid)
+    if run.pack_coverage is not None:
+        raise ValueError("Collection was already finalized.")
+    present = set(
+        db.scalars(
+            select(Evidence.source_key).where(
+                Evidence.run_id == run_id, Evidence.catalog_version == CATALOG_VERSION
+            )
         )
+    )
+    for result in unconfigured:
+        if result.coverage.reason_codes != ["source_not_configured"]:
+            raise ValueError("Only unconfigured slots are published at finalization.")
+        if result.source_key not in present:
+            store_source(db, run_id, workload_uid, result, None)
+    db.flush()
+    rows = db.scalars(
+        select(Evidence)
+        .where(Evidence.run_id == run_id, Evidence.catalog_version == CATALOG_VERSION)
+        .order_by(Evidence.source_key)
+    ).all()
+    keys = [r.source_key for r in rows]
+    if len(keys) != len(set(keys)) or set(keys) != set(SOURCES):
+        raise ValueError("Collection must contain each catalog source exactly once.")
+    total = sum(
+        len(_canonical(payload))
+        for payload in db.scalars(
+            select(Evidence.payload).where(
+                Evidence.id.in_([r.id for r in rows]), Evidence.payload.is_not(None)
+            )
+        )
+    )
+    envelopes = [
+        _envelope(
+            {k: getattr(r, k) for k in ENVELOPE_FIELDS}, run_id, r.source_key, r.sha256 is not None
+        )
+        for r in rows
+    ]
+    packs = derive_pack_coverage({r.source_key: Coverage.model_validate(r.coverage) for r in rows})
+    envelope_bytes = len(_canonical({"evidence": envelopes, "pack_coverage": packs}))
+    if total > 7_864_320 or envelope_bytes > 512 * 1024 or total + envelope_bytes > 8 * 1024 * 1024:
+        raise ValueError("Evidence metadata exceeds the Run envelope budget.")
+    run.pack_coverage = packs
+    db.flush()
+    # Serialize with purge before deriving the useful pin set.
+    db.scalars(
+        select(Evidence.id)
+        .where(Evidence.id.in_([r.id for r in rows]))
+        .order_by(Evidence.id)
+        .with_for_update()
+    ).all()
+    useful = [
+        v
+        for v in evidence_views(db, rows)
+        if v.content_status == "available" and v.coverage.status in {"available", "partial"}
+    ]
+    if useful and incident.state != "resolved":
+        _replace_latest_pins(db, incident.id, useful)
     return rows
 
 

@@ -49,6 +49,29 @@ def clean_database(test_database):
     settings.cache_clear()
 
 
+@pytest.fixture(autouse=True)
+def dispatch_permit(tmp_path_factory):
+    """A fresh trusted normal-mode permit for every test; subprocess workers inherit it."""
+    from cloudops.entrypoints.dispatch import CLASSES
+    from cloudops.shared.dispatch_permit import bootstrap
+
+    root = tmp_path_factory.mktemp("dispatch")
+    bootstrap(
+        root,
+        CLASSES,
+        reason="Test fresh install",
+        evidence=["pytest fixture"],
+        actor={"uid": None, "channel": "test_fixture"},
+    )
+    previous = os.environ.get("JOB_DISPATCH_ROOT")
+    os.environ["JOB_DISPATCH_ROOT"] = str(root)
+    yield root
+    if previous is None:
+        os.environ.pop("JOB_DISPATCH_ROOT", None)
+    else:
+        os.environ["JOB_DISPATCH_ROOT"] = previous
+
+
 @pytest.fixture
 def db():
     with sessions()() as session:
