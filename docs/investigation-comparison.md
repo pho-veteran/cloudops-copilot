@@ -120,6 +120,14 @@ Keep API/worker/web versions and generated contracts synchronized. The #46 progr
 
 ## Task acceptance evidence
 
+| Deliverable | Implementation and verification |
+| --- | --- |
+| CitationRef validation and exact navigation | `citation_schemas.py`, `locators.py`, `comparison_service.py`, `CitationTarget.tsx`; scoped API/ambiguity tests and actual historical target navigation |
+| Deterministic Compare/v1 and identity rules | `comparison_schemas.py`, `comparison.py`, `comparison_api.py`, `RunComparison.tsx`; cross-incident/replacement, ordering/Swap/status/paging tests |
+| Immutable originals, coverage gaps and retention | Existing scoped readers/pin authority; metadata-only SQL assertion, actual purge-boundary test, before/after content and saved report hashes |
+| Independent operation before live producers | Declared stored contract fixtures through actual API/PostgreSQL/browser; source-specific current/saved handoff links; no duplicate collector or finding producer |
+| Role/session/accessible responsive consumer | Updated safe routes and permission inventory; late-focus and wrapped-hit-area corrections; Viewer/re-login, keyboard and viewport evidence |
+
 | #49 requirement | Evidence |
 | --- | --- |
 | AC1: exact pair, deterministic swap, persistent URL, unchanged stored originals after restart | PostgreSQL/API comparison cases; browser export; [before](evidence/comparison49/before-restart.json) / [after](evidence/comparison49/after-restart.json) actual API+PostgreSQL restart receipts |
@@ -136,5 +144,8 @@ Browser interactions used the Codex in-app browser because no Edge relay was con
 - [Historical saved reference](evidence/comparison49/saved-historical-390.png)
 - [Viewer comparison](evidence/comparison49/viewer-390.png)
 - [Actual browser download](evidence/comparison49/browser-export.json)
+- [Expired citation](evidence/comparison49/expired-citation.png)
+- [Failed/cancelled empty comparison](evidence/comparison49/failed-cancelled-empty.png)
+- [Owned lab cleanup and retained data](evidence/comparison49/cleanup.json)
 
-Full suite/CI results, exact source binding and cleanup are recorded with the final PR and acceptance receipt. This slice closes #49 only after its required checks pass; it does not close E04 or assert a live AI diagnosis.
+The [source-head Linux CI](https://github.com/pho-veteran/cloudops-copilot/actions/runs/42245597674) at `701a3c0` passed **938 backend cases with no skips**, **166 web cases**, build, Ruff, migration/contract checks and the standard-image Caddy HTTPS session smoke. The [validation receipt](evidence/comparison49/validation.json) separates that result from the earlier Windows regression and final focused checks. Current required checks on PR #53 bind the final documentation-only head; runtime file hashes remain recorded in [source binding](evidence/comparison49/source-binding.json). The owned lab is stopped with its exact fixture data retained as described in the cleanup receipt. This slice does not close E04 or assert a live AI diagnosis.

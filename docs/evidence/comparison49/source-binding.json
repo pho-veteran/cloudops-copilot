@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-11-06T15:40:44.823776+00:00",
+  "recorded_at": "2026-11-06T22:40:44.823776+07:00",
   "base_revision": "fdb9ffb614ae0e6311aca294b4dfcecd7f028313",
   "runtime_tree_sha256": "5ae5e13e72dc00e7fefc67e2f182c5d110350e3ecc03ad77a993b4702e35a5f3",
   "algorithm": "sha256 of sorted UTF-8 repository-relative path + NUL + file SHA-256 + newline; UTF-8 text uses LF normalization to match committed Git blobs",
@@ -182,6 +182,8 @@
     "failed-cancelled-empty.png": "555cc1b833076e47fb14676dd9bdc2a287d0a47182559a094c748ba1bd21e4c6",
     "final-source-api.json": "1c4f963ef1d93cc9c518c5a9ada34cc3185578acb4f46be36b5c13937c2968f9",
     "saved-historical-390.png": "f38009f7cf80a1e680e1aa5f77cd135fd901e0c9c2cddf899a653bc4e03579fe",
-    "viewer-390.png": "84bb1e6f901c58e952b3316f35a006e34b705920b77f14922085bc76fa54fe1a"
-  }
+    "viewer-390.png": "84bb1e6f901c58e952b3316f35a006e34b705920b77f14922085bc76fa54fe1a",
+    "cleanup.json": "76c27af5fbf340f4e035ad601f97aa71e69c6af276534fe30a7ec15620de2ce8"
+  },
+  "runtime_source_commit": "701a3c058919f9897e30ea65d1788788f12c93ba"
 }

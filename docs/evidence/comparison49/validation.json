@@ -34,8 +34,19 @@
     "contracts": "generation, no-credential drift check and deliberate drift rejection passed"
   },
   "known_test_warning": "Existing Starlette TestClient/httpx deprecation warning; no dependency change in this task.",
-  "linux_only_checks": "Local Windows regression skips native Linux actor/executor cases; required Linux CI remains the final gate.",
+  "linux_only_checks": "Native Linux actor/executor cases passed in the source-head Linux CI; no skipped cases were reported there.",
   "runtime_tree_sha256": "5ae5e13e72dc00e7fefc67e2f182c5d110350e3ecc03ad77a993b4702e35a5f3",
-  "ci": "pending publication",
-  "cleanup": "pending final handoff"
+  "ci": {
+    "source_commit": "701a3c058919f9897e30ea65d1788788f12c93ba",
+    "run_url": "https://github.com/pho-veteran/cloudops-copilot/actions/runs/42245597674",
+    "conclusion": "success",
+    "backend_passed": 938,
+    "backend_skipped": 0,
+    "web_passed": 166,
+    "web_test_files": 20,
+    "build_ruff_migrations_contracts": "passed",
+    "standard_image_build_and_real_https_session_smoke": "passed",
+    "final_documentation_head": "Consult current required checks on PR #53; this receipt binds the unchanged runtime source commit."
+  },
+  "cleanup": "Completed; see cleanup.json for stopped services and retained fixture data"
 }
