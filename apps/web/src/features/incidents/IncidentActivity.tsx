@@ -7,6 +7,7 @@ import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { HandoffReferences } from "@/features/investigations/HandoffReferences";
 
 type HandoffContent = components["schemas"]["HandoffPreview"];
 type ClipboardFeedback =
@@ -121,6 +122,7 @@ export function IncidentActivity({
               <Button variant="outline" onClick={() => download(preview.data!.markdown, `incident-${id}${selectedResolution ? `-${selectedResolution}` : ""}.md`, "text/markdown")}>Download handoff</Button>
             </div>
             <pre role="region" aria-label="Handoff Markdown content" tabIndex={0} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", minWidth: 0, maxHeight: "28rem", overflow: "auto", fontFamily: "inherit", fontSize: "1rem", lineHeight: 1.6 }}>{preview.data.markdown}</pre>
+            <HandoffReferences incidentId={id} resolutionId={selectedResolution} snapshot={preview.data.snapshot} />
             {clipboardMatchesPreview && clipboard?.status === "copied" && <p role="status">Handoff copied.</p>}
             {clipboardMatchesPreview && clipboard?.status === "failed" && <Failure error={clipboard.error} />}
           </>

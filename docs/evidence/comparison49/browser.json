@@ -1,0 +1,39 @@
+{
+  "proof_class": "Actual browser interactions with loopback API/PostgreSQL; source-shaped payloads and lifecycle/expiry examples are explicitly DB-seeded contract fixtures.",
+  "browser": "Codex in-app browser; native Edge was open but no Edge relay was connected",
+  "origin": "http://localhost:5149",
+  "api": "http://127.0.0.1:8049",
+  "incident_id": "ce43d389-0549-4e6a-8006-9ce7baa87ad2",
+  "left_run": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+  "right_run": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+  "saved_resolution_id": "674c1471-167b-4afd-b3ab-5313fadf04fc",
+  "observed_journeys": [
+    "Operator signed in and compared exact persisted Run IDs with a selected source and differences-only filter",
+    "State differences displayed replicas 1 to 2, revision 1 to 2 and restart_count 0 to 1",
+    "Right citation opened evidence 429879f4-be56-4fcf-9b53-508f9b589ab9, deployment/replicas=2, retaining comparison context",
+    "Return-to-comparison restored the selected pair/source/filter; Swap reversed values without changing original records",
+    "Actual comparison JSON download was read and verified against selected Run IDs and loaded semantic rows",
+    "Operator resolved the owned fixture incident and selected its saved resolution",
+    "Saved structured reference opened historical left evidence b784bf5b-94b2-48db-9f17-cd58712b6fe4 while preserving resolution ID",
+    "Viewer sign-in retained the exact historical URL; new-incident and note mutation controls were absent",
+    "Trusted CLI revoked Viewer sessions; browser reload showed sign-in and re-login restored pair/source/filter without replay",
+    "Final Difference status=changed selection survived reload and returned the declared status rows",
+    "Missing right Run showed an explicit not-found error; correcting its ID recovered the comparison",
+    "Expired source retained metadata/hash and displayed explicit expiry for target/content rather than a fake empty value",
+    "DB-seeded failed/cancelled Runs displayed their independent states and no alignable stored sources"
+  ],
+  "responsive_checks": [
+    {"viewport_width": 320, "viewport_height": 740, "document_scroll_width": 305, "themes": ["light", "dark"], "focus": "Exact citation target"},
+    {"viewport_width": 390, "viewport_height": 844, "document_scroll_width": 375, "themes": ["light"], "focus": "kubernetes.state differences"},
+    {"viewport_width": 1280, "viewport_height": 900, "document_scroll_width": 1265, "themes": ["light"], "focus": "kubernetes.state differences"}
+  ],
+  "corrections_verified": [
+    {"problem": "Late comparison response could steal citation focus after reload", "correction": "Comparison focuses only when no evidence target is selected", "evidence": "Component regression plus actual 320px reload retained Exact citation target focus"},
+    {"problem": "Wrapped inline reference bounding box included whitespace outside the clickable text", "correction": "Citation/reference links use a block hit area", "evidence": "DOM hit testing identified the gap; actual mouse click then opened the exact historical Run/evidence/resolution URL"}
+  ],
+  "keyboard": "Keyboard activation opened the historical reference; Tab from the focused exact target reached deployment/replicas",
+  "expiry_fixture": {"incident_id": "c825aa52-753c-48f3-b517-874c717c382a", "run_id": "600f915d-391e-4549-8571-236139308da7", "evidence_id": "de7f7c25-bdf3-47a7-8f09-6fa4d35f3f97"},
+  "empty_pair_fixture": {"failed_run": "cd8b0e4c-301c-4669-aaa8-f9e33b367151", "cancelled_run": "3cd84b0d-c5ef-4301-beb4-a499024939aa"},
+  "cleanup": {"task_browser_tabs_closed": true, "viewport_override_reset": true, "theme_restored": "light", "browser_permissions_or_trust_changed": false},
+  "exclusions": ["No live Kubernetes or Prometheus investigation collection", "No AI findings/model calls", "No AWS deployment", "No claim of production HTTPS browser acceptance; HTTPS checks have their own CI scope"]
+}

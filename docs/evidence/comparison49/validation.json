@@ -1,0 +1,41 @@
+{
+  "proof_classes": {
+    "unit": "Stored-shaped contract fixtures, no live provider",
+    "api": "Actual FastAPI/PostgreSQL endpoints and retention/concurrency transactions",
+    "browser": "Actual in-app browser over loopback HTTP with declared persisted contract fixtures",
+    "restart": "Actual owned API and PostgreSQL restart; same ten payload hashes and saved report bytes",
+    "benchmark": "Mechanical ceiling with tracing; no service SLO"
+  },
+  "local_checks": {
+    "windows_regression": {
+      "passed": 924,
+      "skipped": 9,
+      "seconds": 769.27,
+      "note": "Regression pass during implementation; final additions/fixes are covered by focused checks and exact-head CI."
+    },
+    "final_focused_backend": {
+      "passed": 39,
+      "files": [
+        "tests/test_run_comparison.py",
+        "tests_unit/test_citation_projection.py",
+        "tests_unit/test_semantic_comparison.py"
+      ]
+    },
+    "new_operation_permission_checks": {
+      "passed": 12,
+      "deselected": 212
+    },
+    "web": {
+      "passed": 166,
+      "files": 20,
+      "build": "passed"
+    },
+    "ruff": "check and format passed for backend/scripts/krr",
+    "contracts": "generation, no-credential drift check and deliberate drift rejection passed"
+  },
+  "known_test_warning": "Existing Starlette TestClient/httpx deprecation warning; no dependency change in this task.",
+  "linux_only_checks": "Local Windows regression skips native Linux actor/executor cases; required Linux CI remains the final gate.",
+  "runtime_tree_sha256": "5ae5e13e72dc00e7fefc67e2f182c5d110350e3ecc03ad77a993b4702e35a5f3",
+  "ci": "pending publication",
+  "cleanup": "pending final handoff"
+}

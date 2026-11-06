@@ -44,6 +44,7 @@ def create_app():
     from cloudops.features.health.api import router as health
     from cloudops.features.incidents.api import router as incidents
     from cloudops.features.investigations.api import router as investigations
+    from cloudops.features.investigations.comparison_api import router as comparison
     from cloudops.features.workloads.api import router as workloads
     from cloudops.features.workloads.baselines import router as baselines
     from cloudops.features.incidents.lifecycle import router as lifecycle
@@ -60,6 +61,7 @@ def create_app():
         workloads,
         incidents,
         investigations,
+        comparison,
         baselines,
         lifecycle,
         intake,
