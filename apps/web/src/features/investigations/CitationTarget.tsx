@@ -83,7 +83,9 @@ export function CitationTarget({
             selection.leftIncident || incidentId,
             selection.leftRun || runId,
             incidentReturnHash(window.location.hash),
-            route.resolution,
+            !selection.leftIncident || selection.leftIncident === incidentId
+              ? route.resolution
+              : "",
             "",
             { ...selection, locatorKind: undefined, locatorKey: undefined },
           )}

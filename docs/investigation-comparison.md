@@ -58,15 +58,15 @@ Omitting the locator resolves the source metadata, including an expiry tombstone
 
 - State fields use semantic object paths, Pod UID, container context and condition type. Anonymous retained objects use a content identity rather than an invented historical identity.
 - Events use event UID when captured, otherwise a canonical retained-content identity.
-- Logs use Pod UID, container, current/previous context, captured timestamp and the retained segment digest. A segment is not a claimed raw log line number.
-- Series use canonical retained series context/labels/units. Samples add a normalized timestamp; neither interpolation nor gap filling occurs.
+- Logs use Pod UID, container, current/previous context, captured timestamp and the retained segment digest. Named nested container wrappers carry their Pod/container identity and captured segment context into their log children; absent Pod UID never becomes an invented target. A segment is not a claimed raw log line number.
+- Series use canonical retained series context/labels/units. Samples add a normalized timestamp; neither interpolation nor gap filling occurs. Finite numeric sample values compare by numeric meaning (for example, `1`, `1.0` and `"1.0"`), including duplicate-identity ambiguity checks, while previews and retained source bytes keep their original representations. Ordinary state/fixture strings are not coerced.
 - Identical duplicate identities are grouped with occurrence counts. Conflicting duplicates are marked ambiguous, not arbitrarily selected. Comparison links those rows to the original source rather than pretending an exact conflicting target resolves.
 
 Source order is source key then catalog version. Semantic rows sort by kind and semantic identity. Field previews are bounded and retain links to originals. Added/removed means observed membership in the retained snapshots; partial coverage cannot establish absence. Partial gaps use unavailable states instead of zero or a removal claim.
 
 Numeric sample comparison requires the same workload UUID and UID, supported payload version, compatible captured windows/query metadata, known query/version/units/step/source identity and complete coverage. Missing units/provenance, conflicting sample identities or incompatible context remain not comparable. Windows remain visible even when values cannot be aligned. An inconsistent embedded Deployment UID also prevents value comparison. Correlation is never presented as causality.
 
-Unknown historical versions retain metadata and original content when available. Known legacy fixture payloads can be inspected through their own declared version; a legacy catalog is not aligned with a standard catalog merely because a source key matches.
+Unknown historical versions retain metadata and original content when available. Known legacy fixture payloads can be inspected through their own declared version; a legacy catalog is not aligned with a standard catalog merely because a source key matches. Comparison labels legacy source coverage **Not captured (legacy)** independently of whether its retained content is available or expired.
 
 ## Persistence, bounds and concurrency
 
@@ -80,7 +80,7 @@ The finite [mechanical benchmark](evidence/comparison49/bounds.json) uses 25 ser
 
 Cursors are untrusted paging hints bound to exact IDs, source/catalog, filter, projection version and stored context signature. Authorization is repeated on every request. A source-set, pin or availability change can invalidate a cursor. An in-progress Run is a committed snapshot at read time, not a finished immutable collection.
 
-Protected comparison/query data is cleared by the existing session boundary. It is not persisted to localStorage. URLs retain validated IDs, source/filter and opaque locator keys through reload and re-login. Duplicate or incomplete parameters are rejected by the safe route parser.
+Protected comparison/query data is cleared by the existing session boundary. It is not persisted to localStorage. URLs retain validated IDs, source/filter and opaque locator keys through reload and re-login. Citation locators stay scoped to the selected evidence: changing a comparison source or filter clears the locator, and selecting another evidence source retains the comparison return context without reusing the previous target. Duplicate or incomplete parameters are rejected by the safe route parser.
 
 ## Current and saved handoffs
 
@@ -135,7 +135,7 @@ Keep API/worker/web versions and generated contracts synchronized. The #46 progr
 | AC3: current/saved historical references, frozen report and pin policy | API regression checks for unchanged saved bytes/pins; actual historical browser reference; saved report SHA-256 preserved through restart |
 | AC4: read-only Viewer, session, keyboard/focus, responsive themes | Browser screenshots below; actual Viewer session revoke/re-login preserving the comparison; component/navigation/session tests |
 
-Browser interactions used the Codex in-app browser because no Edge relay was connected, although a native Edge window was open. No user browser permissions or certificate trust were changed. Mobile testing exposed whitespace inside the bounding box of a wrapped inline citation link; reference links now use a block hit area so the entire wrapped label is clickable. Keyboard activation also opens the exact declared historical reference. These are loopback HTTP UI checks; existing HTTPS/cookie CI checks retain their separate scope.
+The original captures below used an isolated browser because no Edge relay was connected at that time, although a native Edge window was open. Subsequent acceptance used the running Edge (Edg/156) for pair/source/filter navigation, keyboard targets, historical selections, session recovery and responsive themes. The additional legacy, nested-log and numeric-equivalence captures used an isolated managed context after relay capture/download-target failures; they show declared persisted fixtures, not live telemetry. No user browser permissions or certificate trust were changed. Reference links use a block hit area so the entire wrapped label is clickable. These are loopback HTTP UI checks; HTTPS/cookie CI checks retain their separate scope.
 
 - [Desktop comparison](evidence/comparison49/compare-desktop.png)
 - [390px swapped comparison](evidence/comparison49/compare-390-light.png)
@@ -147,5 +147,8 @@ Browser interactions used the Codex in-app browser because no Edge relay was con
 - [Expired citation](evidence/comparison49/expired-citation.png)
 - [Failed/cancelled empty comparison](evidence/comparison49/failed-cancelled-empty.png)
 - [Owned lab cleanup and retained data](evidence/comparison49/cleanup.json)
+- [Legacy coverage independent of content availability](evidence/comparison49/legacy-comparison-390.png)
+- [Nested named-container log citation](evidence/comparison49/nested-log-citation-390.png)
+- [Equivalent numeric encodings with retained occurrences](evidence/comparison49/numeric-equivalence-390.png)
 
-The [source-head Linux CI](https://github.com/pho-veteran/cloudops-copilot/actions/runs/42245597674) at `701a3c0` passed **938 backend cases with no skips**, **166 web cases**, build, Ruff, migration/contract checks and the standard-image Caddy HTTPS session smoke. The [validation receipt](evidence/comparison49/validation.json) separates that result from the earlier Windows regression and final focused checks. Current required checks on PR #53 bind the final documentation-only head; runtime file hashes remain recorded in [source binding](evidence/comparison49/source-binding.json). The owned lab is stopped with its exact fixture data retained as described in the cleanup receipt. This slice does not close E04 or assert a live AI diagnosis.
+The original [source-head Linux CI](https://github.com/pho-veteran/cloudops-copilot/actions/runs/42245597674) at `701a3c0` passed **938 backend cases with no skips**, **166 web cases**, build, Ruff, migration/contract checks and the standard-image Caddy HTTPS session smoke. The [validation receipt](evidence/comparison49/validation.json), [source binding](evidence/comparison49/source-binding.json) and [cleanup receipt](evidence/comparison49/cleanup.json) describe that historical candidate and lab, not later source changes or a currently running lab. Current PR checks bind the final integrated source separately. This slice does not close E04 or assert a live AI diagnosis.

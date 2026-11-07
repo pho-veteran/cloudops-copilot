@@ -41,6 +41,24 @@ def timestamp(value) -> str | None:
             return None
 
 
+def sample_number(value) -> Decimal | None:
+    """Compare numeric sample meaning without changing the retained representation."""
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        return None
+    try:
+        number = Decimal(str(value))
+        return number if number.is_finite() else None
+    except InvalidOperation:
+        return None
+
+
+def equivalent(kind, before, after) -> bool:
+    if kind == "sample":
+        left, right = sample_number(before), sample_number(after)
+        return left is not None and right is not None and left == right
+    return canonical(before) == canonical(after)
+
+
 @dataclass(frozen=True)
 class Entry:
     kind: str
@@ -91,7 +109,7 @@ def project(kind: str, version: int, payload: dict) -> list[Entry]:
                 min(before.label, label),
                 min((before.value, value), key=canonical),
                 before.multiplicity + 1,
-                before.ambiguous or canonical(before.value) != canonical(value),
+                before.ambiguous or not equivalent(target_kind, before.value, value),
             )
         else:
             entries[key] = Entry(target_kind, identity, label, value)
@@ -127,10 +145,14 @@ def project(kind: str, version: int, payload: dict) -> list[Entry]:
         else:
             emit("field", path, "/".join(path), value)
 
-    def logs(value, pod=None, container=None):
+    def logs(value, pod=None, container=None, previous=None, observed_at=None, key=""):
         if isinstance(value, dict):
-            pod = value.get("pod_uid", value.get("uid", pod))
-            container = value.get("container", container)
+            pod = value.get("pod_uid", value.get("uid", pod) if key == "pods" else pod)
+            container = value.get(
+                "container", value.get("name", container) if key == "containers" else container
+            )
+            previous = value.get("previous", previous)
+            observed_at = value.get("timestamp", observed_at)
             if "lines" in value or "text" in value:
                 if not pod or not container:
                     return
@@ -141,20 +163,19 @@ def project(kind: str, version: int, payload: dict) -> list[Entry]:
                     [
                         pod,
                         container,
-                        value.get("previous"),
-                        timestamp(value.get("timestamp")),
+                        previous,
+                        timestamp(observed_at),
                         digest(value),
                     ],
                     f"{pod}/{container} · retained log segment",
                     value,
                 )
                 return
-            for key in sorted(value):
-                child_container = value.get("name", container) if key == "logs" else container
-                logs(value[key], pod, child_container)
+            for child_key in sorted(value):
+                logs(value[child_key], pod, container, previous, observed_at, child_key)
         elif isinstance(value, list):
             for child in value:
-                logs(child, pod, container)
+                logs(child, pod, container, previous, observed_at, key)
 
     if kind in {"state", "fixture"}:
         fields(payload, [])

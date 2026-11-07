@@ -117,6 +117,67 @@ it("loads exact pair IDs outside history pagination and swaps them without creat
   ).toBe(true);
 });
 
+it("does not carry a saved resolution into the other incident when swapping", async () => {
+  const otherIncident = "00000000-0000-4000-8000-000000000050";
+  const resolution = "00000000-0000-4000-8000-000000000060";
+  window.location.hash = buildIncidentHash(incident, left, "#/queue", resolution, "", {
+    leftIncident: incident,
+    leftRun: left,
+    rightIncident: otherIncident,
+    rightRun: right,
+    source: "kubernetes.state",
+    catalog: "standard_v1",
+    changedOnly: true,
+  });
+  http.fetch.mockResolvedValue(Response.json({
+    ...result,
+    right: { ...result.right, incident_id: otherIncident },
+  }));
+  mount(<RunComparison incidentId={incident} runId={left} />);
+  await screen.findByRole("heading", { name: "Left Run" });
+  fireEvent.click(screen.getByRole("button", { name: "Swap left and right" }));
+  const route = safeRoute(window.location.hash);
+  expect(route.page).toBe("incidents");
+  expect(route.id).toBe(otherIncident);
+  expect(route.resolution).toBe("");
+  expect(route.selection).toMatchObject({
+    leftIncident: otherIncident,
+    leftRun: right,
+    rightIncident: incident,
+    rightRun: left,
+    source: "kubernetes.state",
+    changedOnly: true,
+  });
+});
+
+it.each(["available", "expired"])("labels legacy coverage separately from %s content", async (contentStatus) => {
+  window.location.hash = buildIncidentHash(incident, left, "#/queue", "", "", {
+    rightIncident: incident,
+    rightRun: right,
+  });
+  const legacy = {
+    id: evidence,
+    run_id: left,
+    schema_version: 1,
+    coverage: { status: "unavailable", reason_codes: ["not_captured"] },
+    content_status: contentStatus,
+  };
+  http.fetch.mockResolvedValue(Response.json({
+    ...result,
+    sources: [{
+      source_key: "development_fixture",
+      catalog_version: "legacy_v1",
+      status: "unavailable",
+      left: legacy,
+      right: { ...legacy, run_id: right },
+    }],
+  }));
+  mount(<RunComparison incidentId={incident} runId={left} />);
+  expect(await screen.findByText(
+    `Left: Not captured (legacy) · ${contentStatus} · Right: Not captured (legacy) · ${contentStatus}`,
+  )).toBeTruthy();
+});
+
 it("shows a replacement identity without inventing aligned observations", async () => {
   window.location.hash = buildIncidentHash(incident, left, "#/queue", "", "", {
     rightIncident: incident,

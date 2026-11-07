@@ -161,6 +161,7 @@ export function buildIncidentHash(id: string, run = "", returnTo = "#/queue", re
   if (evidence && run) query.set("evidence", evidence);
   if (resolution) query.set("resolution", resolution);
   for (const [field, key] of Object.entries(extraParams)) {
+    if ((field === "locatorKind" || field === "locatorKey") && (!run || !evidence)) continue;
     const value = selection[field as keyof typeof extraParams];
     if (value) query.set(key, value);
   }

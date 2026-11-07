@@ -212,6 +212,108 @@ def test_changed_fields_and_swap_preserve_stable_refs(client, pair):
     assert forward[0]["key"] == backward[0]["key"]
 
 
+def test_nested_named_container_logs_resolve_exact_stored_segments(client, pair):
+    from cloudops.features.investigations.storage import _bounded
+
+    payload, truncated = _bounded(
+        {
+            "pods": [
+                {
+                    "uid": "pod-a",
+                    "containers": [
+                        {"uid": "container-runtime-id", "name": "app", "text": "stored"}
+                    ],
+                }
+            ]
+        },
+        "logs",
+        2 * 1024 * 1024,
+        {"samples": 20000, "series": 25, "pods_seen": set(), "containers_seen": set()},
+        "kubernetes.logs.current",
+    )
+    assert not truncated
+    original_digest = digest(payload)
+    with sessions()() as db, db.begin():
+        row = db.scalar(
+            select(Evidence).where(
+                Evidence.run_id == UUID(pair[0]["run_id"]),
+                Evidence.source_key == "kubernetes.logs.current",
+            )
+        )
+        row.payload = payload
+        row.sha256 = original_digest
+        row.coverage = {"status": "available", "reason_codes": []}
+        evidence_id = str(row.id)
+    base = endpoint(pair[0]) + f"/evidence/{evidence_id}"
+    targets = client.get(base + "/citation-targets")
+    assert targets.status_code == 200, targets.text
+    target = targets.json()["items"][0]
+    assert target["label"] == "pod-a/app · retained log segment"
+    resolved = client.get(
+        base + "/citation",
+        params={"locator_kind": target["locator"]["kind"], "locator_key": target["locator"]["key"]},
+    )
+    assert resolved.status_code == 200, resolved.text
+    assert resolved.json()["target"]["value"] == {
+        "uid": "container-runtime-id",
+        "name": "app",
+        "text": "stored",
+    }
+    assert resolved.json()["evidence"]["sha256"] == original_digest
+    assert client.get(base + "/content").json()["payload"] == payload
+
+
+@pytest.mark.parametrize("duplicates", [False, True])
+def test_equivalent_numeric_encodings_resolve_and_compare_without_rewriting(
+    client, pair, duplicates
+):
+    originals = []
+    common_window = None
+    for ids, value in zip(pair, (1, "1.0"), strict=True):
+        with sessions()() as db, db.begin():
+            row = db.scalar(
+                select(Evidence).where(
+                    Evidence.run_id == UUID(ids["run_id"]),
+                    Evidence.source_key == "prometheus.request_rate",
+                )
+            )
+            samples = [[1, value], ["1.0", 1.0]] if duplicates else [[1, value]]
+            row.payload = {"series": [{"unit": "rps", "samples": samples}]}
+            row.sha256 = digest(row.payload)
+            row.coverage = {"status": "available", "reason_codes": []}
+            row.query_metadata = {
+                "query_id": "request_rate",
+                "query_version": "fixture_v1",
+                "unit": "rps",
+                "step": 30,
+                "source_identity": "persisted-fixture",
+            }
+            common_window = common_window or row.requested_window
+            row.requested_window = common_window
+            originals.append((str(row.id), row.sha256, row.payload))
+    response = compare(
+        client, pair, source_key="prometheus.request_rate", catalog_version="standard_v1"
+    )
+    assert response.status_code == 200, response.text
+    samples = [row for row in response.json()["items"] if row["kind"] == "sample"]
+    assert len(samples) == 1 and samples[0]["status"] == "unchanged"
+    for ids, (evidence_id, original_hash, original_payload) in zip(pair, originals, strict=True):
+        base = endpoint(ids) + f"/evidence/{evidence_id}"
+        targets = client.get(base + "/citation-targets").json()["items"]
+        target = next(item for item in targets if item["locator"]["kind"] == "sample")
+        assert not target["ambiguous"] and target["multiplicity"] == (2 if duplicates else 1)
+        resolved = client.get(
+            base + "/citation",
+            params={
+                "locator_kind": "sample",
+                "locator_key": target["locator"]["key"],
+            },
+        )
+        assert resolved.status_code == 200, resolved.text
+        assert resolved.json()["evidence"]["sha256"] == original_hash
+        assert client.get(base + "/content").json()["payload"] == original_payload
+
+
 @pytest.mark.parametrize("state", ["queued", "collecting", "failed", "cancelled"])
 def test_non_successful_runs_remain_explicit_without_hiding_the_left_history(client, pair, state):
     with sessions()() as db, db.begin():

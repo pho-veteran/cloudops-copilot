@@ -37,6 +37,29 @@ it("preserves both comparison identities, filter and locator through canonical r
   expect(window.location.hash).toBe(hash);
 });
 
+it("drops citation-only locators when navigating back to comparison sources", () => {
+  const hash = buildIncidentHash(incident, left, "#/queue", "", "", {
+    leftIncident: incident,
+    leftRun: left,
+    rightIncident: incident,
+    rightRun: right,
+    source: "kubernetes.events",
+    catalog: "standard_v1",
+    changedOnly: true,
+    locatorKind: "field",
+    locatorKey: key,
+  });
+  const route = safeRoute(hash);
+  expect(route.page).toBe("incidents");
+  expect(route.selection).toMatchObject({
+    rightRun: right,
+    source: "kubernetes.events",
+    changedOnly: true,
+  });
+  expect(route.selection?.locatorKey).toBeUndefined();
+  expect(route.selection?.locatorKind).toBeUndefined();
+});
+
 it.each([
   `compare_run=${right}`,
   `compare_run=${right}&compare_incident=${incident}&compare_run=${left}`,

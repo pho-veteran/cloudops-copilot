@@ -2,7 +2,7 @@
 
 from cloudops.features.investigations.citation_schemas import CitationRef, Locator
 from cloudops.features.investigations.comparison_schemas import SemanticDifference
-from cloudops.features.investigations.locators import canonical, project
+from cloudops.features.investigations.locators import equivalent, project, sample_number
 
 
 def differences(left_meta, right_meta, left_payload, right_payload):
@@ -70,13 +70,17 @@ def differences(left_meta, right_meta, left_payload, right_payload):
             status, reason = "not_comparable", "payload_identity_changed"
         elif (before and before.ambiguous) or (after and after.ambiguous):
             status, reason = "not_comparable", "ambiguous_identity"
-        elif entry.kind == "sample" and not series_compatible:
+        elif entry.kind == "sample" and (
+            not series_compatible
+            or (before is not None and sample_number(before.value) is None)
+            or (after is not None and sample_number(after.value) is None)
+        ):
             status, reason = "not_comparable", "incompatible_numeric_context"
         elif not before or not after:
             status = ("added" if after else "removed") if complete else "unavailable"
             reason = "retained_observations_only" if not complete else None
         elif (
-            canonical(before.value) == canonical(after.value)
+            equivalent(entry.kind, before.value, after.value)
             and before.multiplicity == after.multiplicity
         ):
             status = "unchanged"

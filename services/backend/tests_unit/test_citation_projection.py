@@ -55,6 +55,46 @@ def test_log_targets_are_scoped_by_uid_container_previous_and_content():
     assert views("logs", {"logs": [{"container": "app", "text": "No Pod UID"}]}) == []
 
 
+def test_nested_log_containers_keep_uid_name_and_inherited_segment_context():
+    payload = {
+        "pods": [
+            {
+                "uid": "pod-a",
+                "containers": [
+                    {"uid": "container-runtime-id", "name": "app", "text": "stored"},
+                    {"name": "sidecar", "logs": [{"lines": ["stored"]}]},
+                ],
+            }
+        ]
+    }
+    original = deepcopy(payload)
+    entries = project("logs", 1, payload)
+    assert len(entries) == 2
+    assert {entry.label for entry in entries} == {
+        "pod-a/app · retained log segment",
+        "pod-a/sidecar · retained log segment",
+    }
+    assert payload == original
+    assert views("logs", {"containers": [{"name": "app", "text": "unscoped"}]}) == []
+    assert (
+        views(
+            "logs",
+            {"containers": [{"uid": "container-runtime-id", "name": "app", "text": "unscoped"}]},
+        )
+        == []
+    )
+    assert (
+        views("logs", {"logs": [{"uid": "not-proven-pod", "container": "app", "text": "unscoped"}]})
+        == []
+    )
+    current = {
+        "pods": [{"uid": "pod-a", "containers": [{"name": "app", "logs": [{"text": "same"}]}]}]
+    }
+    previous = deepcopy(current)
+    previous["pods"][0]["containers"][0]["previous"] = True
+    assert project("logs", 1, current)[0].key != project("logs", 1, previous)[0].key
+
+
 def test_series_sample_targets_normalize_times_and_detect_conflicting_duplicates():
     entries = project(
         "series",
@@ -74,6 +114,19 @@ def test_series_sample_targets_normalize_times_and_detect_conflicting_duplicates
     assert sum(entry.ambiguous for entry in samples) == 1
     assert timestamp("2026-11-06T00:00:00Z") == timestamp("2026-11-06T07:00:00+07:00")
     assert timestamp(True) is None and timestamp("NaN") is None
+
+
+def test_equivalent_numeric_duplicate_samples_are_not_ambiguous_or_rewritten():
+    payload = {"series": [{"unit": "bytes", "samples": [[1, 1], ["1.0", 1.0], [1, "1.0"]]}]}
+    original = deepcopy(payload)
+    entries = [entry for entry in project("series", 1, payload) if entry.kind == "sample"]
+    assert len(entries) == 1
+    assert entries[0].multiplicity == 3 and not entries[0].ambiguous
+    assert entries[0].value in (1, 1.0, "1.0")
+    reversed_payload = deepcopy(payload)
+    reversed_payload["series"][0]["samples"].reverse()
+    assert views("series", payload) == views("series", reversed_payload)
+    assert payload == original
 
 
 def test_previews_bound_utf8_without_mutating_retained_content():

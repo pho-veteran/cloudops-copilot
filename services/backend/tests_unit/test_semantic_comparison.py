@@ -127,3 +127,33 @@ def test_inconsistent_embedded_deployment_uid_does_not_compare_replicas():
     right = {"deployment": {"uid": "b", "replicas": 2}}
     rows = list(differences(meta(), meta(), left, right))
     assert rows and {row.reason for row in rows} == {"payload_identity_changed"}
+
+
+@pytest.mark.parametrize("encoded", [1.0, "1.0", "1e0"])
+def test_equal_numeric_samples_keep_raw_values_without_a_false_difference(encoded):
+    left = {"series": [{"unit": "bytes", "samples": [[1, 1]]}]}
+    right = {"series": [{"unit": "bytes", "samples": [[1, encoded]]}]}
+    rows = [
+        row
+        for row in differences(meta("series"), meta("series"), left, right)
+        if row.kind == "sample"
+    ]
+    assert len(rows) == 1 and rows[0].status == "unchanged"
+    assert rows[0].left == 1
+    assert type(rows[0].right) is type(encoded) and rows[0].right == encoded
+
+
+@pytest.mark.parametrize("value", ["NaN", "Infinity", "-Infinity", None, True])
+def test_invalid_numeric_samples_are_never_comparable(value):
+    payload = {"series": [{"unit": "bytes", "samples": [[1, value]]}]}
+    rows = [
+        row
+        for row in differences(meta("series"), meta("series"), payload, payload)
+        if row.kind == "sample"
+    ]
+    assert len(rows) == 1 and rows[0].status == "not_comparable"
+
+
+def test_numeric_coercion_does_not_change_state_field_semantics():
+    rows = list(differences(meta(), meta(), {"replicas": 1}, {"replicas": "1.0"}))
+    assert len(rows) == 1 and rows[0].status == "changed"

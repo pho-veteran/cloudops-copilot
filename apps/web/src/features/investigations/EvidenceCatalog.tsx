@@ -9,7 +9,7 @@ import { CitationTarget } from "./CitationTarget";
 type Run = components["schemas"]["RunView"];
 type Evidence = components["schemas"]["EvidenceView"];
 
-function coverageLabel(evidence: Evidence) {
+export function coverageLabel(evidence: Evidence) {
   return evidence.schema_version === 1
     ? "Not captured (legacy)"
     : evidence.coverage.status;
@@ -234,6 +234,7 @@ export function EvidenceCatalog({
                   returnTo,
                   selectedResolution,
                   e.id,
+                  { ...safeRoute(window.location.hash).selection, locatorKind: undefined, locatorKey: undefined },
                 )}
               >
                 {e.source_key}

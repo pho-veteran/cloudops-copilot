@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { download } from "@/lib/download";
 import type { components } from "@/lib/api/generated/schema";
+import { coverageLabel } from "./EvidenceCatalog";
 
 type Side = components["schemas"]["ComparisonSide"];
 type Citation = components["schemas"]["CitationRef"];
@@ -115,7 +116,7 @@ export function RunComparison({
       targetIncident,
       targetRun,
       incidentReturnHash(window.location.hash),
-      route.resolution,
+      targetIncident === incidentId ? route.resolution : "",
       evidence,
       selection,
     );
@@ -265,7 +266,7 @@ export function RunComparison({
                 leftIncident,
                 leftRun,
                 incidentReturnHash(window.location.hash),
-                route.resolution,
+                leftIncident === incidentId ? route.resolution : "",
               )}
             >
               Return to Run evidence
@@ -325,7 +326,7 @@ export function RunComparison({
                     leftIncident,
                     leftRun,
                     incidentReturnHash(window.location.hash),
-                    route.resolution,
+                    leftIncident === incidentId ? route.resolution : "",
                     "",
                     {
                       ...selected,
@@ -344,11 +345,11 @@ export function RunComparison({
                 <p>
                   Left:{" "}
                   {source.left
-                    ? `${source.left.coverage.status} · ${source.left.content_status}`
+                    ? `${coverageLabel(source.left)} · ${source.left.content_status}`
                     : "Not recorded"}{" "}
                   · Right:{" "}
                   {source.right
-                    ? `${source.right.coverage.status} · ${source.right.content_status}`
+                    ? `${coverageLabel(source.right)} · ${source.right.content_status}`
                     : "Not recorded"}
                 </p>
                 <details>
