@@ -19,6 +19,7 @@ from test_incident_requests import (
 from test_consumers import decide
 from test_permissions import permission_context as _permission_context
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.entrypoints.worker import HANDLERS
 from cloudops.features.incidents import lifecycle
 from cloudops.features.incidents.models import Incident
@@ -78,7 +79,7 @@ def test_resolve_and_claim_with_a_proposed_plan_do_not_deadlock(client, monkeypa
     monkeypatch.setattr(recovery, "invalidate", pause_claim_before_plans)
     monkeypatch.setattr(lifecycle, "cancel_pending", observe_resolve_run_boundary)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        claiming = pool.submit(claim_next, HANDLERS)
+        claiming = pool.submit(claim_next, HANDLERS, GATE)
         assert claim_holds_run.wait(10), "claim never acquired its Run"
         resolving = pool.submit(
             client.post,
@@ -238,9 +239,9 @@ def test_shared_execution_fixtures_reach_real_consumer_guards(
         if blocked:
             assert response.json()["error"]["code"] == "execution_active"
     elif boundary == "promote":
-        assert promote_deferred() == (0 if blocked else 1)
+        assert promote_deferred(gate=GATE) == (0 if blocked else 1)
     elif boundary == "claim":
-        claim = claim_next(HANDLERS)
+        claim = claim_next(HANDLERS, GATE)
         assert (claim is None) == blocked
         if blocked:
             with sessions()() as db:
@@ -309,7 +310,7 @@ def test_manual_automatic_admission_and_promotion_contend_with_available_slots(
         holder.begin()
         lock_admission(holder)
         try:
-            promoting = pool.submit(contend, promote_deferred)
+            promoting = pool.submit(contend, lambda: promote_deferred(gate=GATE))
             incoming = pool.submit(
                 contend, lambda: automatic(identities, "new-automatic", body["workload_id"])
             )

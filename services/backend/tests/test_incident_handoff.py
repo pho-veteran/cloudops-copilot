@@ -15,6 +15,7 @@ from sqlalchemy import literal, select, text
 from test_access_admission import create, incident_body, rerun
 from test_permissions import permission_context as _permission_context
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.access.models import User
 from cloudops.features.incidents import handoff
 from cloudops.features.incidents.models import Incident, IncidentActivity
@@ -629,16 +630,16 @@ def test_actual_execution_producer_unknown_and_sql_classification(permission_con
     body = {"action": "resolve", "reason": "Controlled producer result"}
     assert op.client.post(endpoint, headers=op.headers, json=body).status_code == 409
     handler = recovery.ExecutionHandler()
-    first = claim_next({"recovery_execution_v1": handler})
+    first = claim_next({"recovery_execution_v1": handler}, GATE)
     assert first is not None and first.subject_id == execution_id
     assert op.client.post(endpoint, headers=op.headers, json=body).status_code == 409
-    assert finish(first, handler, error="first attempt failed")
+    assert finish(first, handler, error="first attempt failed", gate=GATE)
     # failed(terminal=False) produces unknown while the Job is still retryable.
     assert op.client.post(endpoint, headers=op.headers, json=body).status_code == 409
-    second = claim_next({"recovery_execution_v1": handler})
+    second = claim_next({"recovery_execution_v1": handler}, GATE)
     assert second is not None and second.subject_id == execution_id
     assert op.client.post(endpoint, headers=op.headers, json=body).status_code == 409
-    assert finish(second, handler, error="retry budget exhausted")
+    assert finish(second, handler, error="retry budget exhausted", gate=GATE)
     with sessions()() as db:
         row = db.get(Execution, execution_id)
         sql_class = db.scalar(
@@ -668,7 +669,7 @@ def test_published_unknown_receipt_is_terminal_but_retains_lock(permission_conte
         row.state, row.holds_lock, row.maintenance_released = "queued", True, False
         db.add(Job(kind="recovery_execution_v1", subject_id=execution_id))
     handler = recovery.ExecutionHandler()
-    claim = claim_next({"recovery_execution_v1": handler})
+    claim = claim_next({"recovery_execution_v1": handler}, GATE)
     assert claim is not None and claim.subject_id == execution_id
     assert finish(
         claim,
@@ -678,6 +679,7 @@ def test_published_unknown_receipt_is_terminal_but_retains_lock(permission_conte
             "verification": "inconclusive",
             "reason": "Controlled unavailable executor receipt",
         },
+        gate=GATE,
     )
     op = c.actors["operator"]
     response = op.client.post(

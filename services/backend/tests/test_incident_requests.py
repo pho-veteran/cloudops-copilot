@@ -18,6 +18,7 @@ from test_access_admission import create, incident_body, rerun
 from test_consumers import decide
 from test_permissions import permission_context as _permission_context
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.entrypoints.worker import HANDLERS, run_once
 from cloudops.features.incidents.models import Admission, Incident, IncidentActivity
 from cloudops.features.incidents.service import AutomaticRequest, admit_automatic
@@ -372,16 +373,16 @@ def test_promotion_is_bounded_oldest_first_and_survives_restart(client, capacity
     first = automatic(identities, "first", workload)
     second = automatic(identities, "second", workload)
     assert first.queue_reason == second.queue_reason == "capacity"
-    assert promote_deferred() == 0
+    assert promote_deferred(gate=GATE) == 0
     free_capacity()
     # A fresh process sees only persisted state; promotion needs no new alert or click.
-    assert promote_deferred() == 1
+    assert promote_deferred(gate=GATE) == 1
     assert run_row(first.run_id).queue_reason is None
     assert run_row(second.run_id).queue_reason == "capacity"
     assert count(Job, Job.subject_id == first.run_id) == 1
-    assert promote_deferred() == 0
+    assert promote_deferred(gate=GATE) == 0
     with ThreadPoolExecutor(max_workers=4) as pool:
-        assert sum(pool.map(lambda _: promote_deferred(), range(4))) == 0
+        assert sum(pool.map(lambda _: promote_deferred(gate=GATE), range(4))) == 0
     assert count(Job, Job.state.in_(["queued", "running"])) == 1
 
 
@@ -396,7 +397,7 @@ def test_promotion_retires_ineligible_requests_without_remapping(client, capacit
     with sessions()() as db, db.begin():
         db.get(Workload, UUID(workload)).active = False
     free_capacity()
-    assert promote_deferred() == 0
+    assert promote_deferred(gate=GATE) == 0
     assert run_row(retired.run_id).outcome_code == "scope_retired"
     assert run_row(resolved.run_id).outcome_code == "incident_resolved"
     assert count(Job, Job.kind == "development_collection_v1") == 0
@@ -414,7 +415,7 @@ def test_cancel_retires_the_job_and_claim_never_attempts_it(client):
     again = cancel(client, headers, ids["incident_id"], ids["run_id"])
     assert again.status_code == 200
     assert count(IncidentActivity, IncidentActivity.kind == "run_cancelled") == 1
-    assert claim_next(HANDLERS) is None
+    assert claim_next(HANDLERS, GATE) is None
     assert count(JobAttempt) == 0
     with sessions()() as db:
         assert db.scalar(select(Job.state).where(Job.subject_id == UUID(ids["run_id"]))) == (
@@ -429,7 +430,7 @@ def test_claimed_collection_is_not_cancelled_and_its_result_stays_history(client
     settings.cache_clear()
     headers = sign_in(client)
     ids = create(client, headers, incident_body(client)).json()
-    claim = claim_next(HANDLERS)
+    claim = claim_next(HANDLERS, GATE)
     refused = cancel(client, headers, ids["incident_id"], ids["run_id"])
     assert refused.status_code == 409 and refused.json()["error"]["code"] == "run_not_cancellable"
     resolved = client.post(
@@ -438,7 +439,7 @@ def test_claimed_collection_is_not_cancelled_and_its_result_stays_history(client
         headers=headers,
     )
     assert resolved.status_code == 200
-    assert finish(claim, HANDLERS[claim.kind], result=collect_claim(claim))
+    assert finish(claim, HANDLERS[claim.kind], result=collect_claim(claim), gate=GATE)
     assert run_row(ids["run_id"]).state == "insufficient_evidence"
     detail = client.get(f"/api/incidents/{ids['incident_id']}").json()
     assert detail["state"] == "resolved"
@@ -472,11 +473,11 @@ def test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries(client):
         headers=headers,
     )
     assert reopened.status_code == 200 and run_row(queued["run_id"]).state == "cancelled"
-    assert claim_next(HANDLERS) is None
+    assert claim_next(HANDLERS, GATE) is None
 
     # Lease expiry after resolve: the expired attempt stays history; no new attempt runs.
     ids = rerun(client, headers, queued["incident_id"]).json()
-    claim = claim_next(HANDLERS)
+    claim = claim_next(HANDLERS, GATE)
     with sessions()() as db, db.begin():
         db.execute(
             update(Job)
@@ -492,7 +493,7 @@ def test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries(client):
         == 200
     )
     assert run_row(ids["run_id"]).state == "collecting"
-    assert claim_next(HANDLERS) is None
+    assert claim_next(HANDLERS, GATE) is None
     run = run_row(ids["run_id"])
     assert (run.state, run.outcome_code) == ("cancelled", "incident_resolved")
     with sessions()() as db:
@@ -500,7 +501,7 @@ def test_resolve_cancels_queued_and_reclaim_after_resolve_never_retries(client):
             select(JobAttempt.state).join(Job).where(Job.subject_id == run.id)
         ).all()
     assert attempts == ["expired"]
-    assert not finish(claim, HANDLERS[claim.kind], error="late worker")
+    assert not finish(claim, HANDLERS[claim.kind], error="late worker", gate=GATE)
 
 
 def test_cancel_does_not_wait_for_a_claimer_holding_the_job(client):
@@ -516,7 +517,7 @@ def test_cancel_does_not_wait_for_a_claimer_holding_the_job(client):
             ).result(timeout=10)
         assert response.status_code == 200
     # The claimer observes the terminal Run and retires the job without an attempt.
-    assert claim_next(HANDLERS) is None
+    assert claim_next(HANDLERS, GATE) is None
     assert count(JobAttempt) == 0
     assert count(Job, Job.state == "cancelled") == 1
 
@@ -535,7 +536,7 @@ def test_claim_waiting_on_a_cancelling_run_retires_the_job(client):
             .with_for_update()
         )
         with ThreadPoolExecutor(max_workers=1) as pool:
-            claiming = pool.submit(claim_next, HANDLERS)
+            claiming = pool.submit(claim_next, HANDLERS, GATE)
             deadline = time.monotonic() + 10
             with engine().connect() as monitor:
                 while not monitor.execute(
@@ -600,10 +601,10 @@ def test_drafts_are_invalidated_at_promotion_and_claim(client, capacity, identit
     deferred = automatic(identities, "draft", workload)
     during_deferral = draft(deferred.incident_id)
     free_capacity()
-    assert promote_deferred() == 1
+    assert promote_deferred(gate=GATE) == 1
     assert state(during_deferral) == "invalidated"
     after_job = draft(deferred.incident_id)
-    assert claim_next(HANDLERS).subject_id == deferred.run_id
+    assert claim_next(HANDLERS, GATE).subject_id == deferred.run_id
     assert state(after_job) == "invalidated"
 
 
@@ -666,7 +667,7 @@ def test_promotion_cancels_behind_an_active_execution_without_touching_its_lock(
         run_id = run.id
     with sessions()() as db:
         before = db.scalar(select(Execution).where(Execution.plan_id == UUID(c.consumer.plan_id)))
-    promote_deferred()  # The seeded pending fixture may be promoted; this Run may not.
+    promote_deferred(gate=GATE)  # The seeded pending fixture may be promoted; this Run may not.
     row = run_row(run_id)
     assert (row.state, row.outcome_code) == ("cancelled", "execution_blocking")
     with sessions()() as db:

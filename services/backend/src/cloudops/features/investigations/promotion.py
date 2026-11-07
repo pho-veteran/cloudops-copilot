@@ -12,6 +12,7 @@ from cloudops.features.investigations.service import (
 from cloudops.features.investigations.states import COLLECTION_JOB
 from cloudops.shared.config import settings
 from cloudops.shared.database import sessions
+from cloudops.shared.dispatch_permit import DispatchGate
 from cloudops.shared.jobs import Job
 
 
@@ -30,8 +31,12 @@ def deferred_count(db) -> int:
     )
 
 
-def promote_deferred(limit: int = 5) -> int:
-    """Promote at most ``limit`` Runs; one short transaction each, no network work."""
+def promote_deferred(limit: int = 5, *, gate: DispatchGate) -> int:
+    """Promote at most ``limit`` Runs; one short transaction each, no network work.
+
+    Promotion is a dispatch boundary: it holds the shared host permit lock around the
+    admission transaction and stops while trusted authority denies collection.
+    """
     from cloudops.features.recovery.service import invalidate
 
     promoted = 0
@@ -47,7 +52,9 @@ def promote_deferred(limit: int = 5) -> int:
                 .limit(1)
             ):
                 return promoted
-        with sessions()() as db, db.begin():
+        with gate.admitted() as admission, sessions()() as db, db.begin():
+            if COLLECTION_JOB not in admission.kinds:
+                return promoted
             lock_admission(db)
             run = db.scalar(
                 select(InvestigationRun)

@@ -9,7 +9,7 @@ from cloudops.features.workloads.models import Workload
 from cloudops.shared.database import database_now, sessions
 
 
-def generate(report_id):
+def generate(report_id, *, before_call):
     with sessions()() as db:
         report = db.get(RecommendationReport, report_id)
         workload = db.get(Workload, report.workload_id)
@@ -30,8 +30,10 @@ def generate(report_id):
             data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
         )
+        opener = build_opener(ProxyHandler({}))
         try:
-            with build_opener(ProxyHandler({})).open(request, timeout=150) as response:
+            before_call()
+            with opener.open(request, timeout=150) as response:
                 result = json.load(response)
                 if result["state"] in {"insufficient_data", "unavailable", "available"}:
                     return result

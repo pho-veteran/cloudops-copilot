@@ -1,0 +1,510 @@
+{
+  "source": "actual_local_compose_api_worker_postgresql_with_development_fixture_adapter",
+  "project": "cloudops-issue46",
+  "checks": {
+    "fresh_status": {
+      "problem": "permit_missing",
+      "denial": "permit_missing",
+      "audit": []
+    },
+    "missing_permit_denies_claim": {
+      "state": "queued",
+      "outcome_code": null,
+      "reason": "Waiting for a collection worker.",
+      "dispatch": {
+        "status": "paused",
+        "reason": "permit_missing"
+      },
+      "cancel": {
+        "allowed": true,
+        "reason": "queued"
+      },
+      "progress": {
+        "sources_total": 12,
+        "sources_committed": 0,
+        "sources_reused": 0,
+        "finalized": false,
+        "attempt": null,
+        "max_attempts": 3
+      },
+      "attempts": [],
+      "evidence": []
+    },
+    "bootstrap": {
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "206a5fdc-ec76-4f85-9816-c92f2047d119",
+        "generation": 1,
+        "mode": "normal",
+        "allowed_job_kinds": [
+          "collection",
+          "recommendation",
+          "recovery_execution"
+        ],
+        "valid_until": "2026-12-06T04:40:17.087538Z",
+        "issued_at": "2026-11-06T04:40:17.087538Z",
+        "operation": "bootstrap"
+      },
+      "repeat": {
+        "error": "error: A dispatch authority already exists; use status or a recovery operation instead."
+      }
+    },
+    "collection_after_bootstrap": {
+      "state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "reason": "Evidence collection saved. Analysis and recovery planning are unavailable.",
+      "dispatch": null,
+      "cancel": {
+        "allowed": false,
+        "reason": "finished"
+      },
+      "progress": {
+        "sources_total": 12,
+        "sources_committed": 12,
+        "sources_reused": 0,
+        "finalized": true,
+        "attempt": 1,
+        "max_attempts": 3
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "state": "succeeded",
+          "error": null,
+          "sources_committed": 1
+        }
+      ],
+      "evidence": [
+        [
+          "development_fixture",
+          "9000a089-a82c-40ea-bf07-4cf1a005589e"
+        ],
+        [
+          "kubernetes.configmap.metadata",
+          "0eac0feb-6c76-4b90-acf9-b76bfcd791f8"
+        ],
+        [
+          "kubernetes.events",
+          "4e4ded0f-fc51-44c0-8ace-3e36454fe2e4"
+        ],
+        [
+          "kubernetes.logs.current",
+          "ae61e58f-883e-441e-8fc0-6bb61a4f6604"
+        ],
+        [
+          "kubernetes.logs.previous",
+          "b3e52311-c29b-4ac2-b9ae-7f29021a4d44"
+        ],
+        [
+          "kubernetes.state",
+          "860f465b-13a7-4a86-a4e2-93da8bde4da6"
+        ],
+        [
+          "prometheus.error_ratio",
+          "ac501589-1fe0-4de9-a084-5c695a4523c6"
+        ],
+        [
+          "prometheus.memory_limit",
+          "72413359-2352-4fb1-8be7-596255539ab0"
+        ],
+        [
+          "prometheus.memory_working_set",
+          "b0470068-dac0-4584-99c5-14f662d82cbe"
+        ],
+        [
+          "prometheus.p95_latency",
+          "2977780b-c3bd-4358-ac49-24ddc593905a"
+        ],
+        [
+          "prometheus.request_rate",
+          "2386eff9-41db-4d91-b9bf-2b78931eb4f5"
+        ],
+        [
+          "prometheus.restarts",
+          "bb2ef8a8-b39b-4814-9348-04bc1cfa7ecd"
+        ]
+      ]
+    },
+    "recovery_denies_claim": {
+      "run": {
+        "state": "queued",
+        "outcome_code": null,
+        "reason": "Waiting for a collection worker.",
+        "dispatch": {
+          "status": "paused",
+          "reason": "recovery_mode"
+        },
+        "cancel": {
+          "allowed": true,
+          "reason": "queued"
+        },
+        "progress": {
+          "sources_total": 12,
+          "sources_committed": 0,
+          "sources_reused": 0,
+          "finalized": false,
+          "attempt": null,
+          "max_attempts": 3
+        },
+        "attempts": [],
+        "evidence": []
+      },
+      "viewer_cancel_status": 403,
+      "viewer_reads_same_boundary": true
+    },
+    "class_resumption": {
+      "after_recommendation_only": "queued",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "206a5fdc-ec76-4f85-9816-c92f2047d119",
+        "generation": 4,
+        "mode": "recovery",
+        "allowed_job_kinds": [
+          "collection",
+          "recommendation"
+        ],
+        "valid_until": "2026-12-06T04:40:28.626711Z",
+        "issued_at": "2026-11-06T04:40:28.626711Z",
+        "operation": "resume"
+      },
+      "run": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "reason": "Evidence collection saved. Analysis and recovery planning are unavailable.",
+        "dispatch": null,
+        "cancel": {
+          "allowed": false,
+          "reason": "finished"
+        },
+        "progress": {
+          "sources_total": 12,
+          "sources_committed": 12,
+          "sources_reused": 0,
+          "finalized": true,
+          "attempt": 1,
+          "max_attempts": 3
+        },
+        "attempts": [
+          {
+            "number": 1,
+            "state": "succeeded",
+            "error": null,
+            "sources_committed": 1
+          }
+        ],
+        "evidence": [
+          [
+            "development_fixture",
+            "84809dcc-33bd-4858-b04c-8ddc4c5e3100"
+          ],
+          [
+            "kubernetes.configmap.metadata",
+            "708c73e1-cb74-4b07-b2bc-6267b9c23c51"
+          ],
+          [
+            "kubernetes.events",
+            "ac7d581d-e7a3-4e90-94fb-35388edd2f4d"
+          ],
+          [
+            "kubernetes.logs.current",
+            "424719c0-526c-43a6-829a-168d41ae28bd"
+          ],
+          [
+            "kubernetes.logs.previous",
+            "5db9411a-3018-42b5-bb83-6064d613fbd1"
+          ],
+          [
+            "kubernetes.state",
+            "297e27a3-c85f-4dd3-899e-9c8ab2c7cd2a"
+          ],
+          [
+            "prometheus.error_ratio",
+            "e0cef358-6c01-46ed-8680-60aaba540e7b"
+          ],
+          [
+            "prometheus.memory_limit",
+            "de5f05cb-64bc-4a6b-aeef-b855a64c0a5e"
+          ],
+          [
+            "prometheus.memory_working_set",
+            "5e56511e-8df6-4a5c-aaeb-0f3b67daf76b"
+          ],
+          [
+            "prometheus.p95_latency",
+            "67c6cda9-aa0a-469e-8078-5dc6e83c0b7c"
+          ],
+          [
+            "prometheus.request_rate",
+            "552bd5fa-0d4a-4cd0-9b16-c0341cb7c8c4"
+          ],
+          [
+            "prometheus.restarts",
+            "bc72919c-7ac3-4ac3-92b9-8e932b6536b2"
+          ]
+        ]
+      }
+    },
+    "worker_loss_and_api_restart": {
+      "cancel_while_collecting": {
+        "code": "run_not_cancellable",
+        "message": "Collection already started; committed sources remain part of the history."
+      },
+      "after_api_restart": {
+        "state": "collecting",
+        "outcome_code": null,
+        "reason": "Collecting configured evidence sources.",
+        "dispatch": {
+          "status": "allowed",
+          "reason": null
+        },
+        "cancel": {
+          "allowed": false,
+          "reason": "collection_started"
+        },
+        "progress": {
+          "sources_total": 12,
+          "sources_committed": 0,
+          "sources_reused": 0,
+          "finalized": false,
+          "attempt": 1,
+          "max_attempts": 3
+        },
+        "attempts": [
+          {
+            "number": 1,
+            "state": "running",
+            "error": null,
+            "sources_committed": 0
+          }
+        ],
+        "evidence": []
+      },
+      "final": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "reason": "Evidence collection saved. Analysis and recovery planning are unavailable.",
+        "dispatch": null,
+        "cancel": {
+          "allowed": false,
+          "reason": "finished"
+        },
+        "progress": {
+          "sources_total": 12,
+          "sources_committed": 12,
+          "sources_reused": 0,
+          "finalized": true,
+          "attempt": 2,
+          "max_attempts": 3
+        },
+        "attempts": [
+          {
+            "number": 1,
+            "state": "expired",
+            "error": "Worker lease expired; collection may be retried.",
+            "sources_committed": 0
+          },
+          {
+            "number": 2,
+            "state": "succeeded",
+            "error": null,
+            "sources_committed": 1
+          }
+        ],
+        "evidence": [
+          [
+            "development_fixture",
+            "4b550c10-d67b-418f-aabb-19cc08a3f3f8"
+          ],
+          [
+            "kubernetes.configmap.metadata",
+            "1c91e80b-8e65-4987-9c4c-51c4e1c7bcdd"
+          ],
+          [
+            "kubernetes.events",
+            "4e56de1d-05b6-4609-8fde-edecbbcc38c5"
+          ],
+          [
+            "kubernetes.logs.current",
+            "9563c291-dd2e-4f20-a601-b880bd228cb6"
+          ],
+          [
+            "kubernetes.logs.previous",
+            "ab52f953-5619-4ec9-9be5-45e42a1775df"
+          ],
+          [
+            "kubernetes.state",
+            "17ce7983-ac76-425f-bee5-6165680c649a"
+          ],
+          [
+            "prometheus.error_ratio",
+            "3d15f916-4252-491a-bdc1-fe196cb13907"
+          ],
+          [
+            "prometheus.memory_limit",
+            "581bf6ba-4781-4c3b-90cc-fb4acc5d2058"
+          ],
+          [
+            "prometheus.memory_working_set",
+            "66eccb87-f5dd-4965-a77b-0796f9df8f50"
+          ],
+          [
+            "prometheus.p95_latency",
+            "0547582a-16fe-4c61-9b19-23dfd9c43672"
+          ],
+          [
+            "prometheus.request_rate",
+            "99b5d597-5cfa-4e10-804c-68f314d8d839"
+          ],
+          [
+            "prometheus.restarts",
+            "d7b09860-e10d-4510-842b-f2b02f7f91ff"
+          ]
+        ]
+      }
+    },
+    "late_result_fenced": {
+      "during_recovery": {
+        "state": "collecting",
+        "outcome_code": null,
+        "reason": "Collecting configured evidence sources.",
+        "dispatch": {
+          "status": "paused",
+          "reason": "recovery_mode"
+        },
+        "cancel": {
+          "allowed": false,
+          "reason": "collection_started"
+        },
+        "progress": {
+          "sources_total": 12,
+          "sources_committed": 0,
+          "sources_reused": 0,
+          "finalized": false,
+          "attempt": 1,
+          "max_attempts": 3
+        },
+        "attempts": [
+          {
+            "number": 1,
+            "state": "running",
+            "error": null,
+            "sources_committed": 0
+          }
+        ],
+        "evidence": []
+      },
+      "worker_publication_rejected": true,
+      "final": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "reason": "Evidence collection saved. Analysis and recovery planning are unavailable.",
+        "dispatch": null,
+        "cancel": {
+          "allowed": false,
+          "reason": "finished"
+        },
+        "progress": {
+          "sources_total": 12,
+          "sources_committed": 12,
+          "sources_reused": 0,
+          "finalized": true,
+          "attempt": 2,
+          "max_attempts": 3
+        },
+        "attempts": [
+          {
+            "number": 1,
+            "state": "expired",
+            "error": "Worker lease expired; collection may be retried.",
+            "sources_committed": 0
+          },
+          {
+            "number": 2,
+            "state": "succeeded",
+            "error": null,
+            "sources_committed": 1
+          }
+        ],
+        "evidence": [
+          [
+            "development_fixture",
+            "f0c6efd8-a665-4e88-b525-56c08f649d9c"
+          ],
+          [
+            "kubernetes.configmap.metadata",
+            "07ba98ab-e647-4b4a-bf31-2cb1daf476cf"
+          ],
+          [
+            "kubernetes.events",
+            "a6dc420e-02e7-4f95-894d-096577a7481f"
+          ],
+          [
+            "kubernetes.logs.current",
+            "417b38ce-f64b-40c6-8809-fbc5173ecf8d"
+          ],
+          [
+            "kubernetes.logs.previous",
+            "d6da14fa-cf0c-423f-a9de-84d1702f370b"
+          ],
+          [
+            "kubernetes.state",
+            "a3de3371-5be1-4715-861f-a6fa49e3d517"
+          ],
+          [
+            "prometheus.error_ratio",
+            "e7ff3289-a71f-49ec-9a85-99aeecb1374f"
+          ],
+          [
+            "prometheus.memory_limit",
+            "8132f1a2-f0a0-4c6e-9271-eff8450b9014"
+          ],
+          [
+            "prometheus.memory_working_set",
+            "de68230f-de06-4b7f-845a-f0e85f52bdb8"
+          ],
+          [
+            "prometheus.p95_latency",
+            "3598e9c0-7169-4378-837c-bf3cd639f15f"
+          ],
+          [
+            "prometheus.request_rate",
+            "905af29f-dc3e-4ee3-94f9-2792a78f0b1f"
+          ],
+          [
+            "prometheus.restarts",
+            "01ca5179-f665-44f5-a248-bb760cb5aed1"
+          ]
+        ]
+      }
+    },
+    "audit_operations": [
+      "bootstrap",
+      "enter_recovery",
+      "resume",
+      "resume",
+      "exit_recovery",
+      "enter_recovery",
+      "exit_recovery"
+    ],
+    "final_permit": {
+      "schema": "DispatchPermit/v1",
+      "authority_id": "206a5fdc-ec76-4f85-9816-c92f2047d119",
+      "generation": 7,
+      "mode": "normal",
+      "allowed_job_kinds": [
+        "collection",
+        "recommendation",
+        "recovery_execution"
+      ],
+      "valid_until": "2026-12-06T04:41:32.860220Z",
+      "issued_at": "2026-11-06T04:41:32.860220Z",
+      "operation": "exit_recovery"
+    }
+  },
+  "limits": [
+    "Only the synthetic development_fixture adapter is installed; the lab kill happens before its single read is checkpointed.",
+    "Resumption after a committed checkpoint is proven by tests/test_collection_checkpoints.py with labeled test adapters and real worker processes.",
+    "No E06 quota producer exists; waiting_for_quota cancellation is covered only by DB-seeded contract fixtures in tests.",
+    "The executor is not part of this base stack; restored-approval refusal is covered by tests/test_dispatch_gate.py."
+  ]
+}

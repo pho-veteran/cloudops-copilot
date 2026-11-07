@@ -19,6 +19,39 @@ def kubectl(*args, body=None):
     return result.stdout.strip()
 
 
+def dispatch_permit():
+    """Issue the fresh-install DispatchPermit/v1 once; an existing authority is never replaced."""
+    admin = [*COMPOSE, "run", "--rm", "-T", "dispatch-admin"]
+    status = json.loads(
+        subprocess.run(
+            [*admin, "status"], capture_output=True, text=True, check=True, cwd=ROOT
+        ).stdout
+    )
+    if status["permit"] is not None:
+        print(f"Job dispatch permit present (denial: {status['denial'] or 'none'}); unchanged.")
+        return
+    if status["audit"]:
+        raise SystemExit(
+            "A dispatch authority audit exists without a usable permit; use dispatch-admin "
+            "recovery operations instead of a fresh-install bootstrap."
+        )
+    subprocess.run(
+        [
+            *admin,
+            "bootstrap",
+            "--fresh-install",
+            "--reason",
+            "Disposable local lab fresh install",
+            "--evidence",
+            "scripts/bootstrap-integration.py",
+        ],
+        check=True,
+        cwd=ROOT,
+        capture_output=True,
+    )
+    print("Fresh-install job dispatch permit issued for every job class.")
+
+
 def main():
     folder = ROOT / "tmp/e01-integration"
     for kind in ("reader", "writer", "dispatcher", "krr", "intake-api", "intake-sender"):
@@ -85,6 +118,7 @@ def main():
             "current-context": "local-k3s",
         }
         (folder / kind / "kubeconfig.json").write_text(json.dumps(config), encoding="utf-8")
+    dispatch_permit()
     print(
         "Local K3s Deployment is ready. Separate reader/writer credentials written under ignored tmp/e01-integration; tokens expire after eight hours. No credential values were printed."
     )

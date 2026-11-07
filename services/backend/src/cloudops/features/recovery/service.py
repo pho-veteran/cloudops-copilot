@@ -305,7 +305,7 @@ def decide(db, plan_id, session, body):
         return plan
 
 
-def execute(execution_id):
+def execute(execution_id, *, before_call):
     with sessions()() as db:
         execution = db.get(Execution, execution_id)
         plan = db.get(ActionPlan, execution.plan_id)
@@ -332,6 +332,7 @@ def execute(execution_id):
             "expires_at": plan.expires_at.isoformat(),
         }
     try:
+        before_call()
         return client.gateway("/dispatch", request)
     except DomainError:
         return {

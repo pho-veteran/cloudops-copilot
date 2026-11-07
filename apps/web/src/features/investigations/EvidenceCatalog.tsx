@@ -197,7 +197,11 @@ export function EvidenceCatalog({
       <h2>Evidence</h2>
       <h3>Pack coverage</h3>
       {run.pack_coverage === null ? (
-        <p>Coverage was not captured for this run.</p>
+        <p>
+          {["queued", "collecting"].includes(run.state)
+            ? "Pack coverage is derived after every source is saved."
+            : "Coverage was not captured for this run."}
+        </p>
       ) : run.pack_coverage.length === 0 ? (
         <p>No pack coverage published.</p>
       ) : (
