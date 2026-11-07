@@ -23,20 +23,11 @@ Fix every confirmed actionable finding, including nonblocking defects and missin
 
 Request demonstrable defects, broken contracts, authorization/state/UID boundaries, migration/retention/recovery safety, regressions and missing issue acceptance. Require severity, exact file/line, trigger, observable impact, source evidence and smallest useful correction/check. Separate confirmed defects from hypotheses and verification limits.
 
-Use the user's chosen independent reviewer/model. For the configured local CLI, use the explicit `claude-opus-5.5` model unless the user selects another; never silently substitute an alias, fallback or another reviewer. A read-only CLI invocation is:
+Select the reviewer from the user's current request and session instructions. Use the normal configured GPT review path unless an external reviewer is explicitly requested. Invoking this loop does not imply permission to launch a separate review CLI, change providers, or use Claude/Opus.
 
-```sh
-claude --print --model claude-opus-5.5 \
-  --output-format stream-json --verbose \
-  --tools Read,Glob,Grep --allowedTools Read,Glob,Grep \
-  --disallowedTools 'mcp__*,Agent,Task' \
-  --permission-mode dontAsk --permission-prompts none \
-  --strict-mcp-config --mcp-config '{"mcpServers":{}}' \
-  --disable-slash-commands --no-chrome --no-session-persistence \
-  --add-dir /absolute/frozen-candidate /absolute/private-inputs
-```
-
-Send the concrete review prompt through stdin; capture JSONL and stderr privately. Launch from a trusted configured directory, explicitly exclude its unrelated checkout, and grant only the needed candidate/input directories. Never bypass permissions, accept a provider safety gate without interactive approval, or alter authentication/provider configuration. Require successful completion, a non-error final result, sufficient source coverage, no unresolved permission denials and the requested model in every assistant event; exit zero or self-description is insufficient. Missing model/configuration is a blocker, not permission to substitute.
+- Give a separate read-only GPT reviewer the frozen candidate and concrete scope. Permit source inspection, not edits, commands, nested delegation or external mutations. The implementation owner validates findings and runs checks.
+- Honor an explicit model choice without aliases or silent fallback. If the user changes that choice, stop only owned active jobs for the old reviewer and continue with the requested model. Record cancelled unfinished attempts separately; never reset already completed review rounds.
+- If an external reviewer is explicitly requested later, keep the same scope and two-round limit. Restrict it to read-only evidence inspection, verify actual model identity, completion, source coverage and permission failures, and never alter provider/auth configuration or bypass a safety gate. Missing access is a blocker, not permission to substitute.
 
 ## 3. Fix and demonstrate acceptance
 
