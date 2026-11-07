@@ -28,6 +28,7 @@ import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
 import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { EvidenceCatalog } from "./EvidenceCatalog";
 import { RunComparison } from "./RunComparison";
+import { CancelRun, CollectionProgress } from "./RunProgress";
 
 function RequestInvestigation({
   incidentId,
@@ -140,58 +141,6 @@ function RequestInvestigation({
   );
 }
 
-function CancelRun({
-  incidentId,
-  runId,
-}: {
-  incidentId: string;
-  runId: string;
-}) {
-  const cache = useQueryClient();
-  const [confirming, setConfirming] = useState(false);
-  const mutation = useMutation({
-    mutationFn: async () =>
-      unwrap(
-        await api.POST("/api/incidents/{incident_id}/runs/{run_id}/cancel", {
-          params: { path: { incident_id: incidentId, run_id: runId } },
-          body: {},
-        }),
-      ),
-    onSuccess: async () => {
-      setConfirming(false);
-      await cache.invalidateQueries({ queryKey: runKeys.all(incidentId) });
-      await cache.invalidateQueries({ queryKey: ["activity", incidentId] });
-    },
-  });
-  return (
-    <div className="foundation-stack">
-      {confirming ? (
-        <div className="foundation-actions">
-          <Button
-            variant="outline"
-            disabled={mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
-            {mutation.isPending ? "Cancelling…" : "Confirm cancellation"}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={mutation.isPending}
-            onClick={() => setConfirming(false)}
-          >
-            Keep it queued
-          </Button>
-        </div>
-      ) : (
-        <Button variant="outline" onClick={() => setConfirming(true)}>
-          Cancel queued investigation
-        </Button>
-      )}
-      {mutation.isError && <Failure error={mutation.error} />}
-    </div>
-  );
-}
-
 export function InvestigationWorkspace({
   id,
   selectedRun,
@@ -225,6 +174,8 @@ export function InvestigationWorkspace({
       ),
   );
   const resolved = incident.data.state === "resolved";
+  const canRequest =
+    canMutate && !busy && !resolved && incident.data.workload.active;
   return (
     <section>
       <a href={incidentReturnHash(window.location.hash)}>← Work queue</a>
@@ -249,7 +200,7 @@ export function InvestigationWorkspace({
         </a>
       </p>
       <WorkloadIdentity workload={incident.data.workload} />
-      {canMutate && !busy && !resolved && incident.data.workload.active ? (
+      {canRequest ? (
         <RequestInvestigation
           key={latest.data.items[0]?.id ?? "first"}
           incidentId={id}
@@ -260,8 +211,8 @@ export function InvestigationWorkspace({
           {!canMutate && <p className="muted">Viewer access · read-only</p>}
           {canMutate && busy && (
             <p className="muted">
-              An investigation is still active. Cancel a queued request or wait
-              for its result before requesting another.
+              An investigation is still active. Cancel it while that is still
+              safe, or wait for its result before requesting another.
             </p>
           )}
           {canMutate && resolved && (
@@ -359,19 +310,24 @@ export function InvestigationWorkspace({
                   <dt>Requested by</dt>
                   <dd>{describeOrigin(current.data.origin)}</dd>
                 </dl>
-                {canMutate && current.data.state === "queued" && (
-                  <CancelRun incidentId={id} runId={current.data.id} />
-                )}
+                <CancelRun
+                  key={current.data.id}
+                  incidentId={id}
+                  run={current.data}
+                  canMutate={canMutate}
+                />
+                <CollectionProgress
+                  run={current.data}
+                  onReinvestigate={
+                    canRequest
+                      ? () => document.getElementById("run-reason")?.focus()
+                      : undefined
+                  }
+                />
                 <p className="muted">
                   AI diagnosis unavailable. Live manual recovery, when
                   configured, is reviewed separately below.
                 </p>
-                {current.data.state === "collecting" && (
-                  <p className="muted">
-                    If the worker stops, another worker can reclaim collection
-                    after the 30-second lease. Obsolete attempts cannot publish.
-                  </p>
-                )}
                 <p className="muted">
                   Created: {new Date(current.data.created_at).toLocaleString()}
                   <br />
@@ -391,8 +347,8 @@ export function InvestigationWorkspace({
               <article className="foundation-panel">
                 <h2>Collection attempts</h2>
                 <p className="muted">
-                  At most 3 attempts per run. A new investigation preserves all
-                  earlier records.
+                  At most 3 attempts per run, including source retries. A new
+                  investigation preserves all earlier records.
                 </p>
                 {!current.data.attempts.length ? (
                   <p>
@@ -411,6 +367,8 @@ export function InvestigationWorkspace({
                           {new Date(a.started_at).toLocaleString()}
                           {a.finished_at &&
                             ` → ${new Date(a.finished_at).toLocaleString()}`}
+                          {a.sources_committed !== null &&
+                            ` · ${a.sources_committed} ${a.sources_committed === 1 ? "source" : "sources"} saved`}
                         </p>
                         {a.error && <p>{a.error}</p>}
                       </li>

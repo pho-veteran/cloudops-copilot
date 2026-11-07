@@ -383,6 +383,17 @@
             "title": "Number",
             "type": "integer"
           },
+          "sources_committed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources Committed"
+          },
           "started_at": {
             "format": "date-time",
             "title": "Started At",
@@ -404,7 +415,8 @@
           "state",
           "started_at",
           "finished_at",
-          "error"
+          "error",
+          "sources_committed"
         ],
         "title": "AttemptView",
         "type": "object"
@@ -602,6 +614,33 @@
           }
         },
         "title": "CancelRequest",
+        "type": "object"
+      },
+      "CancelState": {
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "reason": {
+            "enum": [
+              "queued",
+              "waiting_without_provider_call",
+              "collection_started",
+              "analysis_started",
+              "provider_call_in_flight",
+              "finished",
+              "already_cancelled"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "allowed",
+          "reason"
+        ],
+        "title": "CancelState",
         "type": "object"
       },
       "CandidateView": {
@@ -1567,6 +1606,42 @@
           "replicas"
         ],
         "title": "DeploymentObservation",
+        "type": "object"
+      },
+      "DispatchStatus": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "permit_missing",
+                  "permit_invalid",
+                  "permit_stale",
+                  "recovery_mode",
+                  "class_denied"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "allowed",
+              "paused"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason"
+        ],
+        "title": "DispatchStatus",
         "type": "object"
       },
       "ErrorDetail": {
@@ -3622,6 +3697,51 @@
         "title": "RunPage",
         "type": "object"
       },
+      "RunProgress": {
+        "properties": {
+          "attempt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt"
+          },
+          "finalized": {
+            "title": "Finalized",
+            "type": "boolean"
+          },
+          "max_attempts": {
+            "title": "Max Attempts",
+            "type": "integer"
+          },
+          "sources_committed": {
+            "title": "Sources Committed",
+            "type": "integer"
+          },
+          "sources_reused": {
+            "title": "Sources Reused",
+            "type": "integer"
+          },
+          "sources_total": {
+            "title": "Sources Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sources_total",
+          "sources_committed",
+          "sources_reused",
+          "finalized",
+          "attempt",
+          "max_attempts"
+        ],
+        "title": "RunProgress",
+        "type": "object"
+      },
       "RunRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3665,6 +3785,9 @@
             "title": "Attempts",
             "type": "array"
           },
+          "cancel": {
+            "$ref": "#/components/schemas/CancelState"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -3675,6 +3798,16 @@
             "default": "unavailable",
             "title": "Diagnosis",
             "type": "string"
+          },
+          "dispatch": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DispatchStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "evidence": {
             "items": {
@@ -3740,6 +3873,16 @@
               }
             ],
             "title": "Pack Coverage"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunProgress"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "question": {
             "anyOf": [
@@ -3837,7 +3980,10 @@
           "outcome_code",
           "pack_coverage",
           "evidence",
-          "attempts"
+          "attempts",
+          "progress",
+          "dispatch",
+          "cancel"
         ],
         "title": "RunView",
         "type": "object"

@@ -9,6 +9,7 @@ from conftest import sign_in
 from sqlalchemy import select, update
 from test_access_admission import create, incident_body, rerun
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.entrypoints.worker import HANDLERS, run_once
 from cloudops.features.investigations.catalog import SOURCES
 from cloudops.features.investigations.collector import collect, configured_adapters, prepare
@@ -79,18 +80,18 @@ def test_restart_takeover_fences_obsolete_and_duplicate_results(client, monkeypa
     monkeypatch.setenv("COLLECTOR_DELAY_SECONDS", "0")
     settings.cache_clear()
     ids, _ = queued(client)
-    old = claim_next(HANDLERS)
+    old = claim_next(HANDLERS, GATE)
     old_result = collect_claim(old)
     assert renew(old)
     expire(old)
     assert not renew(old)
-    assert not finish(old, HANDLERS[old.kind], result=old_result)
+    assert not finish(old, HANDLERS[old.kind], result=old_result, gate=GATE)
     # A fresh worker/DB session reclaims the persisted job, as after process loss.
-    new = claim_next(HANDLERS)
+    new = claim_next(HANDLERS, GATE)
     assert new.attempt == 2 and new.token != old.token
-    assert not finish(old, HANDLERS[old.kind], result=old_result)
-    assert finish(new, HANDLERS[new.kind], result=collect_claim(new))
-    assert not finish(new, HANDLERS[new.kind], result=old_result)
+    assert not finish(old, HANDLERS[old.kind], result=old_result, gate=GATE)
+    assert finish(new, HANDLERS[new.kind], result=collect_claim(new), gate=GATE)
+    assert not finish(new, HANDLERS[new.kind], result=old_result, gate=GATE)
     result = read_run(client, ids)
     assert [a["state"] for a in result["attempts"]] == ["expired", "succeeded"]
     assert {row["source_key"] for row in result["evidence"]} == SOURCES.keys()
@@ -121,9 +122,9 @@ def test_failures_exhaust_budget_without_success_evidence(client, monkeypatch):
 def test_repeated_worker_loss_exhausts_budget(client):
     ids, _ = queued(client)
     for _ in range(3):
-        claim = claim_next(HANDLERS)
+        claim = claim_next(HANDLERS, GATE)
         expire(claim)
-    assert claim_next(HANDLERS) is None
+    assert claim_next(HANDLERS, GATE) is None
     result = read_run(client, ids)
     assert result["state"] == "failed" and result["evidence"] == []
     assert [a["state"] for a in result["attempts"]] == ["expired"] * 3
@@ -132,7 +133,7 @@ def test_repeated_worker_loss_exhausts_budget(client):
 def test_concurrent_claim_has_single_owner(client):
     queued(client)
     with ThreadPoolExecutor(max_workers=4) as pool:
-        claims = list(pool.map(lambda _: claim_next(HANDLERS), range(4)))
+        claims = list(pool.map(lambda _: claim_next(HANDLERS, GATE), range(4)))
     assert len([c for c in claims if c]) == 1
 
 
@@ -140,7 +141,7 @@ def test_failed_publication_rolls_back_output_and_completion(client, monkeypatch
     monkeypatch.setenv("COLLECTOR_DELAY_SECONDS", "0")
     settings.cache_clear()
     ids, _ = queued(client)
-    claim = claim_next(HANDLERS)
+    claim = claim_next(HANDLERS, GATE)
 
     class BrokenHandler:
         def publish(self, db, subject_id, result):
@@ -149,7 +150,7 @@ def test_failed_publication_rolls_back_output_and_completion(client, monkeypatch
             raise RuntimeError("commit interrupted")
 
     with pytest.raises(RuntimeError):
-        finish(claim, BrokenHandler(), result=collect_claim(claim))
+        finish(claim, BrokenHandler(), result=collect_claim(claim), gate=GATE)
     assert read_run(client, ids)["evidence"] == []
     with sessions()() as db:
         assert db.get(Job, claim.id).state == "running"

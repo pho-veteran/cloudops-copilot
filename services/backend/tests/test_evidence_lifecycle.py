@@ -8,6 +8,7 @@ from sqlalchemy import select
 from test_access_admission import create, incident_body, rerun
 from test_jobs import collect_claim
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.entrypoints.worker import HANDLERS, run_once
 from cloudops.features.investigations import retention
 from cloudops.features.investigations.models import Evidence, EvidencePin
@@ -147,10 +148,10 @@ def test_reopen_pins_claimed_collection_that_finished_after_resolution(client, m
     settings.cache_clear()
     headers = sign_in(client)
     ids = create(client, headers, incident_body(client)).json()
-    claim = claim_next(HANDLERS)
+    claim = claim_next(HANDLERS, GATE)
     result = collect_claim(claim)
     transition(client, headers, ids["incident_id"], "resolve")
-    assert finish(claim, HANDLERS[claim.kind], result=result)
+    assert finish(claim, HANDLERS[claim.kind], result=result, gate=GATE)
     assert latest_pins(ids["incident_id"]) == set()
     record = fixture_record(read_run(client, ids))
     transition(client, headers, ids["incident_id"], "reopen")
@@ -162,9 +163,9 @@ def test_duplicate_old_publication_cannot_rewind_latest_useful_pin(client, monke
     settings.cache_clear()
     headers = sign_in(client)
     first = create(client, headers, incident_body(client)).json()
-    claim = claim_next(HANDLERS)
+    claim = claim_next(HANDLERS, GATE)
     original_result = collect_claim(claim)
-    assert finish(claim, HANDLERS[claim.kind], result=original_result)
+    assert finish(claim, HANDLERS[claim.kind], result=original_result, gate=GATE)
     replacement = rerun(client, headers, first["incident_id"]).json()
     assert run_once()
     replacement_ref = fixture_record(read_run(client, replacement))

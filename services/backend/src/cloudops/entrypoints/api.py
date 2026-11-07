@@ -6,9 +6,12 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.incidents.intake_settings import intake_config
 from cloudops.features.investigations.admission_settings import deferred_run_limit
 from cloudops.features.investigations.collector import configured_adapters
+from cloudops.features.investigations.service import configure_dispatch_status
+from cloudops.features.investigations.states import COLLECTION_JOB
 from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
 from cloudops.shared.errors import DomainError, domain_error_handler, validation_error_handler
@@ -28,6 +31,8 @@ def create_app():
     app = FastAPI(title="CloudOps Copilot", version="0.1.0", lifespan=lifespan)
     app.add_exception_handler(DomainError, domain_error_handler)
     app.add_exception_handler(RequestValidationError, validation_error_handler)
+    # The API mounts the trusted permit read-only to show why queued collection waits.
+    configure_dispatch_status(lambda: GATE.status(COLLECTION_JOB))
 
     @app.exception_handler(SQLAlchemyError)
     async def database_unavailable(request, exc):

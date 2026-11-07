@@ -1,0 +1,118 @@
+{
+  "source": "actual_browser_api_worker_postgresql_local_compose_development_fixture",
+  "browser": "Microsoft Edge (channel msedge) in a disposable isolated headless profile via playwright-core; the user's running Edge relay was not available to the agent",
+  "checks": {
+    "paused_desktop": {
+      "progress": "Collection progress\n\n0 of 12 catalog sources saved\n\nDispatch is paused: trusted recovery mode. This request stays queued and starts only after a trusted host operator resumes collection.",
+      "layout": {
+        "width": 1280,
+        "scrollWidth": 1280
+      }
+    },
+    "keyboard_focus": {
+      "afterOpen": {
+        "text": "Confirm cancellation",
+        "id": null
+      },
+      "afterKeep": {
+        "text": "Cancel investigation",
+        "id": null
+      },
+      "posts": 0
+    },
+    "viewer_320": {
+      "cancelControls": 0,
+      "reason": "This request has not started. Cancelling stops it before any attempt.",
+      "layout": {
+        "width": 320,
+        "scrollWidth": 320
+      }
+    },
+    "cancel_390": {
+      "focused": {
+        "text": "Investigation cancelled. No further attempt will start.",
+        "id": null
+      },
+      "run": "cancelled",
+      "cancelPosts": 1,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    "collecting_after_restart_320_dark": {
+      "progress": "Collection progress\n\n0 of 12 catalog sources saved · Attempt 1 of 3\n\nSaved sources survive a worker restart. Another worker resumes the remaining sources after the 30-second lease; obsolete attempts cannot publish. Slots without an installed adapter are recorded as unavailable when collection finishes.",
+      "cancelDisabled": true,
+      "reason": "Collection already started, so it cannot be cancelled. Committed sources remain part of the history.",
+      "layout": {
+        "width": 320,
+        "scrollWidth": 320
+      }
+    },
+    "resumed_desktop": {
+      "progress": "Collection progress\n\n12 of 12 catalog sources saved · Attempt 2 of 3",
+      "attempts": [
+        [
+          1,
+          "expired",
+          0
+        ],
+        [
+          2,
+          "succeeded",
+          1
+        ]
+      ]
+    },
+    "failed_390": {
+      "progress": "Collection progress\n\n0 of 12 catalog sources saved · Attempt 3 of 3\n\nCollection stopped after 3 attempts. Saved sources stay readable; request a new investigation to collect again.\n\nRequest a new investigation",
+      "focused": {
+        "text": "",
+        "id": "run-reason"
+      },
+      "errors": [
+        "Bounded job attempt failed; inspect its recorded feature outcome."
+      ],
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    "session_expiry": {
+      "sameRoute": true,
+      "cancelPosts": 1,
+      "runAfter": "queued"
+    }
+  },
+  "screenshots": [
+    {
+      "name": "paused-queued-desktop.png",
+      "path": "docs/evidence/job-dispatch/paused-queued-desktop.png"
+    },
+    {
+      "name": "viewer-paused-320.png",
+      "path": "docs/evidence/job-dispatch/viewer-paused-320.png"
+    },
+    {
+      "name": "cancelled-390.png",
+      "path": "docs/evidence/job-dispatch/cancelled-390.png"
+    },
+    {
+      "name": "collecting-restart-320-dark.png",
+      "path": "docs/evidence/job-dispatch/collecting-restart-320-dark.png"
+    },
+    {
+      "name": "resumed-desktop.png",
+      "path": "docs/evidence/job-dispatch/resumed-desktop.png"
+    },
+    {
+      "name": "failed-390.png",
+      "path": "docs/evidence/job-dispatch/failed-390.png"
+    }
+  ],
+  "limits": [
+    "Only the synthetic development_fixture adapter is installed; worker loss in the browser journey happens before its single read is checkpointed.",
+    "No E06 quota producer exists; waiting_for_quota UI copy is covered by component tests only.",
+    "No browser profile permission or certificate trust was changed; the HTTP loopback development origin was used."
+  ]
+}

@@ -61,6 +61,9 @@ const run = {
   evidence: [evidence],
   attempts: [],
   pack_coverage: null,
+  progress: null,
+  dispatch: null,
+  cancel: { allowed: false, reason: "finished" },
   diagnosis: "unavailable",
   recovery: "unavailable",
 } satisfies components["schemas"]["RunView"];

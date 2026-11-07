@@ -514,3 +514,68 @@ def test_repeatable_read_compare_survives_a_real_payload_purge_boundary(client, 
     later = compare(client, pair).json()["sources"][0]
     assert later["left"]["content_status"] == "expired"
     assert later["left"]["sha256"] == record["sha256"]
+
+
+def test_checkpointed_prefix_remains_exact_through_takeover_and_finalization(
+    client, pair, monkeypatch
+):
+    import checkpoint_adapters as adapters
+    from test_collection_checkpoints import ProcessLost, context_for
+    from test_jobs import expire
+    from cloudops.entrypoints import worker
+    from cloudops.entrypoints.dispatch import GATE
+    from cloudops.features.investigations import collector
+    from cloudops.shared.jobs import claim_next, finish
+
+    bindings = dict(adapters.ADAPTERS)
+    for key, adapter in bindings.items():
+        monkeypatch.setitem(collector.REGISTERED_ADAPTERS, key, adapter)
+    monkeypatch.setattr(worker, "configured_adapters", lambda _mode: bindings)
+    ids = rerun(client, sign_in(client), pair[0]["incident_id"]).json()
+    first = claim_next(worker.HANDLERS, GATE)
+    ordered = sorted(bindings)
+    pause_source = ordered[3]
+
+    def lost(_context, _timeout):
+        raise ProcessLost()
+
+    with monkeypatch.context() as interrupted:
+        interrupted.setitem(collector.REGISTERED_ADAPTERS, pause_source, lost)
+        with pytest.raises(ProcessLost):
+            collector.collect_checkpointed(
+                first, context_for(first), {**bindings, pause_source: lost}, GATE
+            )
+    partial = client.get(endpoint(ids)).json()
+    assert partial["state"] == "collecting"
+    assert partial["progress"]["sources_committed"] == 3 and not partial["progress"]["finalized"]
+    summary = compare(client, (pair[0], ids))
+    assert summary.status_code == 200, summary.text
+    assert summary.json()["right"]["state"] == "collecting"
+    state = next(row for row in partial["evidence"] if row["source_key"] == ordered[0])
+    source = endpoint(ids) + f"/evidence/{state['id']}"
+    targets = client.get(source + "/citation-targets").json()
+    target = next(item for item in targets["items"] if not item["ambiguous"])
+    selection = {"locator_kind": target["locator"]["kind"], "locator_key": target["locator"]["key"]}
+    assert client.get(source + "/citation", params=selection).status_code == 200
+    page_params = {"source_key": state["source_key"], "catalog_version": "standard_v1", "limit": 1}
+    cursor = compare(client, (ids, ids), **page_params).json()["next_cursor"]
+    assert cursor
+    old_hash = fixture(client, pair[0])["sha256"]
+
+    expire(first)
+    second = claim_next(worker.HANDLERS, GATE)
+    assert finish(
+        second,
+        worker.HANDLERS[second.kind],
+        result=collector.collect_checkpointed(second, context_for(second), bindings, GATE),
+        gate=GATE,
+    )
+    final = client.get(endpoint(ids)).json()
+    assert final["progress"]["finalized"] and final["progress"]["sources_reused"] == 3
+    assert (
+        next(row for row in final["evidence"] if row["id"] == state["id"])["sha256"]
+        == state["sha256"]
+    )
+    assert client.get(source + "/citation", params=selection).json()["target"] == target
+    assert compare(client, (ids, ids), **page_params, cursor=cursor).status_code == 409
+    assert fixture(client, pair[0])["sha256"] == old_hash

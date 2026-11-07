@@ -30,6 +30,7 @@ from cloudops.features.investigations.service import (
     Origin,
     Request,
     admit_run,
+    cancel_state,
     run_view,
     terminalize,
     window_view,
@@ -309,23 +310,35 @@ def cancel_run(db: Session, incident_id: UUID, run_id: UUID, actor_id: UUID, rea
             raise DomainError(404, "run_not_found", "Investigation not found for this incident.")
         if row.state == "cancelled":
             return run_view(db, row)
-        if row.state != "queued":
-            raise DomainError(
-                409,
-                "run_not_cancellable",
-                "Collection already started or finished; its result remains part of the history.",
-            )
+        state = cancel_state(row)
+        if not state.allowed:
+            raise DomainError(409, "run_not_cancellable", NOT_CANCELLABLE[state.reason])
+        waiting = row.state == "waiting_for_quota"
         terminalize(db, row, "operator_cancelled")
         db.add(
             IncidentActivity(
                 incident_id=incident_id,
                 kind="run_cancelled",
-                text=reason or "Cancelled a queued investigation.",
+                text=reason
+                or (
+                    "Cancelled an investigation waiting for analysis quota."
+                    if waiting
+                    else "Cancelled a queued investigation."
+                ),
                 actor_id=actor_id,
             )
         )
         db.flush()
         return run_view(db, row)
+
+
+# Honest noncancellable responses: work already started or sent is never presented as aborted.
+NOT_CANCELLABLE = {
+    "collection_started": "Collection already started; committed sources remain part of the history.",
+    "analysis_started": "Analysis already started; it cannot be withdrawn.",
+    "provider_call_in_flight": "A provider call is already in flight; it cannot be withdrawn.",
+    "finished": "This investigation already finished; its result remains part of the history.",
+}
 
 
 def cancel_pending(db: Session, incident_id: UUID, code: str) -> None:

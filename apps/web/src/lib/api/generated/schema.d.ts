@@ -825,6 +825,8 @@ export interface components {
             finished_at: string | null;
             /** Number */
             number: number;
+            /** Sources Committed */
+            sources_committed: number | null;
             /**
              * Started At
              * Format: date-time
@@ -919,6 +921,16 @@ export interface components {
         CancelRequest: {
             /** Reason */
             reason?: string | null;
+        };
+        /** CancelState */
+        CancelState: {
+            /** Allowed */
+            allowed: boolean;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "queued" | "waiting_without_provider_call" | "collection_started" | "analysis_started" | "provider_call_in_flight" | "finished" | "already_cancelled";
         };
         /** CandidateView */
         CandidateView: {
@@ -1249,6 +1261,16 @@ export interface components {
             resource_version: string;
             /** Updated */
             updated: number | null;
+        };
+        /** DispatchStatus */
+        DispatchStatus: {
+            /** Reason */
+            reason: ("permit_missing" | "permit_invalid" | "permit_stale" | "recovery_mode" | "class_denied") | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "allowed" | "paused";
         };
         /** ErrorDetail */
         ErrorDetail: {
@@ -2027,6 +2049,21 @@ export interface components {
             /** Next Offset */
             next_offset: number | null;
         };
+        /** RunProgress */
+        RunProgress: {
+            /** Attempt */
+            attempt: number | null;
+            /** Finalized */
+            finalized: boolean;
+            /** Max Attempts */
+            max_attempts: number;
+            /** Sources Committed */
+            sources_committed: number;
+            /** Sources Reused */
+            sources_reused: number;
+            /** Sources Total */
+            sources_total: number;
+        };
         /** RunRequest */
         RunRequest: {
             /** Reason */
@@ -2043,6 +2080,7 @@ export interface components {
         RunView: {
             /** Attempts */
             attempts: components["schemas"]["AttemptView"][];
+            cancel: components["schemas"]["CancelState"];
             /**
              * Created At
              * Format: date-time
@@ -2054,6 +2092,7 @@ export interface components {
              * @constant
              */
             diagnosis: "unavailable";
+            dispatch: components["schemas"]["DispatchStatus"] | null;
             /** Evidence */
             evidence: components["schemas"]["EvidenceView"][];
             /** Finished At */
@@ -2073,6 +2112,7 @@ export interface components {
             outcome_code: ("operator_cancelled" | "incident_resolved" | "scope_retired" | "execution_blocking" | "analysis_unavailable" | "collection_failed") | null;
             /** Pack Coverage */
             pack_coverage: components["schemas"]["PackCoverage"][] | null;
+            progress: components["schemas"]["RunProgress"] | null;
             /** Question */
             question: string | null;
             /**

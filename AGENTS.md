@@ -35,11 +35,3 @@
 - Follow README and `docs/foundation.md` for setup, PostgreSQL checks and UI journeys. Test databases must end in `_test`; never run destructive tests against application data.
 - Foundation collection is synthetic and bounded. AI diagnosis, live cluster access and execution remain unavailable until their owning EPICs implement them.
 
-## Pull request review and fix loop
-
-- A PR review request includes fixing all confirmed actionable findings locally, including nonblocking findings, rather than stopping at a review report. Preserve unrelated changes and keep fixes scoped to the reviewed PR.
-- Use at most two review rounds for the requested task, counting an initial review that has already completed. Round one identifies findings; fix them and run focused behavioral checks before round two.
-- Complete the reviewed slice's implementation and visual acceptance before confirmation; distinguish actual browser and live integration evidence from fixtures or source inspection.
-- Round two is confirmation-only: map every original finding to addressed or still open, and check regressions caused by those fixes. Do not start a fresh broad audit or introduce an unrelated finding backlog.
-- Do not run a third review. If confirmation leaves an original finding open, finish the correction and its focused checks, and disclose that the final adjustment did not receive another independent review.
-- Report the final finding dispositions and checks actually run. This loop does not authorize pushing, posting reviews/comments, merging or other publication.
