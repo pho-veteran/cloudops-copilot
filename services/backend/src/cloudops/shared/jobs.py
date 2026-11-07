@@ -212,6 +212,17 @@ def _fenced(db: Session, claim: Claim, admission) -> tuple[Job, JobAttempt] | No
     return job, attempt
 
 
+def start_call(claim: Claim, gate: DispatchGate) -> bool:
+    """Admit one external call under the host lock and the live attempt fence.
+
+    This short transaction is the call-start linearization point, not network quiescence:
+    recovery ordered after it may leave an admitted call in flight. Neither lock spans I/O,
+    and checkpoint/publication still require the current permit generation.
+    """
+    with gate.admitted() as admission, sessions()() as db, db.begin():
+        return _fenced(db, claim, admission) is not None
+
+
 def renew(claim: Claim) -> bool:
     with sessions()() as db, db.begin():
         job = owned(db, claim)

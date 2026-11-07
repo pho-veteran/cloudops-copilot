@@ -20,7 +20,7 @@ from cloudops.features.recommendations.worker import ReportHandler, generate
 from cloudops.features.recovery.service import ExecutionHandler, execute
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, require_schema, sessions
-from cloudops.shared.jobs import Claim, claim_next, finish, renew
+from cloudops.shared.jobs import Claim, claim_next, finish, renew, start_call
 
 HANDLERS = {
     "development_collection_v1": CollectionHandler(),
@@ -56,9 +56,9 @@ def _report_denial():
             logger.info("Job dispatch permit accepted.")
 
 
-def _require_dispatch(claim: Claim) -> None:
-    """Recheck the host permit before a new external call; late calls cannot publish anyway."""
-    if not GATE.allows(claim.kind, claim.permit_authority, claim.permit_generation):
+def _require_dispatch(claim: Claim, lease_lost: threading.Event) -> None:
+    """Admit at the feature's actual call boundary, after request preparation."""
+    if lease_lost.is_set() or not start_call(claim, GATE):
         raise Interrupted()
 
 
@@ -81,6 +81,7 @@ def run_once() -> bool:
                     lease_lost.set()
                     return
             except Exception:
+                lease_lost.set()
                 logger.warning("Worker lease renewal unavailable; expired output will be rejected.")
                 return
 
@@ -94,11 +95,13 @@ def run_once() -> bool:
             )
             result = collect_checkpointed(claim, context, adapters, GATE, lease_lost)
         elif claim.kind == "recommendation_report_v1":
-            _require_dispatch(claim)
-            result = generate(claim.subject_id)
+            result = generate(
+                claim.subject_id, before_call=lambda: _require_dispatch(claim, lease_lost)
+            )
         elif claim.kind == "recovery_execution_v1":
-            _require_dispatch(claim)
-            result = execute(claim.subject_id)
+            result = execute(
+                claim.subject_id, before_call=lambda: _require_dispatch(claim, lease_lost)
+            )
         else:
             raise RuntimeError("Unknown job kind; dispatch fails closed.")
         if not finish(claim, HANDLERS[claim.kind], result=result, gate=GATE):

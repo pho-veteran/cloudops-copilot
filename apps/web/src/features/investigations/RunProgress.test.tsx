@@ -151,8 +151,24 @@ describe("safe cancellation", () => {
 
   it("shows a Viewer the boundary without any mutation control", () => {
     mount(<CancelRun incidentId={incidentId} run={run()} canMutate={false} />);
-    expect(screen.getByText(/This request has not started/)).toBeTruthy();
     expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("does not imply a retry-queued investigation has never performed work", () => {
+    mount(
+      <CancelRun
+        incidentId={incidentId}
+        run={run({ attempts: [{
+          number: 1, state: "failed", started_at: "2026-11-01T00:00:00Z",
+          finished_at: "2026-11-01T00:00:05Z", error: "Bounded source failure.",
+          sources_committed: 3,
+        }] })}
+        canMutate
+      />,
+    );
+    expect(screen.getByText(/Work already recorded remains in the history/)).toBeTruthy();
+    expect(screen.queryByText(/has not started|before any attempt/)).toBeNull();
+    expect((screen.getByRole("button", { name: "Cancel investigation" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("moves focus through confirm, keep and the saved outcome", async () => {

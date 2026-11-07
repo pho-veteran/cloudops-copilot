@@ -150,22 +150,13 @@ class DispatchGate:
             yield Admission(permit if kinds else None, kinds, reason)
 
     def current(self) -> tuple[Permit | None, frozenset[str], DenyReason | None]:
-        """Lock-free read for external-call boundaries and status; never grants publication."""
+        """Lock-free status only; call-start and publication admission use ``admitted``."""
         root = self.root
         if root is None:
             return None, frozenset(), "permit_missing"
         permit, reason = read_permit(root)
         kinds, reason = self._evaluate(permit, reason)
         return permit, kinds, reason
-
-    def allows(self, kind: str, authority_id: UUID | None, generation: int | None) -> bool:
-        permit, kinds, _ = self.current()
-        return (
-            permit is not None
-            and kind in kinds
-            and permit.authority_id == authority_id
-            and permit.generation == generation
-        )
 
     def status(self, kind: str) -> tuple[bool, DenyReason | None]:
         """Display-only dispatch status from a lock-free read; it never grants publication."""

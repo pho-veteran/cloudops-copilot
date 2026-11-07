@@ -161,13 +161,23 @@ def _unavailable(key: str, reason: str) -> SourceResult:
 
 
 def collect_one(
-    context: CollectionContext, key: str, adapter: SourceAdapter | None, deadline: float
+    context: CollectionContext,
+    key: str,
+    adapter: SourceAdapter | None,
+    deadline: float,
+    *,
+    before_call: Callable[[], None] | None = None,
 ) -> SourceResult:
     """One source under the slice A policy; shared by the batch and checkpointed runners."""
     if adapter is None:
         return _unavailable(key, "source_not_configured")
     remaining = deadline - time.monotonic()
     try:
+        if remaining <= 0:
+            raise SourceTimeout()
+        if before_call is not None:
+            before_call()
+        remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise SourceTimeout()
         result = adapter(context, min(5.0, remaining))
@@ -232,7 +242,7 @@ def collect_checkpointed(
 ) -> FinalizeCollection:
     """Collect missing sources one fenced checkpoint at a time; committed ones are reused."""
     from cloudops.features.investigations.storage import store_source
-    from cloudops.shared.jobs import checkpoint, committed_stages
+    from cloudops.shared.jobs import checkpoint, committed_stages, start_call
 
     _validate(context, adapters)
     done = committed_stages(claim)
@@ -246,11 +256,12 @@ def collect_checkpointed(
         stage = source_stage(key)
         if stage in done:
             continue
-        if (lease_lost is not None and lease_lost.is_set()) or not gate.allows(
-            claim.kind, claim.permit_authority, claim.permit_generation
-        ):
-            raise Interrupted()
-        result = collect_one(context, key, adapter, deadline)
+
+        def before_call():
+            if (lease_lost is not None and lease_lost.is_set()) or not start_call(claim, gate):
+                raise Interrupted()
+
+        result = collect_one(context, key, adapter, deadline, before_call=before_call)
 
         def write(db, carry, result=result):
             return store_source(db, context.run_id, context.workload_uid, result, carry)

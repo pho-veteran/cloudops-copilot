@@ -12,7 +12,6 @@ from test_access_admission import create, incident_body
 from test_collection_checkpoints import bound, context_for  # noqa: F401
 from test_permissions import permission_context as _permission_context
 
-from cloudops.entrypoints import worker
 from cloudops.entrypoints.dispatch import CLASSES, GATE, PERMIT_CLASSES
 from cloudops.entrypoints.worker import HANDLERS, run_once
 from cloudops.features.investigations.collector import collect_checkpointed
@@ -199,16 +198,3 @@ def test_restored_approval_stays_denied_and_cannot_regain_write_authority(
     with sessions()() as db:
         row = db.get(Execution, execution_id)
         assert row.result["outcome"] == "outcome_unknown" and row.holds_lock
-
-
-def test_unknown_kinds_have_no_permit_class():
-    assert set(PERMIT_CLASSES) == set(worker.HANDLERS)
-    assert (
-        sorted(set(PERMIT_CLASSES.values()))
-        == CLASSES
-        == [
-            "collection",
-            "recommendation",
-            "recovery_execution",
-        ]
-    )

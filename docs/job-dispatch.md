@@ -20,7 +20,7 @@ Migration `0009_job_checkpoints` adds `job_checkpoints`, permit evidence on `job
 
 | Run state | Result |
 | --- | --- |
-| `queued` | Cancelled; no further attempt starts |
+| `queued` (including a retry after earlier work) | Cancelled; no new attempt starts; already recorded work stays in history |
 | `waiting_for_quota` with `provider_call = none` | Cancelled before analysis |
 | `waiting_for_quota` with a call in flight or no declared boundary | `409 run_not_cancellable`: "A provider call is already in flight; it cannot be withdrawn." |
 | `collecting` | `409`: collection already started; committed sources remain |
@@ -50,7 +50,7 @@ No E06 analysis or quota producer exists. `waiting_for_quota` is exercised only 
 
 Dispatch is denied, with a visible reason, when the permit is missing (`permit_missing`), unreadable or malformed (`permit_invalid`), expired or older than a generation the reader already saw (`permit_stale`), in recovery mode (`recovery_mode`), or does not list the job's class (`class_denied`). Database rows record which authority and generation admitted an attempt, but no database value grants permission.
 
-Checks happen before deferred-Run promotion, inside each claim transaction, before every new external call (source read, KRR report, executor dispatch), at each checkpoint and at final publication. A call already sent before a recovery cutoff may finish, but its result cannot be published under a retired generation. The executor's own recovery mode, target epoch and final write check remain the authority for Kubernetes writes. Executor target quarantine does not block collection or reports in normal mode.
+Checks happen before deferred-Run promotion, inside each claim transaction, at each checkpoint and at final publication. Immediately before each source read, prepared KRR request or executor dispatch, a short call-start admission transaction holds the shared host permit lock and checks the live job token, unexpired lease and admitting permit generation. Successful admission is the call-start linearization point: recovery ordered first denies the call; admission ordered first may leave work in flight. Neither host nor PostgreSQL locks span the network call. Recovery does not promise physical network quiescence or abort already-admitted work; late results still cannot be published under a retired generation. The executor's own recovery mode, target epoch and final write check remain the authority for Kubernetes writes. Executor target quarantine does not block collection or reports in normal mode.
 
 ### Trusted administration
 
@@ -70,7 +70,7 @@ $compose run --rm dispatch-admin renew --days 30 --reason "..." --evidence "..."
 | Operation | Effect | Generation |
 | --- | --- | --- |
 | `bootstrap --fresh-install` | Normal mode, every class. Never reads PostgreSQL; never inferred from restored rows | 1 |
-| `enter-recovery` | Deny every class; waits for in-progress short claim/checkpoint boundaries | +1 |
+| `enter-recovery` | Deny every class; waits for in-progress short claim/checkpoint/call-start admission boundaries, not admitted network calls | +1 |
 | `resume --class <class>` | Allow one more class while in recovery mode | +1 |
 | `exit-recovery` | Normal mode, every class | +1 |
 | `renew --days N` | Extend validity (default 30, at most 365); in-flight attempts stay publishable | unchanged |
@@ -88,8 +88,14 @@ This is a host trust boundary for the supported procedure. It does not detect an
 
 ### Lock order and limits
 
-- Host shared permit lock, then one short PostgreSQL transaction (promotion, claim, checkpoint, finish). The host lock is never requested while a database lock is held, and no transaction spans a network call.
+- Host shared permit lock, then one short PostgreSQL transaction (promotion, claim, call-start admission, checkpoint, finish). The host lock is never requested while a database lock is held, and neither lock spans a network call.
 - Inside PostgreSQL: claim/checkpoint/finish lock Job → Incident → Run → Evidence. Cancel/resolve lock Incident → Run and skip a locked Job, so they never wait for a claimer.
 - Every container in the local image runs as root, so write isolation comes from the read-only mounts. Do not mount the volume writable into api, worker or test services.
 - A permit attempt fenced by a generation change still counts toward its job's three attempts.
 - POSIX hosts use shared/exclusive `flock`. Windows development hosts use a stricter exclusive byte-range lock for readers as well; deployments run on Linux.
+
+## Exercised local behavior
+
+Fresh worker processes in an owned PostgreSQL/API lab preserved three committed source IDs and digests across process loss, then completed all twelve catalog slots on attempt two with three reused checkpoints. Recovery ordered before start admission made zero adapter calls; a call admitted before recovery could return but could not publish under the retired generation. These checks use explicitly registered source/gateway contract fixtures, not live Kubernetes, KRR, AI or a production restore.
+
+The [320px dark resumed view](evidence/job-dispatch/resumed-checkpoint-320-dark.png) shows actual persisted progress from that worker takeover in the running Edge. Viewer denial, expired-session no-replay behavior, keyboard cancellation and retained retry history were exercised separately; no browser permissions or certificate trust were changed.

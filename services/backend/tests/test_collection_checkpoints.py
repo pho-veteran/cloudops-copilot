@@ -28,7 +28,7 @@ from cloudops.features.investigations.collector import (
 from cloudops.features.investigations.models import Evidence, EvidencePin
 from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, sessions
-from cloudops.shared.jobs import Job, JobCheckpoint, checkpoint, claim_next, finish
+from cloudops.shared.jobs import Job, JobAttempt, JobCheckpoint, checkpoint, claim_next, finish
 
 TESTS = Path(__file__).resolve().parent
 
@@ -261,7 +261,14 @@ def test_unknown_job_kind_is_never_claimed(client):
         db.add(Job(kind="unregistered_v1", subject_id=UUID(int=7)))
     assert not run_once()
     with sessions()() as db:
-        assert db.scalar(select(Job.state).where(Job.kind == "unregistered_v1")) == "queued"
+        job = db.scalar(select(Job).where(Job.kind == "unregistered_v1"))
+        assert (job.state, job.attempts, job.lease_token, job.lease_until) == (
+            "queued",
+            0,
+            None,
+            None,
+        )
+        assert db.scalar(select(func.count()).select_from(JobAttempt)) == 0
 
 
 def _poll(predicate, seconds=15):
@@ -284,7 +291,7 @@ def test_real_worker_killed_after_a_committed_checkpoint_resumes(client):
     )
     environment = {
         **os.environ,
-        "PYTHONPATH": str(TESTS),
+        "PYTHONPATH": os.pathsep.join((str(TESTS.parent / "src"), str(TESTS))),
         "COLLECTOR_DELAY_SECONDS": "0",
         "COLLECTOR_FAIL": "false",
         "CHECKPOINT_FIXTURE_DELAY": "60",

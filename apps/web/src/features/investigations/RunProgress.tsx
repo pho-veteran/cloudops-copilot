@@ -22,7 +22,7 @@ const DISPATCH_REASONS: Record<DispatchReason, string> = {
 
 export const CANCEL_REASONS: Record<CancelReason, string> = {
   queued:
-    "This request has not started. Cancelling stops it before any attempt.",
+    "Cancelling stops any new attempt. Work already recorded remains in the history.",
   waiting_without_provider_call:
     "No provider call is in flight. Cancelling stops it before analysis.",
   collection_started:

@@ -104,9 +104,12 @@ def test_gate_fails_closed_for_missing_invalid_stale_and_denied_permits(tmp_path
         assert admission.kinds == frozenset() and admission.reason == "permit_missing"
     permit = issue(tmp_path)
     assert kinds(gate) == (frozenset(PERMIT_CLASSES), None)
-    assert gate.allows("development_collection_v1", permit.authority_id, permit.generation)
-    assert not gate.allows("development_collection_v1", permit.authority_id, 2)
-    assert not gate.allows("unregistered_v1", permit.authority_id, permit.generation)
+    with gate.admitted() as admission:
+        assert admission.permits(
+            "development_collection_v1", permit.authority_id, permit.generation
+        )
+        assert not admission.permits("development_collection_v1", permit.authority_id, 2)
+        assert not admission.permits("unregistered_v1", permit.authority_id, permit.generation)
 
     path = tmp_path / "permit.json"
     original = path.read_bytes()
