@@ -1,14 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiError, unwrap } from "@/lib/api/client";
 import type { components } from "@/lib/api/generated/schema";
-import { buildIncidentHash, incidentReturnHash } from "@/app/routes";
+import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { Failure, Loading } from "@/app/Feedback";
+import { CitationTarget } from "./CitationTarget";
 
 type Run = components["schemas"]["RunView"];
 type Evidence = components["schemas"]["EvidenceView"];
 
-function coverageLabel(evidence: Evidence) {
+export function coverageLabel(evidence: Evidence) {
   return evidence.schema_version === 1
     ? "Not captured (legacy)"
     : evidence.coverage.status;
@@ -186,6 +187,8 @@ export function EvidenceCatalog({
   selectedResolution: string;
 }) {
   const returnTo = incidentReturnHash(window.location.hash);
+  const [showTargets, setShowTargets] = useState(false);
+  const targetSelected = Boolean(safeRoute(window.location.hash).selection?.locatorKey);
   const selectedHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     // Focus a persistent heading so loading and failures are visible too. A small
@@ -235,6 +238,7 @@ export function EvidenceCatalog({
                   returnTo,
                   selectedResolution,
                   e.id,
+                  { ...safeRoute(window.location.hash).selection, locatorKind: undefined, locatorKey: undefined },
                 )}
               >
                 {e.source_key}
@@ -256,6 +260,8 @@ export function EvidenceCatalog({
             evidenceId={selectedEvidence}
             record={run.evidence.find((row) => row.id === selectedEvidence)}
           />
+          <button type="button" onClick={() => setShowTargets(!showTargets)} aria-expanded={showTargets || targetSelected}>Inspect stable citation targets</button>
+          {(showTargets || targetSelected) && <CitationTarget key={`citation:${run.id}:${selectedEvidence}`} incidentId={incidentId} runId={run.id} evidenceId={selectedEvidence} />}
         </section>
       )}
     </article>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { components } from "@/lib/api/generated/schema";
 import type * as ApiClient from "@/lib/api/client";
 import { EvidenceCatalog } from "./EvidenceCatalog";
+import { buildIncidentHash, safeRoute } from "@/app/routes";
 
 const http = vi.hoisted(() => ({ fetch: vi.fn<typeof fetch>() }));
 vi.mock("@/lib/api/client", async (original) => {
@@ -91,6 +92,7 @@ afterEach(() => {
   cleanup();
   clients.splice(0).forEach((client) => client.clear());
   http.fetch.mockReset();
+  window.history.replaceState(null, "", "/");
 });
 
 it("links to exact historical evidence without fetching content until selected", () => {
@@ -101,6 +103,28 @@ it("links to exact historical evidence without fetching content until selected",
       .getAttribute("href"),
   ).toBe(`#/incidents/${incident}?run=${runId}&evidence=${evidenceId}`);
   expect(http.fetch).not.toHaveBeenCalled();
+});
+
+it("retains the comparison return context when selecting a different source", () => {
+  window.location.hash = buildIncidentHash(incident, runId, "#/queue", "", evidenceId, {
+    leftIncident: incident,
+    leftRun: runId,
+    rightIncident: incident,
+    rightRun: "00000000-0000-4000-8000-000000000099",
+    source: "kubernetes.state",
+    catalog: "standard_v1",
+    changedOnly: true,
+    locatorKind: "field",
+    locatorKey: `v1_${"a".repeat(64)}`,
+  });
+  mount();
+  const route = safeRoute(screen.getByRole("link", { name: "development_fixture" }).getAttribute("href")!);
+  expect(route.page).toBe("incidents");
+  expect(route.evidence).toBe(evidenceId);
+  expect(route.selection?.rightRun).toBe("00000000-0000-4000-8000-000000000099");
+  expect(route.selection?.source).toBe("kubernetes.state");
+  expect(route.selection?.changedOnly).toBe(true);
+  expect(route.selection?.locatorKey).toBeUndefined();
 });
 
 it("identifies historical evidence with uncaptured source coverage as legacy", async () => {

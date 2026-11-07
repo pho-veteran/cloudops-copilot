@@ -8,6 +8,8 @@ Active scope and feature acceptance live in the [system tracker](https://github.
 
 The optional [workload observer](docs/workload-observation.md) adds persisted UID-owned Kubernetes rollout health, freshness, Pod/restart context and exact related incidents. [Versioned healthy baselines](docs/workload-baselines.md) retain two fresh observations and feed an exact, read-only recovery context. [Integrated local verification](docs/e02-local-acceptance.md) keeps API receipts and the trusted-browser gate explicit. Application traffic health and restore execution remain unavailable.
 
+[Stored Run comparison and citations](docs/investigation-comparison.md) add explicit two-Run selection, source/coverage differences and exact historical evidence targets. Both application roles can inspect/export comparisons; provider collection and AI findings retain their owning feature boundaries.
+
 ## Quick start
 
 Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.

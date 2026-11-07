@@ -13,6 +13,8 @@ from cloudops.features.health.schemas import HealthView
 from cloudops.features.incidents.intake_schemas import AlertReceiptPage
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
 from cloudops.features.investigations.schemas import EvidenceContent, EvidenceView, RunPage, RunView
+from cloudops.features.investigations.citation_schemas import CitationResolution, CitationTargets
+from cloudops.features.investigations.comparison_schemas import RunComparison
 from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
 from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
 from intake_fixtures import envelope
@@ -229,7 +231,34 @@ def receipts_check(response, context, actor):
     assert page.items == [] and page.next_cursor is None
 
 
+def compare_request(context):
+    return {
+        **run_request(context),
+        "params": {"right_incident_id": context.incident_id, "right_run_id": context.run_id},
+    }
+
+
+def compare_check(response, context, actor):
+    result = validated(RunComparison, response)
+    assert str(result.left.run_id) == str(result.right.run_id) == context.run_id
+    assert result.identity_relation == "same_identity"
+
+
+def citation_check(response, context, actor):
+    result = validated(CitationResolution, response)
+    assert str(result.citation.evidence_id) == context.evidence_id
+
+
+def targets_check(response, context, actor):
+    result = validated(CitationTargets, response)
+    assert str(result.evidence.id) == context.evidence_id
+    assert result.items
+
+
 CASES = {
+    "compare_runs": RequestCase(compare_request, compare_check),
+    "resolve_citation": RequestCase(evidence_request, citation_check),
+    "list_citation_targets": RequestCase(evidence_request, targets_check),
     "get_session": RequestCase(session_request, session_check),
     "list_workloads": RequestCase(session_request, workload_check),
     "list_workload_scope": RequestCase(session_request, scope_check),

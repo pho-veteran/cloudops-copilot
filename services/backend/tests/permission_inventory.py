@@ -14,6 +14,19 @@ class Operation:
 
 
 OPERATIONS = {
+    "compare_runs": Operation(
+        "GET", "/api/incidents/{incident_id}/runs/{run_id}/compare", "protected_read"
+    ),
+    "resolve_citation": Operation(
+        "GET",
+        "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/citation",
+        "protected_read",
+    ),
+    "list_citation_targets": Operation(
+        "GET",
+        "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/citation-targets",
+        "protected_read",
+    ),
     "login": Operation("POST", "/api/login", "account_entry"),
     "get_session": Operation("GET", "/api/session", "protected_read"),
     "logout": Operation("POST", "/api/logout", "session_self_service"),

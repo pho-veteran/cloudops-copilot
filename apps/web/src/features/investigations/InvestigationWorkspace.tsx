@@ -27,6 +27,7 @@ import { RecoveryPlans } from "@/features/recovery/RecoveryPlans";
 import { WorkloadIdentity } from "@/features/workloads/WorkloadIdentity";
 import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { EvidenceCatalog } from "./EvidenceCatalog";
+import { RunComparison } from "./RunComparison";
 import { CancelRun, CollectionProgress } from "./RunProgress";
 
 function RequestInvestigation({
@@ -342,6 +343,7 @@ export function InvestigationWorkspace({
                 selectedEvidence={selectedEvidence}
                 selectedResolution={selectedResolution}
               />
+              <RunComparison key={`${runId}:${JSON.stringify(safeRoute(window.location.hash).selection)}`} incidentId={id} runId={current.data.id} />
               <article className="foundation-panel">
                 <h2>Collection attempts</h2>
                 <p className="muted">

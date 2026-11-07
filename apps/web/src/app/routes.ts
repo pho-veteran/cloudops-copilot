@@ -134,18 +134,50 @@ export function incidentReturnHash(hash: string): string {
   return target ? queueReturnHash(target) : "#/queue";
 }
 
-export function buildIncidentHash(id: string, run = "", returnTo = "#/queue", resolution = "", evidence = ""): string {
+export interface EvidenceSelection {
+  leftIncident?: string;
+  leftRun?: string;
+  rightIncident?: string;
+  rightRun?: string;
+  changedOnly?: boolean;
+  differenceStatus?: string;
+  source?: string;
+  catalog?: string;
+  locatorKind?: string;
+  locatorKey?: string;
+}
+
+const extraParams = {
+  leftIncident: "compare_left_incident", leftRun: "compare_left_run",
+  rightIncident: "compare_incident", rightRun: "compare_run",
+  source: "compare_source", catalog: "compare_catalog",
+  locatorKind: "locator_kind", locatorKey: "locator_key",
+  differenceStatus: "compare_status",
+} as const;
+
+export function buildIncidentHash(id: string, run = "", returnTo = "#/queue", resolution = "", evidence = "", selection: EvidenceSelection = {}): string {
   const query = new URLSearchParams();
   if (run) query.set("run", run);
   if (evidence && run) query.set("evidence", evidence);
   if (resolution) query.set("resolution", resolution);
+  for (const [field, key] of Object.entries(extraParams)) {
+    if ((field === "locatorKind" || field === "locatorKey") && (!run || !evidence)) continue;
+    const value = selection[field as keyof typeof extraParams];
+    if (value) query.set(key, value);
+  }
+  if (selection.changedOnly) query.set("compare_filter", "changed");
   const target = queueReturnHash(returnTo);
   if (target !== "#/queue") query.set("return_to", target);
   const suffix = query.toString();
   return `#/incidents/${id}${suffix ? `?${suffix}` : ""}`;
 }
 
-export function safeRoute(hash: string) {
+interface SafeRoute {
+  page: string; id: string; run: string; evidence: string; resolution: string; baseline: string;
+  selection?: EvidenceSelection;
+}
+
+export function safeRoute(hash: string): SafeRoute {
   const fallback = { page: "queue", id: "", run: "", evidence: "", resolution: "", baseline: "" };
   if (/^#\/queue(?:\?[^#]*)?$/.test(hash)) return { ...fallback, page: "queue" };
   const match = /^#\/(workloads|connections|reports)$/.exec(hash);
@@ -158,19 +190,37 @@ export function safeRoute(hash: string) {
   const run = incidentParams.get("run") || "";
   const evidence = incidentParams.get("evidence") || "";
   const resolution = incidentParams.get("resolution") || "";
+  const selection: EvidenceSelection = {};
+  for (const [field, key] of Object.entries(extraParams)) {
+    const value = incidentParams.get(key);
+    if (value) selection[field as keyof typeof extraParams] = value;
+  }
+  const hasCompare = Boolean(selection.rightIncident || selection.rightRun || selection.leftIncident || selection.leftRun);
+  const validCompare = !hasCompare || Boolean(
+    selection.rightIncident && uuid.test(selection.rightIncident) && selection.rightRun && uuid.test(selection.rightRun) &&
+    (!selection.leftIncident || uuid.test(selection.leftIncident)) && (!selection.leftRun || uuid.test(selection.leftRun)) &&
+    Boolean(selection.leftIncident) === Boolean(selection.leftRun) && run,
+  );
+  const validSource = !selection.source && !selection.catalog || Boolean(hasCompare && selection.source && selection.catalog && /^[a-zA-Z0-9_.-]{1,64}$/.test(selection.source) && /^[a-zA-Z0-9_.-]{1,32}$/.test(selection.catalog));
+  const validLocator = !selection.locatorKind && !selection.locatorKey || Boolean(evidence && selection.locatorKey && /^v1_[a-f0-9]{64}$/.test(selection.locatorKey) && ["field", "event", "log_segment", "series", "sample"].includes(selection.locatorKind || ""));
+  const filter = incidentParams.get("compare_filter");
+  const validStatus = !selection.differenceStatus || hasCompare && ["added", "removed", "changed", "unchanged", "unavailable", "not_comparable"].includes(selection.differenceStatus);
+  if (filter === "changed") selection.changedOnly = true;
+  const allowed = ["run", "evidence", "resolution", "return_to", "compare_filter", ...Object.values(extraParams)];
   if (
     incident &&
     uuid.test(incident[1]) &&
     (!run || uuid.test(run)) &&
     (!evidence || (uuid.test(evidence) && Boolean(run))) &&
     (!resolution || uuid.test(resolution)) &&
-    [...incidentParams.keys()].every((key) => key === "run" || key === "evidence" || key === "resolution" || key === "return_to") &&
+    validCompare && validSource && validLocator && validStatus && (!filter || hasCompare && filter === "changed") &&
+    [...incidentParams.keys()].every((key) => allowed.includes(key) && incidentParams.getAll(key).length <= 1) &&
     incidentParams.getAll("run").length <= 1 &&
     incidentParams.getAll("evidence").length <= 1 &&
     incidentParams.getAll("resolution").length <= 1 &&
     incidentParams.getAll("return_to").length <= 1
   )
-    return { ...fallback, page: "incidents", id: incident[1], run, evidence, resolution };
+    return { ...fallback, page: "incidents", id: incident[1], run, evidence, resolution, ...(Object.keys(selection).length ? { selection } : {}) };
   return fallback;
 }
 
@@ -178,7 +228,7 @@ export function readRoute() {
   const route = safeRoute(window.location.hash);
   const canonical =
     route.page === "incidents"
-      ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash), route.resolution, route.evidence)
+      ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash), route.resolution, route.evidence, route.selection)
       : route.page === "queue"
         ? buildWorkQueueHash(parseWorkQueueHash(window.location.hash))
         : `#/${route.page}${route.page === "workloads" && route.id ? `?workload=${route.id}${route.baseline ? `&baseline=${route.baseline}` : ""}` : ""}`;

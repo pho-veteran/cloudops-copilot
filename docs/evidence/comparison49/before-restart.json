@@ -1,0 +1,96 @@
+{
+  "proof_class": "Actual local HTTP reads of pre-existing stored records; producer provenance remains that of the lab fixtures.",
+  "role": "viewer",
+  "incident_id": "ce43d389-0549-4e6a-8006-9ce7baa87ad2",
+  "left_run": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+  "right_run": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+  "source_payload_hashes": {
+    "cf4ea63a-4979-4cb1-a9b9-430194588a36": "075cd06fafad6600c3d0735e665624993fa5692a8c39c0a55166490468f8d7d9",
+    "410f0c9c-cd9e-4b76-bd2f-0363485d1003": "075cd06fafad6600c3d0735e665624993fa5692a8c39c0a55166490468f8d7d9",
+    "8691bdb1-e3ee-43c8-886f-f63ed0438bd7": "59deac53c780914c368823bc41852edb0f03fe3bac2ce33bfbc93f0a1f572c53",
+    "b65175d2-3803-4af5-90c5-095ad2ae5094": "30ccea042ceb9fa663c2bdee7b2c2b68ee8d1409e9a0da36219d047665429c28",
+    "f08dcff7-5f05-48ab-9557-4f60a1196d98": "3a04b4a6a15013104c01319c2813340f583e1cfbe8db4448e9466cd9078b65f3",
+    "927e15f2-e316-4240-9fea-2521cefc6735": "2b39dd6a8910891546bfd786efe3ef429b8954ca9dfcfcd0b3315c00f8df985c",
+    "b784bf5b-94b2-48db-9f17-cd58712b6fe4": "a51e5846fa1edff927c1f7aff8e953ef4610cb578cb5bf395fc5bc5dd89b4d86",
+    "429879f4-be56-4fcf-9b53-508f9b589ab9": "cb7f5dc76dc8e77bee34f3ebc0c8fc51974d2dff4127f351bf97744c8a232524",
+    "15c70cac-eb4c-4eae-9552-0b2d8b7c6a7b": "e9dbee173628bcbabf5358b4ed106f4486f2405fd0708c8ce088fd3dd0f5c361",
+    "f8b56bae-b69d-4f5f-9730-fd91c823e038": "5ae456f6152b94cda1998448342b98712446953c1d65b39a3ad4aa4e359142a1"
+  },
+  "saved_report_sha256": "83a47f386e87140a210f253cc17c2ca793395a500f974105c3a2c830e2f0d1f8",
+  "wrong_scope_status": 404,
+  "maximum_comparison_response_bytes": 27527,
+  "source_checks": [
+    {
+      "source_key": "development_fixture",
+      "status": "unchanged",
+      "page_rows": 3,
+      "has_more": false
+    },
+    {
+      "source_key": "kubernetes.configmap.metadata",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    },
+    {
+      "source_key": "kubernetes.events",
+      "status": "changed",
+      "page_rows": 1,
+      "has_more": false
+    },
+    {
+      "source_key": "kubernetes.logs.current",
+      "status": "changed",
+      "page_rows": 2,
+      "has_more": false
+    },
+    {
+      "source_key": "kubernetes.logs.previous",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    },
+    {
+      "source_key": "kubernetes.state",
+      "status": "changed",
+      "page_rows": 8,
+      "has_more": false
+    },
+    {
+      "source_key": "prometheus.error_ratio",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    },
+    {
+      "source_key": "prometheus.memory_limit",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    },
+    {
+      "source_key": "prometheus.memory_working_set",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    },
+    {
+      "source_key": "prometheus.p95_latency",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    },
+    {
+      "source_key": "prometheus.request_rate",
+      "status": "changed",
+      "page_rows": 3,
+      "has_more": false
+    },
+    {
+      "source_key": "prometheus.restarts",
+      "status": "unavailable",
+      "page_rows": 0,
+      "has_more": false
+    }
+  ]
+}

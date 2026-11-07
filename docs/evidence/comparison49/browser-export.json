@@ -1,0 +1,981 @@
+{
+  "schema_version": "Compare/v1",
+  "algorithm": "semantic_v1",
+  "left": {
+    "incident_id": "ce43d389-0549-4e6a-8006-9ce7baa87ad2",
+    "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+    "workload_id": "863b0ec7-1f17-461e-a824-03e4579ab679",
+    "workload_uid": "development-checkout-v1",
+    "cluster": "development",
+    "namespace": "demo",
+    "name": "checkout",
+    "state": "insufficient_evidence",
+    "window": {
+      "start": "2026-11-06T14:41:06.808671Z",
+      "end": "2026-11-06T14:56:06.808671Z",
+      "source": "explicit"
+    },
+    "question": "Compare retained observations without claiming live RCA.",
+    "question_source": "operator",
+    "outcome_code": "analysis_unavailable",
+    "created_at": "2026-11-06T14:57:06.828232Z",
+    "finished_at": "2026-11-06T14:57:06.955551Z"
+  },
+  "right": {
+    "incident_id": "ce43d389-0549-4e6a-8006-9ce7baa87ad2",
+    "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+    "workload_id": "863b0ec7-1f17-461e-a824-03e4579ab679",
+    "workload_uid": "development-checkout-v1",
+    "cluster": "development",
+    "namespace": "demo",
+    "name": "checkout",
+    "state": "insufficient_evidence",
+    "window": {
+      "start": "2026-11-06T14:41:06.808671Z",
+      "end": "2026-11-06T14:56:06.808671Z",
+      "source": "explicit"
+    },
+    "question": "Second persisted contract fixture",
+    "question_source": "operator",
+    "outcome_code": "analysis_unavailable",
+    "created_at": "2026-11-06T14:57:06.986421Z",
+    "finished_at": "2026-11-06T14:57:07.061499Z"
+  },
+  "identity_relation": "same_identity",
+  "sources": [
+    {
+      "source_key": "development_fixture",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "cf4ea63a-4979-4cb1-a9b9-430194588a36",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "development_fixture",
+        "source_kind": "fixture",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "fixture",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:57:06.926118Z",
+        "collected_at": "2026-11-06T14:57:06.926118Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "current_observation",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "075cd06fafad6600c3d0735e665624993fa5692a8c39c0a55166490468f8d7d9",
+        "redaction_policy_version": "v1",
+        "payload_ref": "cf4ea63a-4979-4cb1-a9b9-430194588a36",
+        "expires_at": "2026-12-06T14:57:06.926118Z",
+        "pinned": true,
+        "content_status": "available"
+      },
+      "right": {
+        "id": "410f0c9c-cd9e-4b76-bd2f-0363485d1003",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "development_fixture",
+        "source_kind": "fixture",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "fixture",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:57:07.038748Z",
+        "collected_at": "2026-11-06T14:57:07.038748Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "current_observation",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "075cd06fafad6600c3d0735e665624993fa5692a8c39c0a55166490468f8d7d9",
+        "redaction_policy_version": "v1",
+        "payload_ref": "410f0c9c-cd9e-4b76-bd2f-0363485d1003",
+        "expires_at": "2026-12-06T14:57:07.038748Z",
+        "pinned": true,
+        "content_status": "available"
+      },
+      "status": "unchanged",
+      "reason": null
+    },
+    {
+      "source_key": "kubernetes.configmap.metadata",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "20a6b399-b41f-4e22-be4e-5825f6419eb7",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.configmap.metadata",
+        "source_kind": "state",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "state",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926044Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "3355a774-ce21-4492-a4e4-01b827dfa86b",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.configmap.metadata",
+        "source_kind": "state",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "state",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038698Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    },
+    {
+      "source_key": "kubernetes.events",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "8691bdb1-e3ee-43c8-886f-f63ed0438bd7",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.events",
+        "source_kind": "events",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "events",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:06.925985Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "59deac53c780914c368823bc41852edb0f03fe3bac2ce33bfbc93f0a1f572c53",
+        "redaction_policy_version": "v1",
+        "payload_ref": "8691bdb1-e3ee-43c8-886f-f63ed0438bd7",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "right": {
+        "id": "b65175d2-3803-4af5-90c5-095ad2ae5094",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.events",
+        "source_kind": "events",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "events",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:07.038674Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "30ccea042ceb9fa663c2bdee7b2c2b68ee8d1409e9a0da36219d047665429c28",
+        "redaction_policy_version": "v1",
+        "payload_ref": "b65175d2-3803-4af5-90c5-095ad2ae5094",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "status": "changed",
+      "reason": null
+    },
+    {
+      "source_key": "kubernetes.logs.current",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "f08dcff7-5f05-48ab-9557-4f60a1196d98",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.logs.current",
+        "source_kind": "logs",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "logs",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:06.926024Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "3a04b4a6a15013104c01319c2813340f583e1cfbe8db4448e9466cd9078b65f3",
+        "redaction_policy_version": "v1",
+        "payload_ref": "f08dcff7-5f05-48ab-9557-4f60a1196d98",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "right": {
+        "id": "927e15f2-e316-4240-9fea-2521cefc6735",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.logs.current",
+        "source_kind": "logs",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "logs",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:07.038684Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "2b39dd6a8910891546bfd786efe3ef429b8954ca9dfcfcd0b3315c00f8df985c",
+        "redaction_policy_version": "v1",
+        "payload_ref": "927e15f2-e316-4240-9fea-2521cefc6735",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "status": "changed",
+      "reason": null
+    },
+    {
+      "source_key": "kubernetes.logs.previous",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "e8cc171e-72fe-45ec-b25f-71cb83e6b4ae",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.logs.previous",
+        "source_kind": "logs",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "logs",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926035Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "63ff28a1-de83-41db-afcb-62294ead7604",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.logs.previous",
+        "source_kind": "logs",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "logs",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038691Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    },
+    {
+      "source_key": "kubernetes.state",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "b784bf5b-94b2-48db-9f17-cd58712b6fe4",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.state",
+        "source_kind": "state",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "state",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:06.925930Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "a51e5846fa1edff927c1f7aff8e953ef4610cb578cb5bf395fc5bc5dd89b4d86",
+        "redaction_policy_version": "v1",
+        "payload_ref": "b784bf5b-94b2-48db-9f17-cd58712b6fe4",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "right": {
+        "id": "429879f4-be56-4fcf-9b53-508f9b589ab9",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "kubernetes.state",
+        "source_kind": "state",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "state",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:07.038645Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": null,
+        "sha256": "cb7f5dc76dc8e77bee34f3ebc0c8fc51974d2dff4127f351bf97744c8a232524",
+        "redaction_policy_version": "v1",
+        "payload_ref": "429879f4-be56-4fcf-9b53-508f9b589ab9",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "status": "changed",
+      "reason": null
+    },
+    {
+      "source_key": "prometheus.error_ratio",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "948fc535-4e4f-42a5-bc04-9e31bce3c24b",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.error_ratio",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926062Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "289ccc98-e102-45aa-b1f4-950b6e73672b",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.error_ratio",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038711Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    },
+    {
+      "source_key": "prometheus.memory_limit",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "2524772b-c22c-4148-be58-5a3de63be88a",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.memory_limit",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926089Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "b45e08de-7dbc-4543-aa71-bd92096d07af",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.memory_limit",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038730Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    },
+    {
+      "source_key": "prometheus.memory_working_set",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "6c50ca32-8d9b-4526-a9c2-40157abf9018",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.memory_working_set",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926077Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "70edd2d0-97cb-4de9-9201-189f79a2af67",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.memory_working_set",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038724Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    },
+    {
+      "source_key": "prometheus.p95_latency",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "e97213e8-3571-4fe7-a8af-2f085aec3b51",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.p95_latency",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926069Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "d7a7c298-2676-426f-b777-121387a44f8e",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.p95_latency",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038717Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    },
+    {
+      "source_key": "prometheus.request_rate",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "15c70cac-eb4c-4eae-9552-0b2d8b7c6a7b",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.request_rate",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:06.926053Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": {
+          "step": 30,
+          "unit": "requests/second",
+          "window": {
+            "end": "2026-11-06T14:56:06.808671+00:00",
+            "start": "2026-11-06T14:41:06.808671+00:00"
+          },
+          "query_id": "request_rate",
+          "query_version": "fixture_v1",
+          "source_identity": {
+            "endpoint_id": "persisted-contract-fixture"
+          }
+        },
+        "sha256": "e9dbee173628bcbabf5358b4ed106f4486f2405fd0708c8ce088fd3dd0f5c361",
+        "redaction_policy_version": "v1",
+        "payload_ref": "15c70cac-eb4c-4eae-9552-0b2d8b7c6a7b",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "right": {
+        "id": "f8b56bae-b69d-4f5f-9730-fd91c823e038",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.request_rate",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": "2026-11-06T14:56:06.808671Z",
+        "collected_at": "2026-11-06T14:57:07.038705Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "available",
+          "reason_codes": []
+        },
+        "query_metadata": {
+          "step": 30,
+          "unit": "requests/second",
+          "window": {
+            "end": "2026-11-06T14:56:06.808671+00:00",
+            "start": "2026-11-06T14:41:06.808671+00:00"
+          },
+          "query_id": "request_rate",
+          "query_version": "fixture_v1",
+          "source_identity": {
+            "endpoint_id": "persisted-contract-fixture"
+          }
+        },
+        "sha256": "5ae456f6152b94cda1998448342b98712446953c1d65b39a3ad4aa4e359142a1",
+        "redaction_policy_version": "v1",
+        "payload_ref": "f8b56bae-b69d-4f5f-9730-fd91c823e038",
+        "expires_at": null,
+        "pinned": true,
+        "content_status": "available"
+      },
+      "status": "changed",
+      "reason": null
+    },
+    {
+      "source_key": "prometheus.restarts",
+      "catalog_version": "standard_v1",
+      "left": {
+        "id": "28af6ec9-bf3a-496c-bd19-a285849b466b",
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.restarts",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:06.926099Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "right": {
+        "id": "c5e6164d-54a3-4d10-a5b5-ffeedee35f6a",
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "workload_uid": "development-checkout-v1",
+        "source_key": "prometheus.restarts",
+        "source_kind": "series",
+        "catalog_version": "standard_v1",
+        "schema_version": 2,
+        "payload_kind": "series",
+        "payload_version": 1,
+        "observed_at": null,
+        "collected_at": "2026-11-06T14:57:07.038736Z",
+        "requested_window": {
+          "start": "2026-11-06T14:41:06.808671Z",
+          "end": "2026-11-06T14:56:06.808671Z",
+          "source": "explicit"
+        },
+        "time_relation": "not_captured",
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "source_not_configured"
+          ]
+        },
+        "query_metadata": null,
+        "sha256": null,
+        "redaction_policy_version": "v1",
+        "payload_ref": null,
+        "expires_at": null,
+        "pinned": false,
+        "content_status": "unavailable"
+      },
+      "status": "unavailable",
+      "reason": "content_unavailable_or_expired"
+    }
+  ],
+  "items": [
+    {
+      "key": "v1_05d1f0046edeb052375e38d7b17f4b97ec518aa3642c28f5f900a3aac2adcbdd",
+      "kind": "field",
+      "label": "deployment/replicas",
+      "status": "changed",
+      "reason": null,
+      "left": 1,
+      "right": 2,
+      "left_citation": {
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "evidence_id": "b784bf5b-94b2-48db-9f17-cd58712b6fe4",
+        "locator": {
+          "kind": "field",
+          "key": "v1_05d1f0046edeb052375e38d7b17f4b97ec518aa3642c28f5f900a3aac2adcbdd"
+        }
+      },
+      "right_citation": {
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "evidence_id": "429879f4-be56-4fcf-9b53-508f9b589ab9",
+        "locator": {
+          "kind": "field",
+          "key": "v1_05d1f0046edeb052375e38d7b17f4b97ec518aa3642c28f5f900a3aac2adcbdd"
+        }
+      },
+      "preview_truncated": false,
+      "left_occurrences": 1,
+      "right_occurrences": 1
+    },
+    {
+      "key": "v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109",
+      "kind": "field",
+      "label": "deployment/revision",
+      "status": "changed",
+      "reason": null,
+      "left": "1",
+      "right": "2",
+      "left_citation": {
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "evidence_id": "b784bf5b-94b2-48db-9f17-cd58712b6fe4",
+        "locator": {
+          "kind": "field",
+          "key": "v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109"
+        }
+      },
+      "right_citation": {
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "evidence_id": "429879f4-be56-4fcf-9b53-508f9b589ab9",
+        "locator": {
+          "kind": "field",
+          "key": "v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109"
+        }
+      },
+      "preview_truncated": false,
+      "left_occurrences": 1,
+      "right_occurrences": 1
+    },
+    {
+      "key": "v1_885ae2861efc6765749dc382373bb9ab4b8d43fcf87846958e645505c10e3e35",
+      "kind": "field",
+      "label": "pods/[\"uid\",\"fixture-pod\"]/containers/[\"container\",\"app\"]/restart_count",
+      "status": "changed",
+      "reason": null,
+      "left": 0,
+      "right": 1,
+      "left_citation": {
+        "run_id": "c935cc19-82ce-4be1-ae2b-92240f2fc58c",
+        "evidence_id": "b784bf5b-94b2-48db-9f17-cd58712b6fe4",
+        "locator": {
+          "kind": "field",
+          "key": "v1_885ae2861efc6765749dc382373bb9ab4b8d43fcf87846958e645505c10e3e35"
+        }
+      },
+      "right_citation": {
+        "run_id": "990df31f-48bb-49d4-bee2-d41dbf4a4f2d",
+        "evidence_id": "429879f4-be56-4fcf-9b53-508f9b589ab9",
+        "locator": {
+          "kind": "field",
+          "key": "v1_885ae2861efc6765749dc382373bb9ab4b8d43fcf87846958e645505c10e3e35"
+        }
+      },
+      "preview_truncated": false,
+      "left_occurrences": 1,
+      "right_occurrences": 1
+    }
+  ],
+  "next_cursor": null,
+  "reason": null,
+  "status": "comparable",
+  "export_scope": "Currently loaded source/page; next_cursor indicates remaining rows."
+}

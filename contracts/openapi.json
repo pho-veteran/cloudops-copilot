@@ -766,6 +766,148 @@
         "title": "CheckView",
         "type": "object"
       },
+      "CitationRef": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "format": "uuid",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Locator"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "evidence_id"
+        ],
+        "title": "CitationRef",
+        "type": "object"
+      },
+      "CitationResolution": {
+        "properties": {
+          "algorithm": {
+            "const": "locator_v1",
+            "default": "locator_v1",
+            "title": "Algorithm",
+            "type": "string"
+          },
+          "citation": {
+            "$ref": "#/components/schemas/CitationRef"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidenceView"
+          },
+          "schema_version": {
+            "const": "CitationResolution/v1",
+            "default": "CitationResolution/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CitationTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "citation",
+          "evidence"
+        ],
+        "title": "CitationResolution",
+        "type": "object"
+      },
+      "CitationTarget": {
+        "properties": {
+          "ambiguous": {
+            "default": false,
+            "title": "Ambiguous",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "locator": {
+            "$ref": "#/components/schemas/Locator"
+          },
+          "multiplicity": {
+            "default": 1,
+            "title": "Multiplicity",
+            "type": "integer"
+          },
+          "preview_truncated": {
+            "default": false,
+            "title": "Preview Truncated",
+            "type": "boolean"
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "locator",
+          "label",
+          "value"
+        ],
+        "title": "CitationTarget",
+        "type": "object"
+      },
+      "CitationTargets": {
+        "properties": {
+          "algorithm": {
+            "const": "locator_v1",
+            "default": "locator_v1",
+            "title": "Algorithm",
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidenceView"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CitationTarget"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "evidence",
+          "items"
+        ],
+        "title": "CitationTargets",
+        "type": "object"
+      },
       "Comparison": {
         "additionalProperties": false,
         "properties": {
@@ -878,6 +1020,119 @@
           }
         },
         "title": "Comparison",
+        "type": "object"
+      },
+      "ComparisonSide": {
+        "properties": {
+          "cluster": {
+            "title": "Cluster",
+            "type": "string"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "namespace": {
+            "title": "Namespace",
+            "type": "string"
+          },
+          "outcome_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Code"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "question_source": {
+            "default": "not_captured",
+            "title": "Question Source",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          },
+          "workload_uid": {
+            "title": "Workload Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "run_id",
+          "workload_id",
+          "workload_uid",
+          "cluster",
+          "namespace",
+          "name",
+          "state",
+          "window"
+        ],
+        "title": "ComparisonSide",
         "type": "object"
       },
       "ConfigReference": {
@@ -2118,6 +2373,35 @@
         "title": "IntakeResult",
         "type": "object"
       },
+      "JsonValue": {},
+      "Locator": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "maxLength": 67,
+            "pattern": "^v1_[a-f0-9]{64}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "field",
+              "event",
+              "log_segment",
+              "series",
+              "sample"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "key"
+        ],
+        "title": "Locator",
+        "type": "object"
+      },
       "LoginRequest": {
         "properties": {
           "password": {
@@ -3301,6 +3585,90 @@
         "title": "ReviewedPlan",
         "type": "object"
       },
+      "RunComparison": {
+        "properties": {
+          "algorithm": {
+            "const": "semantic_v1",
+            "default": "semantic_v1",
+            "title": "Algorithm",
+            "type": "string"
+          },
+          "identity_relation": {
+            "enum": [
+              "same_identity",
+              "replacement"
+            ],
+            "title": "Identity Relation",
+            "type": "string"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SemanticDifference"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "left": {
+            "$ref": "#/components/schemas/ComparisonSide"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "right": {
+            "$ref": "#/components/schemas/ComparisonSide"
+          },
+          "schema_version": {
+            "const": "Compare/v1",
+            "default": "Compare/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceDifference"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "default": "comparable",
+            "enum": [
+              "comparable",
+              "not_comparable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "left",
+          "right",
+          "identity_relation",
+          "sources"
+        ],
+        "title": "RunComparison",
+        "type": "object"
+      },
       "RunPage": {
         "properties": {
           "items": {
@@ -3754,6 +4122,106 @@
         "title": "ScopeTargetView",
         "type": "object"
       },
+      "SemanticDifference": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "left": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "left_citation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CitationRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "left_occurrences": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Left Occurrences"
+          },
+          "preview_truncated": {
+            "default": false,
+            "title": "Preview Truncated",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "right": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "right_citation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CitationRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "right_occurrences": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Right Occurrences"
+          },
+          "status": {
+            "enum": [
+              "added",
+              "removed",
+              "changed",
+              "unchanged",
+              "unavailable",
+              "not_comparable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "label",
+          "status"
+        ],
+        "title": "SemanticDifference",
+        "type": "object"
+      },
       "SessionView": {
         "properties": {
           "csrf_token": {
@@ -3805,6 +4273,70 @@
           "provenance"
         ],
         "title": "SeverityView",
+        "type": "object"
+      },
+      "SourceDifference": {
+        "properties": {
+          "catalog_version": {
+            "title": "Catalog Version",
+            "type": "string"
+          },
+          "left": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "right": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "added",
+              "removed",
+              "changed",
+              "unchanged",
+              "unavailable",
+              "not_comparable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "catalog_version",
+          "left",
+          "right",
+          "status"
+        ],
+        "title": "SourceDifference",
         "type": "object"
       },
       "TransitionBody": {
@@ -6863,6 +7395,253 @@
         ]
       }
     },
+    "/api/incidents/{incident_id}/runs/{run_id}/compare": {
+      "get": {
+        "operationId": "compare_runs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "right_incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Right Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "right_run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Right Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "pattern": "^[a-zA-Z0-9_.-]+$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Key"
+            }
+          },
+          {
+            "in": "query",
+            "name": "catalog_version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "pattern": "^[a-zA-Z0-9_.-]+$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Catalog Version"
+            }
+          },
+          {
+            "in": "query",
+            "name": "changed_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Changed Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "difference_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "added",
+                    "removed",
+                    "changed",
+                    "unchanged",
+                    "unavailable",
+                    "not_comparable"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Difference Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunComparison"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Compare Runs",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
     "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}": {
       "get": {
         "operationId": "get_evidence",
@@ -6976,6 +7755,375 @@
           }
         ],
         "summary": "Evidence",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/citation": {
+      "get": {
+        "operationId": "resolve_citation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locator_kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "field",
+                    "event",
+                    "log_segment",
+                    "series",
+                    "sample"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Locator Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locator_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 67,
+                  "pattern": "^v1_[a-f0-9]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Locator Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CitationResolution"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Resolve Citation",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/citation-targets": {
+      "get": {
+        "operationId": "list_citation_targets",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "field",
+                    "event",
+                    "log_segment",
+                    "series",
+                    "sample"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CitationTargets"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "List Citation Targets",
         "tags": [
           "investigations"
         ]

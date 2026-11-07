@@ -1,0 +1,52 @@
+{
+  "proof_classes": {
+    "unit": "Stored-shaped contract fixtures, no live provider",
+    "api": "Actual FastAPI/PostgreSQL endpoints and retention/concurrency transactions",
+    "browser": "Actual in-app browser over loopback HTTP with declared persisted contract fixtures",
+    "restart": "Actual owned API and PostgreSQL restart; same ten payload hashes and saved report bytes",
+    "benchmark": "Mechanical ceiling with tracing; no service SLO"
+  },
+  "local_checks": {
+    "windows_regression": {
+      "passed": 924,
+      "skipped": 9,
+      "seconds": 769.27,
+      "note": "Regression pass during implementation; final additions/fixes are covered by focused checks and exact-head CI."
+    },
+    "final_focused_backend": {
+      "passed": 39,
+      "files": [
+        "tests/test_run_comparison.py",
+        "tests_unit/test_citation_projection.py",
+        "tests_unit/test_semantic_comparison.py"
+      ]
+    },
+    "new_operation_permission_checks": {
+      "passed": 12,
+      "deselected": 212
+    },
+    "web": {
+      "passed": 166,
+      "files": 20,
+      "build": "passed"
+    },
+    "ruff": "check and format passed for backend/scripts/krr",
+    "contracts": "generation, no-credential drift check and deliberate drift rejection passed"
+  },
+  "known_test_warning": "Existing Starlette TestClient/httpx deprecation warning; no dependency change in this task.",
+  "linux_only_checks": "Native Linux actor/executor cases passed in the source-head Linux CI; no skipped cases were reported there.",
+  "runtime_tree_sha256": "5ae5e13e72dc00e7fefc67e2f182c5d110350e3ecc03ad77a993b4702e35a5f3",
+  "ci": {
+    "source_commit": "701a3c058919f9897e30ea65d1788788f12c93ba",
+    "run_url": "https://github.com/pho-veteran/cloudops-copilot/actions/runs/42245597674",
+    "conclusion": "success",
+    "backend_passed": 938,
+    "backend_skipped": 0,
+    "web_passed": 166,
+    "web_test_files": 20,
+    "build_ruff_migrations_contracts": "passed",
+    "standard_image_build_and_real_https_session_smoke": "passed",
+    "final_documentation_head": "Consult current required checks on PR #53; this receipt binds the unchanged runtime source commit."
+  },
+  "cleanup": "Completed; see cleanup.json for stopped services and retained fixture data"
+}

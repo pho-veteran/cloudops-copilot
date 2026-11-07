@@ -1,0 +1,11 @@
+{
+  "proof_class": "Mechanical persisted-shape ceiling benchmark; not a live collector, valid exporter cadence or service SLO.",
+  "series_per_side": 25,
+  "samples_per_side": 20000,
+  "payload_bytes_per_side": 159077,
+  "page_rows": 100,
+  "has_more": true,
+  "item_bytes": 68715,
+  "elapsed_seconds_with_tracemalloc": 2.2934,
+  "traced_peak_bytes": 23450838
+}

@@ -300,6 +300,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/runs/{run_id}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare Runs */
+        get: operations["compare_runs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}": {
         parameters: {
             query?: never;
@@ -309,6 +326,40 @@ export interface paths {
         };
         /** Evidence */
         get: operations["get_evidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/citation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve Citation */
+        get: operations["resolve_citation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}/citation-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Citation Targets */
+        get: operations["list_citation_targets"];
         put?: never;
         post?: never;
         delete?: never;
@@ -954,6 +1005,74 @@ export interface components {
              */
             status: "available" | "unavailable" | "stale";
         };
+        /** CitationRef */
+        CitationRef: {
+            /**
+             * Evidence Id
+             * Format: uuid
+             */
+            evidence_id: string;
+            locator?: components["schemas"]["Locator"] | null;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+        };
+        /** CitationResolution */
+        CitationResolution: {
+            /**
+             * Algorithm
+             * @default locator_v1
+             * @constant
+             */
+            algorithm: "locator_v1";
+            citation: components["schemas"]["CitationRef"];
+            evidence: components["schemas"]["EvidenceView"];
+            /**
+             * Schema Version
+             * @default CitationResolution/v1
+             * @constant
+             */
+            schema_version: "CitationResolution/v1";
+            target?: components["schemas"]["CitationTarget"] | null;
+        };
+        /** CitationTarget */
+        CitationTarget: {
+            /**
+             * Ambiguous
+             * @default false
+             */
+            ambiguous: boolean;
+            /** Label */
+            label: string;
+            locator: components["schemas"]["Locator"];
+            /**
+             * Multiplicity
+             * @default 1
+             */
+            multiplicity: number;
+            /**
+             * Preview Truncated
+             * @default false
+             */
+            preview_truncated: boolean;
+            value: components["schemas"]["JsonValue"];
+        };
+        /** CitationTargets */
+        CitationTargets: {
+            /**
+             * Algorithm
+             * @default locator_v1
+             * @constant
+             */
+            algorithm: "locator_v1";
+            evidence: components["schemas"]["EvidenceView"];
+            /** Items */
+            items: components["schemas"]["CitationTarget"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** Comparison */
         Comparison: {
             /** Changes */
@@ -978,6 +1097,48 @@ export interface components {
             to_generation?: number | null;
             /** To Observation Id */
             to_observation_id?: string | null;
+        };
+        /** ComparisonSide */
+        ComparisonSide: {
+            /** Cluster */
+            cluster: string;
+            /** Created At */
+            created_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Incident Id
+             * Format: uuid
+             */
+            incident_id: string;
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Outcome Code */
+            outcome_code?: string | null;
+            /** Question */
+            question?: string | null;
+            /**
+             * Question Source
+             * @default not_captured
+             */
+            question_source: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** State */
+            state: string;
+            window: components["schemas"]["RequestWindow"] | null;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+            /** Workload Uid */
+            workload_uid: string;
         };
         /** ConfigReference */
         ConfigReference: {
@@ -1409,6 +1570,17 @@ export interface components {
              */
             delivery_id: string;
         };
+        JsonValue: unknown;
+        /** Locator */
+        Locator: {
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "field" | "event" | "log_segment" | "series" | "sample";
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Password */
@@ -1831,6 +2003,45 @@ export interface components {
             /** Valid */
             valid: boolean;
         };
+        /** RunComparison */
+        RunComparison: {
+            /**
+             * Algorithm
+             * @default semantic_v1
+             * @constant
+             */
+            algorithm: "semantic_v1";
+            /**
+             * Identity Relation
+             * @enum {string}
+             */
+            identity_relation: "same_identity" | "replacement";
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["SemanticDifference"][];
+            left: components["schemas"]["ComparisonSide"];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /** Reason */
+            reason?: string | null;
+            right: components["schemas"]["ComparisonSide"];
+            /**
+             * Schema Version
+             * @default Compare/v1
+             * @constant
+             */
+            schema_version: "Compare/v1";
+            /** Sources */
+            sources: components["schemas"]["SourceDifference"][];
+            /**
+             * Status
+             * @default comparable
+             * @enum {string}
+             */
+            status: "comparable" | "not_comparable";
+        };
         /** RunPage */
         RunPage: {
             /** Items */
@@ -1969,6 +2180,35 @@ export interface components {
             /** Workload Id */
             workload_id: string | null;
         };
+        /** SemanticDifference */
+        SemanticDifference: {
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            left?: components["schemas"]["JsonValue"];
+            left_citation?: components["schemas"]["CitationRef"] | null;
+            /** Left Occurrences */
+            left_occurrences?: number | null;
+            /**
+             * Preview Truncated
+             * @default false
+             */
+            preview_truncated: boolean;
+            /** Reason */
+            reason?: string | null;
+            right?: components["schemas"]["JsonValue"];
+            right_citation?: components["schemas"]["CitationRef"] | null;
+            /** Right Occurrences */
+            right_occurrences?: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "added" | "removed" | "changed" | "unchanged" | "unavailable" | "not_comparable";
+        };
         /** SessionView */
         SessionView: {
             /** Csrf Token */
@@ -1989,6 +2229,22 @@ export interface components {
             provenance: "not_provided" | "alert_label" | "operator";
             /** Value */
             value: string | null;
+        };
+        /** SourceDifference */
+        SourceDifference: {
+            /** Catalog Version */
+            catalog_version: string;
+            left: components["schemas"]["EvidenceView"] | null;
+            /** Reason */
+            reason?: string | null;
+            right: components["schemas"]["EvidenceView"] | null;
+            /** Source Key */
+            source_key: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "added" | "removed" | "changed" | "unchanged" | "unavailable" | "not_comparable";
         };
         /** TransitionBody */
         TransitionBody: {
@@ -3795,6 +4051,110 @@ export interface operations {
             };
         };
     };
+    compare_runs: {
+        parameters: {
+            query: {
+                right_incident_id: string;
+                right_run_id: string;
+                source_key?: string | null;
+                catalog_version?: string | null;
+                changed_only?: boolean;
+                difference_status?: ("added" | "removed" | "changed" | "unchanged" | "unavailable" | "not_comparable") | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                incident_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunComparison"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gone */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     get_evidence: {
         parameters: {
             query?: never;
@@ -3846,6 +4206,205 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    resolve_citation: {
+        parameters: {
+            query?: {
+                locator_kind?: ("field" | "event" | "log_segment" | "series" | "sample") | null;
+                locator_key?: string | null;
+            };
+            header?: never;
+            path: {
+                incident_id: string;
+                run_id: string;
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CitationResolution"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gone */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_citation_targets: {
+        parameters: {
+            query?: {
+                kind?: ("field" | "event" | "log_segment" | "series" | "sample") | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                incident_id: string;
+                run_id: string;
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CitationTargets"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gone */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };

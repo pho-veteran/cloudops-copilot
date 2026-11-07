@@ -1,0 +1,25 @@
+{
+  "scope": "Only the owned issue49 localhost acceptance environment",
+  "api": {"port": 8049, "stopped": true},
+  "web": {"port": 5149, "stopped": true},
+  "remaining_owned_listeners": 0,
+  "database": {
+    "container": "cloudops-issue49-db",
+    "state": "exited",
+    "image": "postgres:17.11",
+    "image_id": "sha256:748a18a54d3842d43bc156f0840d78029b8d349e0feca98c12b9c4ce3404a6b3",
+    "retained_volume": "614bf5c0d1edf48d2f190f61e5630686d89eba9877d282ab2113695168c8086a",
+    "retained_databases": ["cloudops49_lab", "cloudops49_test", "cloudops49_focus_test"],
+    "reason_retained": "Keep the exact declared fixture IDs and stored history reproducible for review; no volume deletion was performed"
+  },
+  "lab_accounts_retained": ["comparison-operator", "comparison-viewer"],
+  "lab_browser_sessions_revoked": true,
+  "queued_or_running_product_jobs_before_stop": 0,
+  "browser_tabs_closed": true,
+  "viewport_override_reset": true,
+  "theme_restored": "light",
+  "temporary_download_copies_removed": 2,
+  "canonical_browser_export_retained": "docs/evidence/comparison49/browser-export.json",
+  "other_projects_containers_or_volumes_stopped_or_removed": false,
+  "aws_resources_created": false
+}
