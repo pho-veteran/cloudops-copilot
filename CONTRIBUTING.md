@@ -100,3 +100,5 @@ CI runs locked web tests/build, backend PostgreSQL integration tests, migration 
 Explain the problem, resulting behavior, linked scope and checks actually performed. Include UI journey evidence when UI behavior changes, and migration or recovery evidence when persistence changes. Keep evidence free of credentials and sensitive telemetry. Preserve human-authored source text when quoting it.
 
 A merged PR completes its reviewed slice; an EPIC closes only when its integrated acceptance is demonstrated. Record deferred checks and remaining gates in the EPIC. Do not treat fixture tests or a planning review as a live integration pass.
+
+For an explicitly requested review–fix–confirm engagement, invoke the optional project skill [`pr-review-loop`](.agents/skills/pr-review-loop/SKILL.md). It is not enabled by an ordinary PR review request. The skill defines the two-round limit, in-scope acceptance checks and final finding dispositions; it does not grant publication or merge authority.
