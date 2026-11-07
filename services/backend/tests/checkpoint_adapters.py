@@ -56,9 +56,6 @@ def logs(_context, _timeout):
 
 def fixture(context, timeout):
     CALLS["development_fixture"] = CALLS.get("development_fixture", 0) + 1
-    delay = float(os.environ.get("CHECKPOINT_FIXTURE_DELAY", "0"))
-    if delay:
-        time.sleep(delay)
     return collector.development_fixture(context, timeout)
 
 
@@ -70,9 +67,44 @@ ADAPTERS = {
 }
 
 
+def request_rate(_context, _timeout):
+    return _result(
+        "prometheus.request_rate",
+        "series",
+        {"series": [{"samples": [[i, 1] for i in range(12000)]}]},
+    )
+
+
+def error_ratio(_context, _timeout):
+    return _result(
+        "prometheus.error_ratio",
+        "series",
+        {"series": [{"samples": [[i, 2] for i in range(12000)]}]},
+    )
+
+
+# Deliberately reverse canonical order: the shared 20,000-sample budget must not
+# depend on adapter registration or catalog insertion order.
+METRIC_ADAPTERS = {
+    "prometheus.request_rate": request_rate,
+    "prometheus.error_ratio": error_ratio,
+}
+
+
 def install(registry=None, keys=tuple(ADAPTERS)):
     """Register the labeled adapters and return the configured binding for ``keys``."""
     registry = collector.REGISTERED_ADAPTERS if registry is None else registry
-    for key in keys:
-        registry[key] = ADAPTERS[key]
-    return {key: ADAPTERS[key] for key in keys}
+    binding = {key: ADAPTERS[key] for key in keys}
+    delayed_key = os.environ.get("CHECKPOINT_DELAY_SOURCE")
+    delay = float(os.environ.get("CHECKPOINT_FIXTURE_DELAY", "0"))
+    if delay:
+        original = binding[delayed_key]
+
+        def delayed(context, timeout):
+            # Test-only process-loss pause, before invoking the selected fixture.
+            time.sleep(delay)
+            return original(context, timeout)
+
+        binding[delayed_key] = delayed
+    registry.update(binding)
+    return binding

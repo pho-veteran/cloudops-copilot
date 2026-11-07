@@ -84,9 +84,10 @@ def crash_at(monkeypatch, bound, key, claim, context=None):
 def test_takeover_reuses_committed_sources_with_the_same_ids(client, bound, monkeypatch):
     ids = create(client, sign_in(client), incident_body(client)).json()
     first = claim_next(HANDLERS, GATE)
-    crash_at(monkeypatch, bound, "development_fixture", first)
+    ordered = sorted(bound)
+    crash_at(monkeypatch, bound, ordered[3], first)
     before = evidence_ids(ids)
-    assert set(before) == {"kubernetes.state", "kubernetes.events", "kubernetes.logs.current"}
+    assert len(before) == 3 and set(before) == set(ordered[:3])
     view = run_state(client, ids)
     assert view["state"] == "collecting" and view["pack_coverage"] is None
     assert view["progress"]["sources_committed"] == 3 and not view["progress"]["finalized"]
@@ -179,22 +180,40 @@ def test_transient_source_failure_resumes_inside_the_shared_three_attempt_budget
     assert view["state"] == "insufficient_evidence"
 
 
-def test_cross_source_budget_is_identical_after_takeover(client, bound, monkeypatch):
+@pytest.mark.parametrize("metrics", [False, True], ids=["pod-budget", "sample-budget"])
+def test_batch_checkpoint_and_takeover_preserve_identical_bounded_content(
+    client, bound, monkeypatch, metrics
+):
+    if metrics:
+        for key, adapter in adapters.METRIC_ADAPTERS.items():
+            monkeypatch.setitem(collector.REGISTERED_ADAPTERS, key, adapter)
+            bound[key] = adapter
     headers = sign_in(client)
-    straight = create(client, headers, incident_body(client)).json()
-    claim = claim_next(HANDLERS, GATE)
+
+    def admitted(title):
+        body = incident_body(client)
+        body["title"] = title
+        ids = create(client, headers, body).json()
+        return ids, claim_next(HANDLERS, GATE)
+
+    batch, claim = admitted("Batch baseline")
+    assert finish(
+        claim,
+        HANDLERS[claim.kind],
+        result=collector.collect(context_for(claim), bound),
+        gate=GATE,
+    )
+    straight, claim = admitted("Checkpointed collection")
     assert finish(
         claim,
         HANDLERS[claim.kind],
         result=collect_checkpointed(claim, context_for(claim), bound, GATE),
         gate=GATE,
     )
-
-    body = incident_body(client)
-    body["title"] = "Second incident"
-    resumed = create(client, headers, body).json()
-    first = claim_next(HANDLERS, GATE)
-    crash_at(monkeypatch, bound, "kubernetes.logs.current", first)
+    resumed, first = admitted("Checkpointed takeover")
+    crash_at(monkeypatch, bound, sorted(bound)[3], first)
+    before = evidence_ids(resumed)
+    assert len(before) == 3
     expire(first)
     second = claim_next(HANDLERS, GATE)
     assert finish(
@@ -203,20 +222,35 @@ def test_cross_source_budget_is_identical_after_takeover(client, bound, monkeypa
         result=collect_checkpointed(second, context_for(second), bound, GATE),
         gate=GATE,
     )
+    assert {key: evidence_ids(resumed)[key] for key in before} == before
 
-    def coverage(ids):
-        view = run_state(client, ids)
-        return {
-            row["source_key"]: (row["coverage"], row["sha256"])
-            for row in view["evidence"]
-            if row["source_key"] in ("kubernetes.state", "kubernetes.logs.current")
-        }
+    def stored(ids):
+        with sessions()() as db:
+            return {
+                key: (digest, coverage, payload)
+                for key, digest, coverage, payload in db.execute(
+                    select(
+                        Evidence.source_key, Evidence.sha256, Evidence.coverage, Evidence.payload
+                    ).where(Evidence.run_id == UUID(ids["run_id"]))
+                )
+            }
 
-    expected = coverage(straight)
-    # Twelve pods exceed the ten-pod cross-source budget; pod-11 logs are deterministically cut.
-    assert expected["kubernetes.state"][0]["reason_codes"] == ["truncated"]
-    assert expected["kubernetes.logs.current"][0]["reason_codes"] == ["truncated"]
-    assert coverage(resumed) == expected
+    expected = stored(batch)
+    assert stored(straight) == expected
+    assert stored(resumed) == expected
+    if metrics:
+        early = expected["prometheus.error_ratio"]
+        late = expected["prometheus.request_rate"]
+        assert len(early[2]["series"][0]["samples"]) == 12000
+        assert len(late[2]["series"][0]["samples"]) == 8000
+        assert early[1] == {"status": "available", "reason_codes": []}
+        assert late[1] == {"status": "partial", "reason_codes": ["truncated"]}
+    else:
+        state = expected["kubernetes.state"]
+        logs = expected["kubernetes.logs.current"]
+        pods = {pod["uid"] for row in (state, logs) for pod in row[2]["pods"]}
+        assert len(pods) == 10
+        assert state[1]["reason_codes"] == ["truncated"]
 
 
 def test_failed_finalization_rolls_back_and_takeover_finalizes_once(client, bound):
@@ -295,6 +329,7 @@ def test_real_worker_killed_after_a_committed_checkpoint_resumes(client):
         "COLLECTOR_DELAY_SECONDS": "0",
         "COLLECTOR_FAIL": "false",
         "CHECKPOINT_FIXTURE_DELAY": "60",
+        "CHECKPOINT_DELAY_SOURCE": sorted(adapters.ADAPTERS)[3],
     }
     process = subprocess.Popen(
         [sys.executable, "-c", script],

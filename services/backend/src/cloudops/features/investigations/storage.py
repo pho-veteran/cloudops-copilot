@@ -745,7 +745,7 @@ def store_source(
     """Publish one source checkpoint inside the caller's fenced transaction.
 
     Pins and pack coverage are derived only by ``finalize_batch``. Cross-source budgets are
-    applied in commit order (catalog order) and carried between checkpoints as digests.
+    applied in canonical sorted source-key order, matching ``store_batch``, and carried as digests.
     """
     incident, run, workload = _locked_run(db, run_id, workload_uid)
     if result.source_key not in SOURCES:

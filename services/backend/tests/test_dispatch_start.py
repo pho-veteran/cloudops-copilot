@@ -167,28 +167,28 @@ def test_keeper_database_error_stops_before_the_next_source(client, bound, monke
     failed = threading.Event()
     original_heartbeat = worker.heartbeat
     original_settings = worker.settings
+    first_key = min(bound)
+    original_adapter = bound[first_key]
 
     def heartbeat():
         if threading.current_thread() is not threading.main_thread():
             raise ConnectionError("Controlled keeper database loss")
         original_heartbeat()
 
-    def state(context, timeout):
+    def admitted_first(context, timeout):
         assert failed.wait(5)
-        return adapters.state(context, timeout)
+        return original_adapter(context, timeout)
 
     monkeypatch.setattr(worker, "heartbeat", heartbeat)
     monkeypatch.setattr(
         worker, "settings", lambda: replace(original_settings(), heartbeat_seconds=0.01)
     )
     monkeypatch.setattr(worker.logger, "warning", lambda *_args: failed.set())
-    monkeypatch.setitem(collector.REGISTERED_ADAPTERS, "kubernetes.state", state)
-    bound["kubernetes.state"] = state
+    monkeypatch.setitem(collector.REGISTERED_ADAPTERS, first_key, admitted_first)
+    bound[first_key] = admitted_first
     assert worker.run_once()
     assert failed.is_set()
-    assert adapters.CALLS == {"kubernetes.state": 1}
+    assert adapters.CALLS == {first_key: 1}
     with sessions()() as db:
         assert db.scalar(select(jobs.Job.state)) == "running"
-        assert db.scalars(select(jobs.JobCheckpoint.stage)).all() == [
-            "collect_source:kubernetes.state"
-        ]
+        assert db.scalars(select(jobs.JobCheckpoint.stage)).all() == [f"collect_source:{first_key}"]

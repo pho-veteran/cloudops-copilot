@@ -248,7 +248,8 @@ def collect_checkpointed(
     done = committed_stages(claim)
     deadline = time.monotonic() + 90
     unconfigured = []
-    for key in SOURCES:
+    # Match store_batch's canonical cross-source budget allocation order.
+    for key in sorted(SOURCES):
         adapter = adapters.get(key)
         if adapter is None:
             unconfigured.append(key)
