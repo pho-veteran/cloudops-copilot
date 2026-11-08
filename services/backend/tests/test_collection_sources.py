@@ -67,6 +67,78 @@ def test_pack_coverage_conditional_logs_and_optional_gaps():
     assert packs["crashloop_startup"]["missing_required"] == ["kubernetes.events"]
 
 
+def test_configured_adapters_supports_live_kubernetes():
+    adapters = collector.configured_adapters("live_kubernetes")
+    assert "kubernetes.state" in adapters
+    assert "kubernetes.events" in adapters
+    assert "kubernetes.logs.current" in adapters
+    assert "kubernetes.logs.previous" in adapters
+    assert "kubernetes.configmap.metadata" in adapters
+    assert "development_fixture" not in adapters
+
+
+def test_configmap_metadata_returns_metadata_only_and_refuses_secrets(monkeypatch):
+    from cloudops.features.investigations import kubernetes_collector as kube
+
+    ctx = context()
+    ctx = collector.CollectionContext(
+        run_id=ctx.run_id,
+        incident_id=ctx.incident_id,
+        workload_id=ctx.workload_id,
+        cluster_id=ctx.cluster_id,
+        namespace=ctx.namespace,
+        workload_uid=ctx.workload_uid,
+        immutable_window=None,
+        scope_snapshot=collector.ScopeSnapshot(
+            ctx.cluster_id, ctx.namespace, "app", ctx.workload_uid, "live_kubernetes"
+        ),
+        configured_catalog_version=CATALOG_VERSION,
+        attempt_number=1,
+        max_attempts=3,
+    )
+
+    class FakeClient:
+        def get_deployment(self, namespace, name, expected_uid):
+            return {
+                "metadata": {"uid": expected_uid, "name": name, "namespace": namespace},
+                "spec": {
+                    "template": {
+                        "spec": {"containers": [{"envFrom": [{"configMapRef": {"name": "app"}}]}]}
+                    }
+                },
+            }
+
+        def get_configmap_metadata(self, namespace, name):
+            return {
+                "kind": "ConfigMap",
+                "metadata": {
+                    "name": name,
+                    "namespace": namespace,
+                    "uid": "cm-uid",
+                    "resourceVersion": "7",
+                },
+                "data": {"password": "sentinel"},
+            }
+
+    monkeypatch.setenv("KUBE_CONFIGMAP_ENABLED", "1")
+    monkeypatch.setattr(kube, "_scoped_client", lambda: FakeClient())
+    result = kube.collect_kubernetes_configmap_metadata(ctx, timeout_seconds=5.0)
+    assert result.coverage.status == "available"
+    assert result.redacted_bounded_payload["configmaps"] == [
+        {"name": "app", "namespace": "namespace", "uid": "cm-uid", "resource_version": "7"}
+    ]
+    assert "sentinel" not in repr(result.redacted_bounded_payload)
+
+    class SecretClient(FakeClient):
+        def get_configmap_metadata(self, namespace, name):
+            return {"kind": "Secret", "metadata": {"name": name, "uid": "secret-uid"}}
+
+    monkeypatch.setattr(kube, "_scoped_client", lambda: SecretClient())
+    denied = kube.collect_kubernetes_configmap_metadata(ctx, timeout_seconds=5.0)
+    assert denied.coverage.status == "unavailable"
+    assert denied.coverage.reason_codes == ["forbidden"]
+
+
 def test_unknown_mode_and_unregistered_binding_fail_closed():
     with pytest.raises(ValueError):
         collector.configured_adapters("live")

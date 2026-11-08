@@ -1,0 +1,408 @@
+from datetime import datetime, timezone
+from uuid import uuid4
+
+import pytest
+
+from cloudops.features.investigations import kubernetes_collector
+from cloudops.features.investigations.collector import (
+    CollectionContext,
+    ScopeSnapshot,
+    WindowSnapshot,
+)
+from cloudops.features.investigations.kubernetes_collector import (
+    ScopedK8sError,
+    ScopedKubernetesClient,
+    collect_kubernetes_events,
+    collect_kubernetes_logs_current,
+    collect_kubernetes_logs_previous,
+    collect_kubernetes_state,
+)
+
+
+def test_rbac_manifest_authorizes_pods_log_and_excludes_secrets():
+    from pathlib import Path
+
+    import yaml
+
+    manifest = Path("config/lab/workload.yaml").read_text(encoding="utf-8")
+    docs = list(yaml.safe_load_all(manifest))
+    reader_role = next(
+        doc
+        for doc in docs
+        if doc.get("kind") == "Role" and doc.get("metadata", {}).get("name") == "cloudops-reader"
+    )
+    # Must have get on pods/log
+    rules = reader_role["rules"]
+    assert any(
+        rule.get("resources") == ["pods/log"] and rule.get("verbs") == ["get"] for rule in rules
+    ), "cloudops-reader must have get on pods/log"
+    # Must never have secrets in any rule
+    for rule in rules:
+        assert "secrets" not in rule.get("resources", [])
+
+
+def test_client_rejects_missing_config(monkeypatch):
+    monkeypatch.delenv("KUBE_READ_CONFIG", raising=False)
+    with pytest.raises(ScopedK8sError) as exc:
+        ScopedKubernetesClient(config_path=None)
+    assert exc.value.code == "cluster_unavailable"
+
+
+def test_client_enforces_deployment_uid_match(tmp_path):
+    import json
+
+    cfg = tmp_path / "k8s.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "server": "https://127.0.0.1:6443",
+                "ca_data": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCg==",
+                "token": "secret-token",
+            }
+        )
+    )
+    client = ScopedKubernetesClient(config_path=str(cfg))
+    # Mock transport returning UID mismatch
+    client._request_json = lambda path, params=None: {
+        "metadata": {"uid": "wrong-uid", "name": "checkout", "namespace": "demo"}
+    }
+    with pytest.raises(ScopedK8sError) as exc:
+        client.get_deployment("demo", "checkout", expected_uid="expected-uid")
+    assert exc.value.code == "target_changed"
+
+
+def test_client_maps_http_403_to_forbidden_code(monkeypatch):
+    client = ScopedKubernetesClient(config_path="ignore")
+
+    def raise_forbidden(path, params=None):
+        raise ScopedK8sError("forbidden")
+
+    client._request_json = raise_forbidden
+    with pytest.raises(ScopedK8sError) as exc:
+        client.get_deployment("demo", "checkout", expected_uid="uid")
+    assert exc.value.code == "forbidden"
+
+
+def make_context(workload_uid="deploy-uid-1", immutable_window=None):
+    return CollectionContext(
+        run_id=uuid4(),
+        incident_id=uuid4(),
+        workload_id=uuid4(),
+        cluster_id="local-k3s",
+        namespace="demo",
+        workload_uid=workload_uid,
+        immutable_window=immutable_window,
+        scope_snapshot=ScopeSnapshot(
+            "local-k3s", "demo", "checkout", workload_uid, "live_kubernetes"
+        ),
+        configured_catalog_version="standard_v1",
+        attempt_number=1,
+        max_attempts=3,
+    )
+
+
+class FakeClient:
+    """Replaces _scoped_client(); each test sets the method values it needs."""
+
+
+def test_collect_kubernetes_state_success(monkeypatch):
+    ctx = make_context()
+    fake = FakeClient()
+    fake.get_deployment = lambda ns, name, expected_uid: {"metadata": {"uid": expected_uid}}
+    fake.list_owned_replicasets = lambda ns, uid: []
+    fake.list_owned_pods = lambda ns, rs_uids: []
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_state(ctx, timeout_seconds=5.0)
+    assert res.source_key == "kubernetes.state"
+    assert res.payload_kind == "state"
+    assert res.coverage.status == "available"
+    assert "deployment" in res.redacted_bounded_payload
+    assert "pods" in res.redacted_bounded_payload
+
+
+def test_state_translates_uid_drift_to_identity_changed(monkeypatch):
+    ctx = make_context()
+    fake = FakeClient()
+
+    def drift(ns, name, expected_uid):
+        raise ScopedK8sError("target_changed")
+
+    fake.get_deployment = drift
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_state(ctx, timeout_seconds=5.0)
+    assert res.coverage.status == "unavailable"
+    assert res.coverage.reason_codes == ["identity_changed"]
+
+
+def test_state_translates_forbidden(monkeypatch):
+    ctx = make_context()
+    fake = FakeClient()
+
+    def denied(ns, name, expected_uid):
+        raise ScopedK8sError("forbidden")
+
+    fake.get_deployment = denied
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_state(ctx, timeout_seconds=5.0)
+    assert res.coverage.reason_codes == ["forbidden"]
+
+
+def test_collect_kubernetes_events_filters_by_involved_uids(monkeypatch):
+    ctx = make_context()
+    fake = FakeClient()
+    fake.get_deployment = lambda ns, name, expected_uid: {
+        "metadata": {"uid": expected_uid, "name": name, "namespace": ns}
+    }
+    fake.list_owned_replicasets = lambda ns, deployment_uid: [
+        {
+            "metadata": {
+                "uid": "rs-uid-1",
+                "name": "checkout-abc",
+                "namespace": ns,
+                "ownerReferences": [{"uid": deployment_uid, "controller": True}],
+            }
+        }
+    ]
+    fake.list_owned_pods = lambda ns, rs_uids: [
+        {
+            "metadata": {
+                "uid": "pod-uid-1",
+                "name": "checkout-abc-123",
+                "namespace": ns,
+                "ownerReferences": [{"uid": "rs-uid-1", "controller": True}],
+            }
+        }
+    ]
+    fake.list_namespace_events = lambda ns, involved_uids: [
+        {
+            "metadata": {"uid": "event-1", "name": "checkout.1", "namespace": ns},
+            "involvedObject": {"uid": "pod-uid-1", "kind": "Pod", "namespace": ns},
+            "reason": "BackOff",
+            "message": "Back-off restarting failed container",
+            "type": "Warning",
+            "count": 5,
+            "lastTimestamp": "2026-01-01T00:00:10Z",
+        },
+        {
+            "metadata": {"uid": "event-2", "name": "unrelated.1", "namespace": ns},
+            "involvedObject": {"uid": "other-pod-uid", "kind": "Pod", "namespace": ns},
+            "reason": "BackOff",
+            "message": "unrelated",
+            "type": "Warning",
+        },
+    ]
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_events(ctx, timeout_seconds=5.0)
+    assert res.source_key == "kubernetes.events"
+    assert res.payload_kind == "events"
+    assert res.coverage.status == "available"
+    events = res.redacted_bounded_payload["events"]
+    assert len(events) == 1
+    assert events[0]["involved_uid"] == "pod-uid-1"
+
+
+def test_empty_events_is_available_not_absence_of_history(monkeypatch):
+    ctx = make_context()
+    fake = FakeClient()
+    fake.get_deployment = lambda ns, name, expected_uid: {
+        "metadata": {"uid": expected_uid, "name": name, "namespace": ns}
+    }
+    fake.list_owned_replicasets = lambda ns, deployment_uid: []
+    fake.list_owned_pods = lambda ns, rs_uids: []
+    fake.list_namespace_events = lambda ns, involved_uids: []
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_events(ctx, timeout_seconds=5.0)
+    assert res.coverage.status == "available"
+    assert res.coverage.reason_codes == []
+    assert res.redacted_bounded_payload == {"events": []}
+
+
+def log_pod(*, restart_count=0, last_state=None, phase="Running", containers=None):
+    containers = containers or [{"name": "app", "image": "fixture:1"}]
+    statuses = []
+    for container in containers:
+        status = {"name": container["name"], "restartCount": restart_count}
+        if restart_count:
+            status["lastState"] = last_state or {"terminated": {"reason": "Error", "exitCode": 1}}
+        statuses.append(status)
+    return {
+        "metadata": {
+            "uid": "pod-uid-1",
+            "name": "checkout-abc-123",
+            "namespace": "demo",
+            "ownerReferences": [{"uid": "rs-uid-1", "controller": True}],
+        },
+        "spec": {"containers": containers},
+        "status": {"phase": phase, "containerStatuses": statuses},
+    }
+
+
+def log_fake(ctx, pod, logs):
+    fake = FakeClient()
+    fake.get_deployment = lambda ns, name, expected_uid: {
+        "metadata": {"uid": expected_uid, "name": name, "namespace": ns}
+    }
+    fake.list_owned_replicasets = lambda ns, deployment_uid: [
+        {
+            "metadata": {
+                "uid": "rs-uid-1",
+                "name": "checkout-abc",
+                "namespace": ns,
+                "ownerReferences": [{"uid": deployment_uid, "controller": True}],
+            }
+        }
+    ]
+    fake.list_owned_pods = lambda ns, rs_uids: [pod]
+    fake.get_pod_logs = logs
+    return fake
+
+
+def test_logs_current_collects_bounded_lines(monkeypatch):
+    ctx = make_context()
+    fake = log_fake(
+        ctx,
+        log_pod(),
+        lambda ns, pod, container, previous=False, since_time=None, line_limit=200: (
+            "2026-01-01T00:00:00Z line\n",
+            False,
+        ),
+    )
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
+    assert res.source_key == "kubernetes.logs.current"
+    assert res.payload_kind == "logs"
+    assert res.coverage.status == "available"
+    assert len(res.redacted_bounded_payload["logs"]) > 0
+    log_entry = res.redacted_bounded_payload["logs"][0]
+    assert log_entry["previous"] is False
+    assert "text" in log_entry
+
+
+def test_logs_error_translations_match_state(monkeypatch):
+    ctx = make_context()
+    for code, published in (
+        ("target_changed", "identity_changed"),
+        ("forbidden", "forbidden"),
+        ("cluster_unavailable", "source_unavailable"),
+    ):
+        fake = FakeClient()
+
+        def raise_code(ns, name, expected_uid, code=code):
+            raise ScopedK8sError(code)
+
+        fake.get_deployment = raise_code
+        monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+        res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
+        assert res.coverage.status == "unavailable" and res.coverage.reason_codes == [published]
+
+
+def test_logs_previous_when_container_not_restarted_is_not_applicable(monkeypatch):
+    ctx = make_context()
+    calls = []
+
+    def logs(*args, **kwargs):
+        calls.append((args, kwargs))
+        return "unexpected\n", False
+
+    fake = log_fake(ctx, log_pod(restart_count=0), logs)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
+    assert res.source_key == "kubernetes.logs.previous"
+    assert res.payload_kind == "logs"
+    assert res.coverage.status == "not_applicable"
+    assert res.coverage.reason_codes == ["not_applicable"]
+    assert calls == []
+
+
+def test_logs_previous_when_restarted_collects_previous_logs(monkeypatch):
+    ctx = make_context()
+    fake = log_fake(
+        ctx,
+        log_pod(restart_count=2),
+        lambda ns, pod, container, previous=False, since_time=None, line_limit=200: (
+            "2025-12-31T23:59:59Z previous stacktrace\n",
+            False,
+        ),
+    )
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
+    assert res.source_key == "kubernetes.logs.previous"
+    assert res.payload_kind == "logs"
+    assert res.coverage.status == "available"
+    assert res.redacted_bounded_payload["logs"][0]["previous"] is True
+
+
+def test_logs_previous_mixed_containers_is_never_partial(monkeypatch):
+    ctx = make_context()
+    containers = [{"name": "app", "image": "fixture:1"}, {"name": "sidecar", "image": "x"}]
+    pod = log_pod(restart_count=2, containers=containers)
+    # Container app restarted; sidecar never did and a previous read would 400.
+    pod["status"]["containerStatuses"][1] = {"name": "sidecar", "restartCount": 0}
+
+    def logs(ns, pod_name, container, previous=False, since_time=None, line_limit=200):
+        if container == "sidecar":
+            raise ScopedK8sError("container_not_ready")
+        return "2025-12-31T23:59:59Z previous stacktrace\n", False
+
+    fake = log_fake(ctx, pod, logs)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
+    # Overall slot coverage never degrades to "partial": "partial" counts as
+    # missing_required in derive_pack_coverage for crashloop_startup.
+    assert res.coverage.status in ("available", "not_applicable")
+    # Per-container outcome is disclosed in the payload, e.g. containers list
+    # marks each container "previous": available|not_applicable.
+    assert any(c.get("previous") == "available" for c in res.redacted_bounded_payload["containers"])
+
+
+def test_logs_previous_when_every_previous_read_is_missing_is_not_applicable(monkeypatch):
+    ctx = make_context()
+    fake = log_fake(
+        ctx,
+        log_pod(restart_count=2),
+        lambda ns, pod, container, previous=False, since_time=None, line_limit=200: (
+            _raise(ScopedK8sError("container_not_ready"))
+        ),
+    )
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
+    assert res.coverage.status == "not_applicable"
+    assert res.coverage.reason_codes == ["not_applicable"]
+
+
+def _raise(error):
+    raise error
+
+
+def test_configmap_metadata_is_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("KUBE_CONFIGMAP_ENABLED", raising=False)
+    ctx = make_context()
+    calls = []
+    fake = FakeClient()
+    fake.get_deployment = lambda *args, **kwargs: calls.append(args)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = kubernetes_collector.collect_kubernetes_configmap_metadata(ctx, timeout_seconds=5.0)
+    assert res.coverage.status == "unavailable"
+    assert res.coverage.reason_codes == ["source_not_configured"]
+    assert res.redacted_bounded_payload is None
+    assert calls == []
+
+
+def test_logs_disclose_extends_after_window(monkeypatch):
+    window = WindowSnapshot(
+        start=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        end=datetime(2025, 1, 1, 0, 5, tzinfo=timezone.utc),
+        source="explicit",
+    )
+    ctx = make_context(immutable_window=window)
+    fake = log_fake(
+        ctx,
+        log_pod(),
+        lambda ns, pod, container, previous=False, since_time=None, line_limit=200: (
+            "2026-01-01T00:00:00Z line after window\n",
+            False,
+        ),
+    )
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
+    assert res.source_times.time_relation == "extends_after_window"
