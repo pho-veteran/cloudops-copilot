@@ -83,6 +83,114 @@ def test_client_maps_http_403_to_forbidden_code(monkeypatch):
     assert exc.value.code == "forbidden"
 
 
+def configured_client(tmp_path):
+    import json
+
+    cfg = tmp_path / "k8s.json"
+    cfg.write_text(
+        json.dumps({"server": "https://127.0.0.1:6443", "ca_data": "", "token": "secret-token"}),
+        encoding="utf-8",
+    )
+    return ScopedKubernetesClient(config_path=str(cfg))
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda client: client.get_deployment("..", "checkout", "uid"),
+        lambda client: client.get_deployment("demo", "..", "uid"),
+        lambda client: client.get_deployment("", "checkout", "uid"),
+        lambda client: client.list_owned_replicasets("..", "uid"),
+        lambda client: client.list_namespace_events("..", {"uid"}),
+        lambda client: client.get_pod_logs("demo", "..", "app"),
+        lambda client: client.get_configmap_metadata("demo", ".."),
+    ],
+)
+def test_client_rejects_path_identity_before_any_request(tmp_path, call):
+    client = configured_client(tmp_path)
+    calls = []
+
+    client._request_json = lambda *args, **kwargs: (calls.append("json"), {})[1]
+    client._request_text = lambda *args, **kwargs: (calls.append("text"), "")[1]
+    with pytest.raises(ScopedK8sError) as exc:
+        call(client)
+    assert exc.value.code == "target_changed"
+    assert calls == []
+
+
+def test_client_quotes_identity_segments_into_one_path_segment(tmp_path):
+    client = configured_client(tmp_path)
+    paths = []
+
+    def request_json(path, params=None):
+        paths.append(path)
+        return {
+            "metadata": {
+                "namespace": "demo/../kube-system",
+                "name": "checkout?x=1#f",
+                "uid": "uid",
+            }
+        }
+
+    client._request_json = request_json
+    client.get_deployment("demo/../kube-system", "checkout?x=1#f", expected_uid="uid")
+    assert paths == [
+        "/apis/apps/v1/namespaces/demo%2F..%2Fkube-system/deployments/checkout%3Fx%3D1%23f"
+    ]
+
+
+def test_configmap_read_quotes_name_inside_configmaps_path(tmp_path):
+    client = configured_client(tmp_path)
+    paths = []
+
+    def request_json(path, params=None):
+        paths.append(path)
+        return {"kind": "ConfigMap", "metadata": {"name": "config"}}
+
+    client._request_json = request_json
+    client.get_configmap_metadata("demo", "config/../../secrets")
+    assert paths == ["/api/v1/namespaces/demo/configmaps/config%2F..%2F..%2Fsecrets"]
+
+
+def test_pod_list_ignores_foreign_namespace_and_wrong_owner(tmp_path):
+    client = configured_client(tmp_path)
+
+    def request_json(path, params=None):
+        return {
+            "kind": "PodList",
+            "items": [
+                {
+                    "metadata": {
+                        "namespace": "demo",
+                        "name": "owned",
+                        "uid": "owned",
+                        "ownerReferences": [{"uid": "rs-1"}],
+                    }
+                },
+                {
+                    "metadata": {
+                        "namespace": "kube-system",
+                        "name": "foreign",
+                        "uid": "foreign",
+                        "ownerReferences": [{"uid": "rs-1"}],
+                    }
+                },
+                {
+                    "metadata": {
+                        "namespace": "demo",
+                        "name": "wrong-owner",
+                        "uid": "wrong-owner",
+                        "ownerReferences": [{"uid": "rs-other"}],
+                    }
+                },
+            ],
+        }
+
+    client._request_json = request_json
+    selected = client.list_owned_pods("demo", {"rs-1"})
+    assert [item["metadata"]["uid"] for item in selected] == ["owned"]
+
+
 def make_context(workload_uid="deploy-uid-1", immutable_window=None):
     return CollectionContext(
         run_id=uuid4(),

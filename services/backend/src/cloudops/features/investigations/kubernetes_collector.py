@@ -44,6 +44,17 @@ class _NoRedirect(HTTPRedirectHandler):
         return None
 
 
+def _segment(value: str) -> str:
+    """Quote one scope identifier so it cannot become more than one path segment.
+
+    ``quote`` leaves ``.`` unescaped, so empty or dot-only values would be
+    collapsed by path normalization and could escape the intended collection.
+    """
+    if not isinstance(value, str) or not value or value in (".", ".."):
+        raise ScopedK8sError("target_changed")
+    return quote(value, safe="")
+
+
 def _decode_ca(value: str) -> str:
     return base64.b64decode(value, validate=True).decode("ascii")
 
@@ -179,8 +190,7 @@ class ScopedKubernetesClient:
 
     def get_deployment(self, namespace: str, name: str, expected_uid: str) -> dict:
         value = self._request_json(
-            f"/apis/apps/v1/namespaces/{quote(namespace, safe='')}"
-            f"/deployments/{quote(name, safe='')}"
+            f"/apis/apps/v1/namespaces/{_segment(namespace)}/deployments/{_segment(name)}"
         )
         metadata = value.get("metadata")
         if not isinstance(metadata, dict) or metadata.get("uid") != expected_uid:
@@ -194,7 +204,7 @@ class ScopedKubernetesClient:
     def get_configmap_metadata(self, namespace: str, name: str) -> dict:
         """Read one ConfigMap object; the adapter keeps only identifiers."""
         value = self._request_json(
-            f"/api/v1/namespaces/{quote(namespace, safe='')}/configmaps/{quote(name, safe='')}"
+            f"/api/v1/namespaces/{_segment(namespace)}/configmaps/{_segment(name)}"
         )
         if str(value.get("kind", "ConfigMap")).lower() == "secret":
             raise ScopedK8sError("forbidden")
@@ -202,7 +212,7 @@ class ScopedKubernetesClient:
 
     def list_owned_replicasets(self, namespace: str, deployment_uid: str) -> list[dict]:
         values = self._list_items(
-            f"/apis/apps/v1/namespaces/{quote(namespace, safe='')}/replicasets",
+            f"/apis/apps/v1/namespaces/{_segment(namespace)}/replicasets",
             "ReplicaSetList",
             namespace,
         )
@@ -219,7 +229,7 @@ class ScopedKubernetesClient:
 
     def list_owned_pods(self, namespace: str, replicaset_uids: set[str]) -> list[dict]:
         values = self._list_items(
-            f"/api/v1/namespaces/{quote(namespace, safe='')}/pods", "PodList", namespace
+            f"/api/v1/namespaces/{_segment(namespace)}/pods", "PodList", namespace
         )
         owned = [
             value
@@ -234,7 +244,7 @@ class ScopedKubernetesClient:
 
     def list_namespace_events(self, namespace: str, involved_uids: set[str]) -> list[dict]:
         values = self._list_items(
-            f"/api/v1/namespaces/{quote(namespace, safe='')}/events", "EventList", namespace
+            f"/api/v1/namespaces/{_segment(namespace)}/events", "EventList", namespace
         )
         selected = [
             value
@@ -262,7 +272,7 @@ class ScopedKubernetesClient:
         line_limit: int = 200,
     ) -> tuple[str, bool]:
         text = self._request_text(
-            f"/api/v1/namespaces/{quote(namespace, safe='')}/pods/{quote(pod_name, safe='')}/log",
+            f"/api/v1/namespaces/{_segment(namespace)}/pods/{_segment(pod_name)}/log",
             {
                 "container": container_name,
                 "follow": "false",
