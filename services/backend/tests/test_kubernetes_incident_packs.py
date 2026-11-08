@@ -79,6 +79,8 @@ def deployment(uid):
 
 
 def pod(uid, *, phase="Running", restart_count=0, state=None, last_state=None, namespace="demo"):
+    if state is None and phase == "Running":
+        state = {"running": {"startedAt": "2026-01-01T00:00:00Z"}}
     status = {
         "phase": phase,
         "containerStatuses": [
@@ -87,6 +89,7 @@ def pod(uid, *, phase="Running", restart_count=0, state=None, last_state=None, n
                 "restartCount": restart_count,
                 "state": state or {},
                 "lastState": last_state or {},
+                "started": phase == "Running",
             }
         ],
     }

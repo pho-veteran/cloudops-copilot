@@ -696,6 +696,20 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
                         {"name": container_name, "pod_uid": pod_uid, "previous": "not_applicable"}
                     )
                     continue
+                state = status.get("state") if isinstance(status.get("state"), dict) else {}
+                started = (
+                    bool(state.get("running") or state.get("terminated"))
+                    or restart_count > 0
+                    or bool(last_state)
+                    or status.get("started") is True
+                )
+                if not started:
+                    # Unschedulable/image-pull/creating containers return an
+                    # empty 200 log body; that is "not started", not evidence.
+                    containers.append(
+                        {"name": container_name, "pod_uid": pod_uid, "previous": "not_applicable"}
+                    )
+                    continue
                 _guard(deadline)
                 try:
                     text, _truncated = client.get_pod_logs(

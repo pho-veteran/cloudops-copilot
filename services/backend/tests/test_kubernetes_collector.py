@@ -330,6 +330,9 @@ def log_pod(*, restart_count=0, last_state=None, phase="Running", containers=Non
     statuses = []
     for container in containers:
         status = {"name": container["name"], "restartCount": restart_count}
+        if phase == "Running":
+            status["state"] = {"running": {"startedAt": "2026-01-01T00:00:00Z"}}
+            status["started"] = True
         if restart_count:
             status["lastState"] = last_state or {"terminated": {"reason": "Error", "exitCode": 1}}
         statuses.append(status)
@@ -402,6 +405,25 @@ def test_logs_error_translations_match_state(monkeypatch):
         monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
         res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
         assert res.coverage.status == "unavailable" and res.coverage.reason_codes == [published]
+
+
+def test_logs_current_for_unschedulable_pending_container_is_not_applicable(monkeypatch):
+    ctx = make_context()
+    calls = []
+
+    def logs(*args, **kwargs):
+        # Real Kubernetes returns 200 with an empty body for an unschedulable
+        # container that has not been created on a node yet.
+        calls.append((args, kwargs))
+        return "", False
+
+    fake = log_fake(ctx, log_pod(phase="Pending", restart_count=0), logs)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
+    assert res.coverage.status == "not_applicable"
+    assert res.coverage.reason_codes == ["not_applicable"]
+    assert res.redacted_bounded_payload is None
+    assert calls == []
 
 
 def test_logs_previous_when_container_not_restarted_is_not_applicable(monkeypatch):
