@@ -13,6 +13,8 @@ x-backend: &backend
     COLLECTOR_DELAY_SECONDS: ${COLLECTOR_DELAY_SECONDS:-2}
     COLLECTOR_FAIL: ${COLLECTOR_FAIL:-false}
     COLLECTION_SOURCE_MODE: ${COLLECTION_SOURCE_MODE:-development_fixture}
+    # Read-only kubeconfig (server/ca_data/token) for live_kubernetes mode.
+    KUBE_READ_CONFIG: ${KUBE_READ_CONFIG:-}
     DEFERRED_RUN_LIMIT: ${DEFERRED_RUN_LIMIT:-100}
     # Trusted DispatchPermit/v1 outside PostgreSQL; read-only for api/worker.
     JOB_DISPATCH_ROOT: /run/cloudops-job-permit
