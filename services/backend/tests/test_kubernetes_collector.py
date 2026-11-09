@@ -17,6 +17,7 @@ from cloudops.features.investigations.kubernetes_collector import (
     collect_kubernetes_logs_previous,
     collect_kubernetes_state,
 )
+from cloudops.features.investigations.schemas import Coverage
 
 
 def test_rbac_manifest_authorizes_pods_log_and_excludes_secrets():
@@ -387,6 +388,22 @@ def test_logs_current_collects_bounded_lines(monkeypatch):
     log_entry = res.redacted_bounded_payload["logs"][0]
     assert log_entry["previous"] is False
     assert "text" in log_entry
+
+
+def test_logs_current_discloses_truncated_cap(monkeypatch):
+    ctx = make_context()
+    fake = log_fake(
+        ctx,
+        log_pod(),
+        lambda ns, pod, container, previous=False, since_time=None, line_limit=200: (
+            "2026-01-01T00:00:00Z line\n" * 200,
+            True,
+        ),
+    )
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
+    assert res.coverage == Coverage(status="partial", reason_codes=["truncated"])
+    assert res.redacted_bounded_payload["truncated"] is True
 
 
 def test_logs_error_translations_match_state(monkeypatch):

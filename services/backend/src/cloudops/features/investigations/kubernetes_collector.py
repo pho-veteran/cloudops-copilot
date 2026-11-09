@@ -363,13 +363,20 @@ def _scoped_result(
         return _unavailable(key, payload_kind, _REASONS.get(error.code, "source_unavailable"))
     if outcome is _NOT_APPLICABLE:
         return _not_applicable(key, payload_kind)
-    payload, observed_at, timestamps = outcome
+    if len(outcome) == 4:
+        payload, observed_at, timestamps, reason_codes = outcome
+    else:
+        payload, observed_at, timestamps = outcome
+        reason_codes = ()
     now = _now()
     return SourceResult(
         source_key=key,
         payload_kind=payload_kind,
         payload_version=1,
-        coverage=Coverage(status="available", reason_codes=[]),
+        coverage=Coverage(
+            status="partial" if reason_codes else "available",
+            reason_codes=sorted(set(reason_codes)),
+        ),
         source_times=SourceTimes(
             observed_at=observed_at or now,
             collected_at=now,
@@ -678,6 +685,7 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
         pods = _owned_pods(raw_pods, replicaset_uids, namespace)
         logs, containers, timestamps = [], [], []
         read_any = False
+        truncated = False
         for pod in pods:
             metadata = _metadata(pod)
             pod_uid = _text(metadata.get("uid"))
@@ -712,7 +720,7 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
                     continue
                 _guard(deadline)
                 try:
-                    text, _truncated = client.get_pod_logs(
+                    text, hit_cap = client.get_pod_logs(
                         namespace,
                         pod_name,
                         container_name,
@@ -720,6 +728,7 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
                         since_time=since_time,
                         line_limit=200,
                     )
+                    truncated = truncated or hit_cap
                 except ScopedK8sError as error:
                     if error.code != "container_not_ready":
                         raise
@@ -753,7 +762,10 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
         payload = {
             "logs": sorted(logs, key=lambda entry: (entry["pod_uid"], entry["container"])),
             "containers": sorted(containers, key=lambda entry: (entry["pod_uid"], entry["name"])),
+            "truncated": truncated,
         }
+        if truncated:
+            return payload, observed_at, tuple(timestamps), ("truncated",)
         return payload, observed_at, tuple(timestamps)
 
     return _scoped_result(key, "logs", build, context, timeout_seconds)
