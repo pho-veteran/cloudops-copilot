@@ -38,7 +38,7 @@ The client uses verified TLS from `ca_data`, no environment proxy, no redirects 
 
 ## Binding and series identity
 
-Every returned series must carry the configured UID label equal to the Run's immutable workload UID and the configured namespace label equal to the Run's namespace. Unmatched series are dropped. If no matching series has finite samples, coverage is `unavailable` with `ownership_unproven`; if some remain, coverage is `partial` with the same reason. A same-name Deployment replacement therefore cannot align old series to the new UID. The configured label proof is stable across Pod churn and does not depend on a current Pod list.
+Every returned series must carry the configured UID label equal to the Run's immutable workload UID and the configured namespace label equal to the Run's namespace. Unmatched series are dropped. If no matching series is returned at all, coverage is `unavailable` with `ownership_unproven`. A matching series with no finite samples is `unavailable` with `no_samples`; if valid and invalid/missing series coexist, coverage is `partial` with the corresponding reasons. A same-name Deployment replacement therefore cannot align old series to the new UID. The configured label proof is stable across Pod churn and does not depend on a current Pod list.
 
 The stored series shape is bounded and allowlisted:
 
@@ -59,7 +59,7 @@ The stored series shape is bounded and allowlisted:
 }
 ```
 
-`uid` is the semantic series identity; arbitrary label values are represented only through that digest. At most 25 series are retained per query, in canonical `uid` order, and the existing storage cap keeps at most 20,000 samples per Run. Missing values are not zero; non-finite or malformed entries are omitted and counted in `query_metadata.warnings`. `NaN`/`Inf` never become a chart point or a zero sample.
+`uid` is the semantic series identity; arbitrary label values are represented only through that digest. `name` is the retained `__name__` when present; an aggregation drops `__name__`, so the provider stores the stable configured query name (for example `Request rate`) instead of inventing a metric name. At most 25 series are retained per query, in canonical `uid` order, and the existing storage cap keeps at most 20,000 samples per Run. Metric series are not limited by the Kubernetes 10-Pod/20-container state budget; the per-query series and sample caps remain authoritative. Missing values are not zero; non-finite or malformed entries are omitted and counted in `query_metadata.warnings`. `NaN`/`Inf` never become a chart point or a zero sample.
 
 Each metric source stores:
 
@@ -143,7 +143,7 @@ The fixture mode is selected before starting it:
 METRICS_FIXTURE_MODE=finite|empty|nonfinite|gapped $LAB up -d metrics-fixture
 ```
 
-`finite` exposes all six sources; `empty` exposes none; `nonfinite` emits `NaN` values; `gapped` intermittently omits series. For `empty`/`nonfinite`/`gapped`, restart `metrics-fixture` and create a new Run so the stored snapshot reflects the selected mode.
+`finite` exposes all six sources; `empty` exposes none; `nonfinite` emits `NaN` values; `gapped` intermittently omits series. For `empty`/`nonfinite`/`gapped`, restart `metrics-fixture` and create a new Run so the stored snapshot reflects the selected mode. Use `probe-metrics.py --window-minutes 1` (and wait for the selected mode to fill the window) when isolating a mode; Prometheus lookback/staleness may retain a recent sample when a scrape is omitted, so the gapped receipt records the retained query result rather than an assumed fixed sample count.
 
 Run the read-only receipt after the accounts exist:
 
@@ -164,5 +164,7 @@ The lab uses an actual pinned Prometheus plus a labeled metrics fixture; it is n
 ## Recorded local acceptance
 
 - [`api.json`](evidence/prometheus48/api.json): real TLS Prometheus read, six `prometheus.*` sources with unit/window/step/query metadata, traffic pack `available`, Run `insufficient_evidence`/`analysis_unavailable`, Viewer read and API/worker restart preserving evidence IDs and SHA-256.
+- [`empty.json`](evidence/prometheus48/empty.json), [`nonfinite.json`](evidence/prometheus48/nonfinite.json) and [`gapped.json`](evidence/prometheus48/gapped.json): isolated one-minute windows for the empty, non-finite and intermittent fixture modes; each receipt records the explicit coverage/reason states and the analysis-unavailable outcome.
+- [`source-binding.json`](evidence/prometheus48/source-binding.json): SHA-256 hashes of the committed metric/timeline/UI/lab sources at the implementation commit.
 - [`browser.json`](evidence/prometheus48/browser.json) and screenshots: chart, accessible table and timeline markers on the loopback HTTP development origin at 1280/390/320 px, light/dark, Viewer read-only, and no horizontal overflow. Edge was not running, so an isolated managed Chromium was used; no certificate or trust bypass was applied.
 - The lab fixture is labeled synthetic telemetry. It is not an application exporter, live RCA or recovery evidence.

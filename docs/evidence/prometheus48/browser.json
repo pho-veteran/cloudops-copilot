@@ -1,13 +1,13 @@
 {
   "schema": "PrometheusMetricBrowser/v1",
-  "recorded_at": "2026-11-09T16:45:14Z",
+  "recorded_at": "2026-11-09T17:34:00Z",
   "origin": "http://localhost:5173",
   "browser": "Google Chrome 157.0.8103.38 via agent-browser. Microsoft Edge was not running, so an isolated managed Chromium was used. This is the loopback HTTP development origin; no certificate warning or TLS validation was bypassed.",
-  "source": "working tree on 557526edbb5e30375792388b86faa9c321cb57c0 with the #48 changes",
+  "source": "working-tree candidate after review fixes; the final commit is bound by source-binding.json",
   "ids": {
-    "incident_id": "231c4910-baf8-484b-986b-1f90a6805d72",
-    "run_id": "f6fe7b96-ad28-4df0-8f04-fa57f7177218",
-    "request_rate_evidence_id": "d95d11c6-14d8-4fb7-9e1b-f2a2e6148ef8"
+    "incident_id": "5c16cd4d-1cab-491f-9f4b-9306e6707909",
+    "run_id": "7abf8e2f-7ed2-45c2-aabd-d14f10480649",
+    "request_rate_evidence_id": "bccd6f1c-e722-4ca3-863d-edfda6a5a859"
   },
   "checks": {
     "chart_table_and_timeline_markers_rendered": true,
@@ -16,6 +16,7 @@
     "viewer_can_read_same_chart_and_table": true,
     "viewer_has_no_note_or_lifecycle_mutation_controls": true,
     "traffic_pack_available_analysis_unavailable": true,
+    "series_name_is_the_stable_query_name": true,
     "no_certificate_or_trust_bypass": true
   },
   "viewports": [
@@ -46,7 +47,8 @@
       "chart": true,
       "table": true,
       "marker_rows": 2,
-      "table_rows": 18
+      "table_rows": 3,
+      "legend": "Request rate · 3 samples · requests/s"
     }
   ],
   "screenshots": [

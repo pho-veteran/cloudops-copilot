@@ -165,6 +165,7 @@ def test_recovery_during_execution_preparation_denies_gateway(
 def test_keeper_database_error_stops_before_the_next_source(client, bound, monkeypatch):  # noqa: F811
     create(client, sign_in(client), incident_body(client))
     failed = threading.Event()
+    admitted = threading.Event()
     original_heartbeat = worker.heartbeat
     original_settings = worker.settings
     first_key = min(bound)
@@ -172,10 +173,12 @@ def test_keeper_database_error_stops_before_the_next_source(client, bound, monke
 
     def heartbeat():
         if threading.current_thread() is not threading.main_thread():
+            assert admitted.wait(5)
             raise ConnectionError("Controlled keeper database loss")
         original_heartbeat()
 
     def admitted_first(context, timeout):
+        admitted.set()
         assert failed.wait(5)
         return original_adapter(context, timeout)
 

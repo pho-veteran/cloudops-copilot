@@ -152,18 +152,33 @@ def run_timeline(db: Session, incident_id: UUID, run_id: UUID) -> RunTimeline:
                 )
             )
 
-    markers.sort(key=lambda marker: (marker.at, marker.kind, str(marker.id)))
-    truncated = len(markers) > MARKER_LIMIT
+    window_markers = [marker for marker in markers if marker.kind in {"window_start", "window_end"}]
+    other_markers = [
+        marker for marker in markers if marker.kind not in {"window_start", "window_end"}
+    ]
+    other_markers.sort(key=lambda marker: (marker.at, marker.kind, str(marker.id)))
+    other_limit = max(0, MARKER_LIMIT - len(window_markers))
+    truncated = len(other_markers) > other_limit or len(markers) > MARKER_LIMIT
+    markers = sorted(
+        window_markers + other_markers[:other_limit],
+        key=lambda marker: (marker.at, marker.kind, str(marker.id)),
+    )
     result = RunTimeline(
         run_id=run.id,
         window=RequestWindow(start=start, end=end, source=run.window_source),
-        markers=markers[:MARKER_LIMIT],
+        markers=markers,
         truncated=truncated,
         limitations=LIMITATIONS,
     )
     while (
-        len(result.markers) > 2 and len(result.model_dump_json().encode("utf-8")) > RESPONSE_BYTES
+        len(result.markers) > len(window_markers)
+        and len(result.model_dump_json().encode("utf-8")) > RESPONSE_BYTES
     ):
-        result.markers.pop()
-        result.truncated = True
+        for index in range(len(result.markers) - 1, -1, -1):
+            if result.markers[index].kind not in {"window_start", "window_end"}:
+                result.markers.pop(index)
+                result.truncated = True
+                break
+        else:
+            break
     return result

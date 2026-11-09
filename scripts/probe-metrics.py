@@ -23,6 +23,13 @@ def git(*args):
     return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
 
 
+def worktree():
+    """Tracked-change summary; exclude session-scoped tool state from evidence."""
+    return [
+        line for line in git("status", "--porcelain=v1").splitlines() if ".commandcode/" not in line
+    ]
+
+
 def client(origin, ca):
     return httpx.Client(
         base_url=origin,
@@ -127,7 +134,7 @@ def main():
     )
     report = {
         "runtime_commit": git("rev-parse", "HEAD"),
-        "worktree": git("status", "--porcelain=v1").splitlines(),
+        "worktree": worktree(),
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         "origin": args.origin,
         "expected": args.expect,
@@ -196,7 +203,7 @@ def main():
                 for row in rows.values()
             )
         elif args.expect == "nonfinite":
-            report["checks"]["nonfinite_values_are_not_numeric"] = any(
+            report["checks"]["nonfinite_values_are_not_numeric"] = all(
                 "no_samples" in row["coverage"]["reason_codes"] for row in rows.values()
             )
         else:

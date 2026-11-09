@@ -355,22 +355,26 @@ def _clean(value, key="", depth=0, budget=None, fields=None, pod=""):
         pod = str(value.get("pod_uid", value.get("pod", pod)))
         if key == "pods":
             pod = str(value.get("uid") or value.get("name") or _canonical(value).hex())
-        if pod:
-            seen = budget["pods_seen"]
-            if pod not in seen and len(seen) >= 10:
-                budget["truncated"] = True
-                return {}
-            seen.add(pod)
-        container = value.get("container", value.get("name") if key == "containers" else None)
-        if key == "containers" and not container:
-            container = _canonical(value).hex()
-        if isinstance(container, str) and container:
-            identity = (pod, container)
-            seen = budget["containers_seen"]
-            if identity not in seen and len(seen) >= 20:
-                budget["truncated"] = True
-                return {}
-            seen.add(identity)
+        # Metric series are bounded by the per-query series/sample caps. The
+        # Kubernetes Pod/container identity budgets apply to state and logs, not
+        # to a metric series that legitimately spans more than ten Pod labels.
+        if fields is not SERIES_FIELDS:
+            if pod:
+                seen = budget["pods_seen"]
+                if pod not in seen and len(seen) >= 10:
+                    budget["truncated"] = True
+                    return {}
+                seen.add(pod)
+            container = value.get("container", value.get("name") if key == "containers" else None)
+            if key == "containers" and not container:
+                container = _canonical(value).hex()
+            if isinstance(container, str) and container:
+                identity = (pod, container)
+                seen = budget["containers_seen"]
+                if identity not in seen and len(seen) >= 20:
+                    budget["truncated"] = True
+                    return {}
+                seen.add(identity)
         return {
             k: _clean(v, k, depth + 1, budget, fields, pod)
             for k, v in sorted(value.items())

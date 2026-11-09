@@ -47,7 +47,7 @@ def metrics():
             f"cloudops_p95_latency_seconds{{{common}}} {'NaN' if infinity else '0.25'}",
             f"cloudops_memory_working_set_bytes{{{common}}} {'NaN' if infinity else '33554432'}",
             f"cloudops_memory_limit_bytes{{{common}}} {'NaN' if infinity else '67108864'}",
-            f"cloudops_restarts_total{{{common}}} 0",
+            f"cloudops_restarts_total{{{common}}} {'NaN' if infinity else '0'}",
         ]
     )
     return lines

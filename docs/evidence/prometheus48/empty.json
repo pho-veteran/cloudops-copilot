@@ -1,45 +1,29 @@
 {
-  "runtime_commit": "557526edbb5e30375792388b86faa9c321cb57c0",
+  "runtime_commit": "4dd28933c09704520f3240edae5082f1646ad163",
   "worktree": [
-    "M .env.example",
-    " M README.md",
-    " M apps/web/src/app/foundation.css",
-    " M apps/web/src/features/investigations/EvidenceCatalog.tsx",
-    " M apps/web/src/lib/api/generated/schema.d.ts",
-    " M config/Caddyfile.local",
-    " M config/lab/prometheus.yaml",
-    " M contracts/openapi.json",
-    " M docs/e01-local-lab.md",
+    "M .gitignore",
+    " M config/lab/metrics_fixture.py",
+    " M docs/evidence/prometheus48/api.json",
+    " M docs/evidence/prometheus48/browser.json",
+    " M docs/evidence/prometheus48/empty.json",
+    " M docs/evidence/prometheus48/gapped.json",
+    " M docs/evidence/prometheus48/metric-320-dark.png",
+    " M docs/evidence/prometheus48/metric-390-light.png",
+    " M docs/evidence/prometheus48/metric-desktop-dark.png",
+    " M docs/evidence/prometheus48/metric-desktop-light.png",
+    " M docs/evidence/prometheus48/metric-viewer-390-dark.png",
+    " M docs/evidence/prometheus48/nonfinite.json",
     " M docs/foundation.md",
-    " M docs/workload-observation.md",
-    " M scripts/bootstrap-integration.py",
-    " M services/backend/src/cloudops/features/health/api.py",
-    " M services/backend/src/cloudops/features/health/schemas.py",
-    " M services/backend/src/cloudops/features/investigations/api.py",
-    " M services/backend/src/cloudops/features/investigations/collector.py",
+    " M docs/prometheus-metrics.md",
+    " M scripts/probe-metrics.py",
+    " M services/backend/src/cloudops/features/investigations/prometheus.py",
     " M services/backend/src/cloudops/features/investigations/storage.py",
-    " M services/backend/tests/permission_cases.py",
-    " M services/backend/tests/permission_inventory.py",
-    "?? .commandcode/",
-    "?? apps/web/src/features/investigations/MetricEvidence.test.tsx",
-    "?? apps/web/src/features/investigations/MetricEvidence.tsx",
-    "?? compose.metrics.yaml",
-    "?? config/lab/metrics_fixture.py",
-    "?? docs/evidence/prometheus48/",
-    "?? docs/prometheus-metrics.md",
-    "?? scripts/bootstrap-metrics.py",
-    "?? scripts/probe-metrics.py",
-    "?? services/backend/src/cloudops/features/investigations/prometheus.py",
-    "?? services/backend/src/cloudops/features/investigations/prometheus_config.py",
-    "?? services/backend/src/cloudops/features/investigations/timeline.py",
-    "?? services/backend/src/cloudops/features/investigations/timeline_schemas.py",
-    "?? services/backend/tests/test_prometheus_collection.py",
-    "?? services/backend/tests/test_run_timeline.py",
-    "?? services/backend/tests_unit/test_prometheus_client.py",
-    "?? services/backend/tests_unit/test_prometheus_config.py",
-    "?? services/backend/tests_unit/test_prometheus_provider.py"
+    " M services/backend/src/cloudops/features/investigations/timeline.py",
+    " M services/backend/tests/test_run_timeline.py",
+    " M services/backend/tests_unit/test_prometheus_client.py",
+    "?? services/backend/tests_unit/test_prometheus_projection.py"
   ],
-  "recorded_at": "2026-11-09T17:07:45.377562+00:00",
+  "recorded_at": "2026-11-09T17:32:24.052120+00:00",
   "origin": "http://localhost:5173",
   "expected": "empty",
   "checks": {
@@ -50,13 +34,13 @@
     "viewer_reads_run": true
   },
   "ids": {
-    "incident_id": "439dbcef-f90b-4155-9f9a-30c86b7ce296",
-    "run_id": "02214c87-080e-45c1-9989-548bd35535d9",
+    "incident_id": "fb1910ef-85f7-434e-bded-fe25fc49c879",
+    "run_id": "013b3a98-0079-49e5-b2ef-355e64bde4dc",
     "state": "queued",
     "queue_reason": null,
     "window": {
-      "start": "2026-11-09T17:06:53.785058Z",
-      "end": "2026-11-09T17:07:53.785058Z",
+      "start": "2026-11-09T17:31:32.470124Z",
+      "end": "2026-11-09T17:32:32.470124Z",
       "source": "explicit"
     }
   },
@@ -64,8 +48,8 @@
     "state": "insufficient_evidence",
     "outcome_code": "analysis_unavailable",
     "window": {
-      "start": "2026-11-09T17:06:53.785058Z",
-      "end": "2026-11-09T17:07:53.785058Z",
+      "start": "2026-11-09T17:31:32.470124Z",
+      "end": "2026-11-09T17:32:32.470124Z",
       "source": "explicit"
     },
     "pack_coverage": [
@@ -93,7 +77,7 @@
   },
   "evidence": {
     "prometheus.error_ratio": {
-      "id": "6cc0c67f-c942-452e-97d3-d50df3d14a2f",
+      "id": "4c4c1cd7-2e8a-4274-bf1e-4ae94513c039",
       "source_key": "prometheus.error_ratio",
       "coverage": {
         "status": "unavailable",
@@ -108,25 +92,25 @@
         "unit": "ratio",
         "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
         "window": {
-          "end": "2026-11-09T17:07:53.785058+00:00",
-          "start": "2026-11-09T17:06:53.785058+00:00"
+          "end": "2026-11-09T17:32:32.470124+00:00",
+          "start": "2026-11-09T17:31:32.470124+00:00"
         },
         "query_id": "error_ratio",
         "warnings": [],
         "query_version": "standard_v1",
-        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"1e0dff5a-7d4e-4102-90c9-a0f8921f9139\"})",
         "binding_version": "uid_label_v1",
         "source_identity": {
           "namespace": "demo",
           "cluster_id": "local-k3s",
           "endpoint_id": "lab-prometheus",
-          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+          "workload_uid": "1e0dff5a-7d4e-4102-90c9-a0f8921f9139"
         },
         "producer_version": "prometheus/v3.5.0"
       }
     },
     "prometheus.memory_limit": {
-      "id": "9cb17249-2ed3-41d1-aaa8-46d55d8889df",
+      "id": "94da0db0-5227-460a-adea-807d01292e35",
       "source_key": "prometheus.memory_limit",
       "coverage": {
         "status": "unavailable",
@@ -141,25 +125,25 @@
         "unit": "bytes",
         "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
         "window": {
-          "end": "2026-11-09T17:07:53.785058+00:00",
-          "start": "2026-11-09T17:06:53.785058+00:00"
+          "end": "2026-11-09T17:32:32.470124+00:00",
+          "start": "2026-11-09T17:31:32.470124+00:00"
         },
         "query_id": "memory_limit",
         "warnings": [],
         "query_version": "standard_v1",
-        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"1e0dff5a-7d4e-4102-90c9-a0f8921f9139\"})",
         "binding_version": "uid_label_v1",
         "source_identity": {
           "namespace": "demo",
           "cluster_id": "local-k3s",
           "endpoint_id": "lab-prometheus",
-          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+          "workload_uid": "1e0dff5a-7d4e-4102-90c9-a0f8921f9139"
         },
         "producer_version": "prometheus/v3.5.0"
       }
     },
     "prometheus.memory_working_set": {
-      "id": "e48ef8a0-0b43-4e9a-b844-a4eb43f5ec90",
+      "id": "b86c5f6d-56e6-4ac9-bd80-2a4387d07b17",
       "source_key": "prometheus.memory_working_set",
       "coverage": {
         "status": "unavailable",
@@ -174,25 +158,25 @@
         "unit": "bytes",
         "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
         "window": {
-          "end": "2026-11-09T17:07:53.785058+00:00",
-          "start": "2026-11-09T17:06:53.785058+00:00"
+          "end": "2026-11-09T17:32:32.470124+00:00",
+          "start": "2026-11-09T17:31:32.470124+00:00"
         },
         "query_id": "memory_working_set",
         "warnings": [],
         "query_version": "standard_v1",
-        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"1e0dff5a-7d4e-4102-90c9-a0f8921f9139\"})",
         "binding_version": "uid_label_v1",
         "source_identity": {
           "namespace": "demo",
           "cluster_id": "local-k3s",
           "endpoint_id": "lab-prometheus",
-          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+          "workload_uid": "1e0dff5a-7d4e-4102-90c9-a0f8921f9139"
         },
         "producer_version": "prometheus/v3.5.0"
       }
     },
     "prometheus.p95_latency": {
-      "id": "391a581c-447e-45ec-9544-f125f4c8202b",
+      "id": "f5455829-f984-4618-9a10-520f2cf59149",
       "source_key": "prometheus.p95_latency",
       "coverage": {
         "status": "unavailable",
@@ -207,25 +191,25 @@
         "unit": "seconds",
         "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
         "window": {
-          "end": "2026-11-09T17:07:53.785058+00:00",
-          "start": "2026-11-09T17:06:53.785058+00:00"
+          "end": "2026-11-09T17:32:32.470124+00:00",
+          "start": "2026-11-09T17:31:32.470124+00:00"
         },
         "query_id": "p95_latency",
         "warnings": [],
         "query_version": "standard_v1",
-        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"1e0dff5a-7d4e-4102-90c9-a0f8921f9139\"})",
         "binding_version": "uid_label_v1",
         "source_identity": {
           "namespace": "demo",
           "cluster_id": "local-k3s",
           "endpoint_id": "lab-prometheus",
-          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+          "workload_uid": "1e0dff5a-7d4e-4102-90c9-a0f8921f9139"
         },
         "producer_version": "prometheus/v3.5.0"
       }
     },
     "prometheus.request_rate": {
-      "id": "7e64cd03-29f2-46ea-b8f2-bd1f05c23b37",
+      "id": "5152890c-045d-4dbe-a1ff-f88f4671cdcd",
       "source_key": "prometheus.request_rate",
       "coverage": {
         "status": "unavailable",
@@ -240,25 +224,25 @@
         "unit": "requests/s",
         "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
         "window": {
-          "end": "2026-11-09T17:07:53.785058+00:00",
-          "start": "2026-11-09T17:06:53.785058+00:00"
+          "end": "2026-11-09T17:32:32.470124+00:00",
+          "start": "2026-11-09T17:31:32.470124+00:00"
         },
         "query_id": "request_rate",
         "warnings": [],
         "query_version": "standard_v1",
-        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"1e0dff5a-7d4e-4102-90c9-a0f8921f9139\"})",
         "binding_version": "uid_label_v1",
         "source_identity": {
           "namespace": "demo",
           "cluster_id": "local-k3s",
           "endpoint_id": "lab-prometheus",
-          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+          "workload_uid": "1e0dff5a-7d4e-4102-90c9-a0f8921f9139"
         },
         "producer_version": "prometheus/v3.5.0"
       }
     },
     "prometheus.restarts": {
-      "id": "ad88a815-4d78-4a15-b5a0-09bcb556ba91",
+      "id": "ee075343-d533-4341-bfa6-de781c7aa4f0",
       "source_key": "prometheus.restarts",
       "coverage": {
         "status": "unavailable",
@@ -273,19 +257,19 @@
         "unit": "count",
         "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
         "window": {
-          "end": "2026-11-09T17:07:53.785058+00:00",
-          "start": "2026-11-09T17:06:53.785058+00:00"
+          "end": "2026-11-09T17:32:32.470124+00:00",
+          "start": "2026-11-09T17:31:32.470124+00:00"
         },
         "query_id": "restarts",
         "warnings": [],
         "query_version": "standard_v1",
-        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"1e0dff5a-7d4e-4102-90c9-a0f8921f9139\"})",
         "binding_version": "uid_label_v1",
         "source_identity": {
           "namespace": "demo",
           "cluster_id": "local-k3s",
           "endpoint_id": "lab-prometheus",
-          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+          "workload_uid": "1e0dff5a-7d4e-4102-90c9-a0f8921f9139"
         },
         "producer_version": "prometheus/v3.5.0"
       }
@@ -294,8 +278,8 @@
   "timeline": {
     "schema": "RunTimeline/v1",
     "window": {
-      "start": "2026-11-09T17:06:53.785058Z",
-      "end": "2026-11-09T17:07:53.785058Z",
+      "start": "2026-11-09T17:31:32.470124Z",
+      "end": "2026-11-09T17:32:32.470124Z",
       "source": "explicit"
     },
     "kinds": [

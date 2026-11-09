@@ -31,6 +31,14 @@ MAX_WARNINGS = 16
 WARNING_CHARS = 240
 QUERY_VERSION = CATALOG_VERSION
 BINDING_VERSION = "uid_label_v1"
+QUERY_NAMES = {
+    "request_rate": "Request rate",
+    "error_ratio": "Error ratio",
+    "p95_latency": "p95 latency",
+    "memory_working_set": "Memory working set",
+    "memory_limit": "Memory limit",
+    "restarts": "Container restarts",
+}
 
 
 class ReadFailure(Exception):
@@ -139,6 +147,7 @@ def parse_response(
     spec: QuerySpec,
     context: CollectionContext,
     window,
+    query_id: str,
 ) -> Parsed:
     """Validate one Prometheus matrix response and project only bound series."""
     if not isinstance(payload, dict) or payload.get("status") != "success":
@@ -181,7 +190,7 @@ def parse_response(
             continue
         projected = {
             "uid": _series_uid(metric),
-            "name": _text_label(metric, "__name__") or spec.unit,
+            "name": _text_label(metric, "__name__") or QUERY_NAMES.get(query_id, spec.unit),
             "namespace": context.namespace,
             "workload_uid": context.workload_uid,
             "unit": spec.unit,
@@ -321,6 +330,9 @@ def _coverage(parsed: Parsed, step_seconds: int, window) -> Coverage:
         reasons.add("no_samples")
     if parsed.truncated:
         reasons.add("truncated")
+    first_samples = [item["samples"][0][0] for item in parsed.series if item["samples"]]
+    if first_samples and min(first_samples) > window.start.timestamp() + step_seconds + 1:
+        reasons.add("no_samples")
     if parsed.observed_at is not None:
         end = window.end.timestamp()
         if parsed.observed_at.timestamp() < end - step_seconds:
@@ -404,7 +416,7 @@ async def read_query(
     )
     try:
         payload = await _read(config, ssl_context, query_id, context, timeout_seconds, transport)
-        parsed = parse_response(payload, config, query_spec, context, window)
+        parsed = parse_response(payload, config, query_spec, context, window, query_id)
     except ReadFailure as error:
         return _failure(
             config, query_spec, context, query_id, query_spec.query, resolved, error.reason

@@ -246,3 +246,50 @@ def test_timeline_truncates_at_its_marker_bound(client, monkeypatch):
     assert body["truncated"] is True
     assert len(body["markers"]) == 2
     assert body["markers"][0]["kind"] == "window_start"
+    assert body["markers"][-1]["kind"] == "window_end"
+
+    monkeypatch.setattr(timeline_module, "MARKER_LIMIT", 3)
+    body = call(client, ids, headers).json()
+    kinds = [marker["kind"] for marker in body["markers"]]
+    assert body["truncated"] is True
+    assert len(body["markers"]) == 3
+    assert "window_start" in kinds and "window_end" in kinds
+
+
+def test_timeline_excludes_observations_for_another_workload(client):
+    headers = sign_in(client)
+    ids = create(client, headers, incident_body(client)).json()
+    seed(ids)
+    with sessions()() as db, db.begin():
+        other = Workload(
+            cluster="development",
+            namespace="demo",
+            name="other-checkout",
+            uid="development-other-v1",
+            active=True,
+            source="development_fixture",
+        )
+        db.add(other)
+        db.flush()
+        observation = WorkloadObservation(
+            workload_id=other.id,
+            epoch=0,
+            observed_at=INSIDE,
+            payload=metric_observation(
+                Identity(
+                    workload_id=other.id,
+                    cluster=other.cluster,
+                    namespace=other.namespace,
+                    name=other.name,
+                    uid=other.uid,
+                    epoch=0,
+                ),
+                INSIDE,
+            ).model_dump(mode="json"),
+            comparison={},
+        )
+        db.add(observation)
+        db.flush()
+        other_id = observation.id
+    body = call(client, ids, headers).json()
+    assert str(other_id) not in {marker["id"] for marker in body["markers"]}

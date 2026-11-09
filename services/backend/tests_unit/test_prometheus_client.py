@@ -267,6 +267,20 @@ def test_sample_after_the_rounded_end_is_not_retained():
     assert len(result.redacted_bounded_payload["series"][0]["samples"]) == 1
 
 
+def test_leading_gap_is_partial_not_available():
+    result, _ = run(
+        matrix([row(metric(), [[START.timestamp() + 120, "1"], [END.timestamp(), "2"]])])
+    )
+    assert result.coverage.status == "partial"
+    assert "no_samples" in result.coverage.reason_codes
+
+
+def test_aggregate_series_uses_stable_query_name():
+    labels = {key: value for key, value in metric().items() if key != "__name__"}
+    result, _ = run(matrix([row(labels, samples())]))
+    assert result.redacted_bounded_payload["series"][0]["name"] == "Request rate"
+
+
 @pytest.mark.parametrize(
     "response,reason",
     [
