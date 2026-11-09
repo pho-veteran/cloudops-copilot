@@ -1,0 +1,60 @@
+{
+  "schema": "PrometheusMetricBrowser/v1",
+  "recorded_at": "2026-11-09T16:45:14Z",
+  "origin": "http://localhost:5173",
+  "browser": "Google Chrome 157.0.8103.38 via agent-browser. Microsoft Edge was not running, so an isolated managed Chromium was used. This is the loopback HTTP development origin; no certificate warning or TLS validation was bypassed.",
+  "source": "working tree on 557526edbb5e30375792388b86faa9c321cb57c0 with the #48 changes",
+  "ids": {
+    "incident_id": "231c4910-baf8-484b-986b-1f90a6805d72",
+    "run_id": "f6fe7b96-ad28-4df0-8f04-fa57f7177218",
+    "request_rate_evidence_id": "d95d11c6-14d8-4fb7-9e1b-f2a2e6148ef8"
+  },
+  "checks": {
+    "chart_table_and_timeline_markers_rendered": true,
+    "markers_are_window_start_and_window_end": true,
+    "no_horizontal_overflow_at_1280_390_320": true,
+    "viewer_can_read_same_chart_and_table": true,
+    "viewer_has_no_note_or_lifecycle_mutation_controls": true,
+    "traffic_pack_available_analysis_unavailable": true,
+    "no_certificate_or_trust_bypass": true
+  },
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "client_width": 1265,
+      "scroll_width": 1265,
+      "chart": true,
+      "table": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "client_width": 375,
+      "scroll_width": 375,
+      "chart": true,
+      "table": true
+    },
+    {
+      "width": 320,
+      "height": 700,
+      "theme": "dark",
+      "client_width": 305,
+      "scroll_width": 305,
+      "chart": true,
+      "table": true,
+      "marker_rows": 2,
+      "table_rows": 18
+    }
+  ],
+  "screenshots": [
+    "docs/evidence/prometheus48/metric-desktop-light.png",
+    "docs/evidence/prometheus48/metric-desktop-dark.png",
+    "docs/evidence/prometheus48/metric-390-light.png",
+    "docs/evidence/prometheus48/metric-320-dark.png",
+    "docs/evidence/prometheus48/metric-viewer-390-dark.png"
+  ],
+  "limitations": "The metric series come from the labeled lab Prometheus fixture, not from a product application exporter. The browser journey uses a separate HTTP development origin. The API receipt separately records the real TLS Prometheus read, six-source publication, analysis-unavailable state and API/worker restart preservation."
+}

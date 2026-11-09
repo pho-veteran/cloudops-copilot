@@ -5,6 +5,7 @@ import type { components } from "@/lib/api/generated/schema";
 import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { Failure, Loading } from "@/app/Feedback";
 import { CitationTarget } from "./CitationTarget";
+import { MetricEvidence } from "./MetricEvidence";
 
 type Run = components["schemas"]["RunView"];
 type Evidence = components["schemas"]["EvidenceView"];
@@ -161,13 +162,25 @@ function EvidenceDetail({
           )
         ) : (
           <>
-            <h3>Stored content</h3>
-            {Object.keys(content.data.payload).length === 0 ? (
-              <p>Content is empty.</p>
+            {content.data.payload_kind === "series" ? (
+              <MetricEvidence
+                incidentId={incidentId}
+                runId={runId}
+                evidence={e}
+                content={content.data}
+                window={e.requested_window}
+              />
             ) : (
-              <pre className="evidence-json">
-                {JSON.stringify(content.data.payload, null, 2)}
-              </pre>
+              <>
+                <h3>Stored content</h3>
+                {Object.keys(content.data.payload).length === 0 ? (
+                  <p>Content is empty.</p>
+                ) : (
+                  <pre className="evidence-json">
+                    {JSON.stringify(content.data.payload, null, 2)}
+                  </pre>
+                )}
+              </>
             )}
           </>
         ))}

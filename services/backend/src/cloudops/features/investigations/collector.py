@@ -139,11 +139,46 @@ REGISTERED_ADAPTERS: dict[str, SourceAdapter] = {"development_fixture": developm
 
 
 def configured_adapters(mode: str) -> dict[str, SourceAdapter]:
-    if mode == "none":
+    """Compose the finite provider set named by deployment configuration.
+
+    Existing ``none`` and ``development_fixture`` values keep their meaning. A live
+    provider is never combined with the synthetic fixture. Feature #47 can register
+    another provider here without changing the parser or the runner.
+    """
+    names = [name.strip() for name in mode.split(",") if name.strip()]
+    if not names or names == ["none"]:
         return {}
-    if mode == "development_fixture":
-        return {"development_fixture": REGISTERED_ADAPTERS["development_fixture"]}
-    raise ValueError("Unknown collection source mode.")
+    if len(names) != len(set(names)):
+        raise ValueError("Duplicate collection source mode.")
+    if "none" in names:
+        raise ValueError("The none source mode cannot be combined with a provider.")
+    if "development_fixture" in names and len(names) > 1:
+        raise ValueError("The development fixture cannot be combined with a live provider.")
+    adapters: dict[str, SourceAdapter] = {}
+    for name in names:
+        provider = _PROVIDERS.get(name)
+        if provider is None:
+            raise ValueError("Unknown collection source mode.")
+        selected = provider()
+        # The finite registry is also the validation authority used by both runners.
+        # Register the provider's actual adapter objects so bindings remain identity-checked.
+        REGISTERED_ADAPTERS.update(selected)
+        adapters.update(selected)
+    return adapters
+
+
+def _prometheus_adapters() -> dict[str, SourceAdapter]:
+    from cloudops.features.investigations import prometheus
+
+    return prometheus.adapters()
+
+
+_PROVIDERS = {
+    "development_fixture": lambda: {
+        "development_fixture": REGISTERED_ADAPTERS["development_fixture"]
+    },
+    "prometheus": _prometheus_adapters,
+}
 
 
 def _unavailable(key: str, reason: str) -> SourceResult:

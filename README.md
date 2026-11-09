@@ -10,6 +10,8 @@ The optional [workload observer](docs/workload-observation.md) adds persisted UI
 
 [Stored Run comparison and citations](docs/investigation-comparison.md) add explicit two-Run selection, source/coverage differences and exact historical evidence targets. Both application roles can inspect/export comparisons; provider collection and AI findings retain their owning feature boundaries.
 
+Optional [scoped Prometheus metric evidence](docs/prometheus-metrics.md) adds six fixed metric slots, a chart/table and a persisted Run timeline when the deployment supplies a trusted read configuration. The default stack remains the labeled synthetic fixture and contacts no Prometheus endpoint. Metric evidence does not create a diagnosis or authorize recovery.
+
 ## Quick start
 
 Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.

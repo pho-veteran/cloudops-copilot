@@ -4,6 +4,8 @@ The dedicated observer reads configured live Deployment identities through the h
 
 This implementation targets [E02 task #27](https://github.com/pho-veteran/cloudops-copilot/issues/27). Active requirements remain in [E02 #5](https://github.com/pho-veteran/cloudops-copilot/issues/5). The direct-read producer also supports [baseline v1 confirmation and read-only recovery context](workload-baselines.md). Application/Prometheus health and new executable recovery actions remain unavailable. Existing baseline v0 and E07 scale semantics remain unchanged.
 
+Persisted rollout observations are E02 records; they are not investigation metric evidence. The optional Prometheus metric adapter and the read-only Run timeline that consumes observation timestamps are documented in [scoped Prometheus metric evidence](prometheus-metrics.md).
+
 ## Start and stop
 
 Use the existing [local lab](e01-local-lab.md) to establish the scoped reader. Never mount writer, dispatcher, KRR or executor-authority material into the observer. With the integration overlay configured:

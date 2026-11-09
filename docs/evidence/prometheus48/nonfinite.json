@@ -1,0 +1,323 @@
+{
+  "runtime_commit": "557526edbb5e30375792388b86faa9c321cb57c0",
+  "worktree": [
+    "M .env.example",
+    " M README.md",
+    " M apps/web/src/app/foundation.css",
+    " M apps/web/src/features/investigations/EvidenceCatalog.tsx",
+    " M apps/web/src/lib/api/generated/schema.d.ts",
+    " M config/Caddyfile.local",
+    " M config/lab/prometheus.yaml",
+    " M contracts/openapi.json",
+    " M docs/e01-local-lab.md",
+    " M docs/foundation.md",
+    " M docs/workload-observation.md",
+    " M scripts/bootstrap-integration.py",
+    " M services/backend/src/cloudops/features/health/api.py",
+    " M services/backend/src/cloudops/features/health/schemas.py",
+    " M services/backend/src/cloudops/features/investigations/api.py",
+    " M services/backend/src/cloudops/features/investigations/collector.py",
+    " M services/backend/src/cloudops/features/investigations/storage.py",
+    " M services/backend/tests/permission_cases.py",
+    " M services/backend/tests/permission_inventory.py",
+    "?? .commandcode/",
+    "?? apps/web/src/features/investigations/MetricEvidence.test.tsx",
+    "?? apps/web/src/features/investigations/MetricEvidence.tsx",
+    "?? compose.metrics.yaml",
+    "?? config/lab/metrics_fixture.py",
+    "?? docs/evidence/prometheus48/",
+    "?? docs/prometheus-metrics.md",
+    "?? scripts/bootstrap-metrics.py",
+    "?? scripts/probe-metrics.py",
+    "?? services/backend/src/cloudops/features/investigations/prometheus.py",
+    "?? services/backend/src/cloudops/features/investigations/prometheus_config.py",
+    "?? services/backend/src/cloudops/features/investigations/timeline.py",
+    "?? services/backend/src/cloudops/features/investigations/timeline_schemas.py",
+    "?? services/backend/tests/test_prometheus_collection.py",
+    "?? services/backend/tests/test_run_timeline.py",
+    "?? services/backend/tests_unit/test_prometheus_client.py",
+    "?? services/backend/tests_unit/test_prometheus_config.py",
+    "?? services/backend/tests_unit/test_prometheus_provider.py"
+  ],
+  "recorded_at": "2026-11-09T17:04:35.689734+00:00",
+  "origin": "http://localhost:5173",
+  "expected": "nonfinite",
+  "checks": {
+    "six_metric_sources_published": true,
+    "analysis_remains_unavailable": true,
+    "nonfinite_values_are_not_numeric": true,
+    "timeline_has_captured_window": true,
+    "viewer_reads_run": true
+  },
+  "ids": {
+    "incident_id": "62ca3cdf-8e5f-4774-8c94-841b1005da3f",
+    "run_id": "db803309-fbee-4a6b-a815-1c94a7d5b355",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-09T17:03:44.113707Z",
+      "end": "2026-11-09T17:04:44.113707Z",
+      "source": "explicit"
+    }
+  },
+  "run": {
+    "state": "insufficient_evidence",
+    "outcome_code": "analysis_unavailable",
+    "window": {
+      "start": "2026-11-09T17:03:44.113707Z",
+      "end": "2026-11-09T17:04:44.113707Z",
+      "source": "explicit"
+    },
+    "pack_coverage": [
+      {
+        "pack": "crashloop_startup",
+        "status": "unavailable"
+      },
+      {
+        "pack": "oom_restarts",
+        "status": "unavailable"
+      },
+      {
+        "pack": "traffic_latency_errors",
+        "status": "unavailable"
+      },
+      {
+        "pack": "pending_unschedulable",
+        "status": "unavailable"
+      },
+      {
+        "pack": "image_pull",
+        "status": "unavailable"
+      }
+    ]
+  },
+  "evidence": {
+    "prometheus.error_ratio": {
+      "id": "59e29bdd-fa8a-42fb-9d7c-3533b4e9d32f",
+      "source_key": "prometheus.error_ratio",
+      "coverage": {
+        "status": "unavailable",
+        "reason_codes": [
+          "no_samples"
+        ]
+      },
+      "content_status": "unavailable",
+      "sha256": null,
+      "query_metadata": {
+        "step": 30,
+        "unit": "ratio",
+        "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+        "window": {
+          "end": "2026-11-09T17:04:44.113707+00:00",
+          "start": "2026-11-09T17:03:44.113707+00:00"
+        },
+        "query_id": "error_ratio",
+        "warnings": [
+          "3 malformed or non-finite sample entries were omitted.",
+          "1 matching series had no finite samples in the window."
+        ],
+        "query_version": "standard_v1",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "binding_version": "uid_label_v1",
+        "source_identity": {
+          "namespace": "demo",
+          "cluster_id": "local-k3s",
+          "endpoint_id": "lab-prometheus",
+          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+        },
+        "producer_version": "prometheus/v3.5.0"
+      }
+    },
+    "prometheus.memory_limit": {
+      "id": "f50c8a45-53a8-4818-b266-bedfa262a7fa",
+      "source_key": "prometheus.memory_limit",
+      "coverage": {
+        "status": "unavailable",
+        "reason_codes": [
+          "no_samples"
+        ]
+      },
+      "content_status": "unavailable",
+      "sha256": null,
+      "query_metadata": {
+        "step": 30,
+        "unit": "bytes",
+        "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+        "window": {
+          "end": "2026-11-09T17:04:44.113707+00:00",
+          "start": "2026-11-09T17:03:44.113707+00:00"
+        },
+        "query_id": "memory_limit",
+        "warnings": [
+          "3 malformed or non-finite sample entries were omitted.",
+          "1 matching series had no finite samples in the window."
+        ],
+        "query_version": "standard_v1",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "binding_version": "uid_label_v1",
+        "source_identity": {
+          "namespace": "demo",
+          "cluster_id": "local-k3s",
+          "endpoint_id": "lab-prometheus",
+          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+        },
+        "producer_version": "prometheus/v3.5.0"
+      }
+    },
+    "prometheus.memory_working_set": {
+      "id": "426ab729-9f2e-4abf-9456-d739c0a27e19",
+      "source_key": "prometheus.memory_working_set",
+      "coverage": {
+        "status": "unavailable",
+        "reason_codes": [
+          "no_samples"
+        ]
+      },
+      "content_status": "unavailable",
+      "sha256": null,
+      "query_metadata": {
+        "step": 30,
+        "unit": "bytes",
+        "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+        "window": {
+          "end": "2026-11-09T17:04:44.113707+00:00",
+          "start": "2026-11-09T17:03:44.113707+00:00"
+        },
+        "query_id": "memory_working_set",
+        "warnings": [
+          "3 malformed or non-finite sample entries were omitted.",
+          "1 matching series had no finite samples in the window."
+        ],
+        "query_version": "standard_v1",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "binding_version": "uid_label_v1",
+        "source_identity": {
+          "namespace": "demo",
+          "cluster_id": "local-k3s",
+          "endpoint_id": "lab-prometheus",
+          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+        },
+        "producer_version": "prometheus/v3.5.0"
+      }
+    },
+    "prometheus.p95_latency": {
+      "id": "6a9ff6db-bb34-479f-937c-f5d1a88128c7",
+      "source_key": "prometheus.p95_latency",
+      "coverage": {
+        "status": "unavailable",
+        "reason_codes": [
+          "no_samples"
+        ]
+      },
+      "content_status": "unavailable",
+      "sha256": null,
+      "query_metadata": {
+        "step": 30,
+        "unit": "seconds",
+        "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+        "window": {
+          "end": "2026-11-09T17:04:44.113707+00:00",
+          "start": "2026-11-09T17:03:44.113707+00:00"
+        },
+        "query_id": "p95_latency",
+        "warnings": [
+          "3 malformed or non-finite sample entries were omitted.",
+          "1 matching series had no finite samples in the window."
+        ],
+        "query_version": "standard_v1",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "binding_version": "uid_label_v1",
+        "source_identity": {
+          "namespace": "demo",
+          "cluster_id": "local-k3s",
+          "endpoint_id": "lab-prometheus",
+          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+        },
+        "producer_version": "prometheus/v3.5.0"
+      }
+    },
+    "prometheus.request_rate": {
+      "id": "b5a5f3c2-04c0-49d6-a69c-664c102e41e1",
+      "source_key": "prometheus.request_rate",
+      "coverage": {
+        "status": "unavailable",
+        "reason_codes": [
+          "no_samples"
+        ]
+      },
+      "content_status": "unavailable",
+      "sha256": null,
+      "query_metadata": {
+        "step": 30,
+        "unit": "requests/s",
+        "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+        "window": {
+          "end": "2026-11-09T17:04:44.113707+00:00",
+          "start": "2026-11-09T17:03:44.113707+00:00"
+        },
+        "query_id": "request_rate",
+        "warnings": [
+          "3 malformed or non-finite sample entries were omitted.",
+          "1 matching series had no finite samples in the window."
+        ],
+        "query_version": "standard_v1",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "binding_version": "uid_label_v1",
+        "source_identity": {
+          "namespace": "demo",
+          "cluster_id": "local-k3s",
+          "endpoint_id": "lab-prometheus",
+          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+        },
+        "producer_version": "prometheus/v3.5.0"
+      }
+    },
+    "prometheus.restarts": {
+      "id": "c02c0b0d-8531-44a4-afd0-81d11c87f0a7",
+      "source_key": "prometheus.restarts",
+      "coverage": {
+        "status": "available",
+        "reason_codes": []
+      },
+      "content_status": "available",
+      "sha256": "676a4dae81321ff6ba658854d9b37cc27304007f8759e585eee867a1ac9f5065",
+      "query_metadata": {
+        "step": 30,
+        "unit": "count",
+        "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+        "window": {
+          "end": "2026-11-09T17:04:44.113707+00:00",
+          "start": "2026-11-09T17:03:44.113707+00:00"
+        },
+        "query_id": "restarts",
+        "warnings": [],
+        "query_version": "standard_v1",
+        "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"4a726d88-17f3-481e-a2fe-ed217b1e05c8\"})",
+        "binding_version": "uid_label_v1",
+        "source_identity": {
+          "namespace": "demo",
+          "cluster_id": "local-k3s",
+          "endpoint_id": "lab-prometheus",
+          "workload_uid": "4a726d88-17f3-481e-a2fe-ed217b1e05c8"
+        },
+        "producer_version": "prometheus/v3.5.0"
+      },
+      "series": 1,
+      "samples": 3
+    }
+  },
+  "timeline": {
+    "schema": "RunTimeline/v1",
+    "window": {
+      "start": "2026-11-09T17:03:44.113707Z",
+      "end": "2026-11-09T17:04:44.113707Z",
+      "source": "explicit"
+    },
+    "kinds": [
+      "window_start",
+      "window_end"
+    ],
+    "truncated": false,
+    "limitations": "Markers are persisted records aligned by time; alignment is correlation, not causality."
+  }
+}

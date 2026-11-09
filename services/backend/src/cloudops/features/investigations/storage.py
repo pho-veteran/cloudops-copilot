@@ -35,6 +35,7 @@ REASONS = {
     "truncated",
     "stale",
     "identity_changed",
+    "ownership_unproven",
     "not_applicable",
     "not_captured",
     "expired",

@@ -110,6 +110,14 @@ Partial redaction and historical legacy/expiry examples were explicitly controll
 
 Checkpoint progress, trusted dispatch pauses and safe cancellation have their own [API](evidence/job-dispatch/api.json) and [browser](evidence/job-dispatch/browser.json) receipts, with [paused queued work](evidence/job-dispatch/paused-queued-desktop.png), [collection after worker loss and API restart](evidence/job-dispatch/collecting-restart-320-dark.png) and [a failed Run offering reinvestigation](evidence/job-dispatch/failed-390.png). See [trusted job dispatch](job-dispatch.md).
 
+### Scoped Prometheus metric evidence
+
+The optional `prometheus` provider installs the six fixed metric slots in the existing `standard_v1` catalog. It requires a trusted `PROMETHEUS_READ_CONFIG` with one fixed HTTPS endpoint, a verified CA, an optional bearer token and exactly the six configured query templates. Every returned series must bind the configured `deployment_uid` and `namespace` labels to the Run's immutable workload identity; unmatched series are dropped. The default `development_fixture`/`none` modes are unchanged and do not contact Prometheus.
+
+Metric evidence uses the same bounded storage, retention, pin and checkpoint rules as other sources. Empty, gapped, non-finite, denied, timed-out, oversized and unproven-ownership results remain distinct from a real zero; at most 25 series per query and the existing 20,000-sample/8 MiB Run bounds apply. There is no new table or migration. The read-only Run timeline endpoint projects persisted E02 rollout observations, E03 activity and E07 execution timestamps without claiming causality.
+
+The optional [metrics lab](prometheus-metrics.md#local-lab) adds a labeled metrics fixture behind the Caddy `/prometheus/*` TLS route and a staged config bootstrap. The fixture is not a product application exporter. AI diagnosis, live Kubernetes packs, recovery execution and release deployment remain with their owners.
+
 ### Work queue search and prioritization
 
 The persisted work queue (`#/queue`) searches, filters, sorts and pages incidents through the read-only `GET /api/incidents` endpoint. Server-backed operational views keep incident lifecycle, alert signal, latest Run state and execution state as independent axes. The queue consumes E07's shared execution/lock classification and displays every relevant active, unknown or unsupported execution; it does not authorize or perform mutations.

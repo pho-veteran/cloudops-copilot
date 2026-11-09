@@ -223,6 +223,114 @@
   text-decoration: underline;
   color: var(--ops-blue);
 }
+.metric-evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.metric-warning {
+  color: var(--destructive);
+  font-size: 12px;
+}
+.metric-series {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.metric-series-button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.metric-series-button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--ring);
+}
+.metric-series-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.metric-chart-frame {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--card);
+  overflow-x: auto;
+}
+.metric-chart-frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 280px;
+  color: var(--muted-foreground);
+}
+.metric-chart-frame text {
+  fill: var(--muted-foreground);
+  font-size: 11px;
+}
+.metric-chart-frame .metric-unit {
+  font-size: 11px;
+}
+.metric-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 12px;
+}
+.metric-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+.metric-table-wrap {
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.metric-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.metric-table caption {
+  text-align: left;
+  padding: 8px;
+  color: var(--muted-foreground);
+}
+.metric-table th,
+.metric-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.metric-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+}
+.metric-timeline {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.metric-marker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 18px;
+  font-size: 12px;
+}
+.metric-marker-list time {
+  color: var(--muted-foreground);
+}
 @media (max-width: 1000px) {
   .foundation-workspace {
     grid-template-columns: 1fr;

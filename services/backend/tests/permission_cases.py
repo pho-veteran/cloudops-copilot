@@ -15,6 +15,7 @@ from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, I
 from cloudops.features.investigations.schemas import EvidenceContent, EvidenceView, RunPage, RunView
 from cloudops.features.investigations.citation_schemas import CitationResolution, CitationTargets
 from cloudops.features.investigations.comparison_schemas import RunComparison
+from cloudops.features.investigations.timeline_schemas import RunTimeline
 from cloudops.features.workloads.schemas import ScopePage, WorkloadPage, WorkloadView
 from cloudops.features.workloads.observation_schemas import ObservationDetail, ObservationPage
 from intake_fixtures import envelope
@@ -29,7 +30,9 @@ class RequestCase:
 def validated(model, response):
     assert response.status_code == 200, response.text
     value = model.model_validate(response.json())
-    assert value.model_dump(mode="json") == response.json(), "Unexpected transport fields"
+    assert value.model_dump(mode="json", by_alias=True) == response.json(), (
+        "Unexpected transport fields"
+    )
     return value
 
 
@@ -255,6 +258,15 @@ def targets_check(response, context, actor):
     assert result.items
 
 
+def timeline_check(response, context, actor):
+    result = validated(RunTimeline, response)
+    assert str(result.run_id) == context.run_id
+    assert result.window is not None
+    assert result.markers[0].kind == "window_start"
+    assert result.markers[-1].kind == "window_end"
+    assert not result.truncated
+
+
 CASES = {
     "compare_runs": RequestCase(compare_request, compare_check),
     "resolve_citation": RequestCase(evidence_request, citation_check),
@@ -269,6 +281,7 @@ CASES = {
     "get_incident": RequestCase(incident_request, incident_check),
     "list_runs": RequestCase(incident_request, run_list_check),
     "get_run": RequestCase(run_request, run_check),
+    "get_run_timeline": RequestCase(run_request, timeline_check),
     "get_evidence": RequestCase(evidence_request, evidence_check),
     "get_evidence_content": RequestCase(evidence_request, content_check),
     "get_health": RequestCase(session_request, health_check),
