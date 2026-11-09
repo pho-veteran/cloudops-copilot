@@ -134,6 +134,8 @@ class FakeCluster:
         drift_at=None,
         denied=False,
         configmap_kind="ConfigMap",
+        current_truncated=False,
+        previous_truncated=False,
     ):
         self.pods = pods or [pod("pod-uid-1")]
         self.events = events or []
@@ -142,6 +144,8 @@ class FakeCluster:
         self.drift_at = drift_at
         self.denied = denied
         self.configmap_kind = configmap_kind
+        self.current_truncated = current_truncated
+        self.previous_truncated = previous_truncated
         self.deployment_reads = 0
 
     def _check(self):
@@ -183,7 +187,7 @@ class FakeCluster:
         text = self.previous if previous else self.current
         if text is None:
             raise kubernetes_collector.ScopedK8sError("container_not_ready")
-        return text, False
+        return text, self.previous_truncated if previous else self.current_truncated
 
     def get_configmap_metadata(self, namespace, name):
         self._check()
@@ -344,6 +348,21 @@ def test_stale_window_is_disclosed_and_history_is_not_rewritten(client, monkeypa
             assert row.coverage["status"] == "available"
             assert row.requested_window["end"] == old_end.isoformat()
             assert row.requested_window["end"] != datetime.now(timezone.utc).isoformat()
+
+
+def test_truncated_logs_persist_partial_coverage_and_payload_flag(client, monkeypatch):
+    fake = FakeCluster(
+        current="2026-01-01T00:00:00Z line\n" * 200,
+        current_truncated=True,
+    )
+    result = collect_and_store(client, monkeypatch, fake)
+    assert result.coverage["kubernetes.logs.current"] == {
+        "status": "partial",
+        "reason_codes": ["truncated"],
+    }
+    assert result.payloads["kubernetes.logs.current"]["truncated"] is True
+    assert result.packs["crashloop_startup"]["status"] == "available"
+    assert "kubernetes.logs.current" not in result.packs["crashloop_startup"]["missing_required"]
 
 
 def test_stale_reason_round_trips_and_unknown_reason_still_fails(client, monkeypatch):

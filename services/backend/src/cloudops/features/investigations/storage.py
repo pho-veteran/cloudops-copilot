@@ -134,7 +134,7 @@ ROOT_FIELDS = {
     "fixture": {"label", "workload", "observation"},
     "state": {"deployment", "pods", "containers", "metadata", "configmaps"},
     "events": {"events"},
-    "logs": {"logs", "containers", "pods"},
+    "logs": {"logs", "containers", "pods", "truncated"},
     "series": {"series"},
 }
 CONFIG_FIELDS = {
@@ -195,6 +195,7 @@ LOG_FIELDS = {
     "text",
     "timestamp",
     "previous",
+    "truncated",
 }
 SERIES_FIELDS = {
     "series",

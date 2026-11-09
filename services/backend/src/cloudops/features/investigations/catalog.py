@@ -61,9 +61,19 @@ def derive_pack_coverage(outcomes: Mapping[str, "Coverage"]) -> list[dict]:
         for key in required:
             coverage = outcomes.get(key)
             status = coverage.status if coverage else "unavailable"
+            truncated_log = (
+                key in _LOGS
+                and status == "partial"
+                and coverage is not None
+                and coverage.reason_codes == ["truncated"]
+            )
             if status in ("available", "partial"):
                 usable += 1
-            if status != "available" and not (key in _LOGS and status == "not_applicable"):
+            if (
+                status != "available"
+                and not truncated_log
+                and not (key in _LOGS and status == "not_applicable")
+            ):
                 missing.append(key)
         gaps = [
             key
