@@ -44,6 +44,18 @@ const evidence = {
   pinned: true,
   content_status: "available",
 } satisfies components["schemas"]["EvidenceView"];
+const truncatedEvidence = {
+  ...evidence,
+  source_key: "kubernetes.logs.current",
+  source_kind: "logs",
+  catalog_version: "standard_v1",
+  schema_version: 2,
+  payload_kind: "logs",
+  observed_at: "2026-11-01T00:00:00Z",
+  time_relation: "within_requested_window",
+  coverage: { status: "partial", reason_codes: ["truncated"] },
+  redaction_policy_version: "standard_v1",
+} satisfies components["schemas"]["EvidenceView"];
 const run = {
   id: runId,
   incident_id: incident,
@@ -153,6 +165,32 @@ it("identifies historical evidence with uncaptured source coverage as legacy", a
   ).not.toContain("unavailable");
   expect(document.activeElement).toBe(
     screen.getByRole("heading", { name: "Selected evidence" }),
+  );
+});
+
+it("discloses a truncated log payload and its coverage reason", async () => {
+  http.fetch.mockImplementation(async (input) => {
+    const path = new URL((input as Request).url).pathname;
+    if (path.endsWith("/content"))
+      return Response.json({
+        evidence_id: evidenceId,
+        run_id: runId,
+        schema_version: 2,
+        payload_kind: "logs",
+        payload_version: 1,
+        sha256: "abc",
+        payload: { truncated: true, logs: [], containers: [] },
+      });
+    return Response.json(truncatedEvidence);
+  });
+  mount(evidenceId, { ...run, evidence: [truncatedEvidence] });
+  expect(
+    await screen.findByText(
+      "Log output was truncated at the collection cap; later lines are not included.",
+    ),
+  ).toBeTruthy();
+  expect(screen.getByText("Coverage").nextElementSibling?.textContent).toBe(
+    "partial · truncated",
   );
 });
 

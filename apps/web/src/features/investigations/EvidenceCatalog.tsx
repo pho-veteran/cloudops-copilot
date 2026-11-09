@@ -162,6 +162,12 @@ function EvidenceDetail({
         ) : (
           <>
             <h3>Stored content</h3>
+            {content.data.payload.truncated === true && (
+              <p>
+                Log output was truncated at the collection cap; later lines are
+                not included.
+              </p>
+            )}
             {Object.keys(content.data.payload).length === 0 ? (
               <p>Content is empty.</p>
             ) : (
