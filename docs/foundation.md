@@ -1,6 +1,6 @@
 # Foundation operation and contributor handoff
 
-The local foundation stores application state and source-aware collection outcomes. The only installed investigation adapter is an optional synthetic development fixture; uninstalled live source slots remain unavailable. Scope and acceptance stay in [E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) and the linked feature EPICs, rather than a second repository backlog.
+The local foundation stores application state and source-aware collection outcomes. By default, the only installed investigation adapter is an optional synthetic development fixture; uninstalled live source slots remain unavailable. The optional scoped Prometheus provider is enabled only by explicit configuration. Scope and acceptance stay in [E00](https://github.com/pho-veteran/cloudops-copilot/issues/15) and the linked feature EPICs, rather than a second repository backlog.
 
 Configured live workload health/context uses the separate [read-only workload observer](workload-observation.md). These rollout observations do not install investigation source adapters or authorize remediation.
 
