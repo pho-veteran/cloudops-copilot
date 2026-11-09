@@ -1,0 +1,27 @@
+{
+  "schema": "PrometheusMetricSourceBinding/v1",
+  "commit": "110a96a60300dd346997334361d71dc80ee2fd6b",
+  "recorded_at": "2026-11-09T17:09:26.5738649Z",
+  "files": {
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "c2a10db3257315e0a7b82e6a7c16376ed7742ee9ba2641d6273e35dc18ebebec",
+    "services/backend/src/cloudops/features/investigations/prometheus_config.py": "1ca74dd0e06739832ca5beb6d70a108946f7a3822a81609c90ba94b5314e4609",
+    "services/backend/src/cloudops/features/investigations/timeline.py": "3abced15eef927e0e5d32bd5a011fb7e2a248d1165960746ad2d84fc46045e86",
+    "services/backend/src/cloudops/features/investigations/timeline_schemas.py": "8774034db2e1766c32981234040c177984319f3a0e2e303a36a720a584c0a9b6",
+    "services/backend/src/cloudops/features/investigations/collector.py": "051ba059c28dd26501f04d35ebf288df7f3675990c3da031981ac9430fa0f2e1",
+    "services/backend/src/cloudops/features/investigations/storage.py": "f91e1094fb0c7b9c8c0ed8276332fd0f862e378e6c823a040e944ab63829448f",
+    "services/backend/src/cloudops/features/investigations/api.py": "cd357b8c46d204bbc87c724e0e3996c490dc839e4d2f1564be0c832118fb5a12",
+    "services/backend/src/cloudops/features/health/api.py": "d7a80b69c38ec99e9f17bd819384b7ca697cdfcde7c9a432b08d45fbcd2e3df7",
+    "services/backend/src/cloudops/features/health/schemas.py": "a78ef8a9aedcb43e8d1b8ffdeceb605cec7b75b87f2eed9c6f5341247b13a39d",
+    "apps/web/src/features/investigations/MetricEvidence.tsx": "c14ba6c570c16c8973894d8b73cad6023c53058a039c8edda270681e11a0a3a1",
+    "apps/web/src/features/investigations/MetricEvidence.test.tsx": "d905e28163f160d80f0c439278c454660fd18448eab8620a0b3e12f31c9afb5a",
+    "apps/web/src/features/investigations/EvidenceCatalog.tsx": "7568074326d2f690d7b55b15bccc66d5c58814a7bca73f49e108207de5165c98",
+    "compose.metrics.yaml": "fed82aaba6172828f8a7fc13b85ac6f5f08b748ea4d4dd2a38f2194a32d94b43",
+    "config/lab/metrics_fixture.py": "8cb6d17dfd44a0d31da86a880423dfb69a659052cf00d84050469b7dbafde535",
+    "config/Caddyfile.local": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
+    "config/lab/prometheus.yaml": "31d7817919504df79bc5cc6dc1ad972c1dc112c517c17c085f6087af36d62c57",
+    "scripts/bootstrap-metrics.py": "e86042b87cfd2994018f0f970ac1ef89c0a3b4a6c4dba7e212da7b4a4d9298cb",
+    "scripts/probe-metrics.py": "e5949b90359054ab08dd0c73072c701676b4011a5906c739b01b3481b39d416d",
+    "docs/prometheus-metrics.md": "e0a21245497147fd1474b9935217a9b49ecb567ce4d1606a80760e66529bfaa5"
+  },
+  "note": "SHA-256 of the committed source files at this commit; the API and browser receipts were produced from the same working-tree candidate."
+}
