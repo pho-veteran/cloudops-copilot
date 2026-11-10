@@ -3,25 +3,26 @@
   "recorded_at": "2026-11-10T17:30:00Z",
   "starting_commit": "f6941c9",
   "backend": {
+    "cwd": "repository root",
     "collected": 1154,
     "passed": 1144,
     "skipped": 10,
     "split": [
       {
-        "command": "pytest -q tests_unit tests --ignore=tests/test_permissions.py",
+        "command": "uv run --project services/backend pytest -q services/backend/tests_unit services/backend/tests --ignore=services/backend/tests/test_permissions.py",
         "passed": 916,
         "skipped": 10,
         "duration_seconds": 538.33
       },
       {
-        "command": "pytest -q tests/test_permissions.py",
+        "command": "uv run --project services/backend pytest -q services/backend/tests/test_permissions.py",
         "passed": 228,
         "skipped": 0,
         "duration_seconds": 412.96
       }
     ],
     "focused_e04": {
-      "command": "pytest -q tests/test_e04_integration.py",
+      "command": "uv run --project services/backend pytest -q services/backend/tests/test_e04_integration.py",
       "passed": 8,
       "repeat": "10/10 consecutive runs passed"
     }

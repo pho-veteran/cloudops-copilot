@@ -44,25 +44,45 @@ printf '%s\n%s\n' "$OPERATOR_PASSWORD" "$VIEWER_PASSWORD" |
 
 The probe creates one explicit one-minute Run per pack plus a second traffic Run for comparison. It reads every available content payload and verifies the canonical post-redaction SHA-256, checks pack coverage, compares 12 sources, resolves an exact sample citation, reads the timeline as Operator and Viewer, checks wrong-scope 404, restarts API/worker and confirms the same evidence IDs/hashes.
 
+The browser evidence uses a separate loopback HTTP development origin, not the HTTPS API origin. The temporary override is deliberately not committed:
+
+```sh
+cat > tmp/compose.e04-http.yaml <<'YAML'
+services:
+  api:
+    environment:
+      WEB_ORIGIN: http://localhost:5173
+      COOKIE_SECURE: "false"
+  worker:
+    environment:
+      WEB_ORIGIN: http://localhost:5173
+      COOKIE_SECURE: "false"
+YAML
+$LAB -f tmp/compose.e04-http.yaml --profile http-development \
+  up -d --build --wait --wait-timeout 300 api worker web
+```
+
+Vite serves `http://localhost:5173` and proxies the API; `WEB_ORIGIN`/`COOKIE_SECURE` must match that origin. No certificate warning or trust bypass is used.
+
 ## Five-pack result
 
 [`acceptance.json`](evidence/e04-integration/acceptance.json) records the actual Run/evidence IDs and all 12 source outcomes per pack.
 
 | Pack | Live Run result | Required gap | Optional gap |
 |---|---|---|---|
-| `crashloop_startup` | `partial` | `kubernetes.logs.previous` unavailable | `kubernetes.configmap.metadata` (`source_not_configured`) |
-| `oom_restarts` | `partial` | `kubernetes.logs.previous` unavailable | `kubernetes.configmap.metadata` (`source_not_configured`) |
+| `crashloop_startup` | `partial` | `kubernetes.logs.previous` partial/`no_samples` (content stored but incomplete) | `kubernetes.configmap.metadata` (`source_not_configured`) |
+| `oom_restarts` | `partial` | `kubernetes.logs.previous` partial/`no_samples` (content stored but incomplete) | `kubernetes.configmap.metadata` (`source_not_configured`) |
 | `traffic_latency_errors` | `available` | none | `kubernetes.configmap.metadata` |
 | `pending_unschedulable` | `available` | none; current/previous logs `not_applicable` | `kubernetes.configmap.metadata` |
 | `image_pull` | `available` | none; current/previous logs `not_applicable` | `kubernetes.configmap.metadata` |
 
-The two partial CrashLoop/OOM packs are honest live gaps: K3s containerd returned “unable to retrieve container logs” for the previous container; the collector published `partial`/`no_samples` rather than a zero or an empty success. State/events/current logs and all six metric sources were available. Traffic, Pending and ImagePull packs were fully available. `kubernetes.configmap.metadata` remained `source_not_configured` because no ConfigMap metadata grant was enabled for this run.
+The two partial CrashLoop/OOM packs are honest live gaps: the local K3s previous-container log read returned an incomplete/non-timestamped segment; the collector retained available content but published `partial`/`no_samples`, not a zero or an empty success. State/events/current logs and all six metric sources were available. Traffic, Pending and ImagePull packs were fully available. `kubernetes.configmap.metadata` remained `source_not_configured` because no ConfigMap metadata grant was enabled for this run. The synthetic `development_fixture` slot is intentionally `source_not_configured` in `live_kubernetes,prometheus` mode; it is a labeled synthetic source, not a live producer and not part of the five-pack availability claim.
 
 ## Checkpoints, restart, dispatch and evidence consumers
 
 - The integrated backend suite (`tests/test_e04_integration.py`) covers batch = checkpointed = takeover parity for all 12 sources, including a crash at a Prometheus source, six reused evidence IDs/hashes, progress/finalization, five-pack matrices, exact citations for state/event/log/series/sample, timeline markers, failed-reinvestigation pin preservation, Viewer/Anonymous behavior and read-only side effects.
 - The live probe created and finalized all five pack Runs through normal admission/worker/checkpoints; `--restart` preserved every stored evidence ID and SHA-256.
-- [`dispatch.json`](evidence/e04-integration/dispatch.json) records the actual collection-class worker takeover and trusted `dispatch-admin enter-recovery` / `resume --class recommendation` / `resume --class collection` / `exit-recovery` behavior in a separate fresh owned project. `tests/test_dispatch_gate.py` covers all three current job classes, DB-seeded future-state rejection and stale-generation fencing. The executor restore/unknown path remains a separate E07/E10 gate; no unknown lock was released or written.
+- [`dispatch.json`](evidence/e04-integration/dispatch.json) records the actual collection-class worker takeover and trusted `dispatch-admin enter-recovery` / `resume --class recommendation` / `resume --class collection` / `exit-recovery` behavior in a separate fresh owned project. That dispatch project runs `COLLECTION_SOURCE_MODE=development_fixture`; it proves job lifecycle/class-permit behavior, not live producer collection. The five-pack project separately proves the live Kubernetes/Prometheus producers. `tests/test_dispatch_gate.py` covers all three current job classes, DB-seeded future-state rejection and stale-generation fencing. The executor restore/unknown path remains a separate E07/E10 gate; no unknown lock was released or written.
 - A repeated Run with a failed/all-unavailable successor leaves the previous latest-useful evidence and pin readable; the live UI/API evidence remains historical, not a new RCA.
 
 ## Browser and role/session checks

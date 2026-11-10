@@ -120,6 +120,7 @@ def test_full_catalog_batch_checkpoint_and_takeover_parity(client, monkeypatch):
         with pytest.raises(ProcessLost):
             collect_checkpointed(first, first_context, {**binding, lost_key: lost}, GATE)
     interrupted_view = run_view(client, takeover)
+    interrupted_ids = {row["source_key"]: row["id"] for row in interrupted_view["evidence"]}
     assert interrupted_view["state"] == "collecting"
     assert interrupted_view["progress"]["sources_committed"] == 6
     assert interrupted_view["progress"]["sources_reused"] == 0
@@ -135,6 +136,8 @@ def test_full_catalog_batch_checkpoint_and_takeover_parity(client, monkeypatch):
     assert finish(second, HANDLERS[second.kind], result=final, gate=GATE)
     assert stored(takeover) == reference
     view = run_view(client, takeover)
+    final_ids = {row["source_key"]: row["id"] for row in view["evidence"]}
+    assert {key: final_ids[key] for key in interrupted_ids} == interrupted_ids
     assert view["progress"]["sources_reused"] == 6
     assert view["progress"]["finalized"] is True
     assert [attempt["state"] for attempt in view["attempts"]] == ["expired", "succeeded"]
@@ -167,8 +170,9 @@ def test_five_fixed_pack_coverage_with_k8s_and_metrics(client, monkeypatch, scen
     view = run_view(client, ids)
     coverage = {row["pack"]: row for row in view["pack_coverage"]}
     assert coverage[pack]["status"] == "available"
-    assert all(row["status"] == "available" for row in view["pack_coverage"])
     assert len(view["evidence"]) == 12
+    state = stored(ids)["kubernetes.state"][2]
+    pods = state["pods"]
     if scenario in {"pending", "imagepull"}:
         assert (
             evidence_for(view, "kubernetes.logs.current")["coverage"]["status"] == "not_applicable"
@@ -176,8 +180,37 @@ def test_five_fixed_pack_coverage_with_k8s_and_metrics(client, monkeypatch, scen
         assert (
             evidence_for(view, "kubernetes.logs.previous")["coverage"]["status"] == "not_applicable"
         )
+    elif scenario == "healthy":
+        assert evidence_for(view, "kubernetes.logs.current")["coverage"]["status"] == "available"
+        assert (
+            evidence_for(view, "kubernetes.logs.previous")["coverage"]["status"] == "not_applicable"
+        )
     else:
         assert evidence_for(view, "kubernetes.logs.current")["coverage"]["status"] == "available"
+        assert evidence_for(view, "kubernetes.logs.previous")["coverage"]["status"] == "available"
+
+    if scenario == "crashloop":
+        assert any(
+            pod.get("containers", [{}])[0].get("last_state", {}).get("terminated", {}).get("reason")
+            == "Error"
+            for pod in pods
+        )
+    elif scenario == "oom":
+        assert any(
+            pod.get("containers", [{}])[0].get("last_state", {}).get("terminated", {}).get("reason")
+            == "OOMKilled"
+            for pod in pods
+        )
+    elif scenario == "pending":
+        assert all(pod.get("status") == "Pending" for pod in pods)
+    elif scenario == "imagepull":
+        assert any(
+            pod.get("containers", [{}])[0].get("state", {}).get("waiting", {}).get("reason")
+            == "ImagePullBackOff"
+            for pod in pods
+        )
+    else:
+        assert all(pod.get("status") == "Running" for pod in pods)
 
 
 def test_integrated_compare_citation_timeline_and_read_only(client, monkeypatch):

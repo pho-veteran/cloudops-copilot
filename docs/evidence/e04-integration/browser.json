@@ -1,35 +1,35 @@
 {
   "schema": "E04IntegratedBrowser/v1",
-  "recorded_at": "2026-11-10T17:20:00Z",
+  "recorded_at": "2026-11-10T18:00:00Z",
   "starting_commit": "f6941c9",
-  "source": "working tree on f6941c9 with the E04 acceptance changes; final source binding is recorded separately",
+  "source": "working tree candidate after review fixes; final source binding is recorded separately",
   "browser": "Microsoft Edge (managed launch through agent-browser with the installed Edge executable; no pre-existing Edge process was reused). Loopback HTTP origin http://localhost:5173; no certificate warning or trust bypass.",
   "origin": "http://localhost:5173",
   "packs": {
     "crashloop_startup": {
-      "incident_id": "348a8820-4f0a-40e1-8249-bfaadd87a71e",
-      "run_id": "438dca79-4b9b-4663-8e11-a1d436dbc4a1",
-      "evidence_id": "8290683e-077c-4e16-956f-61c9d441e98d"
+      "incident_id": "8f43720d-02c3-4fef-86d7-6a9c401a71f2",
+      "run_id": "203f0390-31e5-4e29-a972-5bb7b2c9520b",
+      "evidence_id": "0945bdba-b5c5-4360-9607-ef36b9a4e771"
     },
     "oom_restarts": {
-      "incident_id": "be428051-d7f4-4221-ba20-45d3146c0166",
-      "run_id": "da0e5222-5b6a-4329-9fc6-8a5e5319ecfc",
-      "evidence_id": "8b9c49a4-775b-4132-a1b0-9ba07b5e4c10"
+      "incident_id": "2773462b-c912-4b38-8e1c-cd54672bc114",
+      "run_id": "55a22e0c-69b4-4cd0-9f84-1673e3f70b31",
+      "evidence_id": "07e29980-7bb2-4be6-a082-e74cbed9e5e0"
     },
     "traffic_latency_errors": {
-      "incident_id": "1525f353-85d6-444c-beb0-bdcb99842022",
-      "run_id": "92f1727e-e687-4920-bed3-1fabcee4db1b",
-      "evidence_id": "5f8ed006-45aa-4264-9cf8-0021102c2630"
+      "incident_id": "2e469da6-66c8-4272-a3aa-eed9f4fec2f0",
+      "run_id": "28ef89e2-f573-40a3-bc72-bfd6fc993418",
+      "evidence_id": "e6a54aa5-1367-4a4c-8d7c-96fc4aa0a848"
     },
     "pending_unschedulable": {
-      "incident_id": "a1716bea-2db4-4fb0-aead-0d5b4b7e821e",
-      "run_id": "bbaf6c80-c899-4551-a2ce-c56525b423f9",
-      "evidence_id": "ede4d23f-1108-4b17-9bf5-05829d3712ce"
+      "incident_id": "bcbb8282-b32a-4ba2-9303-72864c6fb116",
+      "run_id": "dbb233e4-6de3-44d6-9f17-74507f5fa821",
+      "evidence_id": "9059e9ec-f629-4585-9a34-010df4d0e781"
     },
     "image_pull": {
-      "incident_id": "9ec116af-3eff-4b36-b7dc-1382f069b07a",
-      "run_id": "5dc6c3c2-4390-4706-bd6d-67243fe23f38",
-      "evidence_id": "733ddcff-873a-4a0c-86c0-07a8d939421f"
+      "incident_id": "88855baa-bcf3-41df-aa93-f5dd1c335bc5",
+      "run_id": "327d2a71-9993-4219-9452-b6794c16d4ad",
+      "evidence_id": "b440f039-9205-4a67-9053-2fbecb44c9e2"
     }
   },
   "checks": {
@@ -38,72 +38,27 @@
     "chart_labels_readable_at_320_and_390": true,
     "chart_frame_focusable_and_horizontally_scrollable": true,
     "no_document_horizontal_overflow": true,
-    "dark_and_light_themes_captured": true,
+    "dark_and_light_themes_captured_at_1280_390_320": true,
     "compare_rendered_same_identity_and_source_differences": true,
     "numeric_sample_differences_were_explicitly_not_comparable_for_unequal_windows": true,
     "exact_citation_target_opened": true,
-    "viewer_read_only_chart_table_timeline": true,
+    "viewer_read_only_chart_table_timeline_light_and_dark": true,
     "session_revocation_preserved_exact_route_and_required_sign_in": true,
     "no_browser_permission_or_certificate_trust_change": true
   },
   "viewports": [
-    {
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "client_width": 1265,
-      "scroll_width": 1265,
-      "chart_width": 640,
-      "markers": 2,
-      "table": true
-    },
-    {
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "client_width": 1265,
-      "scroll_width": 1265,
-      "chart_width": 640,
-      "markers": 2,
-      "table": true
-    },
-    {
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "client_width": 375,
-      "scroll_width": 375,
-      "chart_width": 640,
-      "markers": 2,
-      "table": true
-    },
-    {
-      "width": 390,
-      "height": 844,
-      "theme": "dark",
-      "client_width": 375,
-      "scroll_width": 375,
-      "chart_width": 640,
-      "markers": 2,
-      "table": true
-    },
-    {
-      "width": 320,
-      "height": 700,
-      "theme": "dark",
-      "client_width": 305,
-      "scroll_width": 305,
-      "chart_width": 640,
-      "markers": 2,
-      "table": true,
-      "chart_frame_tab_index": 0
-    }
+    {"width": 1280, "height": 900, "theme": "light", "client_width": 1265, "scroll_width": 1265, "chart_width": 640, "markers": 2, "table": true},
+    {"width": 1280, "height": 900, "theme": "dark", "client_width": 1265, "scroll_width": 1265, "chart_width": 640, "markers": 2, "table": true},
+    {"width": 390, "height": 844, "theme": "light", "client_width": 375, "scroll_width": 375, "chart_width": 640, "markers": 2, "table": true},
+    {"width": 390, "height": 844, "theme": "dark", "client_width": 375, "scroll_width": 375, "chart_width": 640, "markers": 2, "table": true},
+    {"width": 320, "height": 700, "theme": "light", "client_width": 305, "scroll_width": 305, "chart_width": 640, "markers": 2, "table": true, "chart_frame_tab_index": 0},
+    {"width": 320, "height": 700, "theme": "dark", "client_width": 305, "scroll_width": 305, "chart_width": 640, "markers": 2, "table": true, "chart_frame_tab_index": 0}
   ],
   "comparison": {
-    "left_incident_id": "1525f353-85d6-444c-beb0-bdcb99842022",
-    "left_run_id": "92f1727e-e687-4920-bed3-1fabcee4db1b",
-    "right_incident_id": "755cc834-46b5-4760-a531-ef4e68ee2517",
-    "right_run_id": "b7e63650-b001-428f-9083-f934438dd2f2",
+    "left_incident_id": "2e469da6-66c8-4272-a3aa-eed9f4fec2f0",
+    "left_run_id": "28ef89e2-f573-40a3-bc72-bfd6fc993418",
+    "right_incident_id": "9555e177-f8ca-4781-b34f-e3a084ff93ea",
+    "right_run_id": "72354059-488c-4dbf-9190-563e350771c5",
     "source_key": "prometheus.request_rate",
     "catalog_version": "standard_v1",
     "sample_status": "not_comparable",
@@ -115,6 +70,7 @@
     "traffic-1280-dark.png",
     "traffic-390-light.png",
     "traffic-390-dark.png",
+    "traffic-320-light.png",
     "traffic-320-dark.png",
     "crashloop-state-390-light.png",
     "oom-state-390-light.png",
@@ -122,10 +78,14 @@
     "imagepull-state-390-light.png",
     "compare-1280-light.png",
     "compare-390-dark.png",
+    "compare-320-light.png",
     "citation-390-light.png",
     "citation-390-dark.png",
+    "citation-320-light.png",
     "citation-320-dark.png",
+    "viewer-390-light.png",
     "viewer-390-dark.png",
+    "session-expired-390-light.png",
     "session-expired-390-dark.png"
   ],
   "limitations": "The browser origin is loopback HTTP. Live K3s and Prometheus producers are recorded in acceptance.json; browser pixels and role/session behavior are separate evidence. Microsoft Edge was launched by the agent because no existing Edge process was running; no profile or trust settings were changed. The sample comparison correctly remained not_comparable because the two traffic Runs used unequal windows."
