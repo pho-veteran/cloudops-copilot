@@ -39,12 +39,13 @@ $LAB exec -T api python -m cloudops.entrypoints.cli account operator --role oper
 $LAB exec -T api python -m cloudops.entrypoints.cli account viewer --role viewer --password-stdin
 printf '%s\n%s\n' "$OPERATOR_PASSWORD" "$VIEWER_PASSWORD" |
   uv run --project services/backend python scripts/probe-e04-integration.py \
+    --origin http://localhost:5173 \
     --ca tmp/e01-integration/prometheus/ca.crt --password-stdin --restart
 ```
 
-The probe creates one explicit one-minute Run per pack plus a second traffic Run for comparison. It reads every available content payload and verifies the canonical post-redaction SHA-256, checks pack coverage, compares 12 sources, resolves an exact sample citation, reads the timeline as Operator and Viewer, checks wrong-scope 404, restarts API/worker and confirms the same evidence IDs/hashes.
+The probe creates one explicit one-minute Run per pack plus a second traffic Run for comparison. It reads every available content payload and verifies the canonical post-redaction SHA-256, checks pack coverage, compares 12 sources, resolves an exact sample citation, reads the timeline as Operator and Viewer, checks wrong-scope 404, restarts API/worker and confirms the same evidence IDs/hashes. The acceptance run used the same loopback HTTP origin for the probe and browser; the HTTPS API origin was not used.
 
-The browser evidence uses a separate loopback HTTP development origin, not the HTTPS API origin. The temporary override is deliberately not committed:
+The browser evidence uses the same loopback HTTP origin. The temporary override is deliberately not committed:
 
 ```sh
 cat > tmp/compose.e04-http.yaml <<'YAML'
@@ -90,7 +91,7 @@ The two partial CrashLoop/OOM packs are honest live gaps: the local K3s previous
 [`browser.json`](evidence/e04-integration/browser.json) records Edge checks at 1280/390/320 CSS pixels, light and dark:
 
 - Five pack evidence sources inspected; crashloop/OOM/Pending/ImagePull state screenshots and the traffic metric chart/table.
-- Traffic chart at 320/390/1280; chart is 640 CSS pixels inside a focusable horizontal scroll frame, labels readable, no document-level horizontal overflow.
+- Traffic chart at 320/390/1280 in both themes; chart is 640 CSS pixels inside a focusable horizontal scroll frame, labels readable, no document-level horizontal overflow. Dark was toggled through the application control and verified with `html.dark` and body background `rgb(16, 18, 22)`; light is `rgb(247, 248, 250)`. Light/dark image hashes differ.
 - Compare view loaded same-identity Runs; source rows disclosed `changed`/`unchanged`; numeric sample differences correctly remained `not_comparable` for unequal captured windows. An exact left sample citation target opened.
 - Timeline markers rendered and remained visible with stored metric evidence.
 - Viewer could read chart/table/timeline and had no note or lifecycle mutation form.

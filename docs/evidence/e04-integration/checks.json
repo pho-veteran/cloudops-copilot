@@ -1,12 +1,13 @@
 {
   "schema": "E04IntegratedChecks/v1",
-  "recorded_at": "2026-11-10T17:30:00Z",
+  "recorded_at": "2026-11-10T18:35:00Z",
   "starting_commit": "f6941c9",
   "backend": {
     "cwd": "repository root",
     "collected": 1154,
     "passed": 1144,
     "skipped": 10,
+    "note": "Full suite ran before the assertion-only review edits; the final focused E04 file was then re-run 10/10 and the collected-test count is unchanged.",
     "split": [
       {
         "command": "uv run --project services/backend pytest -q services/backend/tests_unit services/backend/tests --ignore=services/backend/tests/test_permissions.py",
@@ -24,7 +25,7 @@
     "focused_e04": {
       "command": "uv run --project services/backend pytest -q services/backend/tests/test_e04_integration.py",
       "passed": 8,
-      "repeat": "10/10 consecutive runs passed"
+      "repeat": "10/10 consecutive runs passed after the review assertion edits"
     }
   },
   "web": {
@@ -43,8 +44,8 @@
   "live_acceptance": {
     "receipt": "acceptance.json",
     "packs": {
-      "crashloop_startup": "partial (kubernetes.logs.previous unavailable)",
-      "oom_restarts": "partial (kubernetes.logs.previous unavailable)",
+      "crashloop_startup": "partial (kubernetes.logs.previous partial/no_samples; content stored)",
+      "oom_restarts": "partial (kubernetes.logs.previous partial/no_samples; content stored)",
       "traffic_latency_errors": "available",
       "pending_unschedulable": "available",
       "image_pull": "available"
@@ -64,8 +65,9 @@
   },
   "browser": {
     "receipt": "browser.json",
-    "screenshots": 16,
-    "edge": "managed Microsoft Edge launch; HTTP loopback origin; no trust bypass"
+    "screenshots": 21,
+    "edge": "managed Microsoft Edge launch; HTTP loopback origin; no trust bypass",
+    "themes": "verified html.dark/rgb(16,18,22) and light rgb(247,248,250); light/dark image hashes differ"
   },
   "migration": "No new migration in this test-only acceptance slice; existing migration suite passed."
 }
