@@ -43,6 +43,13 @@ REASONS = {
 # Only recognized data fields survive, at every level. Raw Kubernetes object maps and secret
 # material are never accepted as an opaque blob.
 FIELDS = {
+    "template",
+    "resources",
+    "requests",
+    "limits",
+    "cpu",
+    "memory",
+    "revisions",
     "deployment",
     "pods",
     "containers",
@@ -133,9 +140,9 @@ LIMITS = {
 }
 ROOT_FIELDS = {
     "fixture": {"label", "workload", "observation"},
-    "state": {"deployment", "pods", "containers", "metadata", "configmaps"},
+    "state": {"deployment", "pods", "containers", "metadata", "configmaps", "revisions"},
     "events": {"events"},
-    "logs": {"logs", "containers", "pods"},
+    "logs": {"logs", "containers", "pods", "truncated"},
     "series": {"series"},
 }
 CONFIG_FIELDS = {
@@ -173,8 +180,19 @@ QUERY_IDENTITY_FIELDS = {
     "endpoint_id",
 }
 QUERY_WINDOW_FIELDS = {"start", "end"}
-MAP_FIELDS = {"deployment", "metadata", "labels", "source_identity", "window"}
+MAP_FIELDS = {
+    "template",
+    "resources",
+    "requests",
+    "limits",
+    "deployment",
+    "metadata",
+    "labels",
+    "source_identity",
+    "window",
+}
 OBJECT_LIST_FIELDS = {
+    "revisions",
     "pods",
     "containers",
     "events",
@@ -184,6 +202,7 @@ OBJECT_LIST_FIELDS = {
     "conditions",
 }
 LOG_FIELDS = {
+    "kind",
     "pods",
     "containers",
     "logs",
@@ -196,6 +215,7 @@ LOG_FIELDS = {
     "text",
     "timestamp",
     "previous",
+    "truncated",
 }
 SERIES_FIELDS = {
     "series",

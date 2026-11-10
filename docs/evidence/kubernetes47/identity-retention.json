@@ -1,0 +1,110 @@
+{
+  "oracle": {
+    "checkout-init-crashloop": {
+      "deployment_uid": "4a017a2f-e014-438f-993a-d9e003e66265",
+      "template_images": [
+        "busybox:1.36"
+      ],
+      "state_digest": "5e752c3210de735e9ff6a5f7e5e10265ff96b9e99eba44f5e1648fc14b189612",
+      "init_containers": [
+        "setup"
+      ]
+    },
+    "checkout-oom": {
+      "deployment_uid": "13404560-4d75-4ec4-bf8e-006e1e24953b",
+      "template_images": [
+        "polinux/stress:1.0.4"
+      ],
+      "state_digest": "7a784891758e676c89d46446b1f6cc5ac90cbbb097fcc8f65032eea067495a80",
+      "init_containers": []
+    },
+    "checkout-crashloop": {
+      "deployment_uid": "786857e4-e308-4bef-b4d1-4460effc0e89",
+      "template_images": [
+        "busybox:1.36"
+      ],
+      "state_digest": "8fff103aafd90cacd6fabb2f042bc75756ef7a3abb814a0f6e1197ea4644b741",
+      "init_containers": []
+    },
+    "checkout-imagepull": {
+      "deployment_uid": "052b5109-5ecc-4182-8dae-de02c3c84c5b",
+      "template_images": [
+        "busybox:cloudops-missing-tag-xyz"
+      ],
+      "state_digest": "c660a7e7fa9364835b52a4ca84e57d5eaca9fa0195edf11400ffbf6e2255108b",
+      "init_containers": []
+    },
+    "checkout": {
+      "deployment_uid": "ad3ff2a4-1ed5-4e68-8bc7-973b48a254a7",
+      "template_images": [
+        "python:3.13.11-slim-bookworm"
+      ],
+      "state_digest": "e380919dba7ce0b9e72cdbfaaa9cfa399fc19efada49a06b7ed38fb1c360ddb0",
+      "init_containers": []
+    },
+    "checkout-pending": {
+      "deployment_uid": "0a47a08e-5b53-4da8-8576-3809e9d06552",
+      "template_images": [
+        "busybox:1.36"
+      ],
+      "state_digest": "7a075553286bffc9b701ac69c31b48df5fabd650b89ea9f054d770657029bf1d",
+      "init_containers": []
+    },
+    "checkout-noisy": {
+      "deployment_uid": "407193e3-2620-4686-b47f-194cce3174de",
+      "template_images": [
+        "busybox:1.36"
+      ],
+      "state_digest": "ec54230972d01114b942c58025ff5381d1fd087952602ee7bf5d9a13beb3c1c3",
+      "init_containers": []
+    }
+  },
+  "replacement": {
+    "old_uid": "407193e3-2620-4686-b47f-194cce3174de",
+    "new_uid": "d69416d3-0938-4c20-9d1a-6d0801af3921",
+    "ids": {
+      "incident_id": "e24a3ce1-71ae-4d0e-baca-bffa4b2c0538",
+      "run_id": "99dc7e98-8452-42cf-a86c-2d3fa0f12087",
+      "state": "queued",
+      "queue_reason": null,
+      "window": {
+        "start": "2026-11-10T14:49:37.203447Z",
+        "end": "2026-11-10T15:04:37.203447Z",
+        "source": "explicit"
+      }
+    },
+    "sources": {
+      "kubernetes.configmap.metadata": {
+        "status": "unavailable",
+        "reason_codes": [
+          "identity_changed"
+        ]
+      },
+      "kubernetes.events": {
+        "status": "unavailable",
+        "reason_codes": [
+          "identity_changed"
+        ]
+      },
+      "kubernetes.logs.current": {
+        "status": "unavailable",
+        "reason_codes": [
+          "identity_changed"
+        ]
+      },
+      "kubernetes.logs.previous": {
+        "status": "unavailable",
+        "reason_codes": [
+          "identity_changed"
+        ]
+      },
+      "kubernetes.state": {
+        "status": "unavailable",
+        "reason_codes": [
+          "identity_changed"
+        ]
+      }
+    },
+    "old_content_unchanged": true
+  }
+}

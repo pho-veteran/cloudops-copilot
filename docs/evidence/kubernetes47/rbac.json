@@ -1,0 +1,15 @@
+{
+  "identity": "system:serviceaccount:demo:cloudops-reader",
+  "checks": {
+    "pods_get": true,
+    "pods_list": true,
+    "logs_get": true,
+    "secrets_get": false,
+    "secrets_list": false,
+    "deployment_patch": false,
+    "exec_create": false,
+    "configmap_get": false,
+    "foreign_namespace_pods_get": false
+  },
+  "no_secret_api_read": "Secret permission was evaluated with SelfSubjectAccessReview; no Secret GET/list request was sent."
+}

@@ -44,6 +44,18 @@ const evidence = {
   pinned: true,
   content_status: "available",
 } satisfies components["schemas"]["EvidenceView"];
+const truncatedEvidence = {
+  ...evidence,
+  source_key: "kubernetes.logs.current",
+  source_kind: "logs",
+  catalog_version: "standard_v1",
+  schema_version: 2,
+  payload_kind: "logs",
+  observed_at: "2026-11-01T00:00:00Z",
+  time_relation: "within_requested_window",
+  coverage: { status: "partial", reason_codes: ["truncated"] },
+  redaction_policy_version: "standard_v1",
+} satisfies components["schemas"]["EvidenceView"];
 const run = {
   id: runId,
   incident_id: incident,
@@ -154,6 +166,40 @@ it("identifies historical evidence with uncaptured source coverage as legacy", a
   expect(document.activeElement).toBe(
     screen.getByRole("heading", { name: "Selected evidence" }),
   );
+});
+
+it("discloses a truncated log payload and its coverage reason", async () => {
+  http.fetch.mockImplementation(async (input) => {
+    const path = new URL((input as Request).url).pathname;
+    if (path.endsWith("/content"))
+      return Response.json({
+        evidence_id: evidenceId,
+        run_id: runId,
+        schema_version: 2,
+        payload_kind: "logs",
+        payload_version: 1,
+        sha256: "abc",
+        payload: { truncated: true, logs: [
+          { container: "setup", kind: "init", pod_uid: "pod-1", previous: true, text: "Dòng một\n<script>source text</script>" },
+          { container: "app", kind: "regular", pod_uid: "pod-1", previous: false, lines: ["line one", "line two"] },
+        ], containers: [] },
+      });
+    return Response.json(truncatedEvidence);
+  });
+  mount(evidenceId, { ...run, evidence: [truncatedEvidence] });
+  expect(
+    await screen.findByText(
+      "Log output was truncated at the collection cap; only a bounded tail is retained.",
+    ),
+  ).toBeTruthy();
+  expect(screen.getByText("Coverage").nextElementSibling?.textContent).toBe(
+    "partial · truncated",
+  );
+  expect(screen.getByLabelText("Log text for setup").textContent).toBe("Dòng một\n<script>source text</script>");
+  expect(screen.getByLabelText("Log text for app").textContent).toBe("line one\nline two");
+  expect(screen.getByText("Init container · Previous logs")).toBeTruthy();
+  expect(document.querySelector("script")).toBeNull();
+  expect(screen.getByLabelText("Log text for setup").getAttribute("tabindex")).toBe("0");
 });
 
 it("shows an expiry race without claiming retained content", async () => {

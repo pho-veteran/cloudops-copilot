@@ -6,6 +6,7 @@ import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { Failure, Loading } from "@/app/Feedback";
 import { CitationTarget } from "./CitationTarget";
 import { MetricEvidence } from "./MetricEvidence";
+import { LogEvidence } from "./LogEvidence";
 
 type Run = components["schemas"]["RunView"];
 type Evidence = components["schemas"]["EvidenceView"];
@@ -183,7 +184,15 @@ function EvidenceDetail({
             ) : (
               <>
                 <h3>Stored content</h3>
-                {Object.keys(content.data.payload).length === 0 ? (
+                {content.data.payload.truncated === true && (
+                  <p>
+                    Log output was truncated at the collection cap; only a bounded
+                    tail is retained.
+                  </p>
+                )}
+                {content.data.payload_kind === "logs" ? (
+                  <LogEvidence payload={content.data.payload} />
+                ) : Object.keys(content.data.payload).length === 0 ? (
                   <p>Content is empty.</p>
                 ) : (
                   <pre className="evidence-json">

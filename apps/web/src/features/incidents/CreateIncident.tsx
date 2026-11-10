@@ -81,9 +81,9 @@ export function CreateIncident({
     <form onSubmit={submit} className="foundation-stack">
       <p>
         The worker saves bounded source outcomes and coverage gaps. The optional
-        development fixture is synthetic; live investigation providers are not
-        installed. Workload health observations remain separate; AI diagnosis
-        is unavailable.
+        development fixture is synthetic; external evidence depends on configured
+        source adapters. Workload health observations remain separate; AI
+        diagnosis is unavailable.
       </p>
       <Label htmlFor="workload">Configured workload</Label>
       <select

@@ -1,0 +1,139 @@
+{
+  "schema": "KubernetesEvidenceAcceptance/v1",
+  "recorded_at": "2026-11-10T15:08:18.677672+00:00",
+  "starting_commit": "062feaa7169fa15f67a08f26a81b491fa4109a1a",
+  "integrated_main": "bd455edd5da3e745c992e1b5114ab7aeb775105a",
+  "source_sha256": {
+    "services/backend/src/cloudops/features/investigations/kubernetes_collector.py": "a25d1afd171ed2bb770ce44d41b9cba8134114e62fcaf0f8da0407d12c2fa0ed",
+    "services/backend/src/cloudops/features/investigations/collector.py": "66f13163db562bf33f6075177cd02d64d59e37ef15376466f95c8f428da924c2",
+    "services/backend/src/cloudops/features/investigations/catalog.py": "739d01409ad52dd7ca973bb571aab297df22e49558571a59d812b70c6eec5b55",
+    "services/backend/src/cloudops/features/investigations/storage.py": "099dbffd951982209a6e8b8b80befa7730e53d169b4d9c4b72d00039f0636f73",
+    "apps/web/src/features/investigations/EvidenceCatalog.tsx": "58ddebfcbd06b876906c374ff77844bbb37d1d2eb88c06a7449137d0007b8795",
+    "apps/web/src/features/investigations/LogEvidence.tsx": "b900b9b7a15e2490383fc1d4ba7f60ac9ea59b7605ea7103ae1c27118a8885be",
+    "apps/web/src/features/incidents/CreateIncident.tsx": "fbac75986b47c36137bbfb9eb7cfe6fd591431760e34b406e7ea4c0e4229e328",
+    "apps/web/src/app/foundation.css": "0b3466ea8a67037746a1aad79c645de2b4f0441dcb5b0f1e16d28f189f4d8f84",
+    "services/backend/tests_unit/test_kubernetes_boundaries.py": "5d9170519beec36d6e72834a6d9d7f3fc70c9b045ae7fe3fbe240fd36552a8a6"
+  },
+  "environment": {
+    "python": "3.13.11",
+    "node": "24.21.0",
+    "postgres": "17.11-bookworm",
+    "k3s": "v1.37.1+k3s1",
+    "transport": "Actual Kubernetes HTTPS endpoint with explicit CA and hostname verification. Edge uses a separate loopback HTTP app origin. Isolated disposable Docker project; no host Kubernetes context or production target."
+  },
+  "live_proof": {
+    "normal_api_worker": "live-k3s.json",
+    "configmap_denied_and_metadata_only": "configmap.json",
+    "service_account_authority": "rbac.json",
+    "same_name_deployment_replacement": "identity-retention.json",
+    "restart_persistence": "restart.json",
+    "canonical_digests": "Independently recomputed from every available stored Kubernetes payload before restart; exact content and Run records compared after restart."
+  },
+  "contract_fixtures": [
+    "Denied/missing/empty/truncated/stale outcomes; no historical-absence inference",
+    "Foreign namespace, noncontroller/ambiguous owner and wrong API group rejected",
+    "Same-name Pod replacement during logs rejected by bracketing",
+    "Slow-drip transport cancelled within source deadline; response cap enforced",
+    "Missing applicable previous logs remain gaps; partial required logs keep packs partial",
+    "Windowless legacy worker job completes without live calls",
+    "Safe template/revision/init fields survive persistence; env/Secret/ConfigMap contents excluded; redaction before digest/storage",
+    "Path/selector injection and reader configuration errors fail closed"
+  ],
+  "browser": {
+    "client": "User-connected Microsoft Edge relay, separate owned lab tab",
+    "quality_score": 4,
+    "score_reason": "Core scoped collection and stored-evidence inspection work across roles, keyboard and tested sizes; state/events use the existing bounded JSON reader.",
+    "journey": "Operator created incident 10a939ed-7545-4bb6-877a-3239de79fc70 / Run 88ccf2b4-f77d-4101-91ba-4b556ea7476f through the form; normal worker persisted all 12 source outcomes, live logs partial/truncated and crash/OOM pack partial; no RCA.",
+    "roles": [
+      "Operator creates and inspects",
+      "Viewer reads exact stored state/logs and has no investigation/recovery mutation controls"
+    ],
+    "viewports": [
+      {
+        "width": 1280,
+        "height": 900,
+        "themes": [
+          "light",
+          "dark"
+        ]
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "themes": [
+          "light",
+          "dark"
+        ]
+      },
+      {
+        "width": 320,
+        "height": 740,
+        "themes": [
+          "light",
+          "dark"
+        ]
+      }
+    ],
+    "observations": [
+      "No document horizontal overflow for inspected log/state/event panels",
+      "Focusable log pre preserves original text and keyboard PageDown scrolls the bounded reader",
+      "Regular/init and current/previous labels plus original Pod UID visible",
+      "Truncation copy states bounded tail; raw stored payload remains expandable",
+      "Pending never-started logs explicitly not_applicable/content unavailable",
+      "Session revocation shows session-ended notice, retains exact Run/evidence route and states no action replay; sign in as Viewer restores original source",
+      "Actual API outage shows recoverable load error and Retry control; protected reads recover after API restart without admitting mutations",
+      "Browser Back and reload retain exact init-container previous-log Run/evidence IDs.",
+      "Stored events also inspected at both 320/390px in both light/dark themes, without document horizontal overflow.",
+      "The replacement Run visibly retains the old workload UID, reports identity_changed and exposes no content."
+    ],
+    "screenshots": [
+      "api-error.jpg",
+      "events-320-dark.jpg",
+      "events-320-light.jpg",
+      "events-390-dark.jpg",
+      "events-390-light.jpg",
+      "identity-changed.jpg",
+      "init-390-light.jpg",
+      "init-desktop-viewer.jpg",
+      "log-320-dark.jpg",
+      "log-320-light.jpg",
+      "log-390-dark.jpg",
+      "log-390-light.jpg",
+      "log-desktop-dark.jpg",
+      "log-desktop-light.jpg",
+      "pending-not-applicable.jpg",
+      "previous-init.jpg",
+      "session-ended.jpg",
+      "state-viewer-390-light.jpg"
+    ]
+  },
+  "checks": {
+    "full_backend": {
+      "passed": 1146,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 280.97,
+      "warning": "Installed FastAPI/Starlette TestClient emits an httpx deprecation warning."
+    },
+    "web_tests": {
+      "passed": 194,
+      "files": 22
+    },
+    "web_build": "passed",
+    "ruff_check": "passed",
+    "ruff_format": "188 files passed",
+    "contracts": "passed",
+    "deliberate_contract_drift": "rejected as expected"
+  },
+  "diagnostics_resolved": [
+    "Integration initially omitted static Kubernetes registry keys; corrected and focused adapter checks passed",
+    "Acceptance harness initially expected job state succeeded rather than completed; corrected to the existing job contract",
+    "Optional ConfigMap probe initially omitted required workload_id; API rejected with 422 and corrected probe passed",
+    "An immediate API restart/login race was resolved by explicit readiness polling"
+  ],
+  "limits": [
+    "K3s incident fixtures are controlled local workloads, not production telemetry qualification.",
+    "Transport/path/owner ambiguity and stale/denied/missing cases include controlled contract fixtures; they are separate from actual K3s evidence.",
+    "No AI diagnosis, production mutation or complete five-pack E04 integration is claimed."
+  ]
+}

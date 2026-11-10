@@ -180,6 +180,9 @@
 .foundation-metadata dd {
   margin: 0;
 }
+.evidence-log-text {
+  max-height: 28rem;
+}
 .evidence-json {
   max-width: 100%;
   overflow: auto;
@@ -252,7 +255,8 @@
   border-color: var(--ring);
 }
 .metric-series-button:focus-visible,
-.metric-chart-frame:focus-visible {
+.metric-chart-frame:focus-visible,
+.evidence-log-text:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
