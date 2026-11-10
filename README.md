@@ -14,6 +14,8 @@ Optional [scoped Kubernetes evidence](docs/kubernetes-evidence.md) adds UID-boun
 
 Optional [scoped Prometheus metric evidence](docs/prometheus-metrics.md) adds six fixed metric slots, a chart/table and a persisted Run timeline when the deployment supplies a trusted read configuration. The default stack remains the labeled synthetic fixture and contacts no Prometheus endpoint. Metric evidence does not create a diagnosis or authorize recovery.
 
+[Integrated E04 evidence acceptance](docs/e04-local-acceptance.md) records the five live Kubernetes/Prometheus pack journeys, checkpoint/restart/compare/citation/timeline consumers, role/session behavior and the exact remaining gaps. It does not claim a live AI diagnosis or release completion.
+
 ## Quick start
 
 Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.

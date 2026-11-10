@@ -120,7 +120,7 @@ The optional `prometheus` provider installs the six fixed metric slots in the ex
 
 Metric evidence uses the same bounded storage, retention, pin and checkpoint rules as other sources. Empty, gapped, non-finite, denied, timed-out, oversized and unproven-ownership results remain distinct from a real zero; at most 25 series per query and the existing 20,000-sample/8 MiB Run bounds apply. There is no new table or migration. The read-only Run timeline endpoint projects persisted E02 rollout observations, E03 activity and E07 execution timestamps without claiming causality.
 
-The optional [metrics lab](prometheus-metrics.md#local-lab) adds a labeled metrics fixture behind the Caddy `/prometheus/*` TLS route and a staged config bootstrap. The fixture is not a product application exporter. AI diagnosis, live Kubernetes packs, recovery execution and release deployment remain with their owners.
+The optional [metrics lab](prometheus-metrics.md#local-lab) adds a labeled metrics fixture behind the Caddy `/prometheus/*` TLS route and a staged config bootstrap. The fixture is not a product application exporter. [Integrated E04 evidence acceptance](e04-local-acceptance.md) records the five live Kubernetes/Prometheus pack journeys and the remaining proof-class limits. AI diagnosis, live E06 findings, recovery execution and release deployment remain with their owners.
 
 ### Work queue search and prioritization
 

@@ -4,6 +4,7 @@ import hashlib
 import json
 import secrets
 import subprocess
+import time
 from local_lab import COMPOSE, ROOT
 
 
@@ -87,14 +88,49 @@ def main():
     kubectl(
         "apply", "-f", "-", body=(ROOT / "config/lab/workload.yaml").read_text(encoding="utf-8")
     )
+    kubectl(
+        "apply",
+        "-f",
+        "-",
+        body=(ROOT / "config/lab/kubernetes-incident-families.yaml").read_text(encoding="utf-8"),
+    )
     kubectl("rollout", "status", "deployment/checkout", "-n", "demo", "--timeout=180s")
-    deployment = json.loads(kubectl("get", "deployment", "checkout", "-n", "demo", "-o", "json"))
+    names = (
+        "checkout",
+        "checkout-crashloop",
+        "checkout-oom",
+        "checkout-pending",
+        "checkout-imagepull",
+    )
+    for name in names:
+        deadline = time.monotonic() + 60
+        while True:
+            pods = json.loads(
+                kubectl("get", "pods", "-n", "demo", "-l", f"app={name}", "-o", "json")
+            )
+            if pods.get("items"):
+                break
+            if time.monotonic() >= deadline:
+                raise SystemExit(f"Fixture Pod for {name} did not appear.")
+            time.sleep(1)
+    deployments = {
+        name: json.loads(kubectl("get", "deployment", name, "-n", "demo", "-o", "json"))
+        for name in names
+    }
+    prometheus_workloads = [
+        {"namespace": "demo", "name": name, "uid": deployments[name]["metadata"]["uid"]}
+        for name in names
+    ]
+    (folder / "prometheus/workloads.json").write_text(
+        json.dumps(prometheus_workloads, indent=2) + "\n", encoding="utf-8"
+    )
+    checkout = deployments["checkout"]
     (folder / "prometheus/workload.json").write_text(
         json.dumps(
             {
                 "namespace": "demo",
                 "name": "checkout",
-                "uid": deployment["metadata"]["uid"],
+                "uid": checkout["metadata"]["uid"],
             },
             indent=2,
         )
@@ -107,17 +143,19 @@ def main():
         {
             "cluster": "local-k3s",
             "namespace": "demo",
-            "name": "checkout",
-            "uid": deployment["metadata"]["uid"],
+            "name": name,
+            "uid": deployments[name]["metadata"]["uid"],
             "source": "live_kubernetes",
         }
+        for name in names
     ]
     for kind in ("reader", "writer"):
         token = kubectl("create", "token", f"cloudops-{kind}", "-n", "demo", "--duration=8h")
         client = {"server": "https://k3s:6443", "ca_data": ca, "token": token}
         (folder / kind / "client.json").write_text(json.dumps(client), encoding="utf-8")
+        selected = workloads if kind == "reader" else workloads[:1]
         (folder / kind / "workloads.json").write_text(
-            json.dumps(workloads, indent=2) + "\n", encoding="utf-8"
+            json.dumps(selected, indent=2) + "\n", encoding="utf-8"
         )
         config = {
             "apiVersion": "v1",

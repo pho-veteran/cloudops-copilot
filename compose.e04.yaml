@@ -1,0 +1,7 @@
+services:
+  api:
+    environment:
+      COLLECTION_SOURCE_MODE: live_kubernetes,prometheus
+  worker:
+    environment:
+      COLLECTION_SOURCE_MODE: live_kubernetes,prometheus

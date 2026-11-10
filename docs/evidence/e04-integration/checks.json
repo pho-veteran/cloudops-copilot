@@ -1,0 +1,70 @@
+{
+  "schema": "E04IntegratedChecks/v1",
+  "recorded_at": "2026-11-10T17:30:00Z",
+  "starting_commit": "f6941c9",
+  "backend": {
+    "collected": 1154,
+    "passed": 1144,
+    "skipped": 10,
+    "split": [
+      {
+        "command": "pytest -q tests_unit tests --ignore=tests/test_permissions.py",
+        "passed": 916,
+        "skipped": 10,
+        "duration_seconds": 538.33
+      },
+      {
+        "command": "pytest -q tests/test_permissions.py",
+        "passed": 228,
+        "skipped": 0,
+        "duration_seconds": 412.96
+      }
+    ],
+    "focused_e04": {
+      "command": "pytest -q tests/test_e04_integration.py",
+      "passed": 8,
+      "repeat": "10/10 consecutive runs passed"
+    }
+  },
+  "web": {
+    "tests_passed": 194,
+    "files": 22,
+    "build": "passed"
+  },
+  "lint": {
+    "ruff_check": "passed",
+    "ruff_format": "191 files already formatted"
+  },
+  "contracts": {
+    "generated_contracts": "match backend models",
+    "deliberate_drift": "rejected as expected"
+  },
+  "live_acceptance": {
+    "receipt": "acceptance.json",
+    "packs": {
+      "crashloop_startup": "partial (kubernetes.logs.previous unavailable)",
+      "oom_restarts": "partial (kubernetes.logs.previous unavailable)",
+      "traffic_latency_errors": "available",
+      "pending_unschedulable": "available",
+      "image_pull": "available"
+    },
+    "source_outcomes_per_pack": 12,
+    "restart": "evidence IDs and SHA-256 matched before/after API+worker restart",
+    "comparison": "12-source comparable; metric samples not_comparable for unequal windows",
+    "timeline": "window_start/window_end; no invented markers"
+  },
+  "dispatch": {
+    "receipt": "dispatch.json",
+    "actual_collection_class_takeover": "passed",
+    "enter_recovery": "denied collection claim",
+    "resume_recommendation_only": "run stayed queued",
+    "resume_collection": "run completed",
+    "late_result_fenced": true
+  },
+  "browser": {
+    "receipt": "browser.json",
+    "screenshots": 16,
+    "edge": "managed Microsoft Edge launch; HTTP loopback origin; no trust bypass"
+  },
+  "migration": "No new migration in this test-only acceptance slice; existing migration suite passed."
+}
