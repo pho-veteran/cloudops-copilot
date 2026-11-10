@@ -144,9 +144,13 @@ def test_configmap_read_quotes_name_inside_configmaps_path(tmp_path):
     client = configured_client(tmp_path)
     paths = []
 
-    def request_json(path, params=None):
+    def request_json(path, params=None, **kwargs):
         paths.append(path)
-        return {"kind": "ConfigMap", "metadata": {"name": "config"}}
+        return {
+            "kind": "PartialObjectMetadata",
+            "apiVersion": "meta.k8s.io/v1",
+            "metadata": {"uid": "cm", "name": "config/../../secrets", "namespace": "demo"},
+        }
 
     client._request_json = request_json
     client.get_configmap_metadata("demo", "config/../../secrets")
@@ -165,7 +169,14 @@ def test_pod_list_ignores_foreign_namespace_and_wrong_owner(tmp_path):
                         "namespace": "demo",
                         "name": "owned",
                         "uid": "owned",
-                        "ownerReferences": [{"uid": "rs-1"}],
+                        "ownerReferences": [
+                            {
+                                "uid": "rs-1",
+                                "kind": "ReplicaSet",
+                                "apiVersion": "apps/v1",
+                                "controller": True,
+                            }
+                        ],
                     }
                 },
                 {
@@ -173,7 +184,14 @@ def test_pod_list_ignores_foreign_namespace_and_wrong_owner(tmp_path):
                         "namespace": "kube-system",
                         "name": "foreign",
                         "uid": "foreign",
-                        "ownerReferences": [{"uid": "rs-1"}],
+                        "ownerReferences": [
+                            {
+                                "uid": "rs-1",
+                                "kind": "ReplicaSet",
+                                "apiVersion": "apps/v1",
+                                "controller": True,
+                            }
+                        ],
                     }
                 },
                 {
@@ -181,7 +199,14 @@ def test_pod_list_ignores_foreign_namespace_and_wrong_owner(tmp_path):
                         "namespace": "demo",
                         "name": "wrong-owner",
                         "uid": "wrong-owner",
-                        "ownerReferences": [{"uid": "rs-other"}],
+                        "ownerReferences": [
+                            {
+                                "uid": "rs-other",
+                                "kind": "ReplicaSet",
+                                "apiVersion": "apps/v1",
+                                "controller": True,
+                            }
+                        ],
                     }
                 },
             ],
@@ -200,7 +225,12 @@ def make_context(workload_uid="deploy-uid-1", immutable_window=None):
         cluster_id="local-k3s",
         namespace="demo",
         workload_uid=workload_uid,
-        immutable_window=immutable_window,
+        immutable_window=immutable_window
+        or WindowSnapshot(
+            datetime(2025, 12, 31, 23, 59, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 0, 30, tzinfo=timezone.utc),
+            "explicit",
+        ),
         scope_snapshot=ScopeSnapshot(
             "local-k3s", "demo", "checkout", workload_uid, "live_kubernetes"
         ),
@@ -217,10 +247,12 @@ class FakeClient:
 def test_collect_kubernetes_state_success(monkeypatch):
     ctx = make_context()
     fake = FakeClient()
-    fake.get_deployment = lambda ns, name, expected_uid: {"metadata": {"uid": expected_uid}}
+    fake.get_deployment = lambda ns, name, expected_uid: {
+        "metadata": {"uid": expected_uid, "namespace": ns, "name": name}
+    }
     fake.list_owned_replicasets = lambda ns, uid: []
     fake.list_owned_pods = lambda ns, rs_uids: []
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_state(ctx, timeout_seconds=5.0)
     assert res.source_key == "kubernetes.state"
     assert res.payload_kind == "state"
@@ -237,7 +269,7 @@ def test_state_translates_uid_drift_to_identity_changed(monkeypatch):
         raise ScopedK8sError("target_changed")
 
     fake.get_deployment = drift
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_state(ctx, timeout_seconds=5.0)
     assert res.coverage.status == "unavailable"
     assert res.coverage.reason_codes == ["identity_changed"]
@@ -251,7 +283,7 @@ def test_state_translates_forbidden(monkeypatch):
         raise ScopedK8sError("forbidden")
 
     fake.get_deployment = denied
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_state(ctx, timeout_seconds=5.0)
     assert res.coverage.reason_codes == ["forbidden"]
 
@@ -268,7 +300,14 @@ def test_collect_kubernetes_events_filters_by_involved_uids(monkeypatch):
                 "uid": "rs-uid-1",
                 "name": "checkout-abc",
                 "namespace": ns,
-                "ownerReferences": [{"uid": deployment_uid, "controller": True}],
+                "ownerReferences": [
+                    {
+                        "uid": deployment_uid,
+                        "kind": "Deployment",
+                        "apiVersion": "apps/v1",
+                        "controller": True,
+                    }
+                ],
             }
         }
     ]
@@ -278,7 +317,14 @@ def test_collect_kubernetes_events_filters_by_involved_uids(monkeypatch):
                 "uid": "pod-uid-1",
                 "name": "checkout-abc-123",
                 "namespace": ns,
-                "ownerReferences": [{"uid": "rs-uid-1", "controller": True}],
+                "ownerReferences": [
+                    {
+                        "uid": "rs-uid-1",
+                        "kind": "ReplicaSet",
+                        "apiVersion": "apps/v1",
+                        "controller": True,
+                    }
+                ],
             }
         }
     ]
@@ -300,7 +346,7 @@ def test_collect_kubernetes_events_filters_by_involved_uids(monkeypatch):
             "type": "Warning",
         },
     ]
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_events(ctx, timeout_seconds=5.0)
     assert res.source_key == "kubernetes.events"
     assert res.payload_kind == "events"
@@ -319,7 +365,7 @@ def test_empty_events_is_available_not_absence_of_history(monkeypatch):
     fake.list_owned_replicasets = lambda ns, deployment_uid: []
     fake.list_owned_pods = lambda ns, rs_uids: []
     fake.list_namespace_events = lambda ns, involved_uids: []
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_events(ctx, timeout_seconds=5.0)
     assert res.coverage.status == "available"
     assert res.coverage.reason_codes == []
@@ -342,7 +388,14 @@ def log_pod(*, restart_count=0, last_state=None, phase="Running", containers=Non
             "uid": "pod-uid-1",
             "name": "checkout-abc-123",
             "namespace": "demo",
-            "ownerReferences": [{"uid": "rs-uid-1", "controller": True}],
+            "ownerReferences": [
+                {
+                    "uid": "rs-uid-1",
+                    "kind": "ReplicaSet",
+                    "apiVersion": "apps/v1",
+                    "controller": True,
+                }
+            ],
         },
         "spec": {"containers": containers},
         "status": {"phase": phase, "containerStatuses": statuses},
@@ -360,11 +413,19 @@ def log_fake(ctx, pod, logs):
                 "uid": "rs-uid-1",
                 "name": "checkout-abc",
                 "namespace": ns,
-                "ownerReferences": [{"uid": deployment_uid, "controller": True}],
+                "ownerReferences": [
+                    {
+                        "uid": deployment_uid,
+                        "kind": "Deployment",
+                        "apiVersion": "apps/v1",
+                        "controller": True,
+                    }
+                ],
             }
         }
     ]
     fake.list_owned_pods = lambda ns, rs_uids: [pod]
+    fake.get_pod = lambda ns, name, expected_uid, rs_uids: pod
     fake.get_pod_logs = logs
     return fake
 
@@ -379,7 +440,7 @@ def test_logs_current_collects_bounded_lines(monkeypatch):
             False,
         ),
     )
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
     assert res.source_key == "kubernetes.logs.current"
     assert res.payload_kind == "logs"
@@ -400,7 +461,7 @@ def test_logs_current_discloses_truncated_cap(monkeypatch):
             True,
         ),
     )
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
     assert res.coverage == Coverage(status="partial", reason_codes=["truncated"])
     assert res.redacted_bounded_payload["truncated"] is True
@@ -419,7 +480,7 @@ def test_logs_error_translations_match_state(monkeypatch):
             raise ScopedK8sError(code)
 
         fake.get_deployment = raise_code
-        monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+        monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
         res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
         assert res.coverage.status == "unavailable" and res.coverage.reason_codes == [published]
 
@@ -435,7 +496,7 @@ def test_logs_current_for_unschedulable_pending_container_is_not_applicable(monk
         return "", False
 
     fake = log_fake(ctx, log_pod(phase="Pending", restart_count=0), logs)
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
     assert res.coverage.status == "not_applicable"
     assert res.coverage.reason_codes == ["not_applicable"]
@@ -452,7 +513,7 @@ def test_logs_previous_when_container_not_restarted_is_not_applicable(monkeypatc
         return "unexpected\n", False
 
     fake = log_fake(ctx, log_pod(restart_count=0), logs)
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
     assert res.source_key == "kubernetes.logs.previous"
     assert res.payload_kind == "logs"
@@ -471,7 +532,7 @@ def test_logs_previous_when_restarted_collects_previous_logs(monkeypatch):
             False,
         ),
     )
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
     assert res.source_key == "kubernetes.logs.previous"
     assert res.payload_kind == "logs"
@@ -479,7 +540,7 @@ def test_logs_previous_when_restarted_collects_previous_logs(monkeypatch):
     assert res.redacted_bounded_payload["logs"][0]["previous"] is True
 
 
-def test_logs_previous_mixed_containers_is_never_partial(monkeypatch):
+def test_previous_logs_allow_a_proven_no_restart_sidecar(monkeypatch):
     ctx = make_context()
     containers = [{"name": "app", "image": "fixture:1"}, {"name": "sidecar", "image": "x"}]
     pod = log_pod(restart_count=2, containers=containers)
@@ -492,17 +553,13 @@ def test_logs_previous_mixed_containers_is_never_partial(monkeypatch):
         return "2025-12-31T23:59:59Z previous stacktrace\n", False
 
     fake = log_fake(ctx, pod, logs)
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
-    # Overall slot coverage never degrades to "partial": "partial" counts as
-    # missing_required in derive_pack_coverage for crashloop_startup.
-    assert res.coverage.status in ("available", "not_applicable")
-    # Per-container outcome is disclosed in the payload, e.g. containers list
-    # marks each container "previous": available|not_applicable.
+    assert res.coverage.status == "available"
     assert any(c.get("previous") == "available" for c in res.redacted_bounded_payload["containers"])
 
 
-def test_logs_previous_when_every_previous_read_is_missing_is_not_applicable(monkeypatch):
+def test_missing_previous_logs_remain_a_required_gap(monkeypatch):
     ctx = make_context()
     fake = log_fake(
         ctx,
@@ -511,10 +568,10 @@ def test_logs_previous_when_every_previous_read_is_missing_is_not_applicable(mon
             _raise(ScopedK8sError("container_not_ready"))
         ),
     )
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_previous(ctx, timeout_seconds=5.0)
-    assert res.coverage.status == "not_applicable"
-    assert res.coverage.reason_codes == ["not_applicable"]
+    assert res.coverage.status == "unavailable"
+    assert res.coverage.reason_codes == ["no_samples"]
 
 
 def _raise(error):
@@ -527,7 +584,7 @@ def test_configmap_metadata_is_disabled_by_default(monkeypatch):
     calls = []
     fake = FakeClient()
     fake.get_deployment = lambda *args, **kwargs: calls.append(args)
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = kubernetes_collector.collect_kubernetes_configmap_metadata(ctx, timeout_seconds=5.0)
     assert res.coverage.status == "unavailable"
     assert res.coverage.reason_codes == ["source_not_configured"]
@@ -550,6 +607,6 @@ def test_logs_disclose_extends_after_window(monkeypatch):
             False,
         ),
     )
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
     assert res.source_times.time_relation == "extends_after_window"

@@ -1,0 +1,57 @@
+{
+  "denied": {
+    "ids": {
+      "incident_id": "c117daec-77d6-498b-816f-33c12373bf3f",
+      "run_id": "62c9543b-fc03-43f2-805c-ef6d8b4ff422",
+      "state": "queued",
+      "queue_reason": null,
+      "window": {
+        "start": "2026-11-10T14:43:20.956820Z",
+        "end": "2026-11-10T14:58:20.956820Z",
+        "source": "explicit"
+      }
+    },
+    "evidence_id": "929eeff0-20a2-409e-8720-b9658f3d2649",
+    "coverage": {
+      "status": "unavailable",
+      "reason_codes": [
+        "forbidden"
+      ]
+    },
+    "sha256": null
+  },
+  "enabled": {
+    "ids": {
+      "incident_id": "c117daec-77d6-498b-816f-33c12373bf3f",
+      "run_id": "74e87b05-0834-4637-8c1d-f895d2141e46",
+      "state": "queued",
+      "queue_reason": null,
+      "window": {
+        "start": "2026-11-10T14:43:23.097691Z",
+        "end": "2026-11-10T14:58:23.097691Z",
+        "source": "explicit"
+      }
+    },
+    "evidence_id": "7684e384-e274-4794-90b7-f4f6e00f6faf",
+    "coverage": {
+      "status": "available",
+      "reason_codes": []
+    },
+    "sha256": "a5f64c8819848e53b7e37ca3c378c6d96dbc79b2423bb8ddda53f9ed31bf4223",
+    "payload": {
+      "metadata": {
+        "uid": "ad3ff2a4-1ed5-4e68-8bc7-973b48a254a7",
+        "name": "checkout",
+        "namespace": "demo"
+      },
+      "configmaps": [
+        {
+          "uid": "96bcbd9e-07e3-4f6d-a317-2b3fc951888c",
+          "name": "acceptance-config",
+          "namespace": "demo",
+          "resource_version": "1756"
+        }
+      ]
+    }
+  }
+}

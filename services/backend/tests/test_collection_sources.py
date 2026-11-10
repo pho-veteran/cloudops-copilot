@@ -88,7 +88,11 @@ def test_configmap_metadata_returns_metadata_only_and_refuses_secrets(monkeypatc
         cluster_id=ctx.cluster_id,
         namespace=ctx.namespace,
         workload_uid=ctx.workload_uid,
-        immutable_window=None,
+        immutable_window=collector.WindowSnapshot(
+            datetime(2025, 12, 31, 23, 59, tzinfo=timezone.utc),
+            datetime(2026, 1, 1, 0, 30, tzinfo=timezone.utc),
+            "explicit",
+        ),
         scope_snapshot=collector.ScopeSnapshot(
             ctx.cluster_id, ctx.namespace, "app", ctx.workload_uid, "live_kubernetes"
         ),
@@ -110,18 +114,18 @@ def test_configmap_metadata_returns_metadata_only_and_refuses_secrets(monkeypatc
 
         def get_configmap_metadata(self, namespace, name):
             return {
-                "kind": "ConfigMap",
+                "kind": "PartialObjectMetadata",
+                "apiVersion": "meta.k8s.io/v1",
                 "metadata": {
                     "name": name,
                     "namespace": namespace,
                     "uid": "cm-uid",
                     "resourceVersion": "7",
                 },
-                "data": {"password": "sentinel"},
             }
 
     monkeypatch.setenv("KUBE_CONFIGMAP_ENABLED", "1")
-    monkeypatch.setattr(kube, "_scoped_client", lambda: FakeClient())
+    monkeypatch.setattr(kube, "_scoped_client", lambda _deadline: FakeClient())
     result = kube.collect_kubernetes_configmap_metadata(ctx, timeout_seconds=5.0)
     assert result.coverage.status == "available"
     assert result.redacted_bounded_payload["configmaps"] == [
@@ -133,7 +137,7 @@ def test_configmap_metadata_returns_metadata_only_and_refuses_secrets(monkeypatc
         def get_configmap_metadata(self, namespace, name):
             return {"kind": "Secret", "metadata": {"name": name, "uid": "secret-uid"}}
 
-    monkeypatch.setattr(kube, "_scoped_client", lambda: SecretClient())
+    monkeypatch.setattr(kube, "_scoped_client", lambda _deadline: SecretClient())
     denied = kube.collect_kubernetes_configmap_metadata(ctx, timeout_seconds=5.0)
     assert denied.coverage.status == "unavailable"
     assert denied.coverage.reason_codes == ["forbidden"]

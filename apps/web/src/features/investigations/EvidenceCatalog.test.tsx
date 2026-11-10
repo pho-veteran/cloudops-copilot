@@ -179,19 +179,27 @@ it("discloses a truncated log payload and its coverage reason", async () => {
         payload_kind: "logs",
         payload_version: 1,
         sha256: "abc",
-        payload: { truncated: true, logs: [], containers: [] },
+        payload: { truncated: true, logs: [
+          { container: "setup", kind: "init", pod_uid: "pod-1", previous: true, text: "Dòng một\n<script>source text</script>" },
+          { container: "app", kind: "regular", pod_uid: "pod-1", previous: false, lines: ["line one", "line two"] },
+        ], containers: [] },
       });
     return Response.json(truncatedEvidence);
   });
   mount(evidenceId, { ...run, evidence: [truncatedEvidence] });
   expect(
     await screen.findByText(
-      "Log output was truncated at the collection cap; later lines are not included.",
+      "Log output was truncated at the collection cap; only a bounded tail is retained.",
     ),
   ).toBeTruthy();
   expect(screen.getByText("Coverage").nextElementSibling?.textContent).toBe(
     "partial · truncated",
   );
+  expect(screen.getByLabelText("Log text for setup").textContent).toBe("Dòng một\n<script>source text</script>");
+  expect(screen.getByLabelText("Log text for app").textContent).toBe("line one\nline two");
+  expect(screen.getByText("Init container · Previous logs")).toBeTruthy();
+  expect(document.querySelector("script")).toBeNull();
+  expect(screen.getByLabelText("Log text for setup").getAttribute("tabindex")).toBe("0");
 });
 
 it("shows an expiry race without claiming retained content", async () => {

@@ -21,8 +21,12 @@ def new_live_context(client):
     headers = sign_in(client)
     created = create(client, headers, incident_body(client)).json()
     run_id = UUID(created["run_id"])
-    with sessions()():
-        context = prepare(run_id, attempt_number=1, max_attempts=3)
+    with sessions()() as db, db.begin():
+        row = db.get(InvestigationRun, run_id)
+        row.window_start = datetime(2025, 12, 31, 23, 59, tzinfo=timezone.utc)
+        row.window_end = datetime(2026, 1, 1, 0, 30, tzinfo=timezone.utc)
+        row.window_source = "explicit"
+    context = prepare(run_id, attempt_number=1, max_attempts=3)
     return run_id, context
 
 
@@ -41,7 +45,7 @@ def collect_and_store(client, monkeypatch, fake, *, context=None, override=None)
     run_id, context = new_live_context(client) if context is None else (context[0], context[1])
     if context is None:
         raise AssertionError
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     results = list(
         collector.collect(context, collector.configured_adapters("live_kubernetes")).source_results
     )
@@ -102,7 +106,14 @@ def pod(uid, *, phase="Running", restart_count=0, state=None, last_state=None, n
             "uid": uid,
             "name": "checkout-abc-123",
             "namespace": namespace,
-            "ownerReferences": [{"uid": "rs-uid-1", "controller": True}],
+            "ownerReferences": [
+                {
+                    "uid": "rs-uid-1",
+                    "kind": "ReplicaSet",
+                    "apiVersion": "apps/v1",
+                    "controller": True,
+                }
+            ],
         },
         "spec": {"containers": [{"name": "app", "image": "fixture:1"}]},
         "status": status,
@@ -167,7 +178,14 @@ class FakeCluster:
                     "uid": "rs-uid-1",
                     "name": "checkout-abc",
                     "namespace": namespace,
-                    "ownerReferences": [{"uid": deployment_uid, "controller": True}],
+                    "ownerReferences": [
+                        {
+                            "uid": deployment_uid,
+                            "kind": "Deployment",
+                            "apiVersion": "apps/v1",
+                            "controller": True,
+                        }
+                    ],
                 }
             }
         ]
@@ -179,6 +197,17 @@ class FakeCluster:
     def list_namespace_events(self, namespace, involved_uids):
         self._check()
         return list(self.events)
+
+    def get_pod(self, namespace, name, expected_uid, rs_uids):
+        for value in self.pods:
+            metadata = value["metadata"]
+            if (
+                metadata["namespace"] == namespace
+                and metadata["name"] == name
+                and metadata["uid"] == expected_uid
+            ):
+                return value
+        raise kubernetes_collector.ScopedK8sError("target_changed")
 
     def get_pod_logs(
         self, namespace, pod_name, container_name, previous=False, since_time=None, line_limit=200
@@ -218,7 +247,14 @@ def test_crashloop_family_is_available_with_observable_pack(client, monkeypatch)
                 **pod("pod-wrong-owner"),
                 "metadata": {
                     **pod("pod-wrong-owner")["metadata"],
-                    "ownerReferences": [{"uid": "rs-other", "controller": True}],
+                    "ownerReferences": [
+                        {
+                            "uid": "rs-other",
+                            "kind": "ReplicaSet",
+                            "apiVersion": "apps/v1",
+                            "controller": True,
+                        }
+                    ],
                 },
             },
         ],
@@ -328,7 +364,7 @@ def test_stale_window_is_disclosed_and_history_is_not_rewritten(client, monkeypa
     # Restarted containers so the previous-log slot is genuinely available;
     # staleness, not conditional log availability, is what this test pins.
     fake = FakeCluster(pods=[pod("pod-uid-1", restart_count=2)])
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: fake)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     results = list(
         collector.collect(context, collector.configured_adapters("live_kubernetes")).source_results
     )
@@ -344,8 +380,13 @@ def test_stale_window_is_disclosed_and_history_is_not_rewritten(client, monkeypa
             "kubernetes.logs.previous",
         ):
             row = rows[key]
-            assert row.time_relation == "extends_after_window"
-            assert row.coverage["status"] == "available"
+            if key.startswith("kubernetes.logs"):
+                assert row.time_relation == "not_captured"
+                assert row.coverage["status"] == "partial"
+                assert "stale" in row.coverage["reason_codes"]
+            else:
+                assert row.time_relation == "extends_after_window"
+                assert row.coverage["status"] == "available"
             assert row.requested_window["end"] == old_end.isoformat()
             assert row.requested_window["end"] != datetime.now(timezone.utc).isoformat()
 
@@ -361,8 +402,8 @@ def test_truncated_logs_persist_partial_coverage_and_payload_flag(client, monkey
         "reason_codes": ["truncated"],
     }
     assert result.payloads["kubernetes.logs.current"]["truncated"] is True
-    assert result.packs["crashloop_startup"]["status"] == "available"
-    assert "kubernetes.logs.current" not in result.packs["crashloop_startup"]["missing_required"]
+    assert result.packs["crashloop_startup"]["status"] == "partial"
+    assert "kubernetes.logs.current" in result.packs["crashloop_startup"]["missing_required"]
 
 
 def test_stale_reason_round_trips_and_unknown_reason_still_fails(client, monkeypatch):
@@ -394,7 +435,7 @@ def test_stale_reason_round_trips_and_unknown_reason_still_fails(client, monkeyp
         ]
 
     run_id, context = new_live_context(client)
-    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda: FakeCluster())
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: FakeCluster())
     results = list(
         collector.collect(context, collector.configured_adapters("live_kubernetes")).source_results
     )
@@ -412,3 +453,73 @@ def test_bracket_uid_drift_fails_closed_with_identity_changed(client, monkeypatc
     assert result.payloads["kubernetes.state"] is None
     assert result.digests["kubernetes.state"] is None
     assert "target_changed" not in repr(result.coverage)
+
+
+def test_template_and_init_state_survive_safe_storage(client, monkeypatch):
+    value = pod("pod-uid-1")
+    value["spec"]["initContainers"] = [{"name": "setup", "image": "init:2"}]
+    value["status"]["initContainerStatuses"] = [
+        {
+            "name": "setup",
+            "restartCount": 1,
+            "state": {"waiting": {"reason": "CrashLoopBackOff"}},
+            "lastState": {"terminated": {"exitCode": 1}},
+        }
+    ]
+    fake = FakeCluster(pods=[value])
+    original = fake.get_deployment
+
+    def desired(*args, **kwargs):
+        result = original(*args, **kwargs)
+        result["metadata"]["annotations"] = {"deployment.kubernetes.io/revision": "2"}
+        result["spec"]["template"]["spec"]["containers"][0].update(
+            image="desired:2",
+            env=[{"name": "API_TOKEN", "value": "private-literal-sentinel"}],
+            resources={"requests": {"cpu": "10m"}, "limits": {"memory": "32Mi"}},
+        )
+        return result
+
+    fake.get_deployment = desired
+    result = collect_and_store(client, monkeypatch, fake)
+    payload = result.payloads["kubernetes.state"]
+    assert payload["deployment"]["revision"] == "2"
+    template = payload["deployment"]["template"]["containers"][0]
+    assert template["image"] == "desired:2"
+    assert template["resources"]["limits"]["memory"] == "32Mi"
+    assert (
+        next(row for row in payload["pods"][0]["containers"] if row["name"] == "setup")["kind"]
+        == "init"
+    )
+    assert "private-literal-sentinel" not in repr(result.payloads)
+
+
+def test_windowless_legacy_run_finishes_through_checkpointed_worker(client, monkeypatch):
+    from cloudops.entrypoints.worker import run_once
+    from cloudops.shared.config import settings
+    from cloudops.shared.jobs import Job
+    from sqlalchemy import select
+
+    headers = sign_in(client)
+    ids = create(client, headers, incident_body(client)).json()
+    with sessions()() as db, db.begin():
+        run = db.get(InvestigationRun, UUID(ids["run_id"]))
+        run.window_start = run.window_end = None
+        run.window_source = "not_captured"
+    calls = []
+    monkeypatch.setattr(
+        kubernetes_collector, "_scoped_client", lambda *_: calls.append(True) or FakeCluster()
+    )
+    monkeypatch.setenv("COLLECTION_SOURCE_MODE", "live_kubernetes")
+    monkeypatch.setenv("KUBE_CONFIGMAP_ENABLED", "1")
+    settings.cache_clear()
+    assert run_once()
+    with sessions()() as db:
+        assert db.scalar(select(Job.state)) == "completed"
+    run = client.get(f"/api/incidents/{ids['incident_id']}/runs/{ids['run_id']}").json()
+    assert run["state"] == "insufficient_evidence"
+    assert all(
+        row["coverage"]["reason_codes"] == ["not_captured"]
+        for row in run["evidence"]
+        if row["source_key"].startswith("kubernetes.")
+    )
+    assert calls == []

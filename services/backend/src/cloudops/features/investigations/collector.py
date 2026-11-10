@@ -142,7 +142,14 @@ def development_fixture(context: CollectionContext, timeout_seconds: float) -> S
 
 # Registration is deliberately finite. Adding a provider requires a code change,
 # not an import path or an arbitrary callable from deployment configuration.
-REGISTERED_ADAPTERS: dict[str, SourceAdapter] = {"development_fixture": development_fixture}
+REGISTERED_ADAPTERS: dict[str, SourceAdapter] = {
+    "development_fixture": development_fixture,
+    "kubernetes.state": collect_kubernetes_state,
+    "kubernetes.events": collect_kubernetes_events,
+    "kubernetes.logs.current": collect_kubernetes_logs_current,
+    "kubernetes.logs.previous": collect_kubernetes_logs_previous,
+    "kubernetes.configmap.metadata": collect_kubernetes_configmap_metadata,
+}
 
 
 def configured_adapters(mode: str) -> dict[str, SourceAdapter]:

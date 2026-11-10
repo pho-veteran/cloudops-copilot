@@ -1,0 +1,1851 @@
+{
+  "recorded_at": "2026-11-10T14:54:56.020267+00:00",
+  "environment": "Pinned K3s v1.37.1+k3s1, PostgreSQL 17.11; isolated Docker project. Actual API/worker uses the read-only service account over CA-verified TLS.",
+  "workloads": {
+    "checkout-init-crashloop": {
+      "workload_id": "046c4e30-57c9-4179-8b49-755ac7df5b90",
+      "uid": "4a017a2f-e014-438f-993a-d9e003e66265",
+      "ids": {
+        "incident_id": "f673d762-1a09-4b2f-bb4d-170c01023a23",
+        "run_id": "5e956a31-27c8-409d-8f61-03bd69f776ea",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:39:56.193664Z",
+          "end": "2026-11-10T14:54:56.193664Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "8a2a169d-94aa-4441-8f06-285b5d8695dd",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:39:56.193664Z",
+            "end": "2026-11-10T14:54:56.193664Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "03003a42-789e-43bc-a5cd-3321e1cf4886",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "8db05875503d1e480524476184276e4d5c969ae0043e5c367752db4622989022",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:56.193664Z",
+            "end": "2026-11-10T14:54:56.193664Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 7
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "4eaea7ee-b4a6-422c-8700-35c5059759cc",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "c34cb27034ea674a99104f23290ab5f48df4870d58637c73462ba2866d732894",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:56.193664Z",
+            "end": "2026-11-10T14:54:56.193664Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "init",
+                "pod_uid": "afa6cb24-0436-4b78-a341-6b34636f2aa7",
+                "previous": false,
+                "container": "setup",
+                "timestamp": "2026-11-10T14:49:37.029493+00:00",
+                "retained_lines": 1
+              }
+            ]
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "ffeef983-55a1-442a-9cd8-c0d847be0b99",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "90785c3de42cad695b92a74d58e03a3f24c75c0486e26589b6450854c7bdf9dc",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:56.193664Z",
+            "end": "2026-11-10T14:54:56.193664Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "init",
+                "pod_uid": "afa6cb24-0436-4b78-a341-6b34636f2aa7",
+                "previous": true,
+                "container": "setup",
+                "timestamp": "2026-11-10T14:49:37.029493+00:00",
+                "retained_lines": 1
+              }
+            ]
+          }
+        },
+        "kubernetes.state": {
+          "id": "053b2ab5-149b-4a47-9df7-42918e5ef8b6",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "5e752c3210de735e9ff6a5f7e5e10265ff96b9e99eba44f5e1648fc14b189612",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:56.193664Z",
+            "end": "2026-11-10T14:54:56.193664Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "4a017a2f-e014-438f-993a-d9e003e66265",
+              "name": "checkout-init-crashloop",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "image": "busybox:1.36",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "16Mi"
+                      }
+                    }
+                  },
+                  {
+                    "kind": "init",
+                    "name": "setup",
+                    "image": "busybox:1.36",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "16Mi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasUnavailable",
+                  "status": "False",
+                  "message": "Deployment does not have minimum availability."
+                },
+                {
+                  "type": "Progressing",
+                  "reason": "ProgressDeadlineExceeded",
+                  "status": "False",
+                  "message": "ReplicaSet \"checkout-init-crashloop-78df7477bf\" has timed out progressing."
+                }
+              ],
+              "generation": 1
+            },
+            "revisions": [
+              {
+                "uid": "3ceedc3c-9721-455d-972e-e30c5195d38c",
+                "name": "checkout-init-crashloop-78df7477bf",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "afa6cb24-0436-4b78-a341-6b34636f2aa7"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    },
+    "checkout-oom": {
+      "workload_id": "12c51f4c-f4c0-479b-81bc-c5b5a5f6ef9c",
+      "uid": "13404560-4d75-4ec4-bf8e-006e1e24953b",
+      "ids": {
+        "incident_id": "36335d7f-16e6-460b-a2fa-f2a4c8a8133c",
+        "run_id": "10ced582-f296-4e3e-b3c1-326adcb391b2",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:39:58.351058Z",
+          "end": "2026-11-10T14:54:58.351058Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "c2ae2d2d-5fb5-4b59-a603-21f682950b9b",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:39:58.351058Z",
+            "end": "2026-11-10T14:54:58.351058Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "2660d7cc-13a5-485d-b8f3-e9deb629888d",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "873d343b2f1a6981f7f2be8ed4bca5df67f6e9a909d1979cdfda330ef3dfcca4",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:58.351058Z",
+            "end": "2026-11-10T14:54:58.351058Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 7
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "9b7c3059-e69e-4d6a-b0b8-a05479dc8575",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "5ea53e29fb04e73e37a48a794248097a7bffc00c4119b3a103cdeac120652430",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:58.351058Z",
+            "end": "2026-11-10T14:54:58.351058Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "regular",
+                "pod_uid": "043f2517-fec0-4da4-9d70-f0ae3359c345",
+                "previous": false,
+                "container": "app",
+                "timestamp": "2026-11-10T14:53:05.108074+00:00",
+                "retained_lines": 1
+              }
+            ]
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "78c2859a-7b96-4741-b917-6f1f7b995b10",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "bfd4929347372fb3532805956606858cfc25fac7a4639b53401111f2d083f1ce",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:58.351058Z",
+            "end": "2026-11-10T14:54:58.351058Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "regular",
+                "pod_uid": "043f2517-fec0-4da4-9d70-f0ae3359c345",
+                "previous": true,
+                "container": "app",
+                "timestamp": "2026-11-10T14:53:05.108074+00:00",
+                "retained_lines": 1
+              }
+            ]
+          }
+        },
+        "kubernetes.state": {
+          "id": "dbd5f3c0-2023-4857-9d32-b4a5f57d770a",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "7a784891758e676c89d46446b1f6cc5ac90cbbb097fcc8f65032eea067495a80",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:58.351058Z",
+            "end": "2026-11-10T14:54:58.351058Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "13404560-4d75-4ec4-bf8e-006e1e24953b",
+              "name": "checkout-oom",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "image": "polinux/stress:1.0.4",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "16Mi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Progressing",
+                  "reason": "NewReplicaSetAvailable",
+                  "status": "True",
+                  "message": "ReplicaSet \"checkout-oom-6cd45cdf4b\" has successfully progressed."
+                },
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasUnavailable",
+                  "status": "False",
+                  "message": "Deployment does not have minimum availability."
+                }
+              ],
+              "generation": 1
+            },
+            "revisions": [
+              {
+                "uid": "e9d6604d-f1e7-40f5-9d9b-4bb70732a807",
+                "name": "checkout-oom-6cd45cdf4b",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "043f2517-fec0-4da4-9d70-f0ae3359c345"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    },
+    "checkout-crashloop": {
+      "workload_id": "2bf5a1e1-0093-4520-a4da-93603eb40dc0",
+      "uid": "786857e4-e308-4bef-b4d1-4460effc0e89",
+      "ids": {
+        "incident_id": "f3cbbd44-eda8-4f15-8ffe-92281bdbac94",
+        "run_id": "1ea55a7d-d469-4be4-a0b0-28f702837dd0",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:39:59.458372Z",
+          "end": "2026-11-10T14:54:59.458372Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "7829c5fd-920f-49e5-93d8-70c3d2b43305",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:39:59.458372Z",
+            "end": "2026-11-10T14:54:59.458372Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "5c38ebd7-df0a-46e6-8a2f-8122a887aba4",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "f12f42640880e734847e0f0f20db2cbdb8c23bc35861a588f1e138e8a5832f93",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:59.458372Z",
+            "end": "2026-11-10T14:54:59.458372Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 7
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "57933e40-1dcd-4c81-aed4-27afaedf9d5c",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "35a6c7955c0d5b743d844e49b01f68fb5a294f81be2955516bbfcbca646085a4",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:59.458372Z",
+            "end": "2026-11-10T14:54:59.458372Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "regular",
+                "pod_uid": "334978d1-d011-41f2-896d-1608c71b5b58",
+                "previous": false,
+                "container": "app",
+                "timestamp": "2026-11-10T14:53:12.007190+00:00",
+                "retained_lines": 1
+              }
+            ]
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "571eceb9-bcf2-49ad-a2e8-a58bd64a677a",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "187e6d2bebb980e99425fc2262c0d24c9c767d95acb570263c43562b3716fe5c",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:59.458372Z",
+            "end": "2026-11-10T14:54:59.458372Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "regular",
+                "pod_uid": "334978d1-d011-41f2-896d-1608c71b5b58",
+                "previous": true,
+                "container": "app",
+                "timestamp": "2026-11-10T14:53:12.007190+00:00",
+                "retained_lines": 1
+              }
+            ]
+          }
+        },
+        "kubernetes.state": {
+          "id": "276e16b6-832e-45a7-9d8b-8ef07dd58735",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "8fff103aafd90cacd6fabb2f042bc75756ef7a3abb814a0f6e1197ea4644b741",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:39:59.458372Z",
+            "end": "2026-11-10T14:54:59.458372Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "786857e4-e308-4bef-b4d1-4460effc0e89",
+              "name": "checkout-crashloop",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "image": "busybox:1.36",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "16Mi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Progressing",
+                  "reason": "NewReplicaSetAvailable",
+                  "status": "True",
+                  "message": "ReplicaSet \"checkout-crashloop-86b98f5d9f\" has successfully progressed."
+                },
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasUnavailable",
+                  "status": "False",
+                  "message": "Deployment does not have minimum availability."
+                }
+              ],
+              "generation": 1
+            },
+            "revisions": [
+              {
+                "uid": "3716e1e8-9c20-43fe-b1ac-c8e83ce5dd38",
+                "name": "checkout-crashloop-86b98f5d9f",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "334978d1-d011-41f2-896d-1608c71b5b58"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    },
+    "checkout-imagepull": {
+      "workload_id": "2fc8480d-c2ff-4ab7-a61d-5cf71af37aae",
+      "uid": "052b5109-5ecc-4182-8dae-de02c3c84c5b",
+      "ids": {
+        "incident_id": "52bfe675-15e6-4f1d-94cc-e8d4eb938829",
+        "run_id": "5ffe17a5-5301-4b0b-b51d-af226b55f4c6",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:40:00.604700Z",
+          "end": "2026-11-10T14:55:00.604700Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "a1c1f5bf-2d39-4be6-97b4-a1e6d9a22ae0",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:00.604700Z",
+            "end": "2026-11-10T14:55:00.604700Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "78e73b64-5a7a-4fba-926f-32f57e08bcfe",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "0517653aec5183c1be1ff1da1acf436a17ca358df100c5619b05b5158d72586a",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:00.604700Z",
+            "end": "2026-11-10T14:55:00.604700Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 8
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "9bedbce2-68e6-4b7b-af60-c78c53fa1862",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:00.604700Z",
+            "end": "2026-11-10T14:55:00.604700Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "e814a2ac-6ed3-4738-80cc-4b0ac664e50b",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:00.604700Z",
+            "end": "2026-11-10T14:55:00.604700Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.state": {
+          "id": "2b44dde0-7bae-40dc-9669-2cef5bb76c6f",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "c660a7e7fa9364835b52a4ca84e57d5eaca9fa0195edf11400ffbf6e2255108b",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:00.604700Z",
+            "end": "2026-11-10T14:55:00.604700Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "052b5109-5ecc-4182-8dae-de02c3c84c5b",
+              "name": "checkout-imagepull",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "image": "busybox:cloudops-missing-tag-xyz",
+                    "resources": {}
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasUnavailable",
+                  "status": "False",
+                  "message": "Deployment does not have minimum availability."
+                },
+                {
+                  "type": "Progressing",
+                  "reason": "ProgressDeadlineExceeded",
+                  "status": "False",
+                  "message": "ReplicaSet \"checkout-imagepull-696665fd7b\" has timed out progressing."
+                }
+              ],
+              "generation": 1
+            },
+            "revisions": [
+              {
+                "uid": "89facbb6-12a7-4dcf-9bdd-5798430f0244",
+                "name": "checkout-imagepull-696665fd7b",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "bbf40a7f-5b77-4186-8307-54975cb6fc55"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    },
+    "checkout": {
+      "workload_id": "3bb1fe92-f2ed-40bf-8337-7710ea79fbb6",
+      "uid": "ad3ff2a4-1ed5-4e68-8bc7-973b48a254a7",
+      "ids": {
+        "incident_id": "c117daec-77d6-498b-816f-33c12373bf3f",
+        "run_id": "8b83b3e6-4a68-4f65-91fc-f9847f6da558",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:40:01.686276Z",
+          "end": "2026-11-10T14:55:01.686276Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "partial",
+          "missing_required": [
+            "kubernetes.logs.current"
+          ],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "partial",
+          "missing_required": [
+            "kubernetes.logs.current"
+          ],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.logs.current",
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.logs.current",
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.logs.current",
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "9f971e4b-6546-4dce-b6e6-ff6f74d6dd1c",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:01.686276Z",
+            "end": "2026-11-10T14:55:01.686276Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "7c7f0503-72f0-4c17-94fb-869945b55075",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "1b215d38d3727f473600e9e24f1b5894484e43e2786aeb5def4f99e7d07b3b2c",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:01.686276Z",
+            "end": "2026-11-10T14:55:01.686276Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 7
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "d56f3f3c-fb38-4dd4-a58b-58cbb3e014e9",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "truncated"
+            ]
+          },
+          "sha256": "6c8529c2f4917b502f95efd97139ba015a51bd370ce254a47cc0a2d4fde8c088",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:01.686276Z",
+            "end": "2026-11-10T14:55:01.686276Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "regular",
+                "pod_uid": "78e65118-3284-45cd-89d4-517c767630db",
+                "previous": false,
+                "container": "checkout",
+                "timestamp": "2026-11-10T14:55:01.263505+00:00",
+                "retained_lines": 200
+              }
+            ]
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "b4856a7c-2766-45a9-8b15-3af68761ec99",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:01.686276Z",
+            "end": "2026-11-10T14:55:01.686276Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.state": {
+          "id": "dfc35dfa-4ec1-49da-9670-4b682c968207",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "e380919dba7ce0b9e72cdbfaaa9cfa399fc19efada49a06b7ed38fb1c360ddb0",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:01.686276Z",
+            "end": "2026-11-10T14:55:01.686276Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "ad3ff2a4-1ed5-4e68-8bc7-973b48a254a7",
+              "name": "checkout",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "checkout",
+                    "image": "python:3.13.11-slim-bookworm",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "64Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "32Mi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasAvailable",
+                  "status": "True",
+                  "message": "Deployment has minimum availability."
+                },
+                {
+                  "type": "Progressing",
+                  "reason": "NewReplicaSetAvailable",
+                  "status": "True",
+                  "message": "ReplicaSet \"checkout-ff49bd4f8\" has successfully progressed."
+                }
+              ],
+              "generation": 1,
+              "ready_replicas": 1,
+              "available_replicas": 1
+            },
+            "revisions": [
+              {
+                "uid": "84c156f5-56d9-40b3-9e0d-30a919f5ac19",
+                "name": "checkout-ff49bd4f8",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "78e65118-3284-45cd-89d4-517c767630db"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    },
+    "checkout-pending": {
+      "workload_id": "47f8cf3a-320c-433d-8d41-807cda9e7e87",
+      "uid": "0a47a08e-5b53-4da8-8576-3809e9d06552",
+      "ids": {
+        "incident_id": "90796881-55de-407e-8aa0-044d9ab8489b",
+        "run_id": "b17925ad-8c59-42d6-8e19-1835c6b3a5de",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:40:02.767843Z",
+          "end": "2026-11-10T14:55:02.767843Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "89012aad-baef-4505-9eb4-1d73320e1249",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:02.767843Z",
+            "end": "2026-11-10T14:55:02.767843Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "e75bbe46-23cb-4e55-99b9-667f83b1d7e4",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "d49b56e80fb45a911d135d6f031c7f50cc85f6ec7579cf25df4ca7d0d2f00312",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:02.767843Z",
+            "end": "2026-11-10T14:55:02.767843Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 4
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "b3051a3e-7402-4bab-bec9-beb8321b6d9c",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:02.767843Z",
+            "end": "2026-11-10T14:55:02.767843Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "ef65ba5e-ea93-4e76-8054-525013065591",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:02.767843Z",
+            "end": "2026-11-10T14:55:02.767843Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.state": {
+          "id": "2f159b4f-617e-46e4-bc6d-f0daa282eefb",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "7a075553286bffc9b701ac69c31b48df5fabd650b89ea9f054d770657029bf1d",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:02.767843Z",
+            "end": "2026-11-10T14:55:02.767843Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "0a47a08e-5b53-4da8-8576-3809e9d06552",
+              "name": "checkout-pending",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "image": "busybox:1.36",
+                    "resources": {
+                      "requests": {
+                        "cpu": "100",
+                        "memory": "1Gi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasUnavailable",
+                  "status": "False",
+                  "message": "Deployment does not have minimum availability."
+                },
+                {
+                  "type": "Progressing",
+                  "reason": "ProgressDeadlineExceeded",
+                  "status": "False",
+                  "message": "ReplicaSet \"checkout-pending-54c68f4b8d\" has timed out progressing."
+                }
+              ],
+              "generation": 1
+            },
+            "revisions": [
+              {
+                "uid": "80a62e59-9641-4757-83c9-6595b5c8f46b",
+                "name": "checkout-pending-54c68f4b8d",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "7b3e0ef2-91b2-4318-9816-d1e7ceca170e"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    },
+    "checkout-noisy": {
+      "workload_id": "c7775411-ef09-4cca-a5d7-e0f6dc000196",
+      "uid": "407193e3-2620-4686-b47f-194cce3174de",
+      "ids": {
+        "incident_id": "e24a3ce1-71ae-4d0e-baca-bffa4b2c0538",
+        "run_id": "ded1df2d-ef86-4f1c-b002-27130454024a",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T14:40:03.848404Z",
+          "end": "2026-11-10T14:55:03.848404Z",
+          "source": "explicit"
+        }
+      },
+      "run_state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "pack_coverage": [
+        {
+          "pack": "crashloop_startup",
+          "status": "partial",
+          "missing_required": [
+            "kubernetes.logs.current"
+          ],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "oom_restarts",
+          "status": "partial",
+          "missing_required": [
+            "kubernetes.logs.current"
+          ],
+          "optional_gaps": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts",
+            "kubernetes.configmap.metadata"
+          ]
+        },
+        {
+          "pack": "traffic_latency_errors",
+          "status": "unavailable",
+          "missing_required": [
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency"
+          ],
+          "optional_gaps": [
+            "kubernetes.logs.current",
+            "kubernetes.configmap.metadata",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "pending_unschedulable",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.logs.current",
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        },
+        {
+          "pack": "image_pull",
+          "status": "available",
+          "missing_required": [],
+          "optional_gaps": [
+            "kubernetes.logs.current",
+            "kubernetes.configmap.metadata",
+            "prometheus.request_rate",
+            "prometheus.error_ratio",
+            "prometheus.p95_latency",
+            "prometheus.memory_working_set",
+            "prometheus.memory_limit",
+            "prometheus.restarts"
+          ]
+        }
+      ],
+      "sources": {
+        "kubernetes.configmap.metadata": {
+          "id": "2acc281c-986a-4b6f-a9dc-c9e88bfb742f",
+          "source_key": "kubernetes.configmap.metadata",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:03.848404Z",
+            "end": "2026-11-10T14:55:03.848404Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.events": {
+          "id": "c8f297cf-df67-42cb-8cda-af24137d3f12",
+          "source_key": "kubernetes.events",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "418b8616adcfac322760713e3d2253fe50784c24877e3c4a0b65267f763c9617",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:03.848404Z",
+            "end": "2026-11-10T14:55:03.848404Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "events"
+            ],
+            "event_count": 6
+          }
+        },
+        "kubernetes.logs.current": {
+          "id": "6ba643f0-ecfe-4e4e-9a48-d35c900683eb",
+          "source_key": "kubernetes.logs.current",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "truncated"
+            ]
+          },
+          "sha256": "e414f4804a5157689b6169d8c44c6aacb7ce428f142729ad4fc807721ecfc0cc",
+          "content_status": "available",
+          "time_relation": "within_requested_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:03.848404Z",
+            "end": "2026-11-10T14:55:03.848404Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "containers",
+              "logs",
+              "truncated"
+            ],
+            "segments": [
+              {
+                "kind": "regular",
+                "pod_uid": "1640f7a2-476d-44e4-aecb-3b8eacda7b7a",
+                "previous": false,
+                "container": "app",
+                "timestamp": "2026-11-10T14:55:03.775140+00:00",
+                "retained_lines": 200
+              }
+            ]
+          }
+        },
+        "kubernetes.logs.previous": {
+          "id": "04640fe1-4717-49c8-969d-ed1727485421",
+          "source_key": "kubernetes.logs.previous",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "sha256": null,
+          "content_status": "unavailable",
+          "time_relation": "not_captured",
+          "requested_window": {
+            "start": "2026-11-10T14:40:03.848404Z",
+            "end": "2026-11-10T14:55:03.848404Z",
+            "source": "explicit"
+          }
+        },
+        "kubernetes.state": {
+          "id": "0f0f0168-ea13-4604-9ddc-96f2fdfdf956",
+          "source_key": "kubernetes.state",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "sha256": "ec54230972d01114b942c58025ff5381d1fd087952602ee7bf5d9a13beb3c1c3",
+          "content_status": "available",
+          "time_relation": "extends_after_window",
+          "requested_window": {
+            "start": "2026-11-10T14:40:03.848404Z",
+            "end": "2026-11-10T14:55:03.848404Z",
+            "source": "explicit"
+          },
+          "payload_summary": {
+            "keys": [
+              "deployment",
+              "pods",
+              "revisions"
+            ],
+            "deployment": {
+              "uid": "407193e3-2620-4686-b47f-194cce3174de",
+              "name": "checkout-noisy",
+              "replicas": 1,
+              "revision": "1",
+              "template": {
+                "containers": [
+                  {
+                    "kind": "regular",
+                    "name": "app",
+                    "image": "busybox:1.36",
+                    "resources": {
+                      "limits": {
+                        "cpu": "100m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "10m",
+                        "memory": "16Mi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "namespace": "demo",
+              "conditions": [
+                {
+                  "type": "Available",
+                  "reason": "MinimumReplicasAvailable",
+                  "status": "True",
+                  "message": "Deployment has minimum availability."
+                },
+                {
+                  "type": "Progressing",
+                  "reason": "NewReplicaSetAvailable",
+                  "status": "True",
+                  "message": "ReplicaSet \"checkout-noisy-76566dd6d6\" has successfully progressed."
+                }
+              ],
+              "generation": 1,
+              "ready_replicas": 1,
+              "available_replicas": 1
+            },
+            "revisions": [
+              {
+                "uid": "86170293-992b-4363-9c16-d33aff0b9d4a",
+                "name": "checkout-noisy-76566dd6d6",
+                "revision": "1"
+              }
+            ],
+            "pod_uids": [
+              "1640f7a2-476d-44e4-aecb-3b8eacda7b7a"
+            ]
+          }
+        }
+      },
+      "viewer_read": true
+    }
+  }
+}

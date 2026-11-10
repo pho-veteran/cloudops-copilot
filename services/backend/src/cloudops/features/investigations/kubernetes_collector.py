@@ -5,6 +5,7 @@ configured Deployment UID so that a replaced target fails closed instead of
 publishing evidence for a different workload.
 """
 
+import asyncio
 import base64
 import json
 import os
@@ -12,15 +13,8 @@ import ssl
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode, urlsplit
-from urllib.request import (
-    HTTPRedirectHandler,
-    HTTPSHandler,
-    ProxyHandler,
-    Request,
-    build_opener,
-)
+from urllib.parse import quote, urlsplit
+import httpx
 
 from cloudops.features.investigations.schemas import Coverage, SourceResult, SourceTimes
 
@@ -36,12 +30,6 @@ class ScopedK8sError(Exception):
     def __init__(self, code: str):
         super().__init__(code)
         self.code = code
-
-
-class _NoRedirect(HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        # A redirected read is not scoped to the configured destination.
-        return None
 
 
 def _segment(value: str) -> str:
@@ -62,18 +50,18 @@ def _decode_ca(value: str) -> str:
 class ScopedKubernetesClient:
     """GET-only client bound to one host-configured cluster and bearer token."""
 
-    def __init__(self, config_path: str | None = None, timeout: float = 5.0):
-        explicit = config_path is not None
-        path = config_path if explicit else os.environ.get("KUBE_READ_CONFIG")
+    def __init__(self, config_path: str | None = None, timeout: float = 5.0, *, deadline=None):
+        path = config_path if config_path is not None else os.environ.get("KUBE_READ_CONFIG")
         if not path:
             raise ScopedK8sError("cluster_unavailable")
         self._config_path = path
         self._timeout = timeout
-        self._opener = None
+        self._deadline = deadline
+        self._ssl = None
+        self._transport = None
         self._server = ""
-        # An env-selected path is validated eagerly. An explicit path is only
-        # loaded on first use so tests can replace the transport.
-        if not explicit:
+        self.truncated = False
+        if config_path is None:
             self._load()
 
     def _load(self) -> None:
@@ -93,61 +81,73 @@ class ScopedKubernetesClient:
             ):
                 raise ValueError
             token = config["token"]
-            if not isinstance(token, str) or not token:
+            if (
+                not isinstance(token, str)
+                or not token
+                or any(ord(c) < 32 or ord(c) == 127 for c in token)
+            ):
                 raise ValueError
             context = ssl.create_default_context(cadata=_decode_ca(config["ca_data"]))
             context.check_hostname = True
             context.verify_mode = ssl.CERT_REQUIRED
             self._server = server
             self._token = token
-            # Empty ProxyHandler keeps deployment/system proxies and their
-            # credentials out of the cluster request path.
-            self._opener = build_opener(
-                ProxyHandler({}), HTTPSHandler(context=context), _NoRedirect()
-            )
+            self._ssl = context
         except (KeyError, OSError, ValueError, TypeError):
             raise ScopedK8sError("cluster_unavailable") from None
 
-    def _request(self, path: str, params: dict | None = None) -> bytes:
-        if self._opener is None:
+    def _request(self, path: str, params: dict | None = None, *, accept=None) -> bytes:
+        if self._ssl is None:
             self._load()
-        url = self._server + path
-        if params:
-            url += "?" + urlencode(
-                {key: value for key, value in params.items() if value is not None}
-            )
-        request = Request(
-            url,
-            method="GET",
-            headers={
-                "Authorization": "Bearer " + self._token,
-                "Accept": "application/json",
-                "Accept-Encoding": "identity",
-            },
+        return asyncio.run(self._read(path, params, accept))
+
+    async def _read(self, path, params, accept) -> bytes:
+        remaining = (
+            min(self._timeout, self._deadline - time.monotonic())
+            if self._deadline is not None
+            else self._timeout
         )
+        if remaining <= 0:
+            raise ScopedK8sError("timeout")
         try:
-            with self._opener.open(request, timeout=self._timeout) as response:
-                body = response.read(MAX_RESPONSE_BYTES + 1)
-                if len(body) > MAX_RESPONSE_BYTES:
-                    raise ScopedK8sError("cluster_unavailable")
-            return body
-        except ScopedK8sError:
-            raise
-        except HTTPError as error:
-            if error.code in (401, 403):
-                raise ScopedK8sError("forbidden") from None
-            if error.code == 400:
-                # A container that never started/has no previous run is a
-                # conditional outcome, not a target identity change.
-                raise ScopedK8sError("container_not_ready") from None
-            if error.code in (404, 409, 422):
-                raise ScopedK8sError("target_changed") from None
-            raise ScopedK8sError("cluster_unavailable") from None
-        except (URLError, OSError, ValueError):
+            async with asyncio.timeout(remaining):
+                async with httpx.AsyncClient(
+                    verify=self._ssl,
+                    trust_env=False,
+                    follow_redirects=False,
+                    timeout=httpx.Timeout(min(4.0, remaining)),
+                    transport=self._transport,
+                    limits=httpx.Limits(max_connections=1, max_keepalive_connections=1),
+                    headers={
+                        "Authorization": "Bearer " + self._token,
+                        "Accept": accept or "application/json",
+                        "Accept-Encoding": "identity",
+                    },
+                ) as client:
+                    async with client.stream("GET", self._server + path, params=params) as response:
+                        if response.status_code in (401, 403):
+                            raise ScopedK8sError("forbidden")
+                        if response.status_code == 400:
+                            raise ScopedK8sError("container_not_ready")
+                        if response.status_code in (404, 409, 422):
+                            raise ScopedK8sError("target_changed")
+                        if response.status_code != 200:
+                            raise ScopedK8sError("cluster_unavailable")
+                        if response.headers.get("content-encoding", "identity") != "identity":
+                            raise ScopedK8sError("truncated")
+                        body = bytearray()
+                        async for chunk in response.aiter_raw():
+                            body.extend(chunk)
+                            if len(body) > MAX_RESPONSE_BYTES:
+                                raise ScopedK8sError("truncated")
+                        return bytes(body)
+        except (TimeoutError, httpx.TimeoutException):
+            raise ScopedK8sError("timeout") from None
+        except (httpx.HTTPError, OSError, ValueError):
             raise ScopedK8sError("cluster_unavailable") from None
 
-    def _request_json(self, path: str, params: dict | None = None) -> dict:
-        body = self._request(path, params)
+    def _request_json(self, path: str, params: dict | None = None, *, accept=None) -> dict:
+        body = self._request(path, params, accept=accept)
         try:
             value = json.loads(body)
         except ValueError:
@@ -172,20 +172,24 @@ class ScopedKubernetesClient:
             values = page.get("items")
             if not isinstance(values, list):
                 raise ScopedK8sError("cluster_unavailable")
-            for value in values:
+            if len(values) > PAGE_SIZE:
+                self.truncated = True
+            for value in values[:PAGE_SIZE]:
                 if not isinstance(value, dict):
                     continue
                 metadata = value.get("metadata")
                 if not isinstance(metadata, dict):
                     continue
                 # A namespaced collection must never smuggle a foreign object.
-                if metadata.get("namespace") not in (None, namespace):
+                if metadata.get("namespace") != namespace:
                     continue
                 items.append(value)
             metadata = page.get("metadata", {})
             token = metadata.get("continue") if isinstance(metadata, dict) else None
             if not token:
                 break
+        if token:
+            self.truncated = True
         return items
 
     def get_deployment(self, namespace: str, name: str, expected_uid: str) -> dict:
@@ -195,19 +199,46 @@ class ScopedKubernetesClient:
         metadata = value.get("metadata")
         if not isinstance(metadata, dict) or metadata.get("uid") != expected_uid:
             raise ScopedK8sError("target_changed")
-        if metadata.get("namespace") not in (None, namespace):
+        if metadata.get("namespace") != namespace:
             raise ScopedK8sError("target_changed")
-        if metadata.get("name") not in (None, name):
+        if metadata.get("name") != name:
             raise ScopedK8sError("target_changed")
         return value
 
     def get_configmap_metadata(self, namespace: str, name: str) -> dict:
-        """Read one ConfigMap object; the adapter keeps only identifiers."""
         value = self._request_json(
-            f"/api/v1/namespaces/{_segment(namespace)}/configmaps/{_segment(name)}"
+            f"/api/v1/namespaces/{_segment(namespace)}/configmaps/{_segment(name)}",
+            accept="application/json;as=PartialObjectMetadata;g=meta.k8s.io;v=v1",
         )
-        if str(value.get("kind", "ConfigMap")).lower() == "secret":
-            raise ScopedK8sError("forbidden")
+        metadata = _metadata(value)
+        if (
+            value.get("kind") != "PartialObjectMetadata"
+            or value.get("apiVersion") != "meta.k8s.io/v1"
+            or "data" in value
+            or "binaryData" in value
+        ):
+            raise ScopedK8sError("cluster_unavailable")
+        if (
+            metadata.get("namespace") != namespace
+            or metadata.get("name") != name
+            or not _uid(value)
+        ):
+            raise ScopedK8sError("target_changed")
+        return value
+
+    def get_pod(
+        self, namespace: str, name: str, expected_uid: str, replicaset_uids: set[str]
+    ) -> dict:
+        value = self._request_json(
+            f"/api/v1/namespaces/{_segment(namespace)}/pods/{_segment(name)}"
+        )
+        if (
+            _uid(value) != expected_uid
+            or _metadata(value).get("namespace") != namespace
+            or _metadata(value).get("name") != name
+            or _controller_uid(value, "ReplicaSet") not in replicaset_uids
+        ):
+            raise ScopedK8sError("target_changed")
         return value
 
     def list_owned_replicasets(self, namespace: str, deployment_uid: str) -> list[dict]:
@@ -217,30 +248,15 @@ class ScopedKubernetesClient:
             namespace,
         )
         owned = [
-            value
-            for value in values
-            if any(
-                reference.get("uid") == deployment_uid and reference.get("controller") is True
-                for reference in value["metadata"].get("ownerReferences", [])
-                if isinstance(reference, dict)
-            )
+            value for value in values if _controller_uid(value, "Deployment") == deployment_uid
         ]
-        return sorted(owned, key=lambda value: str(value["metadata"].get("name", "")))
+        return sorted(owned, key=lambda value: _uid(value) or "")
 
     def list_owned_pods(self, namespace: str, replicaset_uids: set[str]) -> list[dict]:
         values = self._list_items(
             f"/api/v1/namespaces/{_segment(namespace)}/pods", "PodList", namespace
         )
-        owned = [
-            value
-            for value in values
-            if any(
-                reference.get("uid") in replicaset_uids
-                for reference in value["metadata"].get("ownerReferences", [])
-                if isinstance(reference, dict)
-            )
-        ]
-        return sorted(owned, key=lambda value: str(value["metadata"].get("name", "")))
+        return _owned_pods(values, replicaset_uids, namespace)
 
     def list_namespace_events(self, namespace: str, involved_uids: set[str]) -> list[dict]:
         values = self._list_items(
@@ -260,7 +276,7 @@ class ScopedKubernetesClient:
             ),
             reverse=True,
         )
-        return selected[:EVENT_LIMIT]
+        return selected
 
     def get_pod_logs(
         self,
@@ -280,14 +296,17 @@ class ScopedKubernetesClient:
                 "tailLines": str(min(max(line_limit, 0), 200)),
                 "previous": "true" if previous else "false",
                 "sinceTime": since_time,
+                "limitBytes": 32768,
             },
         )
-        return text, len(text.splitlines()) >= min(max(line_limit, 0), 200)
+        return text, len(text.splitlines()) >= min(max(line_limit, 0), 200) or len(
+            text.encode("utf-8")
+        ) >= 32768
 
 
-def _scoped_client() -> ScopedKubernetesClient:
+def _scoped_client(deadline) -> ScopedKubernetesClient:
     """The single construction path adapters use, so tests can replace it."""
-    return ScopedKubernetesClient()
+    return ScopedKubernetesClient(deadline=deadline)
 
 
 # --- Adapters ---------------------------------------------------------------
@@ -297,6 +316,10 @@ _REASONS = {
     "target_changed": "identity_changed",
     "forbidden": "forbidden",
     "cluster_unavailable": "source_unavailable",
+    "timeout": "timeout",
+    "truncated": "truncated",
+    "ownership_unproven": "ownership_unproven",
+    "no_samples": "no_samples",
 }
 
 
@@ -330,22 +353,24 @@ def _not_applicable(key: str, payload_kind: str) -> SourceResult:
     )
 
 
-def _time_relation(context, observed_at, timestamps) -> str:
+def _time_relation(context, observed_at, timestamps, payload_kind) -> str:
     window = context.immutable_window
     if window is None:
         return "current_observation"
+    if payload_kind == "logs" and (
+        not timestamps or any(value < window.start for value in timestamps)
+    ):
+        return "not_captured"
     if observed_at is not None and observed_at > window.end:
         return "extends_after_window"
     if any(value > window.end for value in timestamps):
-        return "extends_after_window"
-    if _now() > window.end:
         return "extends_after_window"
     return "within_requested_window"
 
 
 def _guard(deadline: float) -> None:
     if time.monotonic() > deadline:
-        raise ScopedK8sError("cluster_unavailable")
+        raise ScopedK8sError("timeout")
 
 
 def _scoped_result(
@@ -356,9 +381,12 @@ def _scoped_result(
     timeout_seconds: float,
 ) -> SourceResult:
     """Run one adapter body; internal failures become published coverage codes."""
+    if context.immutable_window is None:
+        return _unavailable(key, payload_kind, "not_captured")
     deadline = time.monotonic() + max(timeout_seconds, 0.0)
     try:
         outcome = build(deadline)
+        _guard(deadline)
     except ScopedK8sError as error:
         return _unavailable(key, payload_kind, _REASONS.get(error.code, "source_unavailable"))
     if outcome is _NOT_APPLICABLE:
@@ -378,9 +406,9 @@ def _scoped_result(
             reason_codes=sorted(set(reason_codes)),
         ),
         source_times=SourceTimes(
-            observed_at=observed_at or now,
+            observed_at=observed_at,
             collected_at=now,
-            time_relation=_time_relation(context, observed_at, timestamps),
+            time_relation=_time_relation(context, observed_at, timestamps, payload_kind),
         ),
         query_metadata=None,
         redacted_bounded_payload=payload,
@@ -430,6 +458,10 @@ def _deployment_summary(value: dict) -> dict:
         "namespace": _text(metadata.get("namespace")),
         "generation": _integer(metadata.get("generation")),
         "replicas": _integer(spec.get("replicas")),
+        "revision": _text(
+            (metadata.get("annotations") or {}).get("deployment.kubernetes.io/revision")
+        ),
+        "template": _template_summary(value),
         "ready_replicas": _integer(status.get("readyReplicas")),
         "available_replicas": _integer(status.get("availableReplicas")),
         "conditions": _conditions(status),
@@ -458,20 +490,55 @@ def _state_summary(value) -> dict:
     return result
 
 
-def _containers(pod: dict) -> list[dict]:
+def _container_entries(pod: dict):
     spec = pod.get("spec") if isinstance(pod.get("spec"), dict) else {}
     status = pod.get("status") if isinstance(pod.get("status"), dict) else {}
-    statuses = {}
-    for entry in status.get("containerStatuses") or []:
-        if isinstance(entry, dict) and isinstance(entry.get("name"), str):
-            statuses[entry["name"]] = entry
+    entries = []
+    for field, status_field, kind in (
+        ("containers", "containerStatuses", "regular"),
+        ("initContainers", "initContainerStatuses", "init"),
+    ):
+        statuses = {
+            entry["name"]: entry
+            for entry in status.get(status_field) or []
+            if isinstance(entry, dict) and isinstance(entry.get("name"), str)
+        }
+        for container in spec.get(field) or []:
+            if isinstance(container, dict) and isinstance(container.get("name"), str):
+                entries.append(
+                    (container["name"], statuses.get(container["name"]), kind, container)
+                )
+    return sorted(entries, key=lambda entry: entry[0])
+
+
+def _template_summary(value: dict) -> dict:
+    spec = value.get("spec") if isinstance(value.get("spec"), dict) else {}
+    template = spec.get("template") if isinstance(spec.get("template"), dict) else {}
+    containers = []
+    for name, _, kind, container in _container_entries(template):
+        item = {"name": name, "kind": kind, "image": _text(container.get("image"))}
+        resources = container.get("resources")
+        if isinstance(resources, dict):
+            item["resources"] = {
+                group: {
+                    key: _text(values.get(key))
+                    for key in ("cpu", "memory")
+                    if _text(values.get(key)) is not None
+                }
+                for group in ("requests", "limits")
+                if isinstance(values := resources.get(group), dict)
+            }
+        containers.append(item)
+    return {"containers": containers}
+
+
+def _containers(pod: dict) -> list[dict]:
     result = []
-    for container in spec.get("containers") or []:
-        if not isinstance(container, dict) or not isinstance(container.get("name"), str):
-            continue
-        entry = statuses.get(container["name"], {})
+    for name, status, kind, container in _container_entries(pod):
+        entry = status or {}
         summary = {
-            "name": container["name"],
+            "name": name,
+            "kind": kind,
             "image": _text(container.get("image")),
             "image_id": _text(entry.get("imageID")),
             "restart_count": _integer(entry.get("restartCount")),
@@ -479,7 +546,7 @@ def _containers(pod: dict) -> list[dict]:
             "last_state": _state_summary(entry.get("lastState")),
         }
         result.append({key: value for key, value in summary.items() if value not in (None, {})})
-    return result[:20]
+    return result
 
 
 def _pod_summary(pod: dict) -> dict:
@@ -515,22 +582,30 @@ def _event_summary(event: dict) -> dict:
     return {key: value for key, value in summary.items() if value not in (None, "")}
 
 
+def _controller_uid(value: dict, kind: str) -> str | None:
+    references = _metadata(value).get("ownerReferences") or []
+    controllers = [
+        ref for ref in references if isinstance(ref, dict) and ref.get("controller") is True
+    ]
+    if len(controllers) > 1:
+        raise ScopedK8sError("ownership_unproven")
+    if (
+        not controllers
+        or controllers[0].get("kind") != kind
+        or controllers[0].get("apiVersion") != "apps/v1"
+    ):
+        return None
+    return _text(controllers[0].get("uid"))
+
+
 def _owned_replicaset_uids(values: list[dict], deployment_uid: str) -> set[str]:
-    uids = set()
-    for value in values:
-        if not isinstance(value, dict):
-            continue
-        references = _metadata(value).get("ownerReferences") or []
-        if any(
-            isinstance(reference, dict)
-            and reference.get("uid") == deployment_uid
-            and reference.get("controller") is True
-            for reference in references
-        ):
-            uid = _uid(value)
-            if uid:
-                uids.add(uid)
-    return uids
+    return {
+        _uid(value)
+        for value in values
+        if isinstance(value, dict)
+        and _controller_uid(value, "Deployment") == deployment_uid
+        and _uid(value)
+    }
 
 
 def _scoped_deployment(client, namespace: str, name: str, context) -> dict:
@@ -541,31 +616,43 @@ def _scoped_deployment(client, namespace: str, name: str, context) -> dict:
     publication and tests may replace the client transport.
     """
     deployment = client.get_deployment(namespace, name, expected_uid=context.workload_uid)
-    if _uid(deployment) != context.workload_uid:
+    if (
+        _uid(deployment) != context.workload_uid
+        or _metadata(deployment).get("namespace") != namespace
+        or _metadata(deployment).get("name") != name
+    ):
         raise ScopedK8sError("target_changed")
     return deployment
 
 
 def _owned_pods(values: list[dict], replicaset_uids: set[str], namespace: str) -> list[dict]:
-    pods = []
-    for value in values:
-        if not isinstance(value, dict):
-            continue
-        metadata = _metadata(value)
-        if metadata.get("namespace") not in (None, namespace):
-            continue
-        references = metadata.get("ownerReferences") or []
-        if any(
-            isinstance(reference, dict) and reference.get("uid") in replicaset_uids
-            for reference in references
-        ):
-            pods.append(value)
-    return pods[:10]
+    return sorted(
+        (
+            value
+            for value in values
+            if isinstance(value, dict)
+            and _metadata(value).get("namespace") == namespace
+            and _controller_uid(value, "ReplicaSet") in replicaset_uids
+        ),
+        key=lambda value: _uid(value) or "",
+    )
+
+
+def _scoped_pod(client, namespace, name, uid, replicaset_uids):
+    value = client.get_pod(namespace, name, uid, replicaset_uids)
+    if (
+        _uid(value) != uid
+        or _metadata(value).get("namespace") != namespace
+        or _metadata(value).get("name") != name
+        or _controller_uid(value, "ReplicaSet") not in replicaset_uids
+    ):
+        raise ScopedK8sError("target_changed")
+    return value
 
 
 def collect_kubernetes_state(context, timeout_seconds: float) -> SourceResult:
     def build(deadline):
-        client = _scoped_client()
+        client = _scoped_client(deadline)
         namespace, name = context.namespace, context.scope_snapshot.name
         _guard(deadline)
         deployment = _scoped_deployment(client, namespace, name, context)
@@ -577,18 +664,44 @@ def collect_kubernetes_state(context, timeout_seconds: float) -> SourceResult:
         _guard(deadline)
         # Bracket identity: a replaced Deployment fails closed before publication.
         _scoped_deployment(client, namespace, name, context)
+        owned = _owned_pods(pods, replicaset_uids, namespace)
+        truncated = getattr(client, "truncated", False) or len(owned) > 10 or len(replicasets) > 20
+        projected, remaining = [], 20
+        for pod in owned[:10]:
+            row = _pod_summary(pod)
+            entries = row.get("containers", [])
+            truncated = truncated or len(entries) > remaining
+            row["containers"] = entries[:remaining]
+            remaining -= len(row["containers"])
+            projected.append(row)
+        revisions = []
+        for value in sorted(replicasets, key=lambda value: _uid(value) or "")[:20]:
+            metadata = _metadata(value)
+            revisions.append(
+                {
+                    "uid": _uid(value),
+                    "name": _text(metadata.get("name")),
+                    "revision": _text(
+                        (metadata.get("annotations") or {}).get("deployment.kubernetes.io/revision")
+                    ),
+                }
+            )
         payload = {
             "deployment": _deployment_summary(deployment),
-            "pods": [_pod_summary(pod) for pod in _owned_pods(pods, replicaset_uids, namespace)],
+            "pods": projected,
+            "revisions": revisions,
         }
-        return payload, _now(), ()
+        reasons = ["truncated"] if truncated else []
+        if not owned and _integer((deployment.get("spec") or {}).get("replicas")) not in (None, 0):
+            reasons.append("no_samples")
+        return payload, _now(), (), tuple(reasons)
 
     return _scoped_result("kubernetes.state", "state", build, context, timeout_seconds)
 
 
 def collect_kubernetes_events(context, timeout_seconds: float) -> SourceResult:
     def build(deadline):
-        client = _scoped_client()
+        client = _scoped_client(deadline)
         namespace, name = context.namespace, context.scope_snapshot.name
         _guard(deadline)
         _scoped_deployment(client, namespace, name, context)
@@ -597,7 +710,8 @@ def collect_kubernetes_events(context, timeout_seconds: float) -> SourceResult:
         replicaset_uids = _owned_replicaset_uids(replicasets, context.workload_uid)
         _guard(deadline)
         raw_pods = client.list_owned_pods(namespace, replicaset_uids)
-        pods = _owned_pods(raw_pods, replicaset_uids, namespace)
+        owned = _owned_pods(raw_pods, replicaset_uids, namespace)
+        pods = owned[:10]
         involved = {
             context.workload_uid,
             *replicaset_uids,
@@ -619,8 +733,11 @@ def collect_kubernetes_events(context, timeout_seconds: float) -> SourceResult:
             ) or _text(event.get("involved_uid"))
             if involved_uid in involved:
                 selected.append(_event_summary(event))
-        selected.sort(key=lambda event: str(event.get("last_seen", "")), reverse=True)
-        return {"events": selected[:100]}, _now(), ()
+        selected.sort(key=lambda event: str(event.get("uid", "")))
+        truncated = (
+            getattr(client, "truncated", False) or len(owned) > 10 or len(selected) > EVENT_LIMIT
+        )
+        return {"events": selected[:EVENT_LIMIT]}, _now(), (), ("truncated",) if truncated else ()
 
     return _scoped_result("kubernetes.events", "events", build, context, timeout_seconds)
 
@@ -655,23 +772,11 @@ def _log_timestamp(text: str) -> datetime | None:
     return latest
 
 
-def _container_entries(pod: dict):
-    spec = pod.get("spec") if isinstance(pod.get("spec"), dict) else {}
-    status = pod.get("status") if isinstance(pod.get("status"), dict) else {}
-    statuses = {}
-    for entry in status.get("containerStatuses") or []:
-        if isinstance(entry, dict) and isinstance(entry.get("name"), str):
-            statuses[entry["name"]] = entry
-    for container in spec.get("containers") or []:
-        if isinstance(container, dict) and isinstance(container.get("name"), str):
-            yield container["name"], statuses.get(container["name"], {})
-
-
 def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceResult:
     key = "kubernetes.logs.previous" if previous else "kubernetes.logs.current"
 
     def build(deadline):
-        client = _scoped_client()
+        client = _scoped_client(deadline)
         namespace, name = context.namespace, context.scope_snapshot.name
         window = context.immutable_window
         since_time = window.start.isoformat() if window is not None else None
@@ -682,91 +787,100 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
         replicaset_uids = _owned_replicaset_uids(replicasets, context.workload_uid)
         _guard(deadline)
         raw_pods = client.list_owned_pods(namespace, replicaset_uids)
-        pods = _owned_pods(raw_pods, replicaset_uids, namespace)
+        owned = _owned_pods(raw_pods, replicaset_uids, namespace)
+        pods = owned[:10]
         logs, containers, timestamps = [], [], []
         read_any = False
-        truncated = False
-        for pod in pods:
+        gaps = set()
+        entries = [(pod, entry) for pod in pods for entry in _container_entries(pod)]
+        if getattr(client, "truncated", False) or len(owned) > 10 or len(entries) > 20:
+            gaps.add("truncated")
+        if not owned:
+            raise ScopedK8sError("no_samples")
+        for pod, (container_name, status, kind, _) in entries[:20]:
             metadata = _metadata(pod)
-            pod_uid = _text(metadata.get("uid"))
-            pod_name = _text(metadata.get("name"))
+            pod_uid, pod_name = _text(metadata.get("uid")), _text(metadata.get("name"))
             if not pod_uid or not pod_name:
+                gaps.add("ownership_unproven")
                 continue
-            for container_name, status in _container_entries(pod):
-                restart_count = _integer(status.get("restartCount")) or 0
-                last_state = status.get("lastState")
-                if (
-                    previous
-                    and restart_count == 0
-                    and not (isinstance(last_state, dict) and last_state)
-                ):
-                    containers.append(
-                        {"name": container_name, "pod_uid": pod_uid, "previous": "not_applicable"}
-                    )
+            reference = {"name": container_name, "pod_uid": pod_uid, "kind": kind}
+            if status is None:
+                unscheduled = (pod.get("status") or {}).get("phase") == "Pending" and not (
+                    pod.get("spec") or {}
+                ).get("nodeName")
+                if not unscheduled:
+                    gaps.add("no_samples")
+                    containers.append({**reference, "previous": "unavailable"})
                     continue
-                state = status.get("state") if isinstance(status.get("state"), dict) else {}
-                started = (
-                    bool(state.get("running") or state.get("terminated"))
-                    or restart_count > 0
-                    or bool(last_state)
-                    or status.get("started") is True
+                status = {}
+            restart_count = _integer(status.get("restartCount")) or 0
+            last_state = status.get("lastState")
+            state = status.get("state") if isinstance(status.get("state"), dict) else {}
+            started = (
+                bool(state.get("running") or state.get("terminated"))
+                or restart_count > 0
+                or bool(last_state)
+                or status.get("started") is True
+            )
+            if (previous and restart_count == 0 and not last_state) or not started:
+                containers.append({**reference, "previous": "not_applicable"})
+                continue
+            _guard(deadline)
+            _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
+            _guard(deadline)
+            try:
+                text, hit_cap = client.get_pod_logs(
+                    namespace,
+                    pod_name,
+                    container_name,
+                    previous=previous,
+                    since_time=since_time,
+                    line_limit=200,
                 )
-                if not started:
-                    # Unschedulable/image-pull/creating containers return an
-                    # empty 200 log body; that is "not started", not evidence.
-                    containers.append(
-                        {"name": container_name, "pod_uid": pod_uid, "previous": "not_applicable"}
-                    )
-                    continue
-                _guard(deadline)
-                try:
-                    text, hit_cap = client.get_pod_logs(
-                        namespace,
-                        pod_name,
-                        container_name,
-                        previous=previous,
-                        since_time=since_time,
-                        line_limit=200,
-                    )
-                    truncated = truncated or hit_cap
-                except ScopedK8sError as error:
-                    if error.code != "container_not_ready":
-                        raise
-                    containers.append(
-                        {"name": container_name, "pod_uid": pod_uid, "previous": "not_applicable"}
-                    )
-                    continue
-                read_any = True
-                stamp = _log_timestamp(text) if isinstance(text, str) else None
+            except ScopedK8sError as error:
+                if error.code != "container_not_ready":
+                    raise
+                gaps.add("no_samples")
+                containers.append({**reference, "previous": "unavailable"})
+                _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
+                continue
+            _guard(deadline)
+            _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
+            if hit_cap:
+                gaps.add("truncated")
+            read_any = True
+            stamp = _log_timestamp(text) if isinstance(text, str) else None
+            if stamp is not None:
+                timestamps.append(stamp)
+                if stamp < window.start:
+                    gaps.add("stale")
+            elif text:
+                gaps.add("no_samples")
+            if text:
+                entry = {
+                    "pod_uid": pod_uid,
+                    "container": container_name,
+                    "kind": kind,
+                    "previous": previous,
+                    "text": text,
+                }
                 if stamp is not None:
-                    timestamps.append(stamp)
-                if text:
-                    entry = {
-                        "pod_uid": pod_uid,
-                        "container": container_name,
-                        "previous": previous,
-                        "text": text,
-                    }
-                    if stamp is not None:
-                        entry["timestamp"] = stamp.isoformat()
-                    logs.append(entry)
-                containers.append(
-                    {"name": container_name, "pod_uid": pod_uid, "previous": "available"}
-                )
+                    entry["timestamp"] = stamp.isoformat()
+                logs.append(entry)
+            containers.append({**reference, "previous": "available"})
         _guard(deadline)
-        # Bracket identity: a replaced Deployment fails closed before publication.
         _scoped_deployment(client, namespace, name, context)
-        if not read_any:
+        if not read_any and not gaps:
             return _NOT_APPLICABLE
-        observed_at = max(timestamps) if timestamps else _now()
+        if not read_any and "no_samples" in gaps and "truncated" not in gaps:
+            raise ScopedK8sError("no_samples")
+        observed_at = max(timestamps) if timestamps else None
         payload = {
             "logs": sorted(logs, key=lambda entry: (entry["pod_uid"], entry["container"])),
             "containers": sorted(containers, key=lambda entry: (entry["pod_uid"], entry["name"])),
-            "truncated": truncated,
+            "truncated": "truncated" in gaps,
         }
-        if truncated:
-            return payload, observed_at, tuple(timestamps), ("truncated",)
-        return payload, observed_at, tuple(timestamps)
+        return payload, observed_at, tuple(timestamps), tuple(gaps)
 
     return _scoped_result(key, "logs", build, context, timeout_seconds)
 
@@ -814,7 +928,7 @@ def _configmap_references(deployment: dict) -> list[str]:
             reference = source.get("configMap") if isinstance(source, dict) else None
             if isinstance(reference, dict) and isinstance(reference.get("name"), str):
                 names.add(reference["name"])
-    return sorted(names)[:20]
+    return sorted(names)
 
 
 def collect_kubernetes_configmap_metadata(context, timeout_seconds: float) -> SourceResult:
@@ -823,16 +937,19 @@ def collect_kubernetes_configmap_metadata(context, timeout_seconds: float) -> So
         return _unavailable(key, "state", "source_not_configured")
 
     def build(deadline):
-        client = _scoped_client()
+        client = _scoped_client(deadline)
         namespace, name = context.namespace, context.scope_snapshot.name
         _guard(deadline)
         deployment = _scoped_deployment(client, namespace, name, context)
         configmaps = []
-        for configmap_name in _configmap_references(deployment):
+        references = _configmap_references(deployment)
+        for configmap_name in references[:20]:
             _guard(deadline)
             value = client.get_configmap_metadata(namespace, configmap_name)
             if str(value.get("kind", "ConfigMap")).lower() == "secret":
                 raise ScopedK8sError("forbidden")
+            if value.get("kind") != "PartialObjectMetadata":
+                raise ScopedK8sError("cluster_unavailable")
             metadata = _metadata(value)
             summary = {
                 "name": _text(metadata.get("name")),
@@ -855,6 +972,7 @@ def collect_kubernetes_configmap_metadata(context, timeout_seconds: float) -> So
             },
             _now(),
             (),
+            ("truncated",) if len(references) > 20 else (),
         )
 
     return _scoped_result(key, "state", build, context, timeout_seconds)
