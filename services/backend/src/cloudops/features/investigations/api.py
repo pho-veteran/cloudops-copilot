@@ -21,6 +21,8 @@ from cloudops.features.investigations.service import (
     get_run,
     list_runs,
 )
+from cloudops.features.investigations.timeline import run_timeline
+from cloudops.features.investigations.timeline_schemas import RunTimeline
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES, ErrorEnvelope
 
@@ -96,3 +98,13 @@ def evidence(incident_id: UUID, run_id: UUID, evidence_id: UUID, db: Session = D
 )
 def content(incident_id: UUID, run_id: UUID, evidence_id: UUID, db: Session = Depends(get_db)):
     return evidence_content(db, incident_id, run_id, evidence_id)
+
+
+@router.get(
+    "/{run_id}/timeline",
+    operation_id="get_run_timeline",
+    response_model=RunTimeline,
+    dependencies=[Depends(current_session)],
+)
+def timeline(incident_id: UUID, run_id: UUID, db: Session = Depends(get_db)):
+    return run_timeline(db, incident_id, run_id)

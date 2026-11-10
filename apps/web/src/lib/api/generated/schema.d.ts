@@ -385,6 +385,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/runs/{run_id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timeline */
+        get: operations["get_run_timeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/intake/alertmanager": {
         parameters: {
             query?: never;
@@ -1454,7 +1471,7 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "runtime" | "development_fixture" | "unimplemented" | "live_gateway";
+            source: "runtime" | "development_fixture" | "prometheus" | "unimplemented" | "live_gateway";
             /**
              * Status
              * @enum {string}
@@ -2076,6 +2093,27 @@ export interface components {
              */
             workload_id: string;
         };
+        /** RunTimeline */
+        RunTimeline: {
+            /** Limitations */
+            limitations: string;
+            /** Markers */
+            markers?: components["schemas"]["TimelineMarker"][];
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Schema
+             * @default RunTimeline/v1
+             * @constant
+             */
+            schema: "RunTimeline/v1";
+            /** Truncated */
+            truncated: boolean;
+            window: components["schemas"]["RequestWindow"] | null;
+        };
         /** RunView */
         RunView: {
             /** Attempts */
@@ -2245,6 +2283,30 @@ export interface components {
              * @enum {string}
              */
             status: "added" | "removed" | "changed" | "unchanged" | "unavailable" | "not_comparable";
+        };
+        /** TimelineMarker */
+        TimelineMarker: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Detail */
+            detail?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "window_start" | "window_end" | "rollout_observation" | "incident_activity" | "execution_created" | "execution_finished";
+            /** Label */
+            label: string;
         };
         /** TransitionBody */
         TransitionBody: {
@@ -4492,6 +4554,83 @@ export interface operations {
             };
             /** @description Gone */
             410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_run_timeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunTimeline"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

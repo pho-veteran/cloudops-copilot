@@ -5,6 +5,7 @@ import type { components } from "@/lib/api/generated/schema";
 import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { Failure, Loading } from "@/app/Feedback";
 import { CitationTarget } from "./CitationTarget";
+import { MetricEvidence } from "./MetricEvidence";
 
 type Run = components["schemas"]["RunView"];
 type Evidence = components["schemas"]["EvidenceView"];
@@ -145,6 +146,16 @@ function EvidenceDetail({
       {e.content_status === "unavailable" && (
         <p>Evidence content is unavailable.</p>
       )}
+      {e.payload_kind === "series" &&
+        (e.content_status !== "available" || contentError?.status === 409 || contentError?.status === 410) && (
+          <MetricEvidence
+            incidentId={incidentId}
+            runId={runId}
+            evidence={e}
+            content={null}
+            window={e.requested_window}
+          />
+        )}
       {e.content_status === "available" &&
         (content.isPending ? (
           <Loading />
@@ -161,19 +172,31 @@ function EvidenceDetail({
           )
         ) : (
           <>
-            <h3>Stored content</h3>
-            {content.data.payload.truncated === true && (
-              <p>
-                Log output was truncated at the collection cap; later lines are
-                not included.
-              </p>
-            )}
-            {Object.keys(content.data.payload).length === 0 ? (
-              <p>Content is empty.</p>
+            {content.data.payload_kind === "series" ? (
+              <MetricEvidence
+                incidentId={incidentId}
+                runId={runId}
+                evidence={e}
+                content={content.data}
+                window={e.requested_window}
+              />
             ) : (
-              <pre className="evidence-json">
-                {JSON.stringify(content.data.payload, null, 2)}
-              </pre>
+              <>
+                <h3>Stored content</h3>
+                {content.data.payload.truncated === true && (
+                  <p>
+                    Log output was truncated at the collection cap; later lines are
+                    not included.
+                  </p>
+                )}
+                {Object.keys(content.data.payload).length === 0 ? (
+                  <p>Content is empty.</p>
+                ) : (
+                  <pre className="evidence-json">
+                    {JSON.stringify(content.data.payload, null, 2)}
+                  </pre>
+                )}
+              </>
             )}
           </>
         ))}

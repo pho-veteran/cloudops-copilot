@@ -299,3 +299,21 @@ it("updates pin and expiry from refreshed Run metadata instead of a stale detail
   ).toBeTruthy();
   expect(screen.queryByText("Stored content")).toBeNull();
 });
+
+
+it.each(["unavailable", "expired"] as const)("keeps metric timeline readable when content is %s", async (status) => {
+  http.fetch.mockResolvedValue(Response.json({
+    schema: "RunTimeline/v1", run_id: runId, window: null,
+    markers: [{ kind: "window_start", at: evidence.collected_at, id: runId, label: "Captured window start" }],
+    truncated: false, limitations: "Aligned by time; correlation only.",
+  }));
+  mount(evidenceId, { ...run, evidence: [{ ...evidence,
+    schema_version: 2, source_key: "prometheus.request_rate", source_kind: "series", payload_kind: "series",
+    content_status: status, payload_ref: null, coverage: { status: "unavailable", reason_codes: ["no_samples"] },
+  }] });
+  expect(await screen.findByText(/Captured window start/)).toBeTruthy();
+  expect(screen.queryByRole("img")).toBeNull();
+  expect(screen.getByText(/Missing data is not zero/)).toBeTruthy();
+  expect(http.fetch).toHaveBeenCalledTimes(1);
+  expect(new URL((http.fetch.mock.calls[0][0] as Request).url).pathname.endsWith("/timeline")).toBe(true);
+});

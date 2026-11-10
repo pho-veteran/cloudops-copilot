@@ -43,6 +43,9 @@ OPERATIONS = {
     "get_incident": Operation("GET", "/api/incidents/{incident_id}", "protected_read"),
     "list_runs": Operation("GET", "/api/incidents/{incident_id}/runs", "protected_read"),
     "get_run": Operation("GET", "/api/incidents/{incident_id}/runs/{run_id}", "protected_read"),
+    "get_run_timeline": Operation(
+        "GET", "/api/incidents/{incident_id}/runs/{run_id}/timeline", "protected_read"
+    ),
     "get_evidence": Operation(
         "GET", "/api/incidents/{incident_id}/runs/{run_id}/evidence/{evidence_id}", "protected_read"
     ),
