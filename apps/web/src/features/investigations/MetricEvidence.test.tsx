@@ -217,3 +217,21 @@ it("keeps the chart visible when the timeline read fails", async () => {
   expect(screen.getByRole("img")).toBeTruthy();
   expect(http.fetch).toHaveBeenCalledTimes(1);
 });
+
+
+it("does not join retained samples across a missing query step", () => {
+  http.fetch.mockResolvedValue(Response.json(timeline()));
+  const { container } = mount(content([{ ...oneSeries[0], samples: [
+    [startSeconds, 1], [startSeconds + 30, 2],
+    [startSeconds + 90, 4], [startSeconds + 120, 3],
+    [endSeconds, 2],
+  ] }]));
+  expect(container.querySelectorAll("polyline")).toHaveLength(2);
+  expect(container.querySelectorAll("circle")).toHaveLength(1);
+});
+
+it("discloses a truncated persisted timeline", async () => {
+  http.fetch.mockResolvedValue(Response.json({ ...timeline(), truncated: true }));
+  mount();
+  expect(await screen.findByText(/Timeline markers are truncated/)).toBeTruthy();
+});

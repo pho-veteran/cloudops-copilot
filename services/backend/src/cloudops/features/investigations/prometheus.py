@@ -98,7 +98,10 @@ def _text_label(metric: dict, key: str) -> str | None:
 def _timestamp(value) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
-    number = float(value)
+    try:
+        number = float(value)
+    except OverflowError:
+        return None
     return number if math.isfinite(number) else None
 
 
@@ -330,12 +333,13 @@ def _coverage(parsed: Parsed, step_seconds: int, window) -> Coverage:
         reasons.add("no_samples")
     if parsed.truncated:
         reasons.add("truncated")
-    first_samples = [item["samples"][0][0] for item in parsed.series if item["samples"]]
-    if first_samples and min(first_samples) > window.start.timestamp() + step_seconds + 1:
-        reasons.add("no_samples")
-    if parsed.observed_at is not None:
-        end = window.end.timestamp()
-        if parsed.observed_at.timestamp() < end - step_seconds:
+    for item in parsed.series:
+        samples = item["samples"]
+        if samples[0][0] > window.start.timestamp() + step_seconds + 0.001 or any(
+            right[0] - left[0] > step_seconds + 0.001 for left, right in zip(samples, samples[1:])
+        ):
+            reasons.add("no_samples")
+        if samples[-1][0] < window.end.timestamp() - step_seconds - 0.001:
             reasons.add("stale")
     return Coverage(status="partial" if reasons else "available", reason_codes=sorted(reasons))
 

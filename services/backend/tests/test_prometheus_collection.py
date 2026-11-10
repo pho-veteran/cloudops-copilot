@@ -80,7 +80,9 @@ def response_for(context):
                         "pod": "checkout-1",
                         "container": "app",
                     },
-                    "values": [[start, "1"], [end, "2"]],
+                    "values": [
+                        [start + offset, "1"] for offset in range(0, int(end - start) + 1, 30)
+                    ],
                 }
             ],
         },
@@ -223,7 +225,7 @@ def test_metric_run_reads_through_the_api_with_traffic_coverage(client, metric_a
     assert len(series) == 1
     assert series[0]["unit"] == "count"
     assert series[0]["workload_uid"] == context.workload_uid
-    assert len(series[0]["samples"]) == 2
+    assert len(series[0]["samples"]) == 61
 
     viewer = sign_in(client, "viewer")
     assert (

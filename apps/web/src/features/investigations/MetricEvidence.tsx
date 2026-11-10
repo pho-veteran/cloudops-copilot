@@ -139,13 +139,24 @@ function Chart({
   window,
   markers,
   color,
+  stepSeconds,
 }: {
   series: Series;
   window: { start: number; end: number } | null;
   markers: Marker[];
   color: string;
+  stepSeconds: number;
 }) {
   const samples = series.samples;
+  const segments: Sample[][] = [];
+  for (const item of samples) {
+    const last = segments.at(-1);
+    if (!last || item.at - last[last.length - 1].at > stepSeconds * 1000 + 1) {
+      segments.push([item]);
+    } else {
+      last.push(item);
+    }
+  }
   const domain = useMemo(() => {
     const x = window ?? {
       start: samples[0]?.at ?? 0,
@@ -220,16 +231,17 @@ function Chart({
             </line>
           );
         })}
-        {samples.length > 1 ? (
+        {segments.map((segment, index) => segment.length > 1 ? (
           <polyline
-            points={samples.map((item) => `${x(item.at)},${y(item.value)}`).join(" ")}
+            key={index}
+            points={segment.map((item) => `${x(item.at)},${y(item.value)}`).join(" ")}
             fill="none"
             stroke={color}
             strokeWidth="2.5"
           />
         ) : (
-          <circle cx={x(samples[0].at)} cy={y(samples[0].value)} r="3" fill={color} />
-        )}
+          <circle key={index} cx={x(segment[0].at)} cy={y(segment[0].value)} r="3" fill={color} />
+        ))}
         <text x={PADDING.left} y={HEIGHT - 10}>
           {formatTime(domain.minX)}
         </text>
@@ -250,12 +262,16 @@ function TimelinePanel({
   markers,
   error,
   retry,
+  truncated,
+  loading,
 }: {
   incidentId: string;
   runId: string;
   markers: Marker[];
   error: unknown;
   retry: () => void;
+  truncated: boolean;
+  loading: boolean;
 }) {
   if (error) return <Failure error={error} retry={retry} />;
   return (
@@ -264,7 +280,8 @@ function TimelinePanel({
       <p className="muted">
         Persisted records aligned by time. Alignment is correlation, not causality.
       </p>
-      {!markers.length ? (
+      {truncated && <p className="metric-warning">Timeline markers are truncated; additional persisted records may be omitted.</p>}
+      {loading ? <p>Loading timeline markers…</p> : !markers.length ? (
         <p>No persisted marker falls inside this window.</p>
       ) : (
         <ol className="metric-marker-list">
@@ -298,7 +315,7 @@ export function MetricEvidence({
   incidentId: string;
   runId: string;
   evidence: Evidence;
-  content: Content;
+  content: Content | null;
   window: RequestWindow | null;
 }) {
   const timeline = useQuery({
@@ -311,7 +328,7 @@ export function MetricEvidence({
       ),
     retry: false,
   });
-  const series = useMemo(() => seriesFrom(content.payload), [content]);
+  const series = useMemo(() => seriesFrom(content?.payload ?? {}), [content]);
   const [selected, setSelected] = useState(0);
   const chosen = series[Math.min(selected, Math.max(series.length - 1, 0))];
   const metadata =
@@ -322,6 +339,8 @@ export function MetricEvidence({
     ? metadata.warnings.filter((item): item is string => typeof item === "string")
     : [];
   const window = windowMs(requestedWindow, metadata);
+  const configuredStep = numeric(metadata?.step);
+  const stepSeconds = configuredStep !== null && configuredStep > 0 ? configuredStep : 30;
   const markers = timeline.data?.markers ?? [];
   const hasSamples = series.some((item) => item.samples.length > 0);
   const ownershipUnproven = evidence.coverage.reason_codes.includes("ownership_unproven");
@@ -348,8 +367,12 @@ export function MetricEvidence({
       ))}
       {!hasSamples ? (
         <p>
-          No finite samples were returned for this source. Missing data is not zero and no
-          line is drawn.
+          {evidence.content_status === "expired"
+            ? "Metric sample content has expired."
+            : content === null
+              ? "No retained metric sample content is available."
+              : "No finite samples were returned for this source."}{" "}
+          Missing data is not zero and no line is drawn.
         </p>
       ) : (
         <>
@@ -375,6 +398,7 @@ export function MetricEvidence({
                 window={window}
                 markers={markers}
                 color={COLORS[Math.min(selected, COLORS.length - 1)]}
+                stepSeconds={stepSeconds}
               />
               <div className="metric-legend">
                 <span
@@ -425,6 +449,8 @@ export function MetricEvidence({
         markers={markers}
         error={timeline.isError ? timeline.error : null}
         retry={() => void timeline.refetch()}
+        truncated={timeline.data?.truncated ?? false}
+        loading={timeline.isPending}
       />
     </section>
   );

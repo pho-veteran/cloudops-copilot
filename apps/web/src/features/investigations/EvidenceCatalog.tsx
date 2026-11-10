@@ -146,6 +146,16 @@ function EvidenceDetail({
       {e.content_status === "unavailable" && (
         <p>Evidence content is unavailable.</p>
       )}
+      {e.payload_kind === "series" &&
+        (e.content_status !== "available" || contentError?.status === 409 || contentError?.status === 410) && (
+          <MetricEvidence
+            incidentId={incidentId}
+            runId={runId}
+            evidence={e}
+            content={null}
+            window={e.requested_window}
+          />
+        )}
       {e.content_status === "available" &&
         (content.isPending ? (
           <Loading />

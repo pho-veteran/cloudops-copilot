@@ -88,7 +88,9 @@ def matrix(rows, warnings=None):
 
 
 def samples():
-    return [[START.timestamp(), "1"], [END.timestamp(), "2"]]
+    return [[START.timestamp() + offset, "1"] for offset in range(0, 1800, 30)] + [
+        [END.timestamp(), "2"]
+    ]
 
 
 class Stream(httpx.AsyncByteStream):
@@ -138,8 +140,7 @@ def test_finite_matrix_is_available_and_provenanced():
     assert result.redacted_bounded_payload["series"][0]["uid"]
     assert result.redacted_bounded_payload["series"][0]["pod"] == "checkout-1"
     assert result.redacted_bounded_payload["series"][0]["samples"] == [
-        [int(START.timestamp()), 1.0],
-        [int(END.timestamp()), 2.0],
+        [int(at), float(value)] for at, value in samples()
     ]
     assert result.source_times.time_relation == "within_requested_window"
     assert result.source_times.observed_at == END
@@ -250,11 +251,11 @@ def fractional_context():
 
 def test_prometheus_end_sample_rounding_is_inclusive():
     result, _ = run(
-        matrix([row(metric(), [[START.timestamp(), "1"], [END.timestamp() + 0.1239, "2"]])]),
+        matrix([row(metric(), samples() + [[END.timestamp() + 0.1239, "2"]])]),
         ctx=fractional_context(),
     )
     assert result.coverage.status == "available"
-    assert len(result.redacted_bounded_payload["series"][0]["samples"]) == 2
+    assert len(result.redacted_bounded_payload["series"][0]["samples"]) == len(samples()) + 1
 
 
 def test_sample_after_the_rounded_end_is_not_retained():
@@ -396,3 +397,32 @@ def test_remote_warnings_are_bounded_and_redacted():
 def test_prometheus_config_rejects_unsupported_placeholder():
     with pytest.raises(ValueError):
         substitute_query('sum(metric{pod="{{pod_regex}}"}[1m])', "demo", "uid")
+
+
+def test_internal_step_gaps_are_partial():
+    result, _ = run(matrix([row(metric(), [[START.timestamp(), "1"], [END.timestamp(), "2"]])]))
+    assert result.coverage.status == "partial"
+    assert "no_samples" in result.coverage.reason_codes
+
+
+@pytest.mark.parametrize("edge", ["leading", "trailing"])
+def test_one_complete_series_cannot_hide_another_series_gap(edge):
+    complete = [[START.timestamp() + offset, "1"] for offset in range(0, 1801, 30)]
+    incomplete = complete[4:] if edge == "leading" else complete[:-4]
+    result, _ = run(
+        matrix(
+            [
+                row(metric(pod="complete"), complete),
+                row(metric(pod="incomplete"), incomplete),
+            ]
+        )
+    )
+    assert result.coverage.status == "partial"
+    assert ("no_samples" if edge == "leading" else "stale") in result.coverage.reason_codes
+
+
+def test_overflowing_timestamp_is_omitted_as_invalid_telemetry():
+    result, _ = run(matrix([row(metric(), [[10**1000, "1"], [END.timestamp(), "2"]])]))
+    assert result.coverage.status == "partial"
+    assert "no_samples" in result.coverage.reason_codes
+    assert result.redacted_bounded_payload["series"][0]["samples"] == [[int(END.timestamp()), 2.0]]

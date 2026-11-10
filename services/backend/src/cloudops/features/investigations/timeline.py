@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from cloudops.features.incidents.models import Incident, IncidentActivity
@@ -96,10 +96,12 @@ def run_timeline(db: Session, incident_id: UUID, run_id: UUID) -> RunTimeline:
             WorkloadObservation.observed_at <= end,
         )
         .order_by(WorkloadObservation.observed_at, WorkloadObservation.id)
-        .limit(OBSERVATION_LIMIT)
+        .limit(OBSERVATION_LIMIT + 1)
     ).all()
     markers.extend(
-        marker for row in observations if (marker := _observation_marker(row)) is not None
+        marker
+        for row in observations[:OBSERVATION_LIMIT]
+        if (marker := _observation_marker(row)) is not None
     )
 
     activities = db.scalars(
@@ -110,7 +112,7 @@ def run_timeline(db: Session, incident_id: UUID, run_id: UUID) -> RunTimeline:
             IncidentActivity.created_at <= end,
         )
         .order_by(IncidentActivity.created_at, IncidentActivity.id)
-        .limit(ACTIVITY_LIMIT)
+        .limit(ACTIVITY_LIMIT + 1)
     ).all()
     markers.extend(
         TimelineMarker(
@@ -120,17 +122,28 @@ def run_timeline(db: Session, incident_id: UUID, run_id: UUID) -> RunTimeline:
             label=_text(row.kind),
             detail={"text": _text(row.text), "actor_id": str(row.actor_id)},
         )
-        for row in activities
+        for row in activities[:ACTIVITY_LIMIT]
     )
 
     executions = db.execute(
         select(Execution, ActionPlan)
         .join(ActionPlan, Execution.plan_id == ActionPlan.id)
-        .where(ActionPlan.incident_id == incident_id)
-        .order_by(Execution.created_at.desc())
-        .limit(EXECUTION_LIMIT)
+        .where(
+            ActionPlan.incident_id == incident_id,
+            or_(
+                Execution.created_at.between(start, end),
+                Execution.finished_at.between(start, end),
+            ),
+        )
+        .order_by(Execution.created_at, Execution.id)
+        .limit(EXECUTION_LIMIT + 1)
     ).all()
-    for execution, _plan in executions:
+    source_truncated = (
+        len(observations) > OBSERVATION_LIMIT
+        or len(activities) > ACTIVITY_LIMIT
+        or len(executions) > EXECUTION_LIMIT
+    )
+    for execution, _plan in executions[:EXECUTION_LIMIT]:
         if execution.created_at is not None and start <= execution.created_at <= end:
             markers.append(
                 TimelineMarker(
@@ -158,7 +171,7 @@ def run_timeline(db: Session, incident_id: UUID, run_id: UUID) -> RunTimeline:
     ]
     other_markers.sort(key=lambda marker: (marker.at, marker.kind, str(marker.id)))
     other_limit = max(0, MARKER_LIMIT - len(window_markers))
-    truncated = len(other_markers) > other_limit or len(markers) > MARKER_LIMIT
+    truncated = source_truncated or len(other_markers) > other_limit
     markers = sorted(
         window_markers + other_markers[:other_limit],
         key=lambda marker: (marker.at, marker.kind, str(marker.id)),

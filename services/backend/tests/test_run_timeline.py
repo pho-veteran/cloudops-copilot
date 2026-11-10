@@ -293,3 +293,36 @@ def test_timeline_excludes_observations_for_another_workload(client):
         other_id = observation.id
     body = call(client, ids, headers).json()
     assert str(other_id) not in {marker["id"] for marker in body["markers"]}
+
+
+def test_timeline_flags_each_source_cutoff(client, monkeypatch):
+    headers = sign_in(client)
+    ids = create(client, headers, incident_body(client)).json()
+    seed(ids)
+    with sessions()() as db, db.begin():
+        observation = db.scalar(
+            select(WorkloadObservation).where(WorkloadObservation.observed_at == INSIDE)
+        )
+        db.add(
+            WorkloadObservation(
+                workload_id=observation.workload_id,
+                epoch=observation.epoch,
+                observed_at=INSIDE + timedelta(seconds=1),
+                payload=observation.payload,
+                comparison={},
+            )
+        )
+    monkeypatch.setattr(timeline_module, "OBSERVATION_LIMIT", 1)
+    body = call(client, ids, headers).json()
+    assert body["truncated"] is True
+    assert len([row for row in body["markers"] if row["kind"] == "rollout_observation"]) == 1
+
+
+def test_newer_executions_outside_window_do_not_hide_historical_markers(client, monkeypatch):
+    headers = sign_in(client)
+    ids = create(client, headers, incident_body(client)).json()
+    seeded = seed(ids)
+    monkeypatch.setattr(timeline_module, "EXECUTION_LIMIT", 1)
+    body = call(client, ids, headers).json()
+    assert str(seeded["inside_execution"]) in {row["id"] for row in body["markers"]}
+    assert body["truncated"] is False

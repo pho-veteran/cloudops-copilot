@@ -91,7 +91,7 @@ The existing evidence storage applies whitelisting, credential redaction, determ
 | Situation | Coverage | Reasons |
 |---|---|---|
 | Finite samples, matching binding, no truncation | `available` | none |
-| Some finite samples but gaps/non-finite/truncation | `partial` | `no_samples`, `truncated`, `stale` |
+| Some finite samples but per-series step/boundary gaps, non-finite values or truncation | `partial` | `no_samples`, `truncated`, `stale` |
 | No finite samples | `unavailable` | `no_samples` |
 | No series matches the configured identity | `unavailable` | `ownership_unproven` |
 | Provider denied the read | `unavailable` | `forbidden` |
@@ -102,7 +102,7 @@ The existing evidence storage applies whitelisting, credential redaction, determ
 
 The traffic pack requires `request_rate`, `error_ratio` and `p95_latency`; when those three are available it can be `available` even while Kubernetes state/events/logs remain missing. Other packs keep their missing required sources. No pack result is an RCA or a recovery authorization.
 
-The selected evidence panel replaces the raw JSON view for `series` with a bounded SVG chart, a series selector, an accessible sample table, query metadata and the timeline. A missing or empty series prints “No finite samples were returned … Missing data is not zero”; `ownership_unproven` is shown explicitly. Chart and table use browser-local time labels and retain labels/units/gaps in light and dark themes at desktop and 320/390 px. Viewer access remains read-only.
+The selected evidence panel replaces the raw JSON view for `series` with a bounded SVG chart, a series selector, an accessible sample table, query metadata and the timeline. A missing or empty series prints “No finite samples were returned … Missing data is not zero”; `ownership_unproven` is shown explicitly. Chart and table use browser-local time labels. The chart splits at missing query steps instead of interpolating across gaps, and isolated finite samples remain visible. Metric metadata and the timeline remain readable when payload content is unavailable or expired. Viewer access remains read-only. Fresh interactive verification of the corrected chart and timeline at desktop and 320/390 px in both themes remains required when a browser relay is available.
 
 ## Timeline
 
@@ -113,7 +113,7 @@ The selected evidence panel replaces the raw JSON view for `series` with a bound
 - E03 incident activity with the recorded creation time and a bounded text excerpt;
 - E07 execution creation/finish timestamps with execution/plan IDs and state.
 
-Markers are sorted by time/kind/ID; a missing window returns no markers and an explicit limitation. Alignment is correlation only. The endpoint authorizes the exact incident/Run, reads only PostgreSQL and never calls a provider or mutates state. Both application roles may read it.
+Markers are sorted by time/kind/ID. Per-source, total-count and byte cutoffs set `truncated`, which the UI displays; execution timestamps are filtered to the selected window before the source limit. A missing window returns no markers and an explicit limitation. Alignment is correlation only. The endpoint authorizes the exact incident/Run, reads only PostgreSQL and never calls a provider or mutates state. Both application roles may read it.
 
 ## Bounds and concurrency
 
@@ -163,8 +163,10 @@ The lab uses an actual pinned Prometheus plus a labeled metrics fixture; it is n
 
 ## Recorded local acceptance
 
+- [`acceptance.json`](evidence/prometheus48/acceptance.json): corrected-candidate source hashes, finite/empty/non-finite/gapped normal worker/API results, verified-TLS denied/timeout/oversized gateway cases, independently recomputed digests across API/worker restart, focused regressions and the remaining browser gate. Earlier captures below remain historical.
+
 - [`api.json`](evidence/prometheus48/api.json): real TLS Prometheus read, six `prometheus.*` sources with unit/window/step/query metadata, traffic pack `available`, Run `insufficient_evidence`/`analysis_unavailable`, Viewer read and API/worker restart preserving evidence IDs and SHA-256.
 - [`empty.json`](evidence/prometheus48/empty.json), [`nonfinite.json`](evidence/prometheus48/nonfinite.json) and [`gapped.json`](evidence/prometheus48/gapped.json): isolated one-minute windows for the empty, non-finite and intermittent fixture modes; each receipt records the explicit coverage/reason states and the analysis-unavailable outcome.
 - [`source-binding.json`](evidence/prometheus48/source-binding.json): SHA-256 hashes of the committed metric/timeline/UI/lab sources at the implementation commit.
-- [`browser.json`](evidence/prometheus48/browser.json) and screenshots: chart, accessible table and timeline markers on the loopback HTTP development origin at 1280/390/320 px, light/dark, Viewer read-only, and no horizontal overflow. Edge was not running, so an isolated managed Chromium was used; no certificate or trust bypass was applied.
+- [`browser.json`](evidence/prometheus48/browser.json) and screenshots are historical evidence from the earlier candidate on the loopback HTTP development origin. The images named `metric-desktop-dark.png` and `metric-320-dark.png` show light surfaces and do not establish dark-theme acceptance. These captures also predate the corrected gap rendering and unavailable-content timeline. A fresh browser check remains required; the current browser relay reports no available browser. No certificate or trust bypass was applied.
 - The lab fixture is labeled synthetic telemetry. It is not an application exporter, live RCA or recovery evidence.
