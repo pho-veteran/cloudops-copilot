@@ -251,7 +251,8 @@
   background: var(--accent);
   border-color: var(--ring);
 }
-.metric-series-button:focus-visible {
+.metric-series-button:focus-visible,
+.metric-chart-frame:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
@@ -266,7 +267,7 @@
   display: block;
   width: 100%;
   height: auto;
-  min-width: 280px;
+  min-width: 640px;
   color: var(--muted-foreground);
 }
 .metric-chart-frame text {

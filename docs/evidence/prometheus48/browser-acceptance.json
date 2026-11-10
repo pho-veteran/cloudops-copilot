@@ -1,0 +1,132 @@
+{
+  "schema": "PrometheusMetricBrowser/v2",
+  "recorded_at": "2026-11-10T12:58:25.846Z",
+  "browser": "Microsoft Edge; verified connected extension relay, separate owned lab tab",
+  "origin": "http://localhost:18517",
+  "qa_score": 5,
+  "viewports": [
+    {
+      "chartWidth": 640,
+      "client": 1265,
+      "dark": true,
+      "markers": 2,
+      "rows": 3,
+      "scroll": 1265,
+      "width": 1280
+    },
+    {
+      "chartWidth": 640,
+      "client": 375,
+      "dark": true,
+      "markers": 2,
+      "rows": 3,
+      "scroll": 375,
+      "width": 390
+    },
+    {
+      "chartWidth": 640,
+      "client": 305,
+      "dark": true,
+      "markers": 2,
+      "rows": 3,
+      "scroll": 305,
+      "width": 320
+    },
+    {
+      "chartWidth": 640,
+      "client": 1265,
+      "dark": false,
+      "markers": 2,
+      "rows": 3,
+      "scroll": 1265,
+      "width": 1280
+    },
+    {
+      "chartWidth": 640,
+      "client": 375,
+      "dark": false,
+      "markers": 2,
+      "rows": 3,
+      "scroll": 375,
+      "width": 390
+    },
+    {
+      "chartWidth": 640,
+      "client": 305,
+      "dark": false,
+      "markers": 2,
+      "rows": 3,
+      "scroll": 305,
+      "width": 320
+    }
+  ],
+  "checks": {
+    "real_gapped_payload_has_two_circles_and_no_joining_polyline": true,
+    "viewer_read_only": true,
+    "keyboard_source_navigation_focus": true,
+    "source_selection": true,
+    "reload_preserves_exact_evidence": true,
+    "chart_keyboard_horizontal_scroll_observed_pixels": 80,
+    "unavailable_keeps_timeline": true,
+    "expired_keeps_timeline": true,
+    "stale_is_explicit_with_single_finite_point": true,
+    "timeline_source_cutoff_disclosed": true,
+    "session_revocation_shows_session_ended_notice": true,
+    "expired_session_preserves_exact_route": true,
+    "no_incident_or_run_mutation_replayed": true,
+    "api_outage_shows_explicit_retry_and_preserves_route": true,
+    "no_browser_permission_or_certificate_trust_change": true
+  },
+  "keyboard_navigation": {
+    "targetHref": "#/incidents/a9ac5568-0b42-4310-aa3a-183d86c39471?run=bfa99b76-158d-43b0-aeac-aa883a0d3733&evidence=7d928685-06d6-409b-8e1f-aeaf19346cc0",
+    "navigationCheck": {
+      "focused": "Selected evidence",
+      "source": "prometheus.error_ratio \u00b7 partial \u00b7 no_samples",
+      "url": "#/incidents/a9ac5568-0b42-4310-aa3a-183d86c39471?run=bfa99b76-158d-43b0-aeac-aa883a0d3733&evidence=7d928685-06d6-409b-8e1f-aeaf19346cc0"
+    }
+  },
+  "gap": {
+    "circles": 2,
+    "polylines": 0,
+    "table": "Request rate retained samples; timestamps are rendered in the browser's local time.TimeValue (requests/s)11/10/2026, 7:37:47 PM1211/10/2026, 7:38:47 PM12"
+  },
+  "fixtures": {
+    "expired": {
+      "incident_id": "08602437-4045-4852-b925-082522e26976",
+      "run_id": "c3499e33-99ef-4d76-9f5d-d90699e52236",
+      "evidence_id": "b26e38eb-9e6a-4394-a94f-ebe212aac591",
+      "url": "http://localhost:18517/#/incidents/08602437-4045-4852-b925-082522e26976?run=c3499e33-99ef-4d76-9f5d-d90699e52236&evidence=b26e38eb-9e6a-4394-a94f-ebe212aac591"
+    },
+    "stale": {
+      "incident_id": "08602437-4045-4852-b925-082522e26976",
+      "run_id": "f249d1dc-e0c6-4948-b04c-26f509cd5f2a",
+      "evidence_id": "63d0e410-5a3c-468f-856b-164724aaa6a9",
+      "url": "http://localhost:18517/#/incidents/08602437-4045-4852-b925-082522e26976?run=f249d1dc-e0c6-4948-b04c-26f509cd5f2a&evidence=63d0e410-5a3c-468f-856b-164724aaa6a9"
+    },
+    "timeline": "201 DB-seeded activities in the owned empty Run window; UI retained 200 and disclosed truncation. These are controlled visual fixtures, not Prometheus or recovery execution results."
+  },
+  "limitations": "Loopback HTTP browser origin. Prometheus provider transport was separately verified with TLS; telemetry remains a labeled lab fixture. Controlled stale/expired/activity fixtures exercise rendering only.",
+  "parent_commit": "cec91695485414e01c3292bb8842ce372d653467",
+  "source_sha256": {
+    "apps/web/src/app/foundation.css": "377ffe1a5d9d14e04c82c1f3c74f4139489156397a6c7179465d746faa11714e",
+    "apps/web/src/features/investigations/MetricEvidence.tsx": "4a5587565b2b718e2cc9973dbc89c92243765aeb95c0466705d76b1323c717ce",
+    "apps/web/src/features/investigations/EvidenceCatalog.tsx": "db591d87b99e8c57d69b56e70778ea23bd3d4c957d8cc618ecd0fb68ca5db3d5",
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "c1a013e6bc3c07bbecd390ac792ded7acfaaa1a6841cd425f08e26b7f8142c1e",
+    "services/backend/src/cloudops/features/investigations/timeline.py": "ac7a31ba8361feec22f3a8e4ab2b3ab94a2a9f725a58b5cc2b6eb75f4436de63"
+  },
+  "screenshots": [
+    "edge-1280-light.jpg",
+    "edge-1280-dark.jpg",
+    "edge-390-light.jpg",
+    "edge-390-dark.jpg",
+    "edge-320-light.jpg",
+    "edge-320-dark.jpg",
+    "edge-gapped-viewer.jpg",
+    "edge-empty-viewer.jpg",
+    "edge-expired-320-dark.jpg",
+    "edge-stale-320-dark.jpg",
+    "edge-truncated-320-dark.jpg",
+    "edge-session-expired.jpg",
+    "edge-api-unavailable.jpg"
+  ]
+}

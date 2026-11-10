@@ -607,9 +607,10 @@
     "viewer_reads_after_api_worker_restart": true
   },
   "visual": {
-    "status": "blocked",
+    "status": "superseded",
     "reason": "Browser Use inventory is empty and the computer-use browser host is unavailable. No fresh browser interaction or screenshots were produced.",
     "required": "Fresh keyboard/source navigation, Viewer/session/error states, desktop/320/390px and light/dark checks on the corrected candidate.",
-    "historical_capture_limit": "Existing images named metric-desktop-dark.png and metric-320-dark.png show light surfaces and do not establish dark-theme acceptance."
+    "historical_capture_limit": "Existing images named metric-desktop-dark.png and metric-320-dark.png show light surfaces and do not establish dark-theme acceptance.",
+    "follow_up": "browser-acceptance.json records the subsequent connected Edge acceptance after responsive label correction."
   }
 }

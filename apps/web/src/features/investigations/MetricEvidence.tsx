@@ -186,7 +186,7 @@ function Chart({
     return at !== null && at >= domain.minX && at <= domain.maxX ? [marker] : [];
   });
   return (
-    <div className="metric-chart-frame">
+    <div className="metric-chart-frame" role="region" aria-label="Metric chart" tabIndex={0}>
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
