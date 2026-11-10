@@ -3,8 +3,11 @@
     auto_https disable_redirects
 }
 
-https://localhost:8443 {
+https://localhost:8443, https://https:8443 {
     tls internal
+    handle_path /prometheus/* {
+        reverse_proxy prometheus:9090
+    }
     handle /api/* {
         reverse_proxy api:8000
     }

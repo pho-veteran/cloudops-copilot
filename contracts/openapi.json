@@ -2062,6 +2062,7 @@
             "enum": [
               "runtime",
               "development_fixture",
+              "prometheus",
               "unimplemented",
               "live_gateway"
             ],
@@ -3776,6 +3777,57 @@
         "title": "RunRequest",
         "type": "object"
       },
+      "RunTimeline": {
+        "additionalProperties": false,
+        "properties": {
+          "limitations": {
+            "maxLength": 240,
+            "title": "Limitations",
+            "type": "string"
+          },
+          "markers": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineMarker"
+            },
+            "maxItems": 500,
+            "title": "Markers",
+            "type": "array"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "schema": {
+            "const": "RunTimeline/v1",
+            "default": "RunTimeline/v1",
+            "title": "Schema",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "run_id",
+          "window",
+          "truncated",
+          "limitations"
+        ],
+        "title": "RunTimeline",
+        "type": "object"
+      },
       "RunView": {
         "properties": {
           "attempts": {
@@ -4337,6 +4389,51 @@
           "status"
         ],
         "title": "SourceDifference",
+        "type": "object"
+      },
+      "TimelineMarker": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "window_start",
+              "window_end",
+              "rollout_observation",
+              "incident_activity",
+              "execution_created",
+              "execution_finished"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 240,
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "at",
+          "id",
+          "label"
+        ],
+        "title": "TimelineMarker",
         "type": "object"
       },
       "TransitionBody": {
@@ -8252,6 +8349,114 @@
           }
         ],
         "summary": "Content",
+        "tags": [
+          "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/timeline": {
+      "get": {
+        "operationId": "get_run_timeline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunTimeline"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Timeline",
         "tags": [
           "investigations"
         ]

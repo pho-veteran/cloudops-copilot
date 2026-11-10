@@ -54,7 +54,15 @@ def dispatch_permit():
 
 def main():
     folder = ROOT / "tmp/e01-integration"
-    for kind in ("reader", "writer", "dispatcher", "krr", "intake-api", "intake-sender"):
+    for kind in (
+        "reader",
+        "writer",
+        "dispatcher",
+        "krr",
+        "intake-api",
+        "intake-sender",
+        "prometheus",
+    ):
         (folder / kind).mkdir(parents=True, exist_ok=True)
     if not (folder / "krr/key").exists():
         (folder / "krr/key").write_text(secrets.token_urlsafe(32), encoding="utf-8")
@@ -81,6 +89,18 @@ def main():
     )
     kubectl("rollout", "status", "deployment/checkout", "-n", "demo", "--timeout=180s")
     deployment = json.loads(kubectl("get", "deployment", "checkout", "-n", "demo", "-o", "json"))
+    (folder / "prometheus/workload.json").write_text(
+        json.dumps(
+            {
+                "namespace": "demo",
+                "name": "checkout",
+                "uid": deployment["metadata"]["uid"],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     kubeconfig = json.loads(kubectl("config", "view", "--raw", "-o", "json"))
     ca = kubeconfig["clusters"][0]["cluster"]["certificate-authority-data"]
     workloads = [

@@ -49,7 +49,34 @@ def observations(db: Session = Depends(get_db)):
     now = database_now(db)
     beat = db.get(WorkerHeartbeat, "collector")
     stale = not beat or (now - beat.observed_at).total_seconds() > settings().worker_stale_seconds
-    fixture_configured = os.environ.get("COLLECTION_SOURCE_MODE", "none") == "development_fixture"
+    modes = {
+        mode.strip()
+        for mode in os.environ.get("COLLECTION_SOURCE_MODE", "none").split(",")
+        if mode.strip()
+    }
+    if "prometheus" in modes:
+        collector_status, collector_source, collector_reason = (
+            "available",
+            "prometheus",
+            "Scoped Prometheus metric collection is configured. Availability does not "
+            "indicate collection success or a live diagnosis, and Kubernetes sources remain "
+            "separate. Inspect investigation attempts for results.",
+        )
+    elif "development_fixture" in modes:
+        collector_status, collector_source, collector_reason = (
+            "available",
+            "development_fixture",
+            "Synthetic collector adapter configured; availability does not indicate "
+            "collection success. Inspect investigation attempts for results. "
+            "No live Kubernetes or Prometheus source adapter is installed.",
+        )
+    else:
+        collector_status, collector_source, collector_reason = (
+            "unavailable",
+            "unimplemented",
+            "No collection source adapter is configured. Runs record missing-source "
+            "coverage; no live Kubernetes or Prometheus telemetry is collected.",
+        )
     executor_status, executor_source, executor_reason = (
         "unavailable",
         "unimplemented",
@@ -100,16 +127,9 @@ def observations(db: Session = Depends(get_db)):
             ),
             observation(
                 "collector",
-                "available" if fixture_configured else "unavailable",
-                "development_fixture" if fixture_configured else "unimplemented",
-                (
-                    "Synthetic collector adapter configured; availability does not indicate "
-                    "collection success. Inspect investigation attempts for results. "
-                    "No live Kubernetes or Prometheus source adapter is installed."
-                    if fixture_configured
-                    else "No collection source adapter is configured. Runs record missing-source "
-                    "coverage; no live Kubernetes or Prometheus telemetry is collected."
-                ),
+                collector_status,
+                collector_source,
+                collector_reason,
             ),
             observation(
                 "diagnosis",

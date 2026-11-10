@@ -1,0 +1,616 @@
+{
+  "schema": "PrometheusMetricAcceptance/v1",
+  "recorded_at": "2026-11-10T12:39:24.072181+00:00",
+  "starting_commit": "63fd5cc89f0ef1a6a52992e8547c49e2276c48fb",
+  "source_sha256": {
+    "apps/web/src/features/investigations/EvidenceCatalog.test.tsx": "ca680135d998370c606c33314d7bf6f746984a0d5ef3924069d19893ce3abc8c",
+    "apps/web/src/features/investigations/EvidenceCatalog.tsx": "db591d87b99e8c57d69b56e70778ea23bd3d4c957d8cc618ecd0fb68ca5db3d5",
+    "apps/web/src/features/investigations/MetricEvidence.test.tsx": "4018dd10aed682179148473b32069fc933e5707e38a575604ddc52fceea2d04f",
+    "apps/web/src/features/investigations/MetricEvidence.tsx": "ca2a5b57c0aebde14882ee9d5f60f1f195613918d6f5c0b0425e22d759d5aaba",
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "c1a013e6bc3c07bbecd390ac792ded7acfaaa1a6841cd425f08e26b7f8142c1e",
+    "services/backend/src/cloudops/features/investigations/timeline.py": "ac7a31ba8361feec22f3a8e4ab2b3ab94a2a9f725a58b5cc2b6eb75f4436de63",
+    "services/backend/tests/test_prometheus_collection.py": "1dd3e93c7a9c42b38cf107618552a4d2e7f05c74ced732dc8381f52f405b80a9",
+    "services/backend/tests/test_run_timeline.py": "1f8a63e2c41b3127817aa2753984068620d10dcabfb9a94697b82d30866125c7",
+    "services/backend/tests_unit/test_prometheus_client.py": "d6160d2d416335a99bf3b0b12e14ef2b30833e401670f42e4c3799a1c563cef8"
+  },
+  "environment": {
+    "python": "3.13.11",
+    "uv": "0.9.26",
+    "node": "24.21.0",
+    "postgres": "17.11-bookworm",
+    "prometheus": "v3.5.0",
+    "tls_gateway": "caddy:2.10.2-alpine",
+    "telemetry": "Labeled local fixture; no application exporter or live Kubernetes collection.",
+    "transport": "Verified TLS with explicit disposable CA and localhost hostname. Browser origin remains loopback HTTP."
+  },
+  "checks": {
+    "web_tests": {
+      "passed": 193,
+      "files": 22
+    },
+    "web_build": "passed",
+    "ruff_check": "passed",
+    "ruff_format": "passed",
+    "contract_check": "passed",
+    "deliberate_contract_drift": "rejected as expected",
+    "full_backend_initial": {
+      "passed": 1085,
+      "failed": 1,
+      "failure": "The updated complete-window fixture had 61 samples; an old assertion still expected 2.",
+      "resolution": "Assertion corrected to 61; all 9 affected Prometheus collection/timeline tests passed afterward. Final full suite is also exercised by CI."
+    },
+    "focused_backend_final": {
+      "passed": 9
+    },
+    "prometheus_client_unit": {
+      "passed": 28
+    }
+  },
+  "runtime_modes": {
+    "finite": {
+      "recorded_at": "2026-11-10T12:33:52.515181+00:00",
+      "ids": {
+        "incident_id": "08602437-4045-4852-b925-082522e26976",
+        "run_id": "a7a1d6b3-0a97-4e47-b6c3-458ad0cef828",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T12:32:52.697857Z",
+          "end": "2026-11-10T12:33:52.697857Z",
+          "source": "explicit"
+        }
+      },
+      "checks": {
+        "six_metric_sources_published": true,
+        "analysis_remains_unavailable": true,
+        "all_six_available": true,
+        "timeline_has_captured_window": true,
+        "viewer_reads_run": true
+      },
+      "run": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "window": {
+          "start": "2026-11-10T12:32:52.697857Z",
+          "end": "2026-11-10T12:33:52.697857Z",
+          "source": "explicit"
+        },
+        "pack_coverage": [
+          {
+            "pack": "crashloop_startup",
+            "status": "unavailable"
+          },
+          {
+            "pack": "oom_restarts",
+            "status": "unavailable"
+          },
+          {
+            "pack": "traffic_latency_errors",
+            "status": "available"
+          },
+          {
+            "pack": "pending_unschedulable",
+            "status": "unavailable"
+          },
+          {
+            "pack": "image_pull",
+            "status": "unavailable"
+          }
+        ]
+      },
+      "sources": {
+        "prometheus.error_ratio": {
+          "id": "4d9d0eee-bac1-4153-b3ad-d5acf7370b07",
+          "sha256": "efc91253981d9ad51373b331517a3b9a1188e1edaa7aa7c072929c6c0a77c34c",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "samples": 3
+        },
+        "prometheus.memory_limit": {
+          "id": "064615c7-4242-43ec-9a40-2e0b127f134d",
+          "sha256": "13629637c81e2e1e332a11347f6a5a2f4fab5a219101641c9eb42fda2ea633f8",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "samples": 3
+        },
+        "prometheus.memory_working_set": {
+          "id": "80638cdf-20fe-49f6-bdd6-7237d1d858f6",
+          "sha256": "473b7c529c249033adbd5bf60d16d48f5a4478fdd6df824bc2fbaaa32c2b4a69",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "samples": 3
+        },
+        "prometheus.p95_latency": {
+          "id": "1c323fa4-9407-46b4-be8f-3a9303a76dde",
+          "sha256": "082030e0260cf2c4e8492a1937dda8f98cecdb66eb0fec1756cf5462a0d29781",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "samples": 3
+        },
+        "prometheus.request_rate": {
+          "id": "5e0810cc-9608-4c90-8cf5-71e6de640117",
+          "sha256": "a8c904a670f960c5fcb590fec27e0c1cec0a1fbad0593ec8b2df59c6c82cc896",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "samples": 3
+        },
+        "prometheus.restarts": {
+          "id": "530f4d5f-288e-4ddf-b897-c9d4c1bb48fa",
+          "sha256": "88e939f1d60ed0fa70e8f3bd89c77948de8b302c03e487154b878b7047e52ba7",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "samples": 3
+        }
+      }
+    },
+    "empty": {
+      "recorded_at": "2026-11-10T12:36:01.643985+00:00",
+      "ids": {
+        "incident_id": "c3bc5b07-b3a7-4a8c-92b2-57c7b32c41b4",
+        "run_id": "80033272-de3b-4f26-9bb1-d3d3c20e2a55",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T12:35:01.735009Z",
+          "end": "2026-11-10T12:36:01.735009Z",
+          "source": "explicit"
+        }
+      },
+      "checks": {
+        "six_metric_sources_published": true,
+        "analysis_remains_unavailable": true,
+        "empty_states_are_explicit": true,
+        "timeline_has_captured_window": true,
+        "viewer_reads_run": true
+      },
+      "run": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "window": {
+          "start": "2026-11-10T12:35:01.735009Z",
+          "end": "2026-11-10T12:36:01.735009Z",
+          "source": "explicit"
+        },
+        "pack_coverage": [
+          {
+            "pack": "crashloop_startup",
+            "status": "unavailable"
+          },
+          {
+            "pack": "oom_restarts",
+            "status": "unavailable"
+          },
+          {
+            "pack": "traffic_latency_errors",
+            "status": "unavailable"
+          },
+          {
+            "pack": "pending_unschedulable",
+            "status": "unavailable"
+          },
+          {
+            "pack": "image_pull",
+            "status": "unavailable"
+          }
+        ]
+      },
+      "sources": {
+        "prometheus.error_ratio": {
+          "id": "c31b4215-9000-4985-bfd5-be7976b3cca0",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.memory_limit": {
+          "id": "7af4aa3d-6c68-4c9f-9c84-7f0668c0a11a",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.memory_working_set": {
+          "id": "0c3fc129-19b1-4c15-bef6-0bc573151c6d",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.p95_latency": {
+          "id": "676f464f-ad87-47c7-8a91-6e53316a4e0d",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.request_rate": {
+          "id": "6d23af9f-fa63-44a1-8c42-71782aa13001",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.restarts": {
+          "id": "5e5c7d81-3f08-414c-aa0a-f1dd79196561",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        }
+      }
+    },
+    "nonfinite": {
+      "recorded_at": "2026-11-10T12:37:24.274262+00:00",
+      "ids": {
+        "incident_id": "a3a3f367-cbce-4eda-8599-a912e55db3a3",
+        "run_id": "384c967a-9265-4394-adeb-81d8f6e748b1",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T12:36:24.377269Z",
+          "end": "2026-11-10T12:37:24.377269Z",
+          "source": "explicit"
+        }
+      },
+      "checks": {
+        "six_metric_sources_published": true,
+        "analysis_remains_unavailable": true,
+        "nonfinite_values_are_not_numeric": true,
+        "timeline_has_captured_window": true,
+        "viewer_reads_run": true
+      },
+      "run": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "window": {
+          "start": "2026-11-10T12:36:24.377269Z",
+          "end": "2026-11-10T12:37:24.377269Z",
+          "source": "explicit"
+        },
+        "pack_coverage": [
+          {
+            "pack": "crashloop_startup",
+            "status": "unavailable"
+          },
+          {
+            "pack": "oom_restarts",
+            "status": "unavailable"
+          },
+          {
+            "pack": "traffic_latency_errors",
+            "status": "unavailable"
+          },
+          {
+            "pack": "pending_unschedulable",
+            "status": "unavailable"
+          },
+          {
+            "pack": "image_pull",
+            "status": "unavailable"
+          }
+        ]
+      },
+      "sources": {
+        "prometheus.error_ratio": {
+          "id": "7a58c605-5a49-41a2-8af3-26a73653063d",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.memory_limit": {
+          "id": "21ee0ce4-9f5d-43e4-8d66-cf5066b9f0ee",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.memory_working_set": {
+          "id": "ab56a3d9-e952-48ba-ad58-0af78d2c74ab",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.p95_latency": {
+          "id": "f4f7d7ff-4c53-4f9c-9711-03f58b9b24b6",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.request_rate": {
+          "id": "fc4ef3f6-842a-4d14-aba2-760efd5c6f3e",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        },
+        "prometheus.restarts": {
+          "id": "ef1a854f-8332-4441-889f-638d0bee20d2",
+          "sha256": null,
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "no_samples"
+            ]
+          }
+        }
+      }
+    },
+    "gapped": {
+      "recorded_at": "2026-11-10T12:38:46.925685+00:00",
+      "ids": {
+        "incident_id": "a9ac5568-0b42-4310-aa3a-183d86c39471",
+        "run_id": "bfa99b76-158d-43b0-aeac-aa883a0d3733",
+        "state": "queued",
+        "queue_reason": null,
+        "window": {
+          "start": "2026-11-10T12:37:47.016450Z",
+          "end": "2026-11-10T12:38:47.016450Z",
+          "source": "explicit"
+        }
+      },
+      "checks": {
+        "six_metric_sources_published": true,
+        "analysis_remains_unavailable": true,
+        "gaps_are_explicit": true,
+        "timeline_has_captured_window": true,
+        "viewer_reads_run": true
+      },
+      "run": {
+        "state": "insufficient_evidence",
+        "outcome_code": "analysis_unavailable",
+        "window": {
+          "start": "2026-11-10T12:37:47.016450Z",
+          "end": "2026-11-10T12:38:47.016450Z",
+          "source": "explicit"
+        },
+        "pack_coverage": [
+          {
+            "pack": "crashloop_startup",
+            "status": "unavailable"
+          },
+          {
+            "pack": "oom_restarts",
+            "status": "unavailable"
+          },
+          {
+            "pack": "traffic_latency_errors",
+            "status": "partial"
+          },
+          {
+            "pack": "pending_unschedulable",
+            "status": "unavailable"
+          },
+          {
+            "pack": "image_pull",
+            "status": "unavailable"
+          }
+        ]
+      },
+      "sources": {
+        "prometheus.error_ratio": {
+          "id": "7d928685-06d6-409b-8e1f-aeaf19346cc0",
+          "sha256": "e0c010a99cfbaab8d3324de09172e545951957b30a4b786d0851b67c33447209",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "samples": 2
+        },
+        "prometheus.memory_limit": {
+          "id": "ac1b3e32-66ba-4dc1-9bcf-0959d6258d12",
+          "sha256": "a0a3b1d327aa8303d046369c0cabd543c0d6ce899e847f14a26db1be6020ec19",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "samples": 2
+        },
+        "prometheus.memory_working_set": {
+          "id": "385ca84b-873c-462f-88d1-9edfef1f51c9",
+          "sha256": "2d5366d58f3c9f871a707d9f5eb8e1f647dbce88526bdfd4e2bb441e71745bce",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "samples": 2
+        },
+        "prometheus.p95_latency": {
+          "id": "4d61c752-1e05-4b20-83cf-e7e2c6a3f260",
+          "sha256": "cca32d4724f608ad0e5798a68117529c518ac503a4c956c59949e30e18ea938e",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "samples": 2
+        },
+        "prometheus.request_rate": {
+          "id": "ad36aa40-1f90-4ae1-bfc2-165fac467289",
+          "sha256": "65d62b9a43d60dbbfd16d97580bff0a794bee9a94a2405f4a85c4e5371eda78e",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "samples": 2
+        },
+        "prometheus.restarts": {
+          "id": "b7d37b6e-5b5c-4fda-ace3-42e2a42a3384",
+          "sha256": "06f2a1537baaa6cbbd34301f78b19e5080f989c38af9f40dc8f54474d585e681",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "samples": 2
+        }
+      }
+    }
+  },
+  "tls_faults": {
+    "boundary": "Real verified-TLS requests through the disposable Caddy gateway. Controlled gateway denied, delayed and oversized responses; finite/mode queries use the real pinned Prometheus upstream.",
+    "cases": {
+      "denied": {
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "forbidden"
+          ]
+        },
+        "query_metadata": {
+          "query_id": "request_rate",
+          "query_version": "standard_v1",
+          "binding_version": "uid_label_v1",
+          "producer_version": "prometheus/v3.5.0",
+          "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+          "step": 30,
+          "unit": "requests/s",
+          "warnings": [],
+          "source_identity": {
+            "endpoint_id": "pr55-local-prometheus",
+            "cluster_id": "local",
+            "namespace": "demo",
+            "workload_uid": "development-checkout-v1"
+          },
+          "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"development-checkout-v1\"})",
+          "window": {
+            "start": "2026-11-10T12:34:17.946572+00:00",
+            "end": "2026-11-10T12:35:17.946572+00:00"
+          }
+        },
+        "payload_absent": true
+      },
+      "timeout": {
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "timeout"
+          ]
+        },
+        "query_metadata": {
+          "query_id": "request_rate",
+          "query_version": "standard_v1",
+          "binding_version": "uid_label_v1",
+          "producer_version": "prometheus/v3.5.0",
+          "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+          "step": 30,
+          "unit": "requests/s",
+          "warnings": [],
+          "source_identity": {
+            "endpoint_id": "pr55-local-prometheus",
+            "cluster_id": "local",
+            "namespace": "demo",
+            "workload_uid": "development-checkout-v1"
+          },
+          "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"development-checkout-v1\"})",
+          "window": {
+            "start": "2026-11-10T12:34:17.946572+00:00",
+            "end": "2026-11-10T12:35:17.946572+00:00"
+          }
+        },
+        "payload_absent": true
+      },
+      "oversized": {
+        "coverage": {
+          "status": "unavailable",
+          "reason_codes": [
+            "truncated"
+          ]
+        },
+        "query_metadata": {
+          "query_id": "request_rate",
+          "query_version": "standard_v1",
+          "binding_version": "uid_label_v1",
+          "producer_version": "prometheus/v3.5.0",
+          "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+          "step": 30,
+          "unit": "requests/s",
+          "warnings": [],
+          "source_identity": {
+            "endpoint_id": "pr55-local-prometheus",
+            "cluster_id": "local",
+            "namespace": "demo",
+            "workload_uid": "development-checkout-v1"
+          },
+          "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"development-checkout-v1\"})",
+          "window": {
+            "start": "2026-11-10T12:34:17.946572+00:00",
+            "end": "2026-11-10T12:35:17.946572+00:00"
+          }
+        },
+        "payload_absent": true
+      }
+    }
+  },
+  "restart": {
+    "same_evidence_ids": true,
+    "same_query_window_units": true,
+    "canonical_payload_digests_match": true,
+    "same_payload_digests": true,
+    "viewer_reads_after_api_worker_restart": true
+  },
+  "visual": {
+    "status": "superseded",
+    "reason": "Browser Use inventory is empty and the computer-use browser host is unavailable. No fresh browser interaction or screenshots were produced.",
+    "required": "Fresh keyboard/source navigation, Viewer/session/error states, desktop/320/390px and light/dark checks on the corrected candidate.",
+    "historical_capture_limit": "Existing images named metric-desktop-dark.png and metric-320-dark.png show light surfaces and do not establish dark-theme acceptance.",
+    "follow_up": "browser-acceptance.json records the subsequent connected Edge acceptance after responsive label correction."
+  }
+}
