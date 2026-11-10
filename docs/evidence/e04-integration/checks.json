@@ -1,6 +1,6 @@
 {
   "schema": "E04IntegratedChecks/v1",
-  "recorded_at": "2026-11-10T18:35:00Z",
+  "recorded_at": "2026-11-10T18:13:30Z",
   "starting_commit": "f6941c9",
   "backend": {
     "cwd": "repository root",

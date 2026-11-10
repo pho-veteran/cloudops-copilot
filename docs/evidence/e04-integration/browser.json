@@ -1,6 +1,6 @@
 {
   "schema": "E04IntegratedBrowser/v1",
-  "recorded_at": "2026-11-10T18:20:00Z",
+  "recorded_at": "2026-11-10T18:12:00Z",
   "starting_commit": "f6941c9",
   "source": "working tree candidate after review fixes; final source binding is recorded separately",
   "browser": "Microsoft Edge (managed launch through agent-browser with the installed Edge executable; no pre-existing Edge process was reused). Loopback HTTP origin http://localhost:5173; no certificate warning or trust bypass.",

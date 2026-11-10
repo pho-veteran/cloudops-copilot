@@ -130,5 +130,5 @@ Screenshots are under `docs/evidence/e04-integration/` (`traffic-*`, `crashloop-
 ## Limits
 
 - The K3s incident families are controlled local fixtures, not production telemetry. The live proof establishes scoped collection and storage behavior, not a production SLO.
-- CrashLoop/OOM previous logs were unavailable from the local K3s containerd log path; partial pack coverage is the truthful result. No zero or empty success was fabricated.
+- CrashLoop/OOM previous logs were partial/`no_samples` from the local K3s containerd log path; stored content was retained but marked incomplete. No zero or empty success was fabricated.
 - No AI diagnosis, E06 producer, E07/E10 restore/unknown release, cloud install or release-complete claim is made. Child/issue acceptance does not itself close E04.
