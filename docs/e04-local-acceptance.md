@@ -12,7 +12,7 @@ Acceptance record for [E04 #50](https://github.com/pho-veteran/cloudops-copilot/
 
 ## Verification summary
 
-- Backend: 1154 collected, **1144 passed / 10 skipped** in two commands (916+10 skipped without `test_permissions.py`, 228 permissions tests); focused E04 suite 8 tests passed 10/10 consecutive runs.
+- Backend: 1155 collected, **1145 passed / 10 skipped** in two commands (917+10 skipped without `test_permissions.py`, 228 permissions tests); focused E04 suite 9 tests passed 10/10 consecutive runs.
 - Web: 194 tests / 22 files passed; production web build passed.
 - Ruff check/format, generated contract check and deliberate drift rejection passed.
 - [`checks.json`](evidence/e04-integration/checks.json) records the exact commands and counts; [`cleanup.json`](evidence/e04-integration/cleanup.json) records removed owned resources.
@@ -44,6 +44,8 @@ printf '%s\n%s\n' "$OPERATOR_PASSWORD" "$VIEWER_PASSWORD" |
 ```
 
 The probe creates one explicit one-minute Run per pack plus a second traffic Run for comparison. It reads every available content payload and verifies the canonical post-redaction SHA-256, checks pack coverage, compares 12 sources, resolves an exact sample citation, reads the timeline as Operator and Viewer, checks wrong-scope 404, restarts API/worker and confirms the same evidence IDs/hashes. The acceptance run used the same loopback HTTP origin for the probe and browser; the HTTPS API origin was not used.
+
+For the provider-outage check, stop the owned `prometheus` service after a Run is stored and re-read its Run, available evidence content, timeline and 12-source comparison from PostgreSQL/API; [`provider-outage.json`](evidence/e04-integration/provider-outage.json) records the exact incident/Run IDs and the unchanged hashes. No provider is contacted by those reads.
 
 The browser evidence uses the same loopback HTTP origin. The temporary override is deliberately not committed:
 
@@ -82,8 +84,11 @@ The two partial CrashLoop/OOM packs are honest live gaps: the local K3s previous
 ## Checkpoints, restart, dispatch and evidence consumers
 
 - The integrated backend suite (`tests/test_e04_integration.py`) covers batch = checkpointed = takeover parity for all 12 sources, including a crash at a Prometheus source, six reused evidence IDs/hashes, progress/finalization, five-pack matrices, exact citations for state/event/log/series/sample, timeline markers, failed-reinvestigation pin preservation, Viewer/Anonymous behavior and read-only side effects.
+- A terminal failed successor after provider failure leaves the prior Run's content, timeline and comparison readable, with its stored SHA-256 values unchanged; the same test asserts stored handoff preview/export bytes are equal.
+- A separate live outage receipt ([`provider-outage.json`](evidence/e04-integration/provider-outage.json)) stopped the Prometheus service in a fresh owned lab: the existing traffic Run, its available content hashes, timeline and 12-source comparison remained identical before/after.
+- The injector canary test puts injector annotations, environment values and a Secret reference in the controlled Kubernetes input; none of the canary values enter any stored evidence payload or digest. ConfigMap metadata remains metadata-only.
 - The live probe created and finalized all five pack Runs through normal admission/worker/checkpoints; `--restart` preserved every stored evidence ID and SHA-256.
-- [`dispatch.json`](evidence/e04-integration/dispatch.json) records the actual collection-class worker takeover and trusted `dispatch-admin enter-recovery` / `resume --class recommendation` / `resume --class collection` / `exit-recovery` behavior in a separate fresh owned project. That dispatch project runs `COLLECTION_SOURCE_MODE=development_fixture`; it proves job lifecycle/class-permit behavior, not live producer collection. The five-pack project separately proves the live Kubernetes/Prometheus producers. `tests/test_dispatch_gate.py` covers all three current job classes, DB-seeded future-state rejection and stale-generation fencing. The executor restore/unknown path remains a separate E07/E10 gate; no unknown lock was released or written.
+- [`dispatch.json`](evidence/e04-integration/dispatch.json) records the actual collection-class worker takeover and trusted `dispatch-admin enter-recovery` / `resume --class recommendation` / `resume --class collection` / `exit-recovery` behavior in a separate fresh owned project. That dispatch project runs `COLLECTION_SOURCE_MODE=development_fixture`; it proves job lifecycle/class-permit behavior, not live producer collection. The five-pack project separately proves the live Kubernetes/Prometheus producers. The restart-entry order is the supported procedure in [trusted job dispatch](job-dispatch.md#supported-restore-order): fresh-install bootstrap, `enter-recovery` before restore, explicit class resumption, then `exit-recovery`; the executor maintenance half was not configured in this base lab and remains an E07/E10 gate. `tests/test_dispatch_gate.py` covers all three current job classes, DB-seeded future-state rejection and stale-generation fencing. The executor restore/unknown path remains a separate E07/E10 gate; no unknown lock was released or written.
 - A repeated Run with a failed/all-unavailable successor leaves the previous latest-useful evidence and pin readable; the live UI/API evidence remains historical, not a new RCA.
 
 ## Browser and role/session checks
@@ -104,13 +109,13 @@ Screenshots are under `docs/evidence/e04-integration/` (`traffic-*`, `crashloop-
 
 | Parent AC | Proof |
 |---|---|
-| AC1 · Five scoped packs with required/optional coverage and no invented zeros | Live five-pack Runs, pack rows above, bounded state/events/logs and six metric sources; CrashLoop/OOM previous-log gaps explicit |
-| AC2 · Exact citation navigation and deterministic immutable comparison | Live compare of two 12-source Runs; exact metric sample citation; `test_e04_integration` structured/log/series citations; no original hash/pin changes |
-| AC3 · Restart/checkpoint/takeover durability and stale-worker fencing | Batch/checkpoint/takeover parity, live probe restart hash match, real worker kill/takeover in `dispatch.json` and `test_collection_checkpoints` |
+| AC1 · Five scoped packs with required/optional coverage and no invented zeros | Live five-pack Runs, pack rows above, bounded state/events/logs and six metric sources; CrashLoop/OOM previous-log gaps explicit; every stored row reports `standard_v1` from the configured catalog, not adapter merge order |
+| AC2 · Exact citation navigation and deterministic immutable comparison | Live compare of two 12-source Runs; exact metric sample citation; live Prometheus-stop receipt preserves existing content/timeline/compare; `test_e04_integration` structured/log/series citations, stored handoff export bytes, failed-successor reads and injector canary exclusion; no original hash/pin changes |
+| AC3 · Restart/checkpoint/takeover durability and stale-worker fencing | Batch/checkpoint/takeover parity, live probe restart hash match, real worker kill/takeover in `dispatch.json` and `test_collection_checkpoints`; all process/concurrency tests use the owned `cloudops_test` database |
 | AC4 · Honest cancellation and no false provider/write cancellation | Live queued/collecting cancellation boundary in `dispatch.json`; `waiting_for_quota` remains a DB-seeded contract fixture, not an E06 producer |
-| AC5 · Bounded/redacted logs, no scope expansion/Secret reads/injector truth | Live K3s state/events/logs under reader RBAC; previous-log gap explicit; ConfigMap metadata disabled; no Secret or injector path |
-| AC6 · Failed reinvestigation leaves prior useful evidence readable | `test_e04_integration` useful Run → failed successor → unchanged latest-useful pin and readable original content |
-| AC7 · Recovery/restore dispatch requires independent class permits | Actual collection-class takeover/class resumes in `dispatch.json`; all three classes and DB future-state rejection in `test_dispatch_gate`; E07/E10 restore/unknown gates remain separate |
+| AC5 · Bounded/redacted logs, no scope expansion/Secret reads/injector truth | Live K3s state/events/logs under reader RBAC; previous-log gap explicit; ConfigMap metadata disabled; injector canary and Secret reference absent from every stored payload; `test_evidence_redaction` covers source allocations, truncation and the 20,000-sample/8 MiB caps; no Secret read path |
+| AC6 · Failed reinvestigation leaves prior useful evidence readable | `test_e04_integration` useful Run → failed successor → unchanged latest-useful pin, readable content/timeline/compare and stored export |
+| AC7 · Recovery/restore dispatch requires independent class permits | Actual collection-class takeover/class resumes and `enter-recovery`/`exit-recovery` restore order in `dispatch.json`; all three classes and DB future-state rejection in `test_dispatch_gate`; executor maintenance/restore/unknown gates remain E07/E10 |
 
 ## Failed attempts and corrections
 

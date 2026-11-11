@@ -1,5 +1,6 @@
 """Integrated E04 evidence journeys over real producer adapters and stored consumers."""
 
+import json
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
@@ -136,6 +137,7 @@ def test_full_catalog_batch_checkpoint_and_takeover_parity(client, monkeypatch):
     assert finish(second, HANDLERS[second.kind], result=final, gate=GATE)
     assert stored(takeover) == reference
     view = run_view(client, takeover)
+    assert {row["catalog_version"] for row in view["evidence"]} == {"standard_v1"}
     final_ids = {row["source_key"]: row["id"] for row in view["evidence"]}
     assert {key: final_ids[key] for key in interrupted_ids} == interrupted_ids
     assert view["progress"]["sources_reused"] == 6
@@ -211,6 +213,19 @@ def test_five_fixed_pack_coverage_with_k8s_and_metrics(client, monkeypatch, scen
         )
     else:
         assert all(pod.get("status") == "Running" for pod in pods)
+
+
+def test_injector_truth_and_secret_values_never_enter_evidence(client, monkeypatch):
+    monkeypatch.setenv("KUBE_CONFIGMAP_ENABLED", "1")
+    headers = sign_in(client)
+    ids, _binding = collect_batch(client, headers, monkeypatch, "injector", "Injector truth canary")
+    view = run_view(client, ids)
+    assert len(view["evidence"]) == 12
+    payloads = stored(ids)
+    encoded = json.dumps({key: value[2] for key, value in payloads.items()}, sort_keys=True)
+    assert e04.INJECTOR_CANARY not in encoded
+    assert "injector-secret" not in encoded
+    assert e04.INJECTOR_SECRET not in encoded
 
 
 def test_integrated_compare_citation_timeline_and_read_only(client, monkeypatch):
@@ -330,6 +345,34 @@ def test_integrated_compare_citation_timeline_and_read_only(client, monkeypatch)
     monkeypatch.setenv("COLLECTOR_FAIL", "false")
     settings.cache_clear()
 
+    # Provider outage: the terminal failed successor must not hide the stored useful Run.
+    outage_view = run_view(client, left)
+    assert outage_view["state"] == "insufficient_evidence"
+    for row in outage_view["evidence"]:
+        if row["content_status"] != "available":
+            continue
+        content = client.get(
+            f"/api/incidents/{left['incident_id']}/runs/{left['run_id']}"
+            f"/evidence/{row['id']}/content"
+        )
+        assert content.status_code == 200, content.text
+        assert content.json()["sha256"] == row["sha256"]
+    assert (
+        client.get(
+            f"/api/incidents/{left['incident_id']}/runs/{left['run_id']}/timeline"
+        ).status_code
+        == 200
+    )
+    outage_compare = client.get(
+        f"/api/incidents/{left['incident_id']}/runs/{left['run_id']}/compare",
+        params={
+            "right_incident_id": right["incident_id"],
+            "right_run_id": right["run_id"],
+        },
+    )
+    assert outage_compare.status_code == 200
+    assert len(outage_compare.json()["sources"]) == 12
+
     with sessions()() as db, db.begin():
         incident = db.get(Incident, UUID(left["incident_id"]))
         workload = db.get(Workload, incident.workload_id)
@@ -396,6 +439,13 @@ def test_integrated_compare_citation_timeline_and_read_only(client, monkeypatch)
     assert "incident_activity" in kinds
     assert "execution_created" in kinds and "execution_finished" in kinds
     assert body["truncated"] is False
+
+    # Real persisted export bytes, not a re-rendered client-side fixture.
+    preview = client.get(f"/api/incidents/{left['incident_id']}/handoff/preview")
+    assert preview.status_code == 200, preview.text
+    exported = client.get(f"/api/incidents/{left['incident_id']}/handoff")
+    assert exported.status_code == 200, exported.text
+    assert exported.content == preview.json()["markdown"].encode()
 
     # Read-only consumers must not call providers or change pins/evidence.
     def forbidden(*_args, **_kwargs):

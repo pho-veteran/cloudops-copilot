@@ -25,6 +25,8 @@ from cloudops.features.workloads.observation_schemas import (
 CERT = Path(__file__).resolve().parent / "fixtures/scope-ca.crt"
 WINDOW_START = datetime(2026, 1, 1, tzinfo=timezone.utc)
 WINDOW_END = WINDOW_START + timedelta(minutes=30)
+INJECTOR_CANARY = "injector-truth-canary"
+INJECTOR_SECRET = "injector-secret-canary"
 KUBERNETES_KEYS = (
     "kubernetes.state",
     "kubernetes.events",
@@ -90,6 +92,18 @@ class FakeKubernetes:
                 "nodeName": "fixture-node",
             },
         }
+        if self.scenario == "injector":
+            pod["metadata"]["annotations"] = {
+                "cloudops.io/injector-truth": INJECTOR_CANARY,
+                "kubectl.kubernetes.io/restartedAt": "2026-01-01T00:00:00Z",
+            }
+            pod["spec"]["containers"][0]["env"] = [
+                {"name": "INJECTOR_TRUTH", "value": INJECTOR_CANARY},
+                {
+                    "name": "TOKEN",
+                    "valueFrom": {"secretKeyRef": {"name": "injector-secret", "key": "token"}},
+                },
+            ]
         if self.scenario == "pending":
             pod["spec"].pop("nodeName")
             pod["status"] = {
@@ -160,7 +174,7 @@ class FakeKubernetes:
         return [self._pod(namespace, name, index) for index in range(2)]
 
     def get_deployment(self, namespace: str, name: str, expected_uid: str) -> dict:
-        return {
+        deployment = {
             "apiVersion": "apps/v1",
             "kind": "Deployment",
             "metadata": {
@@ -194,6 +208,17 @@ class FakeKubernetes:
                 "availableReplicas": 1,
             },
         }
+        if self.scenario == "injector":
+            deployment["metadata"]["annotations"]["cloudops.io/injector-truth"] = INJECTOR_CANARY
+            container = deployment["spec"]["template"]["spec"]["containers"][0]
+            container["env"] = [
+                {"name": "INJECTOR_TRUTH", "value": INJECTOR_CANARY},
+                {
+                    "name": "TOKEN",
+                    "valueFrom": {"secretKeyRef": {"name": "injector-secret", "key": "token"}},
+                },
+            ]
+        return deployment
 
     def list_owned_replicasets(self, namespace: str, deployment_uid: str) -> list[dict]:
         return [
@@ -279,16 +304,21 @@ class FakeKubernetes:
         return text, False
 
     def get_configmap_metadata(self, namespace: str, name: str) -> dict:
-        return {
+        metadata = {
+            "uid": "cm-1",
+            "name": name,
+            "namespace": namespace,
+            "resourceVersion": "cm-rv-1",
+        }
+        value = {
             "kind": "PartialObjectMetadata",
             "apiVersion": "meta.k8s.io/v1",
-            "metadata": {
-                "uid": "cm-1",
-                "name": name,
-                "namespace": namespace,
-                "resourceVersion": "cm-rv-1",
-            },
+            "metadata": metadata,
         }
+        if self.scenario == "injector":
+            metadata["annotations"] = {"cloudops.io/injector-truth": INJECTOR_CANARY}
+            value["data"] = {"injector-truth": INJECTOR_CANARY}
+        return value
 
 
 def _config() -> PrometheusConfig:

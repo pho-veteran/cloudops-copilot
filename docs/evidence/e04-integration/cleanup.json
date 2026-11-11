@@ -1,6 +1,6 @@
 {
   "schema": "E04IntegratedCleanup/v1",
-  "recorded_at": "2026-11-10T18:14:30Z",
+  "recorded_at": "2026-11-11T03:15:00Z",
   "projects": [
     {
       "name": "cloudops-e04-50",
@@ -35,6 +35,7 @@
   "receipts_retained": [
     "acceptance.json",
     "dispatch.json",
+    "provider-outage.json",
     "browser.json",
     "checks.json",
     "screenshots under docs/evidence/e04-integration/"
