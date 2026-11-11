@@ -1,0 +1,35 @@
+{
+  "schema": "Knowledge58VersionUpdate/v1",
+  "recorded_at": "2026-11-11T11:13:25.262436+00:00",
+  "reviewed_source_commit": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+  "corpus_commit": "da74c4efdee83111c6154a14b680137ff6d77896",
+  "checker_sha256": "3beea2e9d1368e919f8f684daf48b6b280ce89f15ee971797b2d73dd54331e0b",
+  "document_key": "crashloop-startup",
+  "baseline": {
+    "version": "1",
+    "bytes": 5164,
+    "content_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609"
+  },
+  "same_version_mutation": {
+    "change": "Appended a controlled revision sentence after copying the baseline.",
+    "changed_bytes": 5186,
+    "content_sha256": "8161d36111d9f0d4fa8927c2e09b935e3ece79e04b0bfb36654d6faaad4b69ca",
+    "rejected": true,
+    "conflicts": [
+      {
+        "document_key": "crashloop-startup",
+        "version": "1",
+        "reason": "same key/version has different content or versioned metadata"
+      }
+    ],
+    "errors": []
+  },
+  "new_version": {
+    "version": "2",
+    "content_sha256": "8161d36111d9f0d4fa8927c2e09b935e3ece79e04b0bfb36654d6faaad4b69ca",
+    "valid": true
+  },
+  "original_bytes_unchanged": true,
+  "proof_class": "controlled temporary file-copy drill; not database retention or index history",
+  "note": "The baseline file remains byte-identical because the candidate was copied before mutation."
+}
