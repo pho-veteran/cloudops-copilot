@@ -1,0 +1,54 @@
+{
+  "base_url": "http://127.0.0.1:8001",
+  "catalog": {
+    "count": 8,
+    "document_keys": [
+      "crashloop-startup",
+      "image-pull",
+      "oom-restarts",
+      "pending-unschedulable",
+      "restore-deployment-template",
+      "scale-deployment",
+      "set-memory-profile",
+      "traffic-latency-errors"
+    ],
+    "generation_id": "1ce682d3-0800-4e31-a97b-8ace31be21d1",
+    "source_digest": "b02fbc5768b1322b30d5a9c697523be71d8fcedde6fb9b2796b38541a3cc2a6a"
+  },
+  "chunk": {
+    "bytes": 61,
+    "chunk_id": "0b0c4869-76ce-4f2d-a3b2-4c015614cd54",
+    "content_sha256": "ecda71b0c4774dc72d080bc664811032333946b5ee2d71f7959dd34d6cccbe74",
+    "document_version_id": "48a0346b-059a-44ef-b8bb-ebf92bbad417",
+    "heading_path": [
+      "Investigate CrashLoop and startup failures after a change"
+    ]
+  },
+  "exact": [
+    {
+      "bytes": 5164,
+      "content_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+      "document_version_id": "48a0346b-059a-44ef-b8bb-ebf92bbad417"
+    },
+    {
+      "bytes": 4239,
+      "content_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+      "document_version_id": "a9beefff-882c-4def-b27d-687529546d8d"
+    },
+    {
+      "bytes": 4915,
+      "content_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+      "document_version_id": "a8a492da-e2fd-4386-aba9-9aae7f49ee68"
+    }
+  ],
+  "schema": "Knowledge59Probe/v1",
+  "status": {
+    "active_generation_id": "1ce682d3-0800-4e31-a97b-8ace31be21d1",
+    "catalog_search_available": true,
+    "chunk_count": 64,
+    "document_count": 8,
+    "has_active_generation": true,
+    "read_available": true,
+    "state": "ready"
+  }
+}

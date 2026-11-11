@@ -1,0 +1,12 @@
+{
+  "proof_class": "PostgreSQL tests with the real session-level advisory guard; not a late-publish claim for an unowned live process",
+  "result": "guard busy produced index_busy; failed/interrupted writes retained the last active generation and recovered on explicit retry",
+  "schema": "Knowledge59WriterRecovery/v1",
+  "tests": [
+    "test_busy_writer_does_not_capture_or_activate",
+    "test_failed_update_then_retry_preserves_last_good",
+    "test_interrupted_attempt_is_reconciled_by_next_writer",
+    "test_same_version_conflict_keeps_active_generation",
+    "test_invalid_source_keeps_last_good"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "api_process_stopped": true,
+  "owned_project": "cloudops-knowledge59-test",
+  "proof_class": "Local lab cleanup; no shared or unrelated compose project was stopped",
+  "schema": "Knowledge59Cleanup/v1",
+  "unrelated_containers_volumes_preserved": true,
+  "volume_removed": true
+}
