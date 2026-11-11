@@ -1,0 +1,30 @@
+{
+  "schema": "Knowledge58FollowupChecks/v1",
+  "recorded_at": "2026-11-11T11:35:08.447705+00:00",
+  "source_commit": "87a249d2165bcfc3cfa666fec41f899081870dce",
+  "regression_before_fix": {
+    "failed": 14,
+    "deselected": 34,
+    "cases": "Non-object CLI catalogs, catalog reparse-before-read, bounded actual I/O"
+  },
+  "focused": {
+    "passed": 51,
+    "skipped": 1,
+    "seconds": 1.5
+  },
+  "tests_unit": {
+    "passed": 476,
+    "skipped": 2,
+    "warnings": 1,
+    "seconds": 10.61
+  },
+  "ruff": {
+    "check": "passed",
+    "format": "194 files already formatted"
+  },
+  "limits": [
+    "Windows cannot create the existing native symlink fixture; Linux CI must verify that case.",
+    "The other unit-suite skip is pre-existing; exact final-head CI is recorded separately in the PR.",
+    "No API/schema/migration/UI/index/retrieval/model/cluster behavior is added or qualified."
+  ]
+}
