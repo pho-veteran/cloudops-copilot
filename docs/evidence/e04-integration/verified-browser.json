@@ -1,0 +1,206 @@
+{
+  "schema": "E04FollowupBrowser/v1",
+  "browser": "Codex in-app browser, explicitly authorized fallback after native Edge URL-policy interruptions",
+  "origin": "http://localhost:5173",
+  "pair": {
+    "left": "bc6c0484-dd54-4567-a734-5566226b435a",
+    "right": "d29be09c-22b9-496f-99ce-aef6d3523506"
+  },
+  "checks": [
+    {
+      "keyboard_return": true,
+      "focused_after_return": "kubernetes.state differences",
+      "locator_cleared": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "comparison": {
+        "bottom": 668.0499877929688,
+        "dark": false,
+        "height": 844,
+        "scrollWidth": 375,
+        "text": "deployment/revisionchanged · Left\"1\"Open exact left evidence targetRight\"2\"Open exact right evidence target",
+        "top": 379.1499938964844,
+        "width": 390
+      },
+      "citation": {
+        "bottom": 651.2000122070312,
+        "focused": "Exact citation target",
+        "height": 844,
+        "text": "Exact citation targetdeployment/revision\"1\"Evidence: 12b086ab-9c10-4542-8908-93e166761daa · SHA-256: 54e90305a38c12528259a2fb31ac880d57cb71417c77b6388d53e0e95d3d5680",
+        "top": 394.5
+      },
+      "keyboard_return": true,
+      "filter_retained": "changed"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "comparison": {
+        "bottom": 683.25,
+        "dark": true,
+        "height": 844,
+        "scrollWidth": 375,
+        "text": "deployment/revisionchanged · Left\"1\"Open exact left evidence targetRight\"2\"Open exact right evidence target",
+        "top": 394.3500061035156,
+        "width": 390
+      },
+      "citation": {
+        "bottom": 651.2000122070312,
+        "focused": "Exact citation target",
+        "height": 844,
+        "text": "Exact citation targetdeployment/revision\"1\"Evidence: 12b086ab-9c10-4542-8908-93e166761daa · SHA-256: 54e90305a38c12528259a2fb31ac880d57cb71417c77b6388d53e0e95d3d5680",
+        "top": 394.5
+      },
+      "keyboard_return": true,
+      "filter_retained": "changed"
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "comparison": {
+        "bottom": 704.3500061035156,
+        "dark": false,
+        "height": 844,
+        "scrollWidth": 305,
+        "text": "deployment/revisionchanged · Left\"1\"Open exact left evidence targetRight\"2\"Open exact right evidence target",
+        "top": 394.4500122070313,
+        "width": 320
+      },
+      "citation": {
+        "bottom": 697.5,
+        "focused": "Exact citation target",
+        "height": 844,
+        "text": "Exact citation targetdeployment/revision\"1\"Evidence: 12b086ab-9c10-4542-8908-93e166761daa · SHA-256: 54e90305a38c12528259a2fb31ac880d57cb71417c77b6388d53e0e95d3d5680",
+        "top": 394.6000061035156
+      },
+      "keyboard_return": true,
+      "filter_retained": "changed"
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "comparison": {
+        "bottom": 704.3500061035156,
+        "dark": true,
+        "height": 844,
+        "scrollWidth": 305,
+        "text": "deployment/revisionchanged · Left\"1\"Open exact left evidence targetRight\"2\"Open exact right evidence target",
+        "top": 394.4500122070313,
+        "width": 320
+      },
+      "citation": {
+        "bottom": 697.5,
+        "focused": "Exact citation target",
+        "height": 844,
+        "text": "Exact citation targetdeployment/revision\"1\"Evidence: 12b086ab-9c10-4542-8908-93e166761daa · SHA-256: 54e90305a38c12528259a2fb31ac880d57cb71417c77b6388d53e0e95d3d5680",
+        "top": 394.6000061035156
+      },
+      "keyboard_return": true,
+      "filter_retained": "changed"
+    },
+    {
+      "focus_after_delayed_payload": true,
+      "theme_controls_used": true,
+      "viewport_panels_fully_visible": true
+    },
+    {
+      "ui_swap_revision": "deployment/revision\n\nchanged ·\n\nLeft\n\"2\"\nOpen exact left evidence target\nRight\n\"1\"\nOpen exact right evidence target"
+    },
+    {
+      "browser_back_restored_comparison": true
+    },
+    {
+      "viewer_exact_citation": true,
+      "mutation_form_absent": true
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "comparison": {
+        "background": "rgb(16, 18, 22)",
+        "bottom": 613.0500030517578,
+        "dark": true,
+        "height": 900,
+        "scrollWidth": 1265,
+        "text": "deployment/revisionchanged · Left\"1\"Open exact left evidence targetRight\"2\"Open exact right evidence target",
+        "top": 418.75,
+        "width": 1280
+      },
+      "citation": {
+        "bottom": 524.5999984741211,
+        "focused": "Exact citation target",
+        "height": 900,
+        "text": "Exact citation targetLoading saved application data…",
+        "top": 418.8999938964844
+      }
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "comparison": {
+        "background": "rgb(247, 248, 250)",
+        "bottom": 613.0500030517578,
+        "dark": false,
+        "height": 900,
+        "scrollWidth": 1265,
+        "text": "deployment/revisionchanged · Left\"1\"Open exact left evidence targetRight\"2\"Open exact right evidence target",
+        "top": 418.75,
+        "width": 1280
+      },
+      "citation": {
+        "bottom": 524.5999984741211,
+        "focused": "Exact citation target",
+        "height": 900,
+        "text": "Exact citation targetLoading saved application data…",
+        "top": 418.8999938964844
+      }
+    }
+  ],
+  "screenshots": [
+    "verified-compare-390-light.jpg",
+    "verified-citation-390-light.jpg",
+    "verified-compare-390-dark.jpg",
+    "verified-citation-390-dark.jpg",
+    "verified-compare-320-light.jpg",
+    "verified-citation-320-light.jpg",
+    "verified-compare-320-dark.jpg",
+    "verified-citation-320-dark.jpg",
+    "verified-compare-1280-light.jpg",
+    "verified-citation-1280-light.jpg",
+    "verified-compare-1280-dark.jpg",
+    "verified-citation-1280-dark.jpg",
+    "verified-saved-export-1280-light.jpg",
+    "verified-viewer-citation-390-light.jpg",
+    "verified-session-expired-390-light.jpg"
+  ],
+  "downloads": {
+    "saved_handoff": {
+      "sha256": "456664fe2c4bb509ed0ed225c867701a3cc73576b9a3ee3221681b42e1c8a7f9",
+      "bytes": 10746,
+      "resolution_id": "af03c8f2-b15a-4b69-bdc5-072969cf4ab4",
+      "matches_api_baseline": true
+    },
+    "comparison": {
+      "rows": 3,
+      "source": "kubernetes.state",
+      "real_download": true
+    }
+  },
+  "session_revocation": {
+    "before": "http://localhost:5173/#/incidents/2feb5f8e-0d58-43c6-b6af-81733236e10e?run=bc6c0484-dd54-4567-a734-5566226b435a&evidence=12b086ab-9c10-4542-8908-93e166761daa&compare_left_incident=2feb5f8e-0d58-43c6-b6af-81733236e10e&compare_left_run=bc6c0484-dd54-4567-a734-5566226b435a&compare_incident=2feb5f8e-0d58-43c6-b6af-81733236e10e&compare_run=d29be09c-22b9-496f-99ce-aef6d3523506&compare_source=kubernetes.state&compare_catalog=standard_v1&locator_kind=field&locator_key=v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109",
+    "after": "http://localhost:5173/#/incidents/2feb5f8e-0d58-43c6-b6af-81733236e10e?run=bc6c0484-dd54-4567-a734-5566226b435a&evidence=12b086ab-9c10-4542-8908-93e166761daa&compare_left_incident=2feb5f8e-0d58-43c6-b6af-81733236e10e&compare_left_run=bc6c0484-dd54-4567-a734-5566226b435a&compare_incident=2feb5f8e-0d58-43c6-b6af-81733236e10e&compare_run=d29be09c-22b9-496f-99ce-aef6d3523506&compare_source=kubernetes.state&compare_catalog=standard_v1&locator_kind=field&locator_key=v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109",
+    "requires_sign_in": true,
+    "exact_return_route": true,
+    "restored_exact_citation_after_login": true
+  },
+  "recorded_at": "2026-11-11T04:19:26.330Z",
+  "web_image": "sha256:30f1a67b12690502284024976c052cb7f4e43ce618b98ba4a891836314e0f1bc",
+  "data_receipt": "verified-ui-input.json",
+  "source_sha256": {
+    "apps/web/src/features/investigations/EvidenceCatalog.tsx": "a02c7e82b834a23ddbd24ac6d4413b0f101b06fafd80319deb24f54f427cd266",
+    "apps/web/src/features/investigations/CitationTarget.tsx": "7e441f59b01199d9ac605c0d1ec8686ea9402562a11a8222fc3c44a013a0cb93"
+  },
+  "theme_capture_correction": "Initial desktop dark captures were rejected by hash/DOM validation. Desktop pairs were recaptured only after html class and computed background confirmed the requested theme. Viewer/session/export supplemental captures are accurately labeled light."
+}

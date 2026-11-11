@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { components } from "@/lib/api/generated/schema";
 import type * as ApiClient from "@/lib/api/client";
@@ -105,6 +105,35 @@ afterEach(() => {
   clients.splice(0).forEach((client) => client.clear());
   http.fetch.mockReset();
   window.history.replaceState(null, "", "/");
+});
+
+it("keeps an exact citation ahead of a late-loading large payload without stealing focus", async () => {
+  const locator = { kind: "field", key: `v1_${"a".repeat(64)}` };
+  const target = { locator, label: "fixture field", value: "retained target", multiplicity: 1,
+    ambiguous: false, preview_truncated: false };
+  window.location.hash = buildIncidentHash(incident, runId, "#/queue", "", evidenceId, {
+    locatorKind: "field", locatorKey: locator.key,
+  });
+  let finishContent!: (response: Response) => void;
+  const lateContent = new Promise<Response>((resolve) => { finishContent = resolve; });
+  http.fetch.mockImplementation(async (input) => {
+    const path = new URL((input as Request).url).pathname;
+    if (path.endsWith("/content")) return lateContent;
+    if (path.endsWith("/citation-targets")) return Response.json({ items: [target], next_cursor: null });
+    if (path.endsWith("/citation")) return Response.json({ evidence, target });
+    return Response.json(evidence);
+  });
+  mount(evidenceId);
+  const heading = await screen.findByRole("heading", { name: "Exact citation target" });
+  await waitFor(() => expect(document.activeElement).toBe(heading));
+  await act(async () => finishContent(Response.json({
+    evidence_id: evidenceId, run_id: runId, schema_version: 1,
+    payload_kind: "fixture", payload_version: 1, sha256: evidence.sha256,
+    payload: { observation: "Large retained content ".repeat(1000) },
+  })));
+  const contentHeading = await screen.findByRole("heading", { name: "Stored content" });
+  expect(heading.compareDocumentPosition(contentHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(document.activeElement).toBe(heading);
 });
 
 it("links to exact historical evidence without fetching content until selected", () => {

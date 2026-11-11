@@ -285,7 +285,7 @@ def main():
     args.output.write_text(
         json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    print(f"Job dispatch probe passed; receipt written to {args.output.relative_to(ROOT)}.")
+    print(f"Job dispatch probe passed; receipt written to {args.output}.")
 
 
 if __name__ == "__main__":

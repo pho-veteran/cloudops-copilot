@@ -1,0 +1,80 @@
+{
+  "schema": "E04IntegratedChecks/v1",
+  "recorded_at": "2026-11-10T18:13:30Z",
+  "starting_commit": "f6941c9",
+  "backend": {
+    "cwd": "repository root",
+    "collected": 1155,
+    "passed": 1145,
+    "skipped": 10,
+    "note": "Final suite after the provider-outage, injector-canary and export checks; all tests use the owned cloudops_test database.",
+    "split": [
+      {
+        "command": "uv run --project services/backend pytest -q services/backend/tests_unit services/backend/tests --ignore=services/backend/tests/test_permissions.py",
+        "passed": 917,
+        "skipped": 10,
+        "duration_seconds": 558.04
+      },
+      {
+        "command": "uv run --project services/backend pytest -q services/backend/tests/test_permissions.py",
+        "passed": 228,
+        "skipped": 0,
+        "duration_seconds": 469.4
+      }
+    ],
+    "focused_e04": {
+      "command": "uv run --project services/backend pytest -q services/backend/tests/test_e04_integration.py",
+      "passed": 9,
+      "repeat": "10/10 consecutive runs passed after the final checks"
+    }
+  },
+  "web": {
+    "tests_passed": 194,
+    "files": 22,
+    "build": "passed"
+  },
+  "lint": {
+    "ruff_check": "passed",
+    "ruff_format": "191 files already formatted"
+  },
+  "contracts": {
+    "generated_contracts": "match backend models",
+    "deliberate_drift": "rejected as expected"
+  },
+  "live_acceptance": {
+    "receipt": "acceptance.json",
+    "packs": {
+      "crashloop_startup": "partial (kubernetes.logs.previous partial/no_samples; content stored)",
+      "oom_restarts": "partial (kubernetes.logs.previous partial/no_samples; content stored)",
+      "traffic_latency_errors": "available",
+      "pending_unschedulable": "available",
+      "image_pull": "available"
+    },
+    "source_outcomes_per_pack": 12,
+    "restart": "evidence IDs and SHA-256 matched before/after API+worker restart",
+    "comparison": "12-source comparable; metric samples not_comparable for unequal windows",
+    "timeline": "window_start/window_end; no invented markers"
+  },
+  "dispatch": {
+    "receipt": "dispatch.json",
+    "actual_collection_class_takeover": "passed",
+    "enter_recovery": "denied collection claim",
+    "resume_recommendation_only": "run stayed queued",
+    "resume_collection": "run completed",
+    "late_result_fenced": true
+  },
+  "browser": {
+    "receipt": "browser.json",
+    "screenshots": 21,
+    "edge": "managed Microsoft Edge launch; HTTP loopback origin; no trust bypass",
+    "themes": "verified html.dark/rgb(16,18,22) and light rgb(247,248,250); light/dark image hashes differ"
+  },
+  "integrated_proofs": {
+    "provider_outage": "Live Prometheus-stop receipt preserves existing Run content hashes, timeline and 12-source comparison; controlled failed-successor test also reads prior content/export",
+    "injector_truth": "Injector annotations, env values and Secret reference canaries are absent from every stored payload/digest; test_e04_integration",
+    "export": "Stored handoff preview markdown bytes equal the exported response; test_e04_integration",
+    "source_budgets": "test_evidence_redaction covers per-source allocation/truncation, maximum samples and 8 MiB total canonical bounds",
+    "restore_order": "dispatch.json audit bootstrap → enter_recovery → class resume → exit_recovery; executor maintenance remains E07/E10"
+  },
+  "migration": "No new migration in this test-only acceptance slice; existing migration suite passed."
+}

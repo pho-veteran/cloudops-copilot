@@ -1,0 +1,52 @@
+{
+  "candidate_start": "8e93a128cd74c6c5563d10ff8a64bdfac34eae92",
+  "source_sha256": {
+    "scripts/bootstrap-integration.py": "fe0e1f5b1163c48f8c1280ef45aec8fad5c7582419b4096c444489b3dc3c4509",
+    "scripts/probe-e04-integration.py": "79c3ebe8e54ec4b1e8e2a3445331cf1142eb2f9178e2115a4b67927f304b27d6",
+    "scripts/probe-e04-restore.py": "539a1754169767cc0b58bfddfcb5f6734b16aed2a06aa409185fa12f48cf5b7f",
+    "services/backend/tests_unit/test_e04_probe.py": "1b3dbec7050695b25f35bf9750a95fba5fc5eb3a553509ee43c0fad3400ac838",
+    "apps/web/src/features/investigations/CitationTarget.tsx": "aff6a70cb4b8fc0d8b27571fda68f91bad48f6b27aa7f3614bb8ce8b0630f3ed",
+    "apps/web/src/features/investigations/EvidenceCatalog.tsx": "a02c7e82b834a23ddbd24ac6d4413b0f101b06fafd80319deb24f54f427cd266"
+  },
+  "runtime_backend_source_sha256": {
+    "services/backend/src/cloudops/features/investigations/admission_settings.py": "8963874191afcc27ae68cb2fa5772b22a75328d8bd04e0e9f04331545f7593bf",
+    "services/backend/src/cloudops/features/investigations/api.py": "cd357b8c46d204bbc87c724e0e3996c490dc839e4d2f1564be0c832118fb5a12",
+    "services/backend/src/cloudops/features/investigations/catalog.py": "739d01409ad52dd7ca973bb571aab297df22e49558571a59d812b70c6eec5b55",
+    "services/backend/src/cloudops/features/investigations/citation_schemas.py": "886265b834adb8b8bf5a8b2cb3fa22dc2fc0f804daa5659ad4e247b7c360791f",
+    "services/backend/src/cloudops/features/investigations/collector.py": "66f13163db562bf33f6075177cd02d64d59e37ef15376466f95c8f428da924c2",
+    "services/backend/src/cloudops/features/investigations/comparison.py": "d60e339ff804741ca1ce15578baf20825d259235373ad823b03fec2b1f1d61a4",
+    "services/backend/src/cloudops/features/investigations/comparison_api.py": "b8b51226901bbb47d4cb5363be3ba5b1eb708759a3eb09fbb215a236d6d83af0",
+    "services/backend/src/cloudops/features/investigations/comparison_schemas.py": "89dbc7720640dc388536abf00d4830d4672edd2d99a9f2a05cdd45e1fef31184",
+    "services/backend/src/cloudops/features/investigations/comparison_service.py": "9ac75586267b72f6600fce1fbf1370646074ec21bfd6fde26638f699956259b0",
+    "services/backend/src/cloudops/features/investigations/kubernetes_collector.py": "a25d1afd171ed2bb770ce44d41b9cba8134114e62fcaf0f8da0407d12c2fa0ed",
+    "services/backend/src/cloudops/features/investigations/locators.py": "8cbbccb55f2f01092cd5d21300a890581094971bedc17de779055142b28c2feb",
+    "services/backend/src/cloudops/features/investigations/models.py": "e91da77cf263ee500dbbc88a1b44b53f55ea4117747afa95ee59f3f79c63ade0",
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "c1a013e6bc3c07bbecd390ac792ded7acfaaa1a6841cd425f08e26b7f8142c1e",
+    "services/backend/src/cloudops/features/investigations/prometheus_config.py": "1ca74dd0e06739832ca5beb6d70a108946f7a3822a81609c90ba94b5314e4609",
+    "services/backend/src/cloudops/features/investigations/promotion.py": "87bcb0a2e70a641c495fbe69b40f0222e78f97772f448d6849a02ce60619c2e6",
+    "services/backend/src/cloudops/features/investigations/retention.py": "8b8585271f5362db8268c7dda9fcadcf5c86efcf8c12bea08f3e45c4e6184780",
+    "services/backend/src/cloudops/features/investigations/schemas.py": "2730aa9df4d1e56e5797bfd7281748b89c14f522af4751fb972e9cb6901a7aa2",
+    "services/backend/src/cloudops/features/investigations/service.py": "118e83edf10321ccc1484a98fe4020663c92992400abdf82cccad594874f8f74",
+    "services/backend/src/cloudops/features/investigations/states.py": "016c3dc313688ffdb1d5bf6cd2401c00c46d59b34fa2e99de679b8948591779a",
+    "services/backend/src/cloudops/features/investigations/storage.py": "099dbffd951982209a6e8b8b80befa7730e53d169b4d9c4b72d00039f0636f73",
+    "services/backend/src/cloudops/features/investigations/timeline.py": "ac7a31ba8361feec22f3a8e4ab2b3ab94a2a9f725a58b5cc2b6eb75f4436de63",
+    "services/backend/src/cloudops/features/investigations/timeline_schemas.py": "8774034db2e1766c32981234040c177984319f3a0e2e303a36a720a584c0a9b6",
+    "services/backend/src/cloudops/shared/jobs.py": "952e4dba4836867edfd6e2588b11f7905d5584ded9f2c2f3ce61069c5c4f8a7c",
+    "services/backend/src/cloudops/shared/dispatch_permit.py": "0a7472c22186fe08913b102b63db018074bf662547cfac3dd88c461bf103614f",
+    "services/backend/src/cloudops/entrypoints/worker.py": "b47c5c840f0cd949de8ffb71bc4c72b8be31add9e70ca0266e2792d4914559c4",
+    "services/backend/src/cloudops/features/incidents/handoff.py": "1009a7b5cddd70767376028ed4333a1b044fd740600ad19fe78798bfb55c5a2c"
+  },
+  "runtime_web_source_sha256": {
+    "src/features/investigations/CitationTarget.tsx": "aff6a70cb4b8fc0d8b27571fda68f91bad48f6b27aa7f3614bb8ce8b0630f3ed",
+    "src/features/investigations/EvidenceCatalog.tsx": "a02c7e82b834a23ddbd24ac6d4413b0f101b06fafd80319deb24f54f427cd266"
+  },
+  "images": {
+    "api": "sha256:2bf40eeb8b99f8171f9b60302ebaf77d9a730004d8c622589d66098489f09f4d",
+    "worker": "sha256:2bf40eeb8b99f8171f9b60302ebaf77d9a730004d8c622589d66098489f09f4d",
+    "web": "sha256:157bdcf7658db5dab39458c404aee5186351b8ce9cdc9c8d6aa6000026aadf48",
+    "https": "sha256:26557cf65a761cb2611059f5fd7840f4fd4ea4e721c983c1bca96f418b3d3046",
+    "prometheus": "sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996",
+    "k3s": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d"
+  },
+  "driver_hashes_match_recorded_launch": true
+}

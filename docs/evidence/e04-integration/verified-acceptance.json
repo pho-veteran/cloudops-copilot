@@ -1,0 +1,2242 @@
+{
+  "schema": "E04IntegratedAcceptance/v1",
+  "driver_sha256": "b84c4469af6c23ccadc3a46d39905f7b4a91a02838cffa476557bac8324ce899",
+  "recorded_at": "2026-11-11T04:05:43.813293+00:00",
+  "origin": "http://localhost:5173",
+  "proof_classes": {
+    "producers": "Actual configured live_kubernetes and prometheus providers against the owned K3s/Prometheus lab.",
+    "consumers": "Actual API, PostgreSQL, worker, stored evidence, timeline and comparison routes.",
+    "browser": "Separate Edge receipt; the API receipt does not claim browser pixels."
+  },
+  "packs": {
+    "crashloop_startup": {
+      "incident_id": "6245222d-98f0-45fb-9aa8-6c8dd9bdcd97",
+      "run_id": "15aafa39-707d-4e3a-b322-084554f044f4",
+      "state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "window": {
+        "start": "2026-11-11T04:04:54.586335Z",
+        "end": "2026-11-11T04:05:54.586335Z",
+        "source": "explicit"
+      },
+      "pack": {
+        "pack": "crashloop_startup",
+        "status": "partial",
+        "missing_required": [
+          "kubernetes.logs.previous"
+        ],
+        "optional_gaps": [
+          "kubernetes.configmap.metadata"
+        ]
+      },
+      "sources": {
+        "development_fixture": {
+          "source_key": "development_fixture",
+          "id": "aa6e1e5e-18e6-483d-85c9-74cfbf3c6e57",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.configmap.metadata": {
+          "source_key": "kubernetes.configmap.metadata",
+          "id": "ffe807f8-0de5-4907-a8b0-aad34ae83775",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.events": {
+          "source_key": "kubernetes.events",
+          "id": "b2218c49-b79f-4d50-ad0d-317d1dc54450",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "7208e98a4a24c1b018c0ef431c4fde9c9ff5d937a592b2d458663e2c5170ee50",
+          "query_metadata": null,
+          "payload_sha256": "7208e98a4a24c1b018c0ef431c4fde9c9ff5d937a592b2d458663e2c5170ee50",
+          "payload_kind": "events"
+        },
+        "kubernetes.logs.current": {
+          "source_key": "kubernetes.logs.current",
+          "id": "ea99a07e-ca1c-43a2-82c4-fb384f996fc7",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "f8d438638517c931ef1dd246038c6dbd1c33f17ddbaea74f1dd76a5e50129078",
+          "query_metadata": null,
+          "payload_sha256": "f8d438638517c931ef1dd246038c6dbd1c33f17ddbaea74f1dd76a5e50129078",
+          "payload_kind": "logs"
+        },
+        "kubernetes.logs.previous": {
+          "source_key": "kubernetes.logs.previous",
+          "id": "202f3828-ada4-4954-b02d-0c1ae98fae22",
+          "coverage": {
+            "status": "partial",
+            "reason_codes": [
+              "no_samples"
+            ]
+          },
+          "content_status": "available",
+          "sha256": "6d13dd257f7280106e75ac18bb0f67a62cdcfadaca16bf250f3f3041c822ee84",
+          "query_metadata": null,
+          "payload_sha256": "6d13dd257f7280106e75ac18bb0f67a62cdcfadaca16bf250f3f3041c822ee84",
+          "payload_kind": "logs"
+        },
+        "kubernetes.state": {
+          "source_key": "kubernetes.state",
+          "id": "546f95d6-5fe3-49ee-bf89-ccf91253d574",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "7d4af553b8cdb51a316b43226595fe51d7b10caab1e4661e918169877caba22b",
+          "query_metadata": null,
+          "payload_sha256": "7d4af553b8cdb51a316b43226595fe51d7b10caab1e4661e918169877caba22b",
+          "payload_kind": "state"
+        },
+        "prometheus.error_ratio": {
+          "source_key": "prometheus.error_ratio",
+          "id": "993b079d-0d86-479a-9902-ac52893975f1",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "6341ca0f5f05d1f55693810193ee539b0d26e95d327023b2c34f95a2e04f9e07",
+          "query_metadata": {
+            "step": 30,
+            "unit": "ratio",
+            "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:05:54.586335+00:00",
+              "start": "2026-11-11T04:04:54.586335+00:00"
+            },
+            "query_id": "error_ratio",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"a3be9c8f-eb42-4cd0-be2b-b7feb27b7418\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "a3be9c8f-eb42-4cd0-be2b-b7feb27b7418"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "6341ca0f5f05d1f55693810193ee539b0d26e95d327023b2c34f95a2e04f9e07",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_limit": {
+          "source_key": "prometheus.memory_limit",
+          "id": "ef047980-d9ca-4137-9dff-1479228c9232",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "b76e07ef636be1e29bff7259bfed8896da4ee0f0735783ace73380445bf4f1b6",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:05:54.586335+00:00",
+              "start": "2026-11-11T04:04:54.586335+00:00"
+            },
+            "query_id": "memory_limit",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"a3be9c8f-eb42-4cd0-be2b-b7feb27b7418\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "a3be9c8f-eb42-4cd0-be2b-b7feb27b7418"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "b76e07ef636be1e29bff7259bfed8896da4ee0f0735783ace73380445bf4f1b6",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_working_set": {
+          "source_key": "prometheus.memory_working_set",
+          "id": "54e3bf9e-61ab-44b2-bd4b-3e71c2d8f5a3",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "efbcdd0c7a3257b4057eb49c3ef327588c8a3155d738ab78411ccc236b8ce1ad",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:05:54.586335+00:00",
+              "start": "2026-11-11T04:04:54.586335+00:00"
+            },
+            "query_id": "memory_working_set",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"a3be9c8f-eb42-4cd0-be2b-b7feb27b7418\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "a3be9c8f-eb42-4cd0-be2b-b7feb27b7418"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "efbcdd0c7a3257b4057eb49c3ef327588c8a3155d738ab78411ccc236b8ce1ad",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.p95_latency": {
+          "source_key": "prometheus.p95_latency",
+          "id": "6ce7850f-7345-45f3-9c17-a9b28dc947ac",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "0e9aa0a0ee3c4c52340dd0560192a397ce719a55874daf9708c7df24e0cda194",
+          "query_metadata": {
+            "step": 30,
+            "unit": "seconds",
+            "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:05:54.586335+00:00",
+              "start": "2026-11-11T04:04:54.586335+00:00"
+            },
+            "query_id": "p95_latency",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"a3be9c8f-eb42-4cd0-be2b-b7feb27b7418\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "a3be9c8f-eb42-4cd0-be2b-b7feb27b7418"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "0e9aa0a0ee3c4c52340dd0560192a397ce719a55874daf9708c7df24e0cda194",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.request_rate": {
+          "source_key": "prometheus.request_rate",
+          "id": "3661241b-09a2-4bb1-b4cf-0d4c5e53cca0",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "029f3a1afdae739ecf5f1575271bc1ffd700ac9daebbc92802299f5bf8b74405",
+          "query_metadata": {
+            "step": 30,
+            "unit": "requests/s",
+            "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:05:54.586335+00:00",
+              "start": "2026-11-11T04:04:54.586335+00:00"
+            },
+            "query_id": "request_rate",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"a3be9c8f-eb42-4cd0-be2b-b7feb27b7418\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "a3be9c8f-eb42-4cd0-be2b-b7feb27b7418"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "029f3a1afdae739ecf5f1575271bc1ffd700ac9daebbc92802299f5bf8b74405",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.restarts": {
+          "source_key": "prometheus.restarts",
+          "id": "1913fe87-6925-4287-837d-b147d937c1ce",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "b3088841e26d4f291e4fe5aec9b213d317d63ca0559fe0833b043fec3ad23c13",
+          "query_metadata": {
+            "step": 30,
+            "unit": "count",
+            "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:05:54.586335+00:00",
+              "start": "2026-11-11T04:04:54.586335+00:00"
+            },
+            "query_id": "restarts",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"a3be9c8f-eb42-4cd0-be2b-b7feb27b7418\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "a3be9c8f-eb42-4cd0-be2b-b7feb27b7418"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "b3088841e26d4f291e4fe5aec9b213d317d63ca0559fe0833b043fec3ad23c13",
+          "series": 1,
+          "samples": 3
+        }
+      }
+    },
+    "oom_restarts": {
+      "incident_id": "dfada15f-e291-4fbd-9c22-ece8acfa1ede",
+      "run_id": "71aed5f5-fa55-46e2-8b4d-3071fc0b0424",
+      "state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "window": {
+        "start": "2026-11-11T04:05:19.289304Z",
+        "end": "2026-11-11T04:06:19.289304Z",
+        "source": "explicit"
+      },
+      "pack": {
+        "pack": "oom_restarts",
+        "status": "available",
+        "missing_required": [],
+        "optional_gaps": [
+          "kubernetes.configmap.metadata"
+        ]
+      },
+      "sources": {
+        "development_fixture": {
+          "source_key": "development_fixture",
+          "id": "81964f82-18a1-4e0c-a77c-425c827e0260",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.configmap.metadata": {
+          "source_key": "kubernetes.configmap.metadata",
+          "id": "7a30237d-b470-456c-bd7a-675236359f72",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.events": {
+          "source_key": "kubernetes.events",
+          "id": "b7172706-4ed1-4991-ab1a-f17349660c22",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "f1f77bbb1078c5bf260067a4119c6784925a95fd86a6984b8c71bbb3ab0e3b56",
+          "query_metadata": null,
+          "payload_sha256": "f1f77bbb1078c5bf260067a4119c6784925a95fd86a6984b8c71bbb3ab0e3b56",
+          "payload_kind": "events"
+        },
+        "kubernetes.logs.current": {
+          "source_key": "kubernetes.logs.current",
+          "id": "7ac89e83-d8c6-421a-9560-0113c0710a4a",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694",
+          "query_metadata": null,
+          "payload_sha256": "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694",
+          "payload_kind": "logs"
+        },
+        "kubernetes.logs.previous": {
+          "source_key": "kubernetes.logs.previous",
+          "id": "1077811a-7b1e-4c05-8793-6f9c4619489f",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694",
+          "query_metadata": null,
+          "payload_sha256": "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694",
+          "payload_kind": "logs"
+        },
+        "kubernetes.state": {
+          "source_key": "kubernetes.state",
+          "id": "a19a9b95-3fdc-4568-a9f5-b00ebe0ae78f",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "7672e900f5e25e5858e35875d2777a4c7550ffcf44af4df8ce2da700c419586e",
+          "query_metadata": null,
+          "payload_sha256": "7672e900f5e25e5858e35875d2777a4c7550ffcf44af4df8ce2da700c419586e",
+          "payload_kind": "state"
+        },
+        "prometheus.error_ratio": {
+          "source_key": "prometheus.error_ratio",
+          "id": "f5e21adc-3f9d-4f42-b374-e5b0d298aa7c",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "e6ff3be9c23a0790409118e7637e7c4165387fe198bbaf6f09e2b04462c89f48",
+          "query_metadata": {
+            "step": 30,
+            "unit": "ratio",
+            "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:19.289304+00:00",
+              "start": "2026-11-11T04:05:19.289304+00:00"
+            },
+            "query_id": "error_ratio",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"7dd203e3-fb57-465b-a22d-67ee32499a36\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "7dd203e3-fb57-465b-a22d-67ee32499a36"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "e6ff3be9c23a0790409118e7637e7c4165387fe198bbaf6f09e2b04462c89f48",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_limit": {
+          "source_key": "prometheus.memory_limit",
+          "id": "41407a87-1948-48be-8589-e6b08c2fab94",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "d3e670c0d690eaa6121d1c14d74d3c5e3acf875157e65c65e03c59ac98d23750",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:19.289304+00:00",
+              "start": "2026-11-11T04:05:19.289304+00:00"
+            },
+            "query_id": "memory_limit",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"7dd203e3-fb57-465b-a22d-67ee32499a36\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "7dd203e3-fb57-465b-a22d-67ee32499a36"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "d3e670c0d690eaa6121d1c14d74d3c5e3acf875157e65c65e03c59ac98d23750",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_working_set": {
+          "source_key": "prometheus.memory_working_set",
+          "id": "5d06cc79-2abc-4109-9db2-4a34e828fdd6",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "000b123399ff6801e1028cfb712d04f9bd68165f6b02664cf88cd9d7688cb4d3",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:19.289304+00:00",
+              "start": "2026-11-11T04:05:19.289304+00:00"
+            },
+            "query_id": "memory_working_set",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"7dd203e3-fb57-465b-a22d-67ee32499a36\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "7dd203e3-fb57-465b-a22d-67ee32499a36"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "000b123399ff6801e1028cfb712d04f9bd68165f6b02664cf88cd9d7688cb4d3",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.p95_latency": {
+          "source_key": "prometheus.p95_latency",
+          "id": "6050ee6c-8d79-4ce0-8539-953e75713ea0",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "fdb8e797d7de80f31c21ac8a38465fa294d7563ce62e0ba0b6472f12f52df06b",
+          "query_metadata": {
+            "step": 30,
+            "unit": "seconds",
+            "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:19.289304+00:00",
+              "start": "2026-11-11T04:05:19.289304+00:00"
+            },
+            "query_id": "p95_latency",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"7dd203e3-fb57-465b-a22d-67ee32499a36\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "7dd203e3-fb57-465b-a22d-67ee32499a36"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "fdb8e797d7de80f31c21ac8a38465fa294d7563ce62e0ba0b6472f12f52df06b",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.request_rate": {
+          "source_key": "prometheus.request_rate",
+          "id": "b11764a1-cb4a-4727-9785-63fb85ebd504",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "27d3f451fd86e019bf847baef96a58fee667b7a873e00922f89e938c95d5b12b",
+          "query_metadata": {
+            "step": 30,
+            "unit": "requests/s",
+            "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:19.289304+00:00",
+              "start": "2026-11-11T04:05:19.289304+00:00"
+            },
+            "query_id": "request_rate",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"7dd203e3-fb57-465b-a22d-67ee32499a36\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "7dd203e3-fb57-465b-a22d-67ee32499a36"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "27d3f451fd86e019bf847baef96a58fee667b7a873e00922f89e938c95d5b12b",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.restarts": {
+          "source_key": "prometheus.restarts",
+          "id": "348c5e2b-f1c6-4567-b5c7-76bfdd935c53",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "58e8698c9a4927e3a3ec5cd032e59cfd088e2f08ce09f764dcb5883ee72280ee",
+          "query_metadata": {
+            "step": 30,
+            "unit": "count",
+            "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:19.289304+00:00",
+              "start": "2026-11-11T04:05:19.289304+00:00"
+            },
+            "query_id": "restarts",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"7dd203e3-fb57-465b-a22d-67ee32499a36\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "7dd203e3-fb57-465b-a22d-67ee32499a36"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "58e8698c9a4927e3a3ec5cd032e59cfd088e2f08ce09f764dcb5883ee72280ee",
+          "series": 1,
+          "samples": 3
+        }
+      }
+    },
+    "traffic_latency_errors": {
+      "incident_id": "a3d215a4-12b7-40cb-ae8a-1d1caa2bea13",
+      "run_id": "ee8a7e06-44f5-4de0-969a-fef92d45beea",
+      "state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "window": {
+        "start": "2026-11-11T04:05:44.008661Z",
+        "end": "2026-11-11T04:06:44.008661Z",
+        "source": "explicit"
+      },
+      "pack": {
+        "pack": "traffic_latency_errors",
+        "status": "available",
+        "missing_required": [],
+        "optional_gaps": [
+          "kubernetes.configmap.metadata"
+        ]
+      },
+      "sources": {
+        "development_fixture": {
+          "source_key": "development_fixture",
+          "id": "1a551a5f-2f97-4ed0-8f27-c23d683aa290",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.configmap.metadata": {
+          "source_key": "kubernetes.configmap.metadata",
+          "id": "ca679330-9aef-41c2-ae92-1ea90a7c894b",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.events": {
+          "source_key": "kubernetes.events",
+          "id": "071acfe5-72cb-47ab-9acc-addb53bb0512",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "9f49873239b50d7fa73e1603ef0bf373393b516c647ed57bb6f219fdf767af59",
+          "query_metadata": null,
+          "payload_sha256": "9f49873239b50d7fa73e1603ef0bf373393b516c647ed57bb6f219fdf767af59",
+          "payload_kind": "events"
+        },
+        "kubernetes.logs.current": {
+          "source_key": "kubernetes.logs.current",
+          "id": "deea137a-02be-4d39-a942-7570aa1268f0",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "51850769021658f9b49cfce16ba4290a2c92eba75bba5f84b4f09fb5dd0327ab",
+          "query_metadata": null,
+          "payload_sha256": "51850769021658f9b49cfce16ba4290a2c92eba75bba5f84b4f09fb5dd0327ab",
+          "payload_kind": "logs"
+        },
+        "kubernetes.logs.previous": {
+          "source_key": "kubernetes.logs.previous",
+          "id": "fa182f7b-fdf9-4491-bf15-9ea21471cd80",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.state": {
+          "source_key": "kubernetes.state",
+          "id": "41d57e14-d2e5-41b5-bc6b-25152997a07b",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "3aa60aa56ce155a685616f50e068878e47e3862c6afa65eb5cb166eff253efc7",
+          "query_metadata": null,
+          "payload_sha256": "3aa60aa56ce155a685616f50e068878e47e3862c6afa65eb5cb166eff253efc7",
+          "payload_kind": "state"
+        },
+        "prometheus.error_ratio": {
+          "source_key": "prometheus.error_ratio",
+          "id": "7e7e28e6-a9b3-43de-87df-6e98168e5dd8",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "421a811b7b6640fd2eea3247f3e7002bc34f0df08a6540f50bb194f2267ffcc5",
+          "query_metadata": {
+            "step": 30,
+            "unit": "ratio",
+            "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:44.008661+00:00",
+              "start": "2026-11-11T04:05:44.008661+00:00"
+            },
+            "query_id": "error_ratio",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"b136dd31-fa18-4de0-b4ba-4f99f20c0751\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "421a811b7b6640fd2eea3247f3e7002bc34f0df08a6540f50bb194f2267ffcc5",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_limit": {
+          "source_key": "prometheus.memory_limit",
+          "id": "cc6b16b7-4dc8-464f-a246-0d8a69570c3d",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "67f16a248c7f99cd1d4237f941438abef893be2277785814bc1842bc2a99f578",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:44.008661+00:00",
+              "start": "2026-11-11T04:05:44.008661+00:00"
+            },
+            "query_id": "memory_limit",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"b136dd31-fa18-4de0-b4ba-4f99f20c0751\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "67f16a248c7f99cd1d4237f941438abef893be2277785814bc1842bc2a99f578",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_working_set": {
+          "source_key": "prometheus.memory_working_set",
+          "id": "84217807-ab39-4114-b25c-3a43ee555832",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "5eb55a2c2533816565b7b9c4c654c0ba731ed38b46ca1b0ca486d2d9ec2d8809",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:44.008661+00:00",
+              "start": "2026-11-11T04:05:44.008661+00:00"
+            },
+            "query_id": "memory_working_set",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"b136dd31-fa18-4de0-b4ba-4f99f20c0751\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "5eb55a2c2533816565b7b9c4c654c0ba731ed38b46ca1b0ca486d2d9ec2d8809",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.p95_latency": {
+          "source_key": "prometheus.p95_latency",
+          "id": "7a7021ff-1603-4e9b-8932-1b0a5cb00e70",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "dc8fd4c14c3c4625a3b16cd96cfabbc4cd6ac59f4624951ab7d76dff68b75a79",
+          "query_metadata": {
+            "step": 30,
+            "unit": "seconds",
+            "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:44.008661+00:00",
+              "start": "2026-11-11T04:05:44.008661+00:00"
+            },
+            "query_id": "p95_latency",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"b136dd31-fa18-4de0-b4ba-4f99f20c0751\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "dc8fd4c14c3c4625a3b16cd96cfabbc4cd6ac59f4624951ab7d76dff68b75a79",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.request_rate": {
+          "source_key": "prometheus.request_rate",
+          "id": "8773a0cf-b079-4b88-bf77-99b30da41335",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "7034ed5d4ea9d209b1a0f2705f671ab9db6b6dea2a7a04850f898cdcc0c61488",
+          "query_metadata": {
+            "step": 30,
+            "unit": "requests/s",
+            "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:44.008661+00:00",
+              "start": "2026-11-11T04:05:44.008661+00:00"
+            },
+            "query_id": "request_rate",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"b136dd31-fa18-4de0-b4ba-4f99f20c0751\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "7034ed5d4ea9d209b1a0f2705f671ab9db6b6dea2a7a04850f898cdcc0c61488",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.restarts": {
+          "source_key": "prometheus.restarts",
+          "id": "3d40db13-e692-43f5-ad43-9ef41a3ddaba",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "af18e3ea4e8ee225799713af032d8b13266ada41499aaaa13ab179330a071118",
+          "query_metadata": {
+            "step": 30,
+            "unit": "count",
+            "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:06:44.008661+00:00",
+              "start": "2026-11-11T04:05:44.008661+00:00"
+            },
+            "query_id": "restarts",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"b136dd31-fa18-4de0-b4ba-4f99f20c0751\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "af18e3ea4e8ee225799713af032d8b13266ada41499aaaa13ab179330a071118",
+          "series": 1,
+          "samples": 3
+        }
+      }
+    },
+    "pending_unschedulable": {
+      "incident_id": "cc05a31e-9bce-4bed-8953-d7635ba7182c",
+      "run_id": "b85d59ca-83bf-4771-845e-ff6f4c8a87d6",
+      "state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "window": {
+        "start": "2026-11-11T04:06:06.613501Z",
+        "end": "2026-11-11T04:07:06.613501Z",
+        "source": "explicit"
+      },
+      "pack": {
+        "pack": "pending_unschedulable",
+        "status": "available",
+        "missing_required": [],
+        "optional_gaps": [
+          "kubernetes.configmap.metadata"
+        ]
+      },
+      "sources": {
+        "development_fixture": {
+          "source_key": "development_fixture",
+          "id": "b90296a3-56f2-4dd5-851e-39e0f70eaae6",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.configmap.metadata": {
+          "source_key": "kubernetes.configmap.metadata",
+          "id": "8fc06b45-22eb-4ab9-85bb-51a80488d303",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.events": {
+          "source_key": "kubernetes.events",
+          "id": "696f25e0-1b86-4013-b541-405058ea3b7e",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "eeaccb25b6fd631ef12a30d352045868bb7fe12e6cc9781a3f4eeb5f17e8585f",
+          "query_metadata": null,
+          "payload_sha256": "eeaccb25b6fd631ef12a30d352045868bb7fe12e6cc9781a3f4eeb5f17e8585f",
+          "payload_kind": "events"
+        },
+        "kubernetes.logs.current": {
+          "source_key": "kubernetes.logs.current",
+          "id": "cbc8fef1-64b3-442b-b4e3-ec7c7dca942d",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.logs.previous": {
+          "source_key": "kubernetes.logs.previous",
+          "id": "aa712e3b-97f4-4c22-9cc9-1fe654287029",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.state": {
+          "source_key": "kubernetes.state",
+          "id": "1a706018-0eb0-484d-851b-623840c3879f",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "427089c5f431e6a627e835f02e9c8bf88945bf5c558f83025f5f1266928e91c4",
+          "query_metadata": null,
+          "payload_sha256": "427089c5f431e6a627e835f02e9c8bf88945bf5c558f83025f5f1266928e91c4",
+          "payload_kind": "state"
+        },
+        "prometheus.error_ratio": {
+          "source_key": "prometheus.error_ratio",
+          "id": "1f61058f-0a87-44b1-b443-7db3e889c8f4",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "2b51d594e7fee089d12724bb7d2ae28de56f1814128c78307dfb71682e424044",
+          "query_metadata": {
+            "step": 30,
+            "unit": "ratio",
+            "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:06.613501+00:00",
+              "start": "2026-11-11T04:06:06.613501+00:00"
+            },
+            "query_id": "error_ratio",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"03cafa95-0e3b-4f56-8eeb-4065d63a96d3\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "03cafa95-0e3b-4f56-8eeb-4065d63a96d3"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "2b51d594e7fee089d12724bb7d2ae28de56f1814128c78307dfb71682e424044",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_limit": {
+          "source_key": "prometheus.memory_limit",
+          "id": "a8405086-5882-4e8a-a3d1-da78a5dfeab3",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "e0cb152a2ddee1db0e205e66c0eea4cc6ee623a44ca3d5d55c93e097240c129e",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:06.613501+00:00",
+              "start": "2026-11-11T04:06:06.613501+00:00"
+            },
+            "query_id": "memory_limit",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"03cafa95-0e3b-4f56-8eeb-4065d63a96d3\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "03cafa95-0e3b-4f56-8eeb-4065d63a96d3"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "e0cb152a2ddee1db0e205e66c0eea4cc6ee623a44ca3d5d55c93e097240c129e",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_working_set": {
+          "source_key": "prometheus.memory_working_set",
+          "id": "70557b88-a007-418e-bd43-b8b161cc5bc0",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "244229f473dbf45a0b82d9de96a1d93fb91e5da96dffcb6b66ef607f569eae8b",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:06.613501+00:00",
+              "start": "2026-11-11T04:06:06.613501+00:00"
+            },
+            "query_id": "memory_working_set",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"03cafa95-0e3b-4f56-8eeb-4065d63a96d3\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "03cafa95-0e3b-4f56-8eeb-4065d63a96d3"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "244229f473dbf45a0b82d9de96a1d93fb91e5da96dffcb6b66ef607f569eae8b",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.p95_latency": {
+          "source_key": "prometheus.p95_latency",
+          "id": "ea536a04-1306-464e-be9b-2e9e0e5541c8",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "1c0a3743c8ac3b131dc1e724923e5c5792c4fd093b26e4073077d4bea1b224f4",
+          "query_metadata": {
+            "step": 30,
+            "unit": "seconds",
+            "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:06.613501+00:00",
+              "start": "2026-11-11T04:06:06.613501+00:00"
+            },
+            "query_id": "p95_latency",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"03cafa95-0e3b-4f56-8eeb-4065d63a96d3\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "03cafa95-0e3b-4f56-8eeb-4065d63a96d3"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "1c0a3743c8ac3b131dc1e724923e5c5792c4fd093b26e4073077d4bea1b224f4",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.request_rate": {
+          "source_key": "prometheus.request_rate",
+          "id": "d283c2d9-5181-447d-b830-2bb4e2c3025d",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "9f22c740c89760e591d6bd3e2de4c124bd9b8da2946dce71153829a854356b76",
+          "query_metadata": {
+            "step": 30,
+            "unit": "requests/s",
+            "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:06.613501+00:00",
+              "start": "2026-11-11T04:06:06.613501+00:00"
+            },
+            "query_id": "request_rate",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"03cafa95-0e3b-4f56-8eeb-4065d63a96d3\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "03cafa95-0e3b-4f56-8eeb-4065d63a96d3"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "9f22c740c89760e591d6bd3e2de4c124bd9b8da2946dce71153829a854356b76",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.restarts": {
+          "source_key": "prometheus.restarts",
+          "id": "3f12ae47-bb3e-4ada-9b91-ce8e721e357a",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "04878fae25397a4a8732c1c4152a629fdd37f21ca3dc4e9236ccb67d1f02429f",
+          "query_metadata": {
+            "step": 30,
+            "unit": "count",
+            "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:06.613501+00:00",
+              "start": "2026-11-11T04:06:06.613501+00:00"
+            },
+            "query_id": "restarts",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"03cafa95-0e3b-4f56-8eeb-4065d63a96d3\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "03cafa95-0e3b-4f56-8eeb-4065d63a96d3"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "04878fae25397a4a8732c1c4152a629fdd37f21ca3dc4e9236ccb67d1f02429f",
+          "series": 1,
+          "samples": 3
+        }
+      }
+    },
+    "image_pull": {
+      "incident_id": "d6380e54-e6f7-4d8e-b366-004bdd6b35cb",
+      "run_id": "cdc04612-3c5b-46cb-acc9-5f58c45def89",
+      "state": "insufficient_evidence",
+      "outcome_code": "analysis_unavailable",
+      "window": {
+        "start": "2026-11-11T04:06:27.151591Z",
+        "end": "2026-11-11T04:07:27.151591Z",
+        "source": "explicit"
+      },
+      "pack": {
+        "pack": "image_pull",
+        "status": "available",
+        "missing_required": [],
+        "optional_gaps": [
+          "kubernetes.configmap.metadata"
+        ]
+      },
+      "sources": {
+        "development_fixture": {
+          "source_key": "development_fixture",
+          "id": "cec5c0e6-1244-4ee5-878f-fcfc4869ab33",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.configmap.metadata": {
+          "source_key": "kubernetes.configmap.metadata",
+          "id": "2d4d677f-c5e9-48a9-afeb-1da274306dd7",
+          "coverage": {
+            "status": "unavailable",
+            "reason_codes": [
+              "source_not_configured"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.events": {
+          "source_key": "kubernetes.events",
+          "id": "88bef982-86d7-4845-96a7-dd42eec69010",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "123882ff758941694a2f9e82ea06a4888f6cd1ad2035a02ae52080614149ac6c",
+          "query_metadata": null,
+          "payload_sha256": "123882ff758941694a2f9e82ea06a4888f6cd1ad2035a02ae52080614149ac6c",
+          "payload_kind": "events"
+        },
+        "kubernetes.logs.current": {
+          "source_key": "kubernetes.logs.current",
+          "id": "9096e11e-de87-437f-bf3d-263559654cb8",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.logs.previous": {
+          "source_key": "kubernetes.logs.previous",
+          "id": "7256ee6d-a56f-4c10-b71c-130ce2ed3a09",
+          "coverage": {
+            "status": "not_applicable",
+            "reason_codes": [
+              "not_applicable"
+            ]
+          },
+          "content_status": "unavailable",
+          "sha256": null,
+          "query_metadata": null
+        },
+        "kubernetes.state": {
+          "source_key": "kubernetes.state",
+          "id": "d711e9cc-855e-4aaa-b6c6-e10c48540206",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "1a1a7b2a2bc6d28f80c04d8a11f64306f1f9185761b9776704574fd1994f0184",
+          "query_metadata": null,
+          "payload_sha256": "1a1a7b2a2bc6d28f80c04d8a11f64306f1f9185761b9776704574fd1994f0184",
+          "payload_kind": "state"
+        },
+        "prometheus.error_ratio": {
+          "source_key": "prometheus.error_ratio",
+          "id": "a4b188b2-ee5a-4f76-ada4-93bfe037eb02",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "1f672ed0ac8719f932c0213d2b320809e42252633b9b148aa271d9d1e578ae8b",
+          "query_metadata": {
+            "step": 30,
+            "unit": "ratio",
+            "query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:27.151591+00:00",
+              "start": "2026-11-11T04:06:27.151591+00:00"
+            },
+            "query_id": "error_ratio",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_error_ratio{namespace=\"demo\",deployment_uid=\"97b6cb2d-ec92-4340-a250-188deaaf30f5\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "97b6cb2d-ec92-4340-a250-188deaaf30f5"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "1f672ed0ac8719f932c0213d2b320809e42252633b9b148aa271d9d1e578ae8b",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_limit": {
+          "source_key": "prometheus.memory_limit",
+          "id": "d1f69895-34be-481d-8510-378a97d9a8fe",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "a957deaa9fce6e2b7f1b877c9728243ab1102152a3952a0549a9f44740e8e5df",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:27.151591+00:00",
+              "start": "2026-11-11T04:06:27.151591+00:00"
+            },
+            "query_id": "memory_limit",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_limit_bytes{namespace=\"demo\",deployment_uid=\"97b6cb2d-ec92-4340-a250-188deaaf30f5\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "97b6cb2d-ec92-4340-a250-188deaaf30f5"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "a957deaa9fce6e2b7f1b877c9728243ab1102152a3952a0549a9f44740e8e5df",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.memory_working_set": {
+          "source_key": "prometheus.memory_working_set",
+          "id": "523c7731-e776-45f8-891d-dd9c9d8db311",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "f2505c2ec0d2b007687d3eb80e2a27d83b24c7f1d3c78bcf12759c18d252c545",
+          "query_metadata": {
+            "step": 30,
+            "unit": "bytes",
+            "query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:27.151591+00:00",
+              "start": "2026-11-11T04:06:27.151591+00:00"
+            },
+            "query_id": "memory_working_set",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_memory_working_set_bytes{namespace=\"demo\",deployment_uid=\"97b6cb2d-ec92-4340-a250-188deaaf30f5\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "97b6cb2d-ec92-4340-a250-188deaaf30f5"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "f2505c2ec0d2b007687d3eb80e2a27d83b24c7f1d3c78bcf12759c18d252c545",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.p95_latency": {
+          "source_key": "prometheus.p95_latency",
+          "id": "a2588207-861e-4437-8912-b39007e11788",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "d7feec494b9bbfcbd24a56d21b94f314337a283d07ee2f4c3947b075ded8d244",
+          "query_metadata": {
+            "step": 30,
+            "unit": "seconds",
+            "query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:27.151591+00:00",
+              "start": "2026-11-11T04:06:27.151591+00:00"
+            },
+            "query_id": "p95_latency",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_p95_latency_seconds{namespace=\"demo\",deployment_uid=\"97b6cb2d-ec92-4340-a250-188deaaf30f5\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "97b6cb2d-ec92-4340-a250-188deaaf30f5"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "d7feec494b9bbfcbd24a56d21b94f314337a283d07ee2f4c3947b075ded8d244",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.request_rate": {
+          "source_key": "prometheus.request_rate",
+          "id": "10acb347-40ad-4fa7-9b92-b211115f5289",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "32fdc83323ce94e814b3dd895f2125ff02956595a203baf784d64193b3625ffc",
+          "query_metadata": {
+            "step": 30,
+            "unit": "requests/s",
+            "query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:27.151591+00:00",
+              "start": "2026-11-11T04:06:27.151591+00:00"
+            },
+            "query_id": "request_rate",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_requests_per_second{namespace=\"demo\",deployment_uid=\"97b6cb2d-ec92-4340-a250-188deaaf30f5\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "97b6cb2d-ec92-4340-a250-188deaaf30f5"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "32fdc83323ce94e814b3dd895f2125ff02956595a203baf784d64193b3625ffc",
+          "series": 1,
+          "samples": 3
+        },
+        "prometheus.restarts": {
+          "source_key": "prometheus.restarts",
+          "id": "51a8022f-a718-422e-81c5-b42f0ca1bba1",
+          "coverage": {
+            "status": "available",
+            "reason_codes": []
+          },
+          "content_status": "available",
+          "sha256": "2f441615c4221fc0b0751a11a4e2090e248b6f1fb4de221b890f7e6a718ae83f",
+          "query_metadata": {
+            "step": 30,
+            "unit": "count",
+            "query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})",
+            "window": {
+              "end": "2026-11-11T04:07:27.151591+00:00",
+              "start": "2026-11-11T04:06:27.151591+00:00"
+            },
+            "query_id": "restarts",
+            "warnings": [],
+            "query_version": "standard_v1",
+            "resolved_query": "sum by (namespace, deployment_uid) (cloudops_restarts_total{namespace=\"demo\",deployment_uid=\"97b6cb2d-ec92-4340-a250-188deaaf30f5\"})",
+            "binding_version": "uid_label_v1",
+            "source_identity": {
+              "namespace": "demo",
+              "cluster_id": "local-k3s",
+              "endpoint_id": "lab-prometheus",
+              "workload_uid": "97b6cb2d-ec92-4340-a250-188deaaf30f5"
+            },
+            "producer_version": "prometheus/v3.5.0"
+          },
+          "payload_sha256": "2f441615c4221fc0b0751a11a4e2090e248b6f1fb4de221b890f7e6a718ae83f",
+          "series": 1,
+          "samples": 3
+        }
+      }
+    }
+  },
+  "runtime_images": [
+    {
+      "ID": "sha256:cacf4e348fd241a7fe393bdc80a489a9076dc9369a1b534cdb6c02b9a3a47a27",
+      "ContainerName": "cloudops-e04-fix57-https-1",
+      "Repository": "cloudops-local-https",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 84021588,
+      "Created": "2026-11-10T16:18:53.149464893Z",
+      "LastTagTime": "2026-11-11T03:50:27.371195031Z"
+    },
+    {
+      "ID": "sha256:ea08b1d2a52fe02bc6790f516fa9efaf93e66812aa76a0f33ac895948b00deae",
+      "ContainerName": "cloudops-e04-fix57-web-1",
+      "Repository": "cloudops-e04-fix57-web",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 799755414,
+      "Created": "2026-11-10T16:25:44.218727664Z",
+      "LastTagTime": "2026-11-11T03:53:03.100427502Z"
+    },
+    {
+      "ID": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "ContainerName": "cloudops-e04-fix57-k3s-1",
+      "Repository": "rancher/k3s",
+      "Tag": "",
+      "Platform": "linux/amd64",
+      "Size": 378067427,
+      "Created": "2026-09-30T16:10:12.488362139Z",
+      "LastTagTime": "2026-10-26T12:26:07.644270762Z"
+    },
+    {
+      "ID": "sha256:1d86272f6118688a53200b1c394fea122d6809a45704e802b70978305edc4b76",
+      "ContainerName": "cloudops-e04-fix57-api-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 383390340,
+      "Created": "2026-11-11T03:53:05.539215789Z",
+      "LastTagTime": "2026-11-11T03:53:05.928919654Z"
+    },
+    {
+      "ID": "sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0",
+      "ContainerName": "cloudops-e04-fix57-metrics-fixture-1",
+      "Repository": "python",
+      "Tag": "3.13.11-slim-bookworm",
+      "Platform": "linux/amd64",
+      "Size": 180915433,
+      "Created": "2026-02-03T03:13:25.731397279Z",
+      "LastTagTime": "2026-11-09T16:30:35.549701452Z"
+    },
+    {
+      "ID": "sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27",
+      "ContainerName": "cloudops-e04-fix57-db-1",
+      "Repository": "postgres",
+      "Tag": "17.11-bookworm",
+      "Platform": "linux/amd64",
+      "Size": 619678595,
+      "Created": "2026-10-21T00:38:00.956944641Z",
+      "LastTagTime": "2026-10-23T03:35:06.338847353Z"
+    },
+    {
+      "ID": "sha256:1d86272f6118688a53200b1c394fea122d6809a45704e802b70978305edc4b76",
+      "ContainerName": "cloudops-e04-fix57-migrate-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 383390340,
+      "Created": "2026-11-11T03:53:05.539215789Z",
+      "LastTagTime": "2026-11-11T03:53:05.928919654Z"
+    },
+    {
+      "ID": "sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996",
+      "ContainerName": "cloudops-e04-fix57-prometheus-1",
+      "Repository": "prom/prometheus",
+      "Tag": "v3.5.0",
+      "Platform": "linux/amd64",
+      "Size": 439761253,
+      "Created": "2025-07-14T16:46:29.345043083Z",
+      "LastTagTime": "2026-11-09T16:30:40.777312211Z"
+    },
+    {
+      "ID": "sha256:1d86272f6118688a53200b1c394fea122d6809a45704e802b70978305edc4b76",
+      "ContainerName": "cloudops-e04-fix57-worker-1",
+      "Repository": "cloudops-local-backend",
+      "Tag": "latest",
+      "Platform": "linux/amd64",
+      "Size": 383390340,
+      "Created": "2026-11-11T03:53:05.539215789Z",
+      "LastTagTime": "2026-11-11T03:53:05.928919654Z"
+    }
+  ],
+  "comparison": {
+    "left_incident": "a3d215a4-12b7-40cb-ae8a-1d1caa2bea13",
+    "right_incident": "a3d215a4-12b7-40cb-ae8a-1d1caa2bea13",
+    "left_run": "ee8a7e06-44f5-4de0-969a-fef92d45beea",
+    "right_run": "2c92d171-0757-4ff3-952f-d8d274138719",
+    "status": "comparable",
+    "sources": 12,
+    "semantic_state": {
+      "rows": 72,
+      "revision": {
+        "key": "v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109",
+        "kind": "field",
+        "label": "deployment/revision",
+        "status": "changed",
+        "reason": null,
+        "left": "2",
+        "right": "3",
+        "left_citation": {
+          "run_id": "ee8a7e06-44f5-4de0-969a-fef92d45beea",
+          "evidence_id": "41d57e14-d2e5-41b5-bc6b-25152997a07b",
+          "locator": {
+            "kind": "field",
+            "key": "v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109"
+          }
+        },
+        "right_citation": {
+          "run_id": "2c92d171-0757-4ff3-952f-d8d274138719",
+          "evidence_id": "9b531091-2ce6-4a22-9007-b70c6bb8bafa",
+          "locator": {
+            "kind": "field",
+            "key": "v1_6042f3c3af191bfa2939541c688a81c597d12b3b21ff96a767be98de774bc109"
+          }
+        },
+        "preview_truncated": false,
+        "left_occurrences": 1,
+        "right_occurrences": 1
+      },
+      "repeat_identical": true,
+      "swap_reversed": true,
+      "same_workload_uid": "b136dd31-fa18-4de0-b4ba-4f99f20c0751"
+    }
+  },
+  "saved_export": {
+    "incident_id": "a3d215a4-12b7-40cb-ae8a-1d1caa2bea13",
+    "resolution_id": "93c01909-ba00-47ea-9dcb-5f3d494e32d1",
+    "sha256": "8da5ab403ab7133eb6f6424492ac8d0d23f8ae9a711aa4c27e75a64ba3341eba",
+    "bytes": 10746,
+    "unchanged_after_reopen_revision_compare": true,
+    "unchanged_after_restart": true
+  },
+  "citation": {
+    "source_key": "prometheus.request_rate",
+    "locator": {
+      "kind": "sample",
+      "key": "v1_83d507fcba7fbf23d2d85b10dc2b90ca4538cda3677108dbf58b0a1c47edbe1a"
+    },
+    "sha256": "7034ed5d4ea9d209b1a0f2705f671ab9db6b6dea2a7a04850f898cdcc0c61488"
+  },
+  "timeline": {
+    "schema": "RunTimeline/v1",
+    "kinds": [
+      "window_start",
+      "window_end"
+    ],
+    "truncated": false
+  },
+  "viewer_and_scope": {
+    "viewer_run": 200,
+    "viewer_timeline": 200,
+    "wrong_scope": 404
+  },
+  "restart": {
+    "before": {
+      "crashloop_startup": {
+        "incident_id": "6245222d-98f0-45fb-9aa8-6c8dd9bdcd97",
+        "run_id": "15aafa39-707d-4e3a-b322-084554f044f4",
+        "sources": {
+          "development_fixture": [
+            "aa6e1e5e-18e6-483d-85c9-74cfbf3c6e57",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "ffe807f8-0de5-4907-a8b0-aad34ae83775",
+            null
+          ],
+          "kubernetes.events": [
+            "b2218c49-b79f-4d50-ad0d-317d1dc54450",
+            "7208e98a4a24c1b018c0ef431c4fde9c9ff5d937a592b2d458663e2c5170ee50"
+          ],
+          "kubernetes.logs.current": [
+            "ea99a07e-ca1c-43a2-82c4-fb384f996fc7",
+            "f8d438638517c931ef1dd246038c6dbd1c33f17ddbaea74f1dd76a5e50129078"
+          ],
+          "kubernetes.logs.previous": [
+            "202f3828-ada4-4954-b02d-0c1ae98fae22",
+            "6d13dd257f7280106e75ac18bb0f67a62cdcfadaca16bf250f3f3041c822ee84"
+          ],
+          "kubernetes.state": [
+            "546f95d6-5fe3-49ee-bf89-ccf91253d574",
+            "7d4af553b8cdb51a316b43226595fe51d7b10caab1e4661e918169877caba22b"
+          ],
+          "prometheus.error_ratio": [
+            "993b079d-0d86-479a-9902-ac52893975f1",
+            "6341ca0f5f05d1f55693810193ee539b0d26e95d327023b2c34f95a2e04f9e07"
+          ],
+          "prometheus.memory_limit": [
+            "ef047980-d9ca-4137-9dff-1479228c9232",
+            "b76e07ef636be1e29bff7259bfed8896da4ee0f0735783ace73380445bf4f1b6"
+          ],
+          "prometheus.memory_working_set": [
+            "54e3bf9e-61ab-44b2-bd4b-3e71c2d8f5a3",
+            "efbcdd0c7a3257b4057eb49c3ef327588c8a3155d738ab78411ccc236b8ce1ad"
+          ],
+          "prometheus.p95_latency": [
+            "6ce7850f-7345-45f3-9c17-a9b28dc947ac",
+            "0e9aa0a0ee3c4c52340dd0560192a397ce719a55874daf9708c7df24e0cda194"
+          ],
+          "prometheus.request_rate": [
+            "3661241b-09a2-4bb1-b4cf-0d4c5e53cca0",
+            "029f3a1afdae739ecf5f1575271bc1ffd700ac9daebbc92802299f5bf8b74405"
+          ],
+          "prometheus.restarts": [
+            "1913fe87-6925-4287-837d-b147d937c1ce",
+            "b3088841e26d4f291e4fe5aec9b213d317d63ca0559fe0833b043fec3ad23c13"
+          ]
+        }
+      },
+      "oom_restarts": {
+        "incident_id": "dfada15f-e291-4fbd-9c22-ece8acfa1ede",
+        "run_id": "71aed5f5-fa55-46e2-8b4d-3071fc0b0424",
+        "sources": {
+          "development_fixture": [
+            "81964f82-18a1-4e0c-a77c-425c827e0260",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "7a30237d-b470-456c-bd7a-675236359f72",
+            null
+          ],
+          "kubernetes.events": [
+            "b7172706-4ed1-4991-ab1a-f17349660c22",
+            "f1f77bbb1078c5bf260067a4119c6784925a95fd86a6984b8c71bbb3ab0e3b56"
+          ],
+          "kubernetes.logs.current": [
+            "7ac89e83-d8c6-421a-9560-0113c0710a4a",
+            "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694"
+          ],
+          "kubernetes.logs.previous": [
+            "1077811a-7b1e-4c05-8793-6f9c4619489f",
+            "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694"
+          ],
+          "kubernetes.state": [
+            "a19a9b95-3fdc-4568-a9f5-b00ebe0ae78f",
+            "7672e900f5e25e5858e35875d2777a4c7550ffcf44af4df8ce2da700c419586e"
+          ],
+          "prometheus.error_ratio": [
+            "f5e21adc-3f9d-4f42-b374-e5b0d298aa7c",
+            "e6ff3be9c23a0790409118e7637e7c4165387fe198bbaf6f09e2b04462c89f48"
+          ],
+          "prometheus.memory_limit": [
+            "41407a87-1948-48be-8589-e6b08c2fab94",
+            "d3e670c0d690eaa6121d1c14d74d3c5e3acf875157e65c65e03c59ac98d23750"
+          ],
+          "prometheus.memory_working_set": [
+            "5d06cc79-2abc-4109-9db2-4a34e828fdd6",
+            "000b123399ff6801e1028cfb712d04f9bd68165f6b02664cf88cd9d7688cb4d3"
+          ],
+          "prometheus.p95_latency": [
+            "6050ee6c-8d79-4ce0-8539-953e75713ea0",
+            "fdb8e797d7de80f31c21ac8a38465fa294d7563ce62e0ba0b6472f12f52df06b"
+          ],
+          "prometheus.request_rate": [
+            "b11764a1-cb4a-4727-9785-63fb85ebd504",
+            "27d3f451fd86e019bf847baef96a58fee667b7a873e00922f89e938c95d5b12b"
+          ],
+          "prometheus.restarts": [
+            "348c5e2b-f1c6-4567-b5c7-76bfdd935c53",
+            "58e8698c9a4927e3a3ec5cd032e59cfd088e2f08ce09f764dcb5883ee72280ee"
+          ]
+        }
+      },
+      "traffic_latency_errors": {
+        "incident_id": "a3d215a4-12b7-40cb-ae8a-1d1caa2bea13",
+        "run_id": "ee8a7e06-44f5-4de0-969a-fef92d45beea",
+        "sources": {
+          "development_fixture": [
+            "1a551a5f-2f97-4ed0-8f27-c23d683aa290",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "ca679330-9aef-41c2-ae92-1ea90a7c894b",
+            null
+          ],
+          "kubernetes.events": [
+            "071acfe5-72cb-47ab-9acc-addb53bb0512",
+            "9f49873239b50d7fa73e1603ef0bf373393b516c647ed57bb6f219fdf767af59"
+          ],
+          "kubernetes.logs.current": [
+            "deea137a-02be-4d39-a942-7570aa1268f0",
+            "51850769021658f9b49cfce16ba4290a2c92eba75bba5f84b4f09fb5dd0327ab"
+          ],
+          "kubernetes.logs.previous": [
+            "fa182f7b-fdf9-4491-bf15-9ea21471cd80",
+            null
+          ],
+          "kubernetes.state": [
+            "41d57e14-d2e5-41b5-bc6b-25152997a07b",
+            "3aa60aa56ce155a685616f50e068878e47e3862c6afa65eb5cb166eff253efc7"
+          ],
+          "prometheus.error_ratio": [
+            "7e7e28e6-a9b3-43de-87df-6e98168e5dd8",
+            "421a811b7b6640fd2eea3247f3e7002bc34f0df08a6540f50bb194f2267ffcc5"
+          ],
+          "prometheus.memory_limit": [
+            "cc6b16b7-4dc8-464f-a246-0d8a69570c3d",
+            "67f16a248c7f99cd1d4237f941438abef893be2277785814bc1842bc2a99f578"
+          ],
+          "prometheus.memory_working_set": [
+            "84217807-ab39-4114-b25c-3a43ee555832",
+            "5eb55a2c2533816565b7b9c4c654c0ba731ed38b46ca1b0ca486d2d9ec2d8809"
+          ],
+          "prometheus.p95_latency": [
+            "7a7021ff-1603-4e9b-8932-1b0a5cb00e70",
+            "dc8fd4c14c3c4625a3b16cd96cfabbc4cd6ac59f4624951ab7d76dff68b75a79"
+          ],
+          "prometheus.request_rate": [
+            "8773a0cf-b079-4b88-bf77-99b30da41335",
+            "7034ed5d4ea9d209b1a0f2705f671ab9db6b6dea2a7a04850f898cdcc0c61488"
+          ],
+          "prometheus.restarts": [
+            "3d40db13-e692-43f5-ad43-9ef41a3ddaba",
+            "af18e3ea4e8ee225799713af032d8b13266ada41499aaaa13ab179330a071118"
+          ]
+        }
+      },
+      "pending_unschedulable": {
+        "incident_id": "cc05a31e-9bce-4bed-8953-d7635ba7182c",
+        "run_id": "b85d59ca-83bf-4771-845e-ff6f4c8a87d6",
+        "sources": {
+          "development_fixture": [
+            "b90296a3-56f2-4dd5-851e-39e0f70eaae6",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "8fc06b45-22eb-4ab9-85bb-51a80488d303",
+            null
+          ],
+          "kubernetes.events": [
+            "696f25e0-1b86-4013-b541-405058ea3b7e",
+            "eeaccb25b6fd631ef12a30d352045868bb7fe12e6cc9781a3f4eeb5f17e8585f"
+          ],
+          "kubernetes.logs.current": [
+            "cbc8fef1-64b3-442b-b4e3-ec7c7dca942d",
+            null
+          ],
+          "kubernetes.logs.previous": [
+            "aa712e3b-97f4-4c22-9cc9-1fe654287029",
+            null
+          ],
+          "kubernetes.state": [
+            "1a706018-0eb0-484d-851b-623840c3879f",
+            "427089c5f431e6a627e835f02e9c8bf88945bf5c558f83025f5f1266928e91c4"
+          ],
+          "prometheus.error_ratio": [
+            "1f61058f-0a87-44b1-b443-7db3e889c8f4",
+            "2b51d594e7fee089d12724bb7d2ae28de56f1814128c78307dfb71682e424044"
+          ],
+          "prometheus.memory_limit": [
+            "a8405086-5882-4e8a-a3d1-da78a5dfeab3",
+            "e0cb152a2ddee1db0e205e66c0eea4cc6ee623a44ca3d5d55c93e097240c129e"
+          ],
+          "prometheus.memory_working_set": [
+            "70557b88-a007-418e-bd43-b8b161cc5bc0",
+            "244229f473dbf45a0b82d9de96a1d93fb91e5da96dffcb6b66ef607f569eae8b"
+          ],
+          "prometheus.p95_latency": [
+            "ea536a04-1306-464e-be9b-2e9e0e5541c8",
+            "1c0a3743c8ac3b131dc1e724923e5c5792c4fd093b26e4073077d4bea1b224f4"
+          ],
+          "prometheus.request_rate": [
+            "d283c2d9-5181-447d-b830-2bb4e2c3025d",
+            "9f22c740c89760e591d6bd3e2de4c124bd9b8da2946dce71153829a854356b76"
+          ],
+          "prometheus.restarts": [
+            "3f12ae47-bb3e-4ada-9b91-ce8e721e357a",
+            "04878fae25397a4a8732c1c4152a629fdd37f21ca3dc4e9236ccb67d1f02429f"
+          ]
+        }
+      },
+      "image_pull": {
+        "incident_id": "d6380e54-e6f7-4d8e-b366-004bdd6b35cb",
+        "run_id": "cdc04612-3c5b-46cb-acc9-5f58c45def89",
+        "sources": {
+          "development_fixture": [
+            "cec5c0e6-1244-4ee5-878f-fcfc4869ab33",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "2d4d677f-c5e9-48a9-afeb-1da274306dd7",
+            null
+          ],
+          "kubernetes.events": [
+            "88bef982-86d7-4845-96a7-dd42eec69010",
+            "123882ff758941694a2f9e82ea06a4888f6cd1ad2035a02ae52080614149ac6c"
+          ],
+          "kubernetes.logs.current": [
+            "9096e11e-de87-437f-bf3d-263559654cb8",
+            null
+          ],
+          "kubernetes.logs.previous": [
+            "7256ee6d-a56f-4c10-b71c-130ce2ed3a09",
+            null
+          ],
+          "kubernetes.state": [
+            "d711e9cc-855e-4aaa-b6c6-e10c48540206",
+            "1a1a7b2a2bc6d28f80c04d8a11f64306f1f9185761b9776704574fd1994f0184"
+          ],
+          "prometheus.error_ratio": [
+            "a4b188b2-ee5a-4f76-ada4-93bfe037eb02",
+            "1f672ed0ac8719f932c0213d2b320809e42252633b9b148aa271d9d1e578ae8b"
+          ],
+          "prometheus.memory_limit": [
+            "d1f69895-34be-481d-8510-378a97d9a8fe",
+            "a957deaa9fce6e2b7f1b877c9728243ab1102152a3952a0549a9f44740e8e5df"
+          ],
+          "prometheus.memory_working_set": [
+            "523c7731-e776-45f8-891d-dd9c9d8db311",
+            "f2505c2ec0d2b007687d3eb80e2a27d83b24c7f1d3c78bcf12759c18d252c545"
+          ],
+          "prometheus.p95_latency": [
+            "a2588207-861e-4437-8912-b39007e11788",
+            "d7feec494b9bbfcbd24a56d21b94f314337a283d07ee2f4c3947b075ded8d244"
+          ],
+          "prometheus.request_rate": [
+            "10acb347-40ad-4fa7-9b92-b211115f5289",
+            "32fdc83323ce94e814b3dd895f2125ff02956595a203baf784d64193b3625ffc"
+          ],
+          "prometheus.restarts": [
+            "51a8022f-a718-422e-81c5-b42f0ca1bba1",
+            "2f441615c4221fc0b0751a11a4e2090e248b6f1fb4de221b890f7e6a718ae83f"
+          ]
+        }
+      }
+    },
+    "after": {
+      "crashloop_startup": {
+        "incident_id": "6245222d-98f0-45fb-9aa8-6c8dd9bdcd97",
+        "run_id": "15aafa39-707d-4e3a-b322-084554f044f4",
+        "sources": {
+          "development_fixture": [
+            "aa6e1e5e-18e6-483d-85c9-74cfbf3c6e57",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "ffe807f8-0de5-4907-a8b0-aad34ae83775",
+            null
+          ],
+          "kubernetes.events": [
+            "b2218c49-b79f-4d50-ad0d-317d1dc54450",
+            "7208e98a4a24c1b018c0ef431c4fde9c9ff5d937a592b2d458663e2c5170ee50"
+          ],
+          "kubernetes.logs.current": [
+            "ea99a07e-ca1c-43a2-82c4-fb384f996fc7",
+            "f8d438638517c931ef1dd246038c6dbd1c33f17ddbaea74f1dd76a5e50129078"
+          ],
+          "kubernetes.logs.previous": [
+            "202f3828-ada4-4954-b02d-0c1ae98fae22",
+            "6d13dd257f7280106e75ac18bb0f67a62cdcfadaca16bf250f3f3041c822ee84"
+          ],
+          "kubernetes.state": [
+            "546f95d6-5fe3-49ee-bf89-ccf91253d574",
+            "7d4af553b8cdb51a316b43226595fe51d7b10caab1e4661e918169877caba22b"
+          ],
+          "prometheus.error_ratio": [
+            "993b079d-0d86-479a-9902-ac52893975f1",
+            "6341ca0f5f05d1f55693810193ee539b0d26e95d327023b2c34f95a2e04f9e07"
+          ],
+          "prometheus.memory_limit": [
+            "ef047980-d9ca-4137-9dff-1479228c9232",
+            "b76e07ef636be1e29bff7259bfed8896da4ee0f0735783ace73380445bf4f1b6"
+          ],
+          "prometheus.memory_working_set": [
+            "54e3bf9e-61ab-44b2-bd4b-3e71c2d8f5a3",
+            "efbcdd0c7a3257b4057eb49c3ef327588c8a3155d738ab78411ccc236b8ce1ad"
+          ],
+          "prometheus.p95_latency": [
+            "6ce7850f-7345-45f3-9c17-a9b28dc947ac",
+            "0e9aa0a0ee3c4c52340dd0560192a397ce719a55874daf9708c7df24e0cda194"
+          ],
+          "prometheus.request_rate": [
+            "3661241b-09a2-4bb1-b4cf-0d4c5e53cca0",
+            "029f3a1afdae739ecf5f1575271bc1ffd700ac9daebbc92802299f5bf8b74405"
+          ],
+          "prometheus.restarts": [
+            "1913fe87-6925-4287-837d-b147d937c1ce",
+            "b3088841e26d4f291e4fe5aec9b213d317d63ca0559fe0833b043fec3ad23c13"
+          ]
+        }
+      },
+      "oom_restarts": {
+        "incident_id": "dfada15f-e291-4fbd-9c22-ece8acfa1ede",
+        "run_id": "71aed5f5-fa55-46e2-8b4d-3071fc0b0424",
+        "sources": {
+          "development_fixture": [
+            "81964f82-18a1-4e0c-a77c-425c827e0260",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "7a30237d-b470-456c-bd7a-675236359f72",
+            null
+          ],
+          "kubernetes.events": [
+            "b7172706-4ed1-4991-ab1a-f17349660c22",
+            "f1f77bbb1078c5bf260067a4119c6784925a95fd86a6984b8c71bbb3ab0e3b56"
+          ],
+          "kubernetes.logs.current": [
+            "7ac89e83-d8c6-421a-9560-0113c0710a4a",
+            "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694"
+          ],
+          "kubernetes.logs.previous": [
+            "1077811a-7b1e-4c05-8793-6f9c4619489f",
+            "2ecb8d3eef8aebc99c8ab56fdbd2cb82996e1272360053311d838c9d16dd9694"
+          ],
+          "kubernetes.state": [
+            "a19a9b95-3fdc-4568-a9f5-b00ebe0ae78f",
+            "7672e900f5e25e5858e35875d2777a4c7550ffcf44af4df8ce2da700c419586e"
+          ],
+          "prometheus.error_ratio": [
+            "f5e21adc-3f9d-4f42-b374-e5b0d298aa7c",
+            "e6ff3be9c23a0790409118e7637e7c4165387fe198bbaf6f09e2b04462c89f48"
+          ],
+          "prometheus.memory_limit": [
+            "41407a87-1948-48be-8589-e6b08c2fab94",
+            "d3e670c0d690eaa6121d1c14d74d3c5e3acf875157e65c65e03c59ac98d23750"
+          ],
+          "prometheus.memory_working_set": [
+            "5d06cc79-2abc-4109-9db2-4a34e828fdd6",
+            "000b123399ff6801e1028cfb712d04f9bd68165f6b02664cf88cd9d7688cb4d3"
+          ],
+          "prometheus.p95_latency": [
+            "6050ee6c-8d79-4ce0-8539-953e75713ea0",
+            "fdb8e797d7de80f31c21ac8a38465fa294d7563ce62e0ba0b6472f12f52df06b"
+          ],
+          "prometheus.request_rate": [
+            "b11764a1-cb4a-4727-9785-63fb85ebd504",
+            "27d3f451fd86e019bf847baef96a58fee667b7a873e00922f89e938c95d5b12b"
+          ],
+          "prometheus.restarts": [
+            "348c5e2b-f1c6-4567-b5c7-76bfdd935c53",
+            "58e8698c9a4927e3a3ec5cd032e59cfd088e2f08ce09f764dcb5883ee72280ee"
+          ]
+        }
+      },
+      "traffic_latency_errors": {
+        "incident_id": "a3d215a4-12b7-40cb-ae8a-1d1caa2bea13",
+        "run_id": "ee8a7e06-44f5-4de0-969a-fef92d45beea",
+        "sources": {
+          "development_fixture": [
+            "1a551a5f-2f97-4ed0-8f27-c23d683aa290",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "ca679330-9aef-41c2-ae92-1ea90a7c894b",
+            null
+          ],
+          "kubernetes.events": [
+            "071acfe5-72cb-47ab-9acc-addb53bb0512",
+            "9f49873239b50d7fa73e1603ef0bf373393b516c647ed57bb6f219fdf767af59"
+          ],
+          "kubernetes.logs.current": [
+            "deea137a-02be-4d39-a942-7570aa1268f0",
+            "51850769021658f9b49cfce16ba4290a2c92eba75bba5f84b4f09fb5dd0327ab"
+          ],
+          "kubernetes.logs.previous": [
+            "fa182f7b-fdf9-4491-bf15-9ea21471cd80",
+            null
+          ],
+          "kubernetes.state": [
+            "41d57e14-d2e5-41b5-bc6b-25152997a07b",
+            "3aa60aa56ce155a685616f50e068878e47e3862c6afa65eb5cb166eff253efc7"
+          ],
+          "prometheus.error_ratio": [
+            "7e7e28e6-a9b3-43de-87df-6e98168e5dd8",
+            "421a811b7b6640fd2eea3247f3e7002bc34f0df08a6540f50bb194f2267ffcc5"
+          ],
+          "prometheus.memory_limit": [
+            "cc6b16b7-4dc8-464f-a246-0d8a69570c3d",
+            "67f16a248c7f99cd1d4237f941438abef893be2277785814bc1842bc2a99f578"
+          ],
+          "prometheus.memory_working_set": [
+            "84217807-ab39-4114-b25c-3a43ee555832",
+            "5eb55a2c2533816565b7b9c4c654c0ba731ed38b46ca1b0ca486d2d9ec2d8809"
+          ],
+          "prometheus.p95_latency": [
+            "7a7021ff-1603-4e9b-8932-1b0a5cb00e70",
+            "dc8fd4c14c3c4625a3b16cd96cfabbc4cd6ac59f4624951ab7d76dff68b75a79"
+          ],
+          "prometheus.request_rate": [
+            "8773a0cf-b079-4b88-bf77-99b30da41335",
+            "7034ed5d4ea9d209b1a0f2705f671ab9db6b6dea2a7a04850f898cdcc0c61488"
+          ],
+          "prometheus.restarts": [
+            "3d40db13-e692-43f5-ad43-9ef41a3ddaba",
+            "af18e3ea4e8ee225799713af032d8b13266ada41499aaaa13ab179330a071118"
+          ]
+        }
+      },
+      "pending_unschedulable": {
+        "incident_id": "cc05a31e-9bce-4bed-8953-d7635ba7182c",
+        "run_id": "b85d59ca-83bf-4771-845e-ff6f4c8a87d6",
+        "sources": {
+          "development_fixture": [
+            "b90296a3-56f2-4dd5-851e-39e0f70eaae6",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "8fc06b45-22eb-4ab9-85bb-51a80488d303",
+            null
+          ],
+          "kubernetes.events": [
+            "696f25e0-1b86-4013-b541-405058ea3b7e",
+            "eeaccb25b6fd631ef12a30d352045868bb7fe12e6cc9781a3f4eeb5f17e8585f"
+          ],
+          "kubernetes.logs.current": [
+            "cbc8fef1-64b3-442b-b4e3-ec7c7dca942d",
+            null
+          ],
+          "kubernetes.logs.previous": [
+            "aa712e3b-97f4-4c22-9cc9-1fe654287029",
+            null
+          ],
+          "kubernetes.state": [
+            "1a706018-0eb0-484d-851b-623840c3879f",
+            "427089c5f431e6a627e835f02e9c8bf88945bf5c558f83025f5f1266928e91c4"
+          ],
+          "prometheus.error_ratio": [
+            "1f61058f-0a87-44b1-b443-7db3e889c8f4",
+            "2b51d594e7fee089d12724bb7d2ae28de56f1814128c78307dfb71682e424044"
+          ],
+          "prometheus.memory_limit": [
+            "a8405086-5882-4e8a-a3d1-da78a5dfeab3",
+            "e0cb152a2ddee1db0e205e66c0eea4cc6ee623a44ca3d5d55c93e097240c129e"
+          ],
+          "prometheus.memory_working_set": [
+            "70557b88-a007-418e-bd43-b8b161cc5bc0",
+            "244229f473dbf45a0b82d9de96a1d93fb91e5da96dffcb6b66ef607f569eae8b"
+          ],
+          "prometheus.p95_latency": [
+            "ea536a04-1306-464e-be9b-2e9e0e5541c8",
+            "1c0a3743c8ac3b131dc1e724923e5c5792c4fd093b26e4073077d4bea1b224f4"
+          ],
+          "prometheus.request_rate": [
+            "d283c2d9-5181-447d-b830-2bb4e2c3025d",
+            "9f22c740c89760e591d6bd3e2de4c124bd9b8da2946dce71153829a854356b76"
+          ],
+          "prometheus.restarts": [
+            "3f12ae47-bb3e-4ada-9b91-ce8e721e357a",
+            "04878fae25397a4a8732c1c4152a629fdd37f21ca3dc4e9236ccb67d1f02429f"
+          ]
+        }
+      },
+      "image_pull": {
+        "incident_id": "d6380e54-e6f7-4d8e-b366-004bdd6b35cb",
+        "run_id": "cdc04612-3c5b-46cb-acc9-5f58c45def89",
+        "sources": {
+          "development_fixture": [
+            "cec5c0e6-1244-4ee5-878f-fcfc4869ab33",
+            null
+          ],
+          "kubernetes.configmap.metadata": [
+            "2d4d677f-c5e9-48a9-afeb-1da274306dd7",
+            null
+          ],
+          "kubernetes.events": [
+            "88bef982-86d7-4845-96a7-dd42eec69010",
+            "123882ff758941694a2f9e82ea06a4888f6cd1ad2035a02ae52080614149ac6c"
+          ],
+          "kubernetes.logs.current": [
+            "9096e11e-de87-437f-bf3d-263559654cb8",
+            null
+          ],
+          "kubernetes.logs.previous": [
+            "7256ee6d-a56f-4c10-b71c-130ce2ed3a09",
+            null
+          ],
+          "kubernetes.state": [
+            "d711e9cc-855e-4aaa-b6c6-e10c48540206",
+            "1a1a7b2a2bc6d28f80c04d8a11f64306f1f9185761b9776704574fd1994f0184"
+          ],
+          "prometheus.error_ratio": [
+            "a4b188b2-ee5a-4f76-ada4-93bfe037eb02",
+            "1f672ed0ac8719f932c0213d2b320809e42252633b9b148aa271d9d1e578ae8b"
+          ],
+          "prometheus.memory_limit": [
+            "d1f69895-34be-481d-8510-378a97d9a8fe",
+            "a957deaa9fce6e2b7f1b877c9728243ab1102152a3952a0549a9f44740e8e5df"
+          ],
+          "prometheus.memory_working_set": [
+            "523c7731-e776-45f8-891d-dd9c9d8db311",
+            "f2505c2ec0d2b007687d3eb80e2a27d83b24c7f1d3c78bcf12759c18d252c545"
+          ],
+          "prometheus.p95_latency": [
+            "a2588207-861e-4437-8912-b39007e11788",
+            "d7feec494b9bbfcbd24a56d21b94f314337a283d07ee2f4c3947b075ded8d244"
+          ],
+          "prometheus.request_rate": [
+            "10acb347-40ad-4fa7-9b92-b211115f5289",
+            "32fdc83323ce94e814b3dd895f2125ff02956595a203baf784d64193b3625ffc"
+          ],
+          "prometheus.restarts": [
+            "51a8022f-a718-422e-81c5-b42f0ca1bba1",
+            "2f441615c4221fc0b0751a11a4e2090e248b6f1fb4de221b890f7e6a718ae83f"
+          ]
+        }
+      }
+    },
+    "matches": true
+  }
+}

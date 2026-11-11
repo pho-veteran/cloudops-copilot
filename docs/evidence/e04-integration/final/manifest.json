@@ -1,0 +1,31 @@
+{
+  "schema": "E04FinalAcceptanceBinding/v1",
+  "recorded_at": "2026-11-11T05:51:15.320458+00:00",
+  "starting_head": "8e93a128cd74c6c5563d10ff8a64bdfac34eae92",
+  "base": "f6941c9831e8e424db402e3243a6e83514e3011f",
+  "receipt_sha256": {
+    "acceptance.json": "4d6be11a474dcd52e1fa6cd7e4853cea809b9c7fa304659348d3c5859302ade6",
+    "atomic-guard.json": "001d7626c9034fb3ea2b6da6d885a355a548ed2f7d632a6e8ad6d2e62cdcd568",
+    "bootstrap.json": "e4f0376031caca1ce1d06342d4691247959573ed6467f1cb1c51b16ac2cc1eab",
+    "browser.json": "568e3f2e85d5b4f83979c6d7d3c2b9419683b9f719a09814f14421dfb8db104a",
+    "checks.json": "b13c19527a10956c201663946b25fd6c863745636b3f2bb939a8082c1dcdece0",
+    "citation-1280-dark.jpg": "8efab00465942334d4c2da948d102f9fb28d553b2294c965bd8caab08e8053d0",
+    "citation-1280-light.jpg": "007112a175938981e0704eee8fd3ee2f57f93dd3686cf58868127ae18112435c",
+    "citation-320-dark.jpg": "8a2648fdf0836ad13365bff56847bbfc419a5f1d5c6924dfd45c9538e6e1c890",
+    "citation-320-light.jpg": "18acf4a497ff133f35b66a100b91a94d42301115b9ecf04842516705a845a06a",
+    "citation-390-dark.jpg": "2ce67c2b47f6c03f74ae6afd4ad070be0eb690c59c6a5e187931f874571cdd84",
+    "citation-390-light.jpg": "3468249520d8c12985f3fb3a3ed60c662024c8d7f4703864c56cddc9f381a631",
+    "cleanup.json": "1504a2c407db83b0cefbfd52dae09e3b51f7a1287ede583b1325013ddbb68487",
+    "compare-1280-light.jpg": "9533d60cba2e9a426e5a432600946bdd658bec768cd4e098a90e44db249acda6",
+    "compare-320-dark.jpg": "5b10b3d4ca239d912463d2c2f80be3c2352a0960c4b6c42ffb0a58cb14fb7228",
+    "outage.json": "4898ab391dcaad69f0d4ee2fc8774ef775d0625d8af574af2de909d41879fa44",
+    "restore.json": "819ee8bbfa38c4a0218a10b57de02a4da773c23be3baf0060fa305a0fd2ddc21",
+    "runtime-binding.json": "e6fd7309c05246fd036bc7c95ca685cac32971a05e5f2aef0206f99d70c1035d",
+    "session-ended-390-light.jpg": "bd106b9d3186cdbfd50f81dc6b00a73a8b035d57b5f811e222cead7ed8e78abf"
+  },
+  "limits": [
+    "Local K3s/Prometheus incident and metric fixtures, not production telemetry qualification.",
+    "Restore uses real PostgreSQL rollback/current handlers and controlled loopback KRR/gateway fixtures, not E07/E10 executor/cloud qualification.",
+    "Fresh Edge citation/comparison/role/session proof is separate from the prior IAB export-byte receipt; current Edge download-event timeout is retained."
+  ]
+}

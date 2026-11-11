@@ -1,0 +1,34 @@
+{
+  "backend": {
+    "passed": 1158,
+    "failed": 0,
+    "skipped": 0,
+    "deselected": 0,
+    "seconds": 314.23
+  },
+  "web": {
+    "passed": 195,
+    "files": 22,
+    "build": "passed"
+  },
+  "ruff": {
+    "check": "passed",
+    "format": "193 files passed"
+  },
+  "contracts": "artifacts match; deliberate drift rejected; synchronized artifacts accepted",
+  "baseline_ci": {
+    "head": "8e93a128cd74c6c5563d10ff8a64bdfac34eae92",
+    "run": 42961338887,
+    "backend": 1156,
+    "web": 195,
+    "conclusion": "success"
+  },
+  "focused_integrated_backend": 10,
+  "new_uid_regressions": 2,
+  "diagnostics": [
+    "The original fresh-image bootstrap failed with JSONDecodeError; raw BuildKit-prefix output reproduced the defect. The quiet-build path passed.",
+    "The first new test selected the Compose -p argument rather than the JSON Patch argument; its assertion was corrected and both regressions plus the full suite passed.",
+    "Intermediate navigation/paint captures were rejected; final citation frames were saved in a subsequent interaction after resolved focus/theme checks and visually inspected.",
+    "The Edge download-event helper timed out and one owned tab detached. No successful Edge file-byte capture is claimed. Original separately authorized IAB download receipts remain historical evidence; fresh API snapshot hashes and preservation were independently checked."
+  ]
+}

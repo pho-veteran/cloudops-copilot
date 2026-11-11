@@ -1,0 +1,11 @@
+services:
+  api:
+    environment:
+      COLLECTION_SOURCE_MODE: live_kubernetes,prometheus
+      WEB_ORIGIN: http://localhost:5173
+      COOKIE_SECURE: "false"
+  worker:
+    environment:
+      COLLECTION_SOURCE_MODE: live_kubernetes,prometheus
+      WEB_ORIGIN: http://localhost:5173
+      COOKIE_SECURE: "false"

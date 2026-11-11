@@ -68,7 +68,12 @@ export function CitationTarget({
     gcTime: 0,
   });
   useEffect(() => {
-    if (selection.locatorKey) heading.current?.focus();
+    if (selection.locatorKey) {
+      // Exact navigation must expose the target immediately; the document's
+      // smooth scrolling otherwise leaves keyboard focus far outside view.
+      heading.current?.focus({ preventScroll: true });
+      heading.current?.scrollIntoView?.({ behavior: "instant", block: "center" });
+    }
   }, [selection.locatorKey, resolved.data, resolved.error]);
   return (
     <section
@@ -116,8 +121,8 @@ export function CitationTarget({
               </pre>
               {resolved.data.target?.preview_truncated && (
                 <p>
-                  Target preview truncated; full retained content is shown
-                  above.
+                  Target preview truncated; full retained content is in
+                  Stored content below.
                 </p>
               )}
               <p>
@@ -137,7 +142,7 @@ export function CitationTarget({
           {!targets.data.items.length && (
             <p>
               No stable targets captured for this payload. Inspect the retained
-              source above.
+              source in Stored content below.
             </p>
           )}
           <ul className="foundation-stack">

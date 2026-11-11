@@ -1,0 +1,158 @@
+{
+  "client": "User-connected Microsoft Edge Profile 1",
+  "citation_matrix": [
+    {
+      "screenshot": "citation-1280-light.jpg",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "light",
+      "expected_label": "deployment/revision",
+      "expected_value": "1",
+      "evidence_id": "d35d9f62-4fd5-4e4e-8484-7a2bf1bcf72a",
+      "sha256": "918ee2e5603b5afa8a0f29a00ee1d67368106848698f7c56515f1d68a42863c5",
+      "resolved_value_and_digest_asserted_before_capture": true,
+      "heading_focused": true,
+      "panel_top": 418.8999938964844,
+      "panel_bottom": 637.3999938964844,
+      "no_document_horizontal_overflow": true,
+      "role": "Viewer"
+    },
+    {
+      "screenshot": "citation-1280-dark.jpg",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "dark",
+      "expected_label": "deployment/revision",
+      "expected_value": "1",
+      "evidence_id": "d35d9f62-4fd5-4e4e-8484-7a2bf1bcf72a",
+      "sha256": "918ee2e5603b5afa8a0f29a00ee1d67368106848698f7c56515f1d68a42863c5",
+      "resolved_value_and_digest_asserted_before_capture": true,
+      "heading_focused": true,
+      "panel_top": 418.8999938964844,
+      "panel_bottom": 637.3999938964844,
+      "no_document_horizontal_overflow": true,
+      "role": "Viewer"
+    },
+    {
+      "screenshot": "citation-390-light.jpg",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "expected_label": "deployment/revision",
+      "expected_value": "1",
+      "evidence_id": "d35d9f62-4fd5-4e4e-8484-7a2bf1bcf72a",
+      "sha256": "918ee2e5603b5afa8a0f29a00ee1d67368106848698f7c56515f1d68a42863c5",
+      "resolved_value_and_digest_asserted_before_capture": true,
+      "heading_focused": true,
+      "panel_top": 394.8999938964844,
+      "panel_bottom": 651.6000061035156,
+      "no_document_horizontal_overflow": true,
+      "role": "Viewer"
+    },
+    {
+      "screenshot": "citation-390-dark.jpg",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "expected_label": "deployment/revision",
+      "expected_value": "1",
+      "evidence_id": "d35d9f62-4fd5-4e4e-8484-7a2bf1bcf72a",
+      "sha256": "918ee2e5603b5afa8a0f29a00ee1d67368106848698f7c56515f1d68a42863c5",
+      "resolved_value_and_digest_asserted_before_capture": true,
+      "heading_focused": true,
+      "panel_top": 394.8999938964844,
+      "panel_bottom": 651.6000061035156,
+      "no_document_horizontal_overflow": true,
+      "role": "Viewer"
+    },
+    {
+      "screenshot": "citation-320-light.jpg",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "theme": "light",
+      "expected_label": "deployment/revision",
+      "expected_value": "1",
+      "evidence_id": "d35d9f62-4fd5-4e4e-8484-7a2bf1bcf72a",
+      "sha256": "918ee2e5603b5afa8a0f29a00ee1d67368106848698f7c56515f1d68a42863c5",
+      "resolved_value_and_digest_asserted_before_capture": true,
+      "heading_focused": true,
+      "panel_top": 343,
+      "panel_bottom": 645.8999938964844,
+      "no_document_horizontal_overflow": true,
+      "role": "Viewer"
+    },
+    {
+      "screenshot": "citation-320-dark.jpg",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "theme": "dark",
+      "expected_label": "deployment/revision",
+      "expected_value": "1",
+      "evidence_id": "d35d9f62-4fd5-4e4e-8484-7a2bf1bcf72a",
+      "sha256": "918ee2e5603b5afa8a0f29a00ee1d67368106848698f7c56515f1d68a42863c5",
+      "resolved_value_and_digest_asserted_before_capture": true,
+      "heading_focused": true,
+      "panel_top": 343,
+      "panel_bottom": 645.8999938964844,
+      "no_document_horizontal_overflow": true,
+      "role": "Viewer"
+    }
+  ],
+  "comparison": {
+    "back_retained_pair_source_and_catalog": true,
+    "swap_reversed_revision_values": [
+      "2",
+      "1"
+    ],
+    "screenshots": [
+      "compare-1280-light.jpg",
+      "compare-320-dark.jpg"
+    ],
+    "operator_selected_pair_through_form": true
+  },
+  "downloads": {
+    "edge_export_clicked": true,
+    "edge_download_event_capture": "Timed out; not claimed as a successful download-byte capture.",
+    "existing_successful_proof": "verified-browser.json contains the separately authorized IAB download and original API hash. Its source/receipt hashes were audited without mismatches.",
+    "fresh_api_saved_export_sha256": "7f24ee3fcb0300f1d7b3260777a4f1ab9a3ddb38df1a4fabb91135a30dc6de44",
+    "fresh_api_saved_export_unchanged_after_restart_revision_and_provider_outage": true
+  },
+  "capture_diagnostics": [
+    "An initial rapid return/reopen before the comparison settled left old focus; rejected. Accepted captures wait for the selected comparison heading and exact resolved target focus.",
+    "A download-event wait timed out and detached its owned tab. A fresh Edge tab continued the same historical pair; no browser permission, trust or origin change was used.",
+    "DOM resolution preceded screenshot paint in intermediate captures; rejected stale comparison/light frames. Final images are captured in a separate interaction after resolved target/theme checks and visually inspected.",
+    "Final six screenshots were visually inspected after capture; each shows the resolved revision 1 and digest, with the recorded theme."
+  ],
+  "quality_score": 4,
+  "quality_reason": "Resolved citations stay focused and readable at all six tested size/theme combinations; live state comparison, Swap and historical routing work. Edge file-byte capture is not claimed.",
+  "viewer": {
+    "exact_revision_and_digest_visible": true,
+    "heading_focused": true,
+    "mutation_controls": 0,
+    "viewport": [
+      390,
+      844
+    ],
+    "screenshot": "citation-390-light.jpg"
+  },
+  "session": {
+    "server_session_revoked": true,
+    "session_ended_notice_observed": true,
+    "no_action_replay_notice": true,
+    "exact_run_evidence_comparison_and_locator_route_preserved": true,
+    "screenshot": "session-ended-390-light.jpg"
+  },
+  "cleanup": "Owned tabs closed; viewport reset; unrelated tabs/profile/trust unchanged."
+}

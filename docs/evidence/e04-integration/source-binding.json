@@ -1,0 +1,42 @@
+{
+  "schema": "E04IntegratedSourceBinding/v1",
+  "commit": "bba6c80",
+  "main": "f6941c9",
+  "recorded_at": "2026-11-11T03:17:08.574075+00:00",
+  "source_sha256": {
+    "services/backend/tests/e04_adapters.py": "1e9ce5b68da4b6b34cb96e5a5e71e183e265c0ba552f1875bf54a5af7c4b53c6",
+    "services/backend/tests/test_e04_integration.py": "1c4bdd01a4213b3aa097038d24d0e40bc76fcdbeaeaee5a772ba6c2a38c60e8d",
+    "scripts/probe-e04-integration.py": "7027c631934db016c96b89e7a49abc6b20747a05c703e20c53a4200a6b178b41",
+    "scripts/probe-job-dispatch.py": "063f49c9d5315fddb4efc0b63060e128224938cd09c1147425b301fd8471018f",
+    "scripts/bootstrap-integration.py": "11be33e9eb56ccffbabdc02d96ad5cf6ba734125b7648888dbc6c4113a0d0c61",
+    "config/lab/metrics_fixture.py": "457d61453aaf754f085433951956f5528e36af8523f3734963f64e1d5e54070e",
+    "compose.e04.yaml": "0e09b0bfd5245937f43d3704479943fed0771934654d82849fbef1c2c5a81e4f",
+    "compose.metrics.yaml": "bf585ddb92d1ff17aa2b3e0073b1e5dfcbb450f11fc405366760ef47fbc2d790",
+    "docs/e04-local-acceptance.md": "afa96fae8f536ff0ff96416c2ba94186dcdca851f0f53cce79988e8c9a260e67",
+    "README.md": "aab844ae4fa2b6ff967b7d67f0ef15b9ea24b8b595957bc5cc3c1e2671683ce1",
+    "docs/foundation.md": "b8c39768abb7befaa4ad9e6d178745dee3b792d218b95915a42ebd20ac852128"
+  },
+  "images": {
+    "cloudops-local-backend:latest": "sha256:d1d9b338ae3af1c529721bc9ba70de1dd890558e3d41723eac10212c2bf6e85a",
+    "cloudops-local-https:latest": "sha256:831c3bf19d0ffa5b50bc3aced2fc02b5bec0b709a185fd4d7b33c0e1f2c57586",
+    "cloudops-e04-50-web:latest": "sha256:bca284e252cb9c1dd6ce09be8ce6fa89776470e0478849780733eef6084a00a4",
+    "rancher/k3s": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+    "prom/prometheus:v3.5.0": "sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996",
+    "postgres:17.11-bookworm": "sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27"
+  },
+  "environment": {
+    "python": "3.13.11",
+    "node": "24.21.0",
+    "postgres": "17.11-bookworm",
+    "k3s": "v1.37.1+k3s1",
+    "prometheus": "v3.5.0",
+    "caddy": "2.10.2-alpine"
+  },
+  "proof_classes": {
+    "live": "Actual K3s and Prometheus producers through the configured live_kubernetes,prometheus mode; actual API/PostgreSQL/worker and Edge browser.",
+    "controlled": "Backend integration adapters use a controlled Kubernetes client and Prometheus MockTransport for deterministic full-catalog parity and negative cases.",
+    "dispatch": "Dispatch/class-permit project uses the synthetic development_fixture adapter for job lifecycle; live producers are proven separately by the five-pack project.",
+    "not_claimed": "No live E06 diagnosis, E07/E10 restore/unknown release, production telemetry SLO or release-complete claim."
+  },
+  "note": "The API/browser acceptance receipts and the separate live provider-outage receipt were captured from the reviewed working-tree candidate and then committed; this file binds commit bba6c80 and the acceptance-lab image IDs. The evidence-only commit that contains this file does not change runtime source."
+}

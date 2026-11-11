@@ -1,0 +1,44 @@
+{
+  "schema": "E04IntegratedCleanup/v1",
+  "recorded_at": "2026-11-11T03:15:00Z",
+  "projects": [
+    {
+      "name": "cloudops-e04-50",
+      "purpose": "Live K3s + Prometheus five-pack acceptance",
+      "containers_removed": true,
+      "volumes_removed": true,
+      "accounts": ["operator", "viewer"],
+      "credentials_retained": false
+    },
+    {
+      "name": "cloudops-e04-dispatch",
+      "purpose": "Dispatch/class-permit and worker takeover acceptance",
+      "containers_removed": true,
+      "volumes_removed": true,
+      "accounts": ["issue46-operator", "issue46-viewer"],
+      "credentials_retained": false
+    }
+  ],
+  "test_database": {
+    "name": "cloudops-test-db",
+    "database": "cloudops_test",
+    "purpose": "Disposable PostgreSQL test suite; never application data",
+    "retained_until_review": true
+  },
+  "removed_local_files": [
+    "tmp/e01-integration",
+    "tmp/e04-integration-receipt.json",
+    "tmp/compose.e04-http.yaml",
+    "tmp/e04-collect.txt"
+  ],
+  "browser": "Edge session closed; no profile permission or certificate trust changed.",
+  "receipts_retained": [
+    "acceptance.json",
+    "dispatch.json",
+    "provider-outage.json",
+    "browser.json",
+    "checks.json",
+    "screenshots under docs/evidence/e04-integration/"
+  ],
+  "limitations": "Only task-owned projects and disposable test data were removed. No shared/production container, host Kubernetes context or unrelated volume was touched."
+}

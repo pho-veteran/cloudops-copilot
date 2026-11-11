@@ -1,0 +1,50 @@
+{
+  "schema": "E04ProviderOutage/v1",
+  "recorded_at": "2026-11-11T03:08:18.306268+00:00",
+  "starting_commit": "f6941c9",
+  "source": "fresh owned lab; separate from the main five-pack acceptance receipt",
+  "provider": "Prometheus service stopped; existing PostgreSQL/API reads must not call it",
+  "incident_id": "0220c693-dee4-4d83-8791-c4e639c36a54",
+  "run_id": "2548945f-aed2-4afe-ab5a-e0e6d1aef643",
+  "before": {
+    "state": "insufficient_evidence",
+    "outcome_code": "analysis_unavailable",
+    "evidence_hashes": {
+      "kubernetes.events": "a0834ee766e402b8c36ffe1085e0729f4cdf3b200419099161d8eb9cbe34251c",
+      "kubernetes.logs.current": "dbd6d05265689111b4ae19be04b93f2467f1c3e539c8af85df4e03e4f595c77b",
+      "kubernetes.state": "5b8e43bc812c8a8b30ed2957c6bd89d27459b0d580a4f2e9a9cd38b518b1a4b4",
+      "prometheus.error_ratio": "954cac363d466eada3b425561a639a7d797a6fe6453a8fa5c4317090a827ac30",
+      "prometheus.memory_limit": "9f0a88fcb961fb97d9d605718593f6febcf13b12f994e88fd4ec5dd3fb222679",
+      "prometheus.memory_working_set": "57517d8a4e54cb51caa4b20aeef14e48cc59479f435c066d1560f148c0e1236c",
+      "prometheus.p95_latency": "283fdfe6c2c75a7a7f862ff8e4606270eb33cecc355a4d4e42e9eae179ed88eb",
+      "prometheus.request_rate": "3fc27d1322c4ca5212485d4b6cf30fb6a2d768835a46f9a117dc82a032cbae16",
+      "prometheus.restarts": "55d4aea6316a693aff82223e543253182644de117e8eb8e8d92abe81016a3534"
+    },
+    "timeline": "RunTimeline/v1",
+    "comparison": {
+      "status": "comparable",
+      "sources": 12
+    }
+  },
+  "after": {
+    "state": "insufficient_evidence",
+    "outcome_code": "analysis_unavailable",
+    "evidence_hashes": {
+      "kubernetes.events": "a0834ee766e402b8c36ffe1085e0729f4cdf3b200419099161d8eb9cbe34251c",
+      "kubernetes.logs.current": "dbd6d05265689111b4ae19be04b93f2467f1c3e539c8af85df4e03e4f595c77b",
+      "kubernetes.state": "5b8e43bc812c8a8b30ed2957c6bd89d27459b0d580a4f2e9a9cd38b518b1a4b4",
+      "prometheus.error_ratio": "954cac363d466eada3b425561a639a7d797a6fe6453a8fa5c4317090a827ac30",
+      "prometheus.memory_limit": "9f0a88fcb961fb97d9d605718593f6febcf13b12f994e88fd4ec5dd3fb222679",
+      "prometheus.memory_working_set": "57517d8a4e54cb51caa4b20aeef14e48cc59479f435c066d1560f148c0e1236c",
+      "prometheus.p95_latency": "283fdfe6c2c75a7a7f862ff8e4606270eb33cecc355a4d4e42e9eae179ed88eb",
+      "prometheus.request_rate": "3fc27d1322c4ca5212485d4b6cf30fb6a2d768835a46f9a117dc82a032cbae16",
+      "prometheus.restarts": "55d4aea6316a693aff82223e543253182644de117e8eb8e8d92abe81016a3534"
+    },
+    "timeline": "RunTimeline/v1",
+    "comparison": {
+      "status": "comparable",
+      "sources": 12
+    }
+  },
+  "matches": true
+}
