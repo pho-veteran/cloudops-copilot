@@ -145,6 +145,13 @@ def _start_attempt(connection) -> tuple[UUID, int]:
                 reason="Previous index invocation did not finish.",
             )
         )
+        now = datetime.now(timezone.utc)
+        if state.last_outcome is None or state.last_outcome == "interrupted":
+            pass
+        elif state.current_attempt_id is not None:
+            state.last_outcome = "interrupted"
+            state.last_reason = "Previous index invocation did not finish."
+            state.last_checked_at = now
         state.fence = (state.fence or 0) + 1
         attempt = KnowledgeIndexAttempt(
             id=attempt_id,
@@ -155,7 +162,7 @@ def _start_attempt(connection) -> tuple[UUID, int]:
         db.add(attempt)
         db.flush()
         state.current_attempt_id = attempt.id
-        state.updated_at = datetime.now(timezone.utc)
+        state.updated_at = now
         return attempt_id, state.fence
 
 
@@ -191,7 +198,8 @@ def _finish_attempt(
         attempt.chunk_count = chunk_count
         attempt.reason = reason
         state.current_attempt_id = None
-        state.last_checked_source_digest = source_digest
+        if source_digest is not None:
+            state.last_checked_source_digest = source_digest
         state.last_checked_at = now
         state.last_outcome = outcome
         state.last_reason = reason
@@ -201,7 +209,9 @@ def _finish_attempt(
         state.updated_at = now
 
 
-def _fail(connection, attempt_id: UUID, fence: int, reason: str) -> None:
+def _fail(
+    connection, attempt_id: UUID, fence: int, reason: str, *, source_digest: str | None = None
+) -> None:
     try:
         _finish_attempt(
             connection,
@@ -209,6 +219,7 @@ def _fail(connection, attempt_id: UUID, fence: int, reason: str) -> None:
             fence=fence,
             outcome="failed",
             phase="failed",
+            source_digest=source_digest,
             reason=reason[:512],
         )
     except Exception:
@@ -431,7 +442,13 @@ def index_corpus(root) -> KnowledgeIndexRequestResult:
                     return KnowledgeIndexRequestResult(
                         outcome="failed", attempt_id=attempt_id, reason=reason
                     )
-                _fail(guard.active, attempt_id, fence, reason)
+                _fail(
+                    guard.active,
+                    attempt_id,
+                    fence,
+                    reason,
+                    source_digest=captured.source_digest,
+                )
                 return KnowledgeIndexRequestResult(
                     outcome="failed", attempt_id=attempt_id, reason=reason
                 )

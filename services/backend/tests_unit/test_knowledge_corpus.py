@@ -194,8 +194,23 @@ def test_manifest_unknown_field_is_rejected(tmp_path):
 
 
 def test_tag_bounds_allow_64_characters_but_not_65(tmp_path):
+    write_corpus(tmp_path, [document(tags=[])])
+    assert capture_corpus(tmp_path).documents[0].tags == ()
     write_corpus(tmp_path, [document(tags=["a" * 64])])
     assert capture_corpus(tmp_path).documents[0].tags == ("a" * 64,)
     write_corpus(tmp_path, [document(tags=["a" * 65])])
     with pytest.raises(CorpusError, match="entry over 64"):
         capture_corpus(tmp_path)
+
+
+def test_metadata_array_order_is_part_of_the_digest(tmp_path):
+    write_corpus(tmp_path, [document(tags=["a", "b"])])
+    first = capture_corpus(tmp_path).documents[0]
+    write_corpus(
+        tmp_path,
+        [document(tags=["b", "a"])],
+        {"fixture-guide": "# Fixture guide\n\nFixture body.\n"},
+    )
+    second = capture_corpus(tmp_path).documents[0]
+    assert first.content_sha256 == second.content_sha256
+    assert first.metadata_sha256 != second.metadata_sha256

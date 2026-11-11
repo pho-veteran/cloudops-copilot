@@ -105,14 +105,10 @@ def _sha(value: bytes) -> str:
 
 
 def _metadata_projection(document: CapturedDocument) -> dict[str, Any]:
-    metadata = document.metadata
-    metadata["tags"] = sorted(metadata["tags"])
-    metadata["applicability"] = {
-        **metadata["applicability"],
-        "symptom_families": sorted(metadata["applicability"]["symptom_families"]),
-        "recovery_templates": sorted(metadata["applicability"]["recovery_templates"]),
+    return {
+        "canonicalization_version": CANONICALIZATION_VERSION,
+        "metadata": document.metadata,
     }
-    return {"canonicalization_version": CANONICALIZATION_VERSION, "metadata": metadata}
 
 
 def metadata_digest(document: CapturedDocument) -> str:
@@ -198,21 +194,23 @@ def _safe_path(root: Path, raw: str) -> Path:
     return current
 
 
-def _file_bytes(path: Path, source_path: str) -> bytes:
+def _file_bytes(path: Path, source_path: str, max_bytes: int = MAX_FILE_BYTES) -> bytes:
     try:
         before = path.stat()
     except OSError:
         raise CorpusError(f"source file is missing: {source_path}") from None
     if not stat.S_ISREG(before.st_mode):
         raise CorpusError(f"source file is not regular: {source_path}")
-    if before.st_size > MAX_FILE_BYTES:
-        raise CorpusError(f"source file exceeds the 256 KiB cap: {source_path}")
+    if before.st_size > max_bytes:
+        if max_bytes == MAX_FILE_BYTES:
+            raise CorpusError(f"source file exceeds the 256 KiB cap: {source_path}")
+        raise CorpusError("corpus exceeds the 8 MiB cap")
     try:
         with path.open("rb") as stream:
-            content = stream.read(MAX_FILE_BYTES + 1)
+            content = stream.read(max_bytes + 1)
     except OSError:
         raise CorpusError(f"source file could not be read: {source_path}") from None
-    if len(content) != before.st_size or len(content) > MAX_FILE_BYTES:
+    if len(content) != before.st_size or len(content) > max_bytes:
         raise CorpusError(f"source file changed during capture: {source_path}")
     try:
         after = path.stat()
@@ -252,7 +250,7 @@ def _string_list(
     value: Any, where: str, max_items: int, max_entry: int, *, allow_empty: bool
 ) -> tuple[str, ...]:
     if not isinstance(value, list) or (not allow_empty and not value):
-        raise CorpusError(f"{where} must be a{'n empty or' if allow_empty else ''} list")
+        raise CorpusError(f"{where} must be {'a list' if allow_empty else 'a non-empty list'}")
     if len(value) > max_items:
         raise CorpusError(f"{where} has too many entries")
     result = []
@@ -265,7 +263,9 @@ def _string_list(
     return tuple(result)
 
 
-def _document(value: Any, index: int, root: Path) -> CapturedDocument:
+def _document(
+    value: Any, index: int, root: Path, max_bytes: int = MAX_FILE_BYTES
+) -> CapturedDocument:
     where = f"documents[{index}]"
     item = _require_object(value, where)
     _require_fields(item, DOCUMENT_FIELDS, where)
@@ -277,7 +277,7 @@ def _document(value: Any, index: int, root: Path) -> CapturedDocument:
     guide_kind = _require_string(item["guide_kind"], f"{where}.guide_kind", 32)
     if guide_kind not in GUIDE_KINDS:
         raise CorpusError(f"{where}.guide_kind is invalid")
-    tags = _string_list(item["tags"], f"{where}.tags", MAX_TAGS, MAX_TAG, allow_empty=False)
+    tags = _string_list(item["tags"], f"{where}.tags", MAX_TAGS, MAX_TAG, allow_empty=True)
     applicability = _require_object(item["applicability"], f"{where}.applicability")
     _require_fields(applicability, APPLICABILITY_FIELDS, f"{where}.applicability")
     if applicability["kind"] != "Deployment":
@@ -320,7 +320,7 @@ def _document(value: Any, index: int, root: Path) -> CapturedDocument:
         raise CorpusError(f"{where}.provenance.reviewed_at must be a valid date") from None
     source_path = _require_string(item["source_path"], f"{where}.source_path", MAX_SOURCE_PATH)
     path = _safe_path(root, source_path)
-    content = _file_bytes(path, source_path)
+    content = _file_bytes(path, source_path, min(MAX_FILE_BYTES, max_bytes))
     partial = CapturedDocument(
         document_key=key,
         version=version,
@@ -365,26 +365,35 @@ def capture_corpus(root: str | Path) -> CapturedCorpus:
         raise CorpusError("documents must be a list")
     if len(item["documents"]) > MAX_DOCUMENTS:
         raise CorpusError(f"corpus exceeds the {MAX_DOCUMENTS}-document cap")
-    documents = tuple(
-        _document(row, index, root_path) for index, row in enumerate(item["documents"])
-    )
+    documents: list[CapturedDocument] = []
     seen_tuples: set[tuple[str, str]] = set()
     seen_paths: set[str] = set()
-    for document in documents:
-        pair = (document.document_key, document.version)
-        if pair in seen_tuples:
-            raise CorpusError(f"duplicate document key/version: {pair[0]} v{pair[1]}")
-        seen_tuples.add(pair)
-        resolved = str((root_path / document.source_path).resolve())
-        if resolved in seen_paths:
-            raise CorpusError(f"duplicate source_path: {document.source_path}")
-        seen_paths.add(resolved)
-    total = len(manifest) + sum(len(document.content) for document in documents)
-    if total > MAX_CORPUS_BYTES:
-        raise CorpusError("corpus exceeds the 8 MiB cap")
+    total = len(manifest)
+    for index, row in enumerate(item["documents"]):
+        if isinstance(row, dict):
+            key, version, source = (
+                row.get("document_key"),
+                row.get("version"),
+                row.get("source_path"),
+            )
+            if isinstance(key, str) and isinstance(version, str):
+                pair = (key, version)
+                if pair in seen_tuples:
+                    raise CorpusError(f"duplicate document key/version: {pair[0]} v{pair[1]}")
+                seen_tuples.add(pair)
+            if isinstance(source, str):
+                resolved = str(_safe_path(root_path, source).resolve())
+                if resolved in seen_paths:
+                    raise CorpusError(f"duplicate source_path: {source}")
+                seen_paths.add(resolved)
+        document = _document(row, index, root_path, MAX_CORPUS_BYTES - total)
+        total += len(document.content)
+        if total > MAX_CORPUS_BYTES:
+            raise CorpusError("corpus exceeds the 8 MiB cap")
+        documents.append(document)
     return CapturedCorpus(
-        documents=documents,
-        source_digest=source_digest(documents),
+        documents=tuple(documents),
+        source_digest=source_digest(tuple(documents)),
         captured_at=datetime.now(timezone.utc),
         manifest_bytes=len(manifest),
     )

@@ -50,7 +50,9 @@ def _summary(row: KnowledgeDocumentVersion) -> KnowledgeDocumentSummary:
     )
 
 
-def _attempt(row: KnowledgeIndexAttempt | None) -> KnowledgeAttemptView | None:
+def _attempt(
+    row: KnowledgeIndexAttempt | None, *, interrupted: bool = False
+) -> KnowledgeAttemptView | None:
     if row is None:
         return None
     return KnowledgeAttemptView(
@@ -63,7 +65,10 @@ def _attempt(row: KnowledgeIndexAttempt | None) -> KnowledgeAttemptView | None:
         generation_fingerprint=row.generation_fingerprint,
         document_count=row.document_count,
         chunk_count=row.chunk_count,
-        reason=row.reason,
+        reason=(
+            row.reason
+            or ("Index attempt did not finish; retry explicitly." if interrupted else None)
+        ),
     )
 
 
@@ -118,7 +123,9 @@ def _decode_cursor(cursor: str) -> dict:
         raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.") from None
     if not isinstance(value, dict) or set(value) != {"v", "offset", "generation_id", "q", "tags"}:
         raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.")
-    if value["v"] != 1 or not isinstance(value["offset"], int) or not 0 <= value["offset"] <= 100:
+    if type(value["v"]) is not int or value["v"] != 1:
+        raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.")
+    if type(value["offset"]) is not int or not 0 <= value["offset"] <= 100:
         raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.")
     try:
         UUID(value["generation_id"])
@@ -266,6 +273,9 @@ def read_chunk(db: Session, chunk_id: UUID, document_version_id: UUID) -> Knowle
 
 
 def index_status(db: Session) -> KnowledgeIndexStatus:
+    # Probe the lock before loading projection rows so the read stays one
+    # database snapshot and the GET never mutates or discards session work.
+    updating = lock_present(db)
     state = db.get(KnowledgeIndexState, 1)
     active = (
         db.get(KnowledgeGeneration, state.active_generation_id)
@@ -288,12 +298,12 @@ def index_status(db: Session) -> KnowledgeIndexStatus:
         chunks=db.scalar(select(func.count()).select_from(KnowledgeChunk)) or 0,
         generations=db.scalar(select(func.count()).select_from(KnowledgeGeneration)) or 0,
     )
-    updating = lock_present(db)
+    unfinished = latest is not None and latest.outcome is None
     if updating:
         status = "updating"
     elif active is None:
         status = "not_indexed"
-    elif state and state.last_outcome in {"failed", "interrupted", "guard_lost"}:
+    elif unfinished or (state and state.last_outcome in {"failed", "interrupted", "guard_lost"}):
         status = "degraded"
     else:
         status = "ready"
@@ -302,7 +312,7 @@ def index_status(db: Session) -> KnowledgeIndexStatus:
         state=status,
         observed_at=datetime.now(timezone.utc),
         active_generation=_generation(active),
-        last_attempt=_attempt(latest),
+        last_attempt=_attempt(latest, interrupted=unfinished),
         last_success=_attempt(last_success),
         last_checked_source_digest=state.last_checked_source_digest if state else None,
         last_checked_at=state.last_checked_at if state else None,

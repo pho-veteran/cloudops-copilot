@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy import select
 
+from cloudops.features.knowledge import indexing
 from cloudops.features.knowledge.catalog import (
     index_status,
     list_documents,
@@ -227,3 +228,24 @@ def test_status_uses_real_attempt_evidence(db, tmp_path):
     assert status.last_attempt.finished_at is not None
     assert status.active_generation.document_count == 1
     assert status.retained.document_versions == 1
+
+
+def test_chunker_version_change_rebuilds_generation_and_keeps_old_chunks(db, tmp_path, monkeypatch):
+    write_corpus(tmp_path)
+    first = index_corpus(tmp_path)
+    db.expire_all()
+    old_document = _ids(db)[0]
+    old_chunk = db.scalar(
+        select(KnowledgeChunk).where(KnowledgeChunk.document_version_id == old_document.id)
+    )
+    old_bytes = old_chunk.content
+
+    monkeypatch.setattr(indexing, "CHUNKER_VERSION", "2")
+    rebuilt = index_corpus(tmp_path)
+    assert rebuilt.outcome == "indexed"
+    assert rebuilt.generation_id != first.generation_id
+    db.expire_all()
+    assert _ids(db)[0].id == old_document.id
+    assert read_chunk(db, old_chunk.id, old_document.id).content == old_bytes.decode("utf-8")
+    second = index_status(db)
+    assert second.active_generation.chunker_version == "2"

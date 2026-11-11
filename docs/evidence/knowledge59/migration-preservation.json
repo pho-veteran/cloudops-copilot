@@ -1,7 +1,10 @@
 {
   "head": "0010_knowledge_index",
   "proof_class": "Isolated PostgreSQL _test database; no application/shared database used",
-  "result": "populated 0009 -> head -> head preserved a legacy user row; downgrade with retained Knowledge history refused",
+  "result": "populated 0009 -> head -> head preserved a legacy row; existing saved-resolution migration proof reran through head; downgrade with retained Knowledge history refused",
   "schema": "Knowledge59MigrationPreservation/v1",
-  "test": "services/backend/tests/test_knowledge_migration.py"
+  "test": [
+    "services/backend/tests/test_knowledge_migration.py",
+    "services/backend/tests/test_evidence_migration.py"
+  ]
 }

@@ -2,7 +2,11 @@
   "commands": [
     {
       "command": "pytest -q services/backend/tests_unit",
-      "result": "516 passed, 3 skipped"
+      "result": "520 passed, 3 skipped"
+    },
+    {
+      "command": "pytest -q services/backend/tests_unit/test_knowledge_*",
+      "result": "43 passed, 1 skipped"
     },
     {
       "command": "pytest -q services/backend/tests --ignore=test_permissions.py",
@@ -17,12 +21,8 @@
       "result": "16 passed, 228 deselected"
     },
     {
-      "command": "pytest -q services/backend/tests_unit/test_knowledge_corpus.py services/backend/tests_unit/test_knowledge_chunking.py services/backend/tests_unit/test_knowledge_cursor.py",
-      "result": "39 passed, 1 skipped"
-    },
-    {
       "command": "pytest -q services/backend/tests/test_knowledge_*",
-      "result": "23 passed"
+      "result": "27 passed"
     },
     {
       "command": "npm --prefix apps/web test (NODE_ENV=test)",
@@ -52,13 +52,14 @@
   ],
   "migration": {
     "head": "0010_knowledge_index",
-    "populated_preservation": "test_knowledge_migration.py passed"
+    "populated_preservation": "test_knowledge_migration.py (legacy user) and existing test_evidence_migration.py (saved resolution bytes through head) passed"
   },
   "runtime": {
     "api_probe": [
       "api-read-viewer.json",
       "api-read-operator.json",
-      "api-read-restart.json"
+      "api-read-restart.json",
+      "api-roles.json"
     ],
     "index_lifecycle": "index-lifecycle.json"
   },

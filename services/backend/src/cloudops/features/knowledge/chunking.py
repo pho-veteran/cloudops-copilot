@@ -11,7 +11,7 @@ CHUNKER_VERSION = "1"
 MAX_CHUNK_BYTES = 4 * 1024
 MAX_CHUNKS = 200
 HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$")
-FENCE = re.compile(r"^ {0,3}(```|~~~)")
+FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 
 
 class ChunkingError(ValueError):
@@ -85,11 +85,20 @@ def chunk_document(content: bytes) -> tuple[Chunk, ...]:
     section_start = 0
     offset = 0
     fenced = False
+    fence_marker = ""
     for line in lines:
         line_bytes = line.encode("utf-8")
         line_without_newline = line.rstrip("\r\n")
-        if FENCE.match(line_without_newline):
-            fenced = not fenced
+        fence = FENCE.match(line_without_newline)
+        if fence:
+            marker = fence.group(1)
+            if fenced:
+                if marker[0] == fence_marker[0] and len(marker) >= len(fence_marker):
+                    fenced = False
+                    fence_marker = ""
+            else:
+                fenced = True
+                fence_marker = marker
         elif not fenced:
             match = HEADING.match(line_without_newline)
             if match:

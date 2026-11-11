@@ -25,6 +25,8 @@ def test_cursor_round_trip():
         {"v": 2, "offset": 0, "generation_id": str(uuid4()), "q": "a", "tags": "b"},
         {"v": 1, "offset": -1, "generation_id": str(uuid4()), "q": "a", "tags": "b"},
         {"v": 1, "offset": 0, "generation_id": str(uuid4()), "q": "a", "tags": "b", "x": 1},
+        {"v": True, "offset": 0, "generation_id": str(uuid4()), "q": "a", "tags": "b"},
+        {"v": 1, "offset": True, "generation_id": str(uuid4()), "q": "a", "tags": "b"},
     ],
 )
 def test_malformed_cursor_is_rejected(payload):

@@ -1,14 +1,14 @@
 {
   "index": {
-    "attempt_id": "b702434e-ae6e-4b00-b5bc-af70069d687c",
+    "attempt_id": "949e7bba-712e-4c6a-8e89-20bf241a19dc",
     "chunk_count": 64,
     "document_count": 8,
-    "generation_id": "1ce682d3-0800-4e31-a97b-8ace31be21d1",
+    "generation_id": "9526780e-cf46-4d79-bcc6-1aaa012dba60",
     "outcome": "indexed",
     "reason": null,
-    "source_digest": "b02fbc5768b1322b30d5a9c697523be71d8fcedde6fb9b2796b38541a3cc2a6a"
+    "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
   },
-  "proof_class": "Local trusted CLI over the isolated PostgreSQL _test lab; records IDs/digests, not relevance or UI.",
+  "proof_class": "Local trusted CLI over isolated PostgreSQL _test lab; records IDs/digests, not relevance or UI.",
   "schema": "Knowledge59IndexLifecycle/v1",
   "source": {
     "corpus": "runbooks/catalog.json",
@@ -17,49 +17,49 @@
   },
   "status": {
     "active_generation": {
-      "captured_at": "2026-11-11T17:17:44.586576Z",
+      "captured_at": "2026-11-11T17:52:55.748978Z",
       "chunk_count": 64,
       "chunker_version": "1",
       "config_digest": "92d5d5b067fe2bd1aa499a3a5b052791d6b709200a005d5ae9ac2d8ab54e2e2e",
       "document_count": 8,
-      "fingerprint": "b43f4409267625bf97050ee9b1e65f4cdbb3b2224c6415335f83f44516bdac86",
-      "id": "1ce682d3-0800-4e31-a97b-8ace31be21d1",
+      "fingerprint": "690b2c363c42e47def96e4d2e724b2d8685782ce2f9b4898634ed22f41f3524d",
+      "id": "9526780e-cf46-4d79-bcc6-1aaa012dba60",
       "index_format_version": "1",
-      "indexed_at": "2026-11-11T17:17:44.603625Z",
+      "indexed_at": "2026-11-11T17:52:55.766091Z",
       "ranking_config_version": "1",
       "search_config_version": "1",
-      "source_digest": "b02fbc5768b1322b30d5a9c697523be71d8fcedde6fb9b2796b38541a3cc2a6a"
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
     },
     "catalog_search_available": true,
     "has_active_generation": true,
     "last_attempt": {
       "chunk_count": 64,
       "document_count": 8,
-      "finished_at": "2026-11-11T17:17:44.862986Z",
-      "generation_fingerprint": "b43f4409267625bf97050ee9b1e65f4cdbb3b2224c6415335f83f44516bdac86",
-      "id": "b702434e-ae6e-4b00-b5bc-af70069d687c",
+      "finished_at": "2026-11-11T17:52:56.022981Z",
+      "generation_fingerprint": "690b2c363c42e47def96e4d2e724b2d8685782ce2f9b4898634ed22f41f3524d",
+      "id": "949e7bba-712e-4c6a-8e89-20bf241a19dc",
       "outcome": "indexed",
       "phase": "activated",
       "reason": null,
-      "source_digest": "b02fbc5768b1322b30d5a9c697523be71d8fcedde6fb9b2796b38541a3cc2a6a",
-      "started_at": "2026-11-11T17:17:44.555282Z"
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8",
+      "started_at": "2026-11-11T17:52:55.714349Z"
     },
-    "last_checked_at": "2026-11-11T17:17:44.862986Z",
-    "last_checked_source_digest": "b02fbc5768b1322b30d5a9c697523be71d8fcedde6fb9b2796b38541a3cc2a6a",
+    "last_checked_at": "2026-11-11T17:52:56.022981Z",
+    "last_checked_source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8",
     "last_success": {
       "chunk_count": 64,
       "document_count": 8,
-      "finished_at": "2026-11-11T17:17:44.862986Z",
-      "generation_fingerprint": "b43f4409267625bf97050ee9b1e65f4cdbb3b2224c6415335f83f44516bdac86",
-      "id": "b702434e-ae6e-4b00-b5bc-af70069d687c",
+      "finished_at": "2026-11-11T17:52:56.022981Z",
+      "generation_fingerprint": "690b2c363c42e47def96e4d2e724b2d8685782ce2f9b4898634ed22f41f3524d",
+      "id": "949e7bba-712e-4c6a-8e89-20bf241a19dc",
       "outcome": "indexed",
       "phase": "activated",
       "reason": null,
-      "source_digest": "b02fbc5768b1322b30d5a9c697523be71d8fcedde6fb9b2796b38541a3cc2a6a",
-      "started_at": "2026-11-11T17:17:44.555282Z"
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8",
+      "started_at": "2026-11-11T17:52:55.714349Z"
     },
-    "last_success_at": "2026-11-11T17:17:44.862986Z",
-    "observed_at": "2026-11-11T17:17:46.420271Z",
+    "last_success_at": "2026-11-11T17:52:56.022981Z",
+    "observed_at": "2026-11-11T17:53:51.897733Z",
     "read_available": true,
     "retained": {
       "chunks": 64,

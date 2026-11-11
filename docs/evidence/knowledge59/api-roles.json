@@ -1,0 +1,29 @@
+{
+  "anonymous": {
+    "documents": 401,
+    "exact_unknown": 401,
+    "index_status": 401
+  },
+  "proof_class": "Local API over isolated _test PostgreSQL; session cookies and passwords omitted",
+  "roles": {
+    "operator": {
+      "count": 8,
+      "exact": 200,
+      "list": 200,
+      "login": 200,
+      "state": "ready",
+      "status": 200,
+      "unknown": 404
+    },
+    "viewer": {
+      "count": 8,
+      "exact": 200,
+      "list": 200,
+      "login": 200,
+      "state": "ready",
+      "status": 200,
+      "unknown": 404
+    }
+  },
+  "schema": "Knowledge59ApiRoles/v1"
+}

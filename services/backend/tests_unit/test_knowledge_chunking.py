@@ -38,6 +38,12 @@ def test_fenced_hash_lines_are_not_headings():
     assert chunks[0].heading_path == ("Root",)
 
 
+def test_mixed_fence_markers_do_not_close_code_early():
+    content = b"# Root\n\n```\n~~~\n# not a heading\n~~~\n```\n\n# Real\n\nbody\n"
+    chunks = chunk_document(content)
+    assert [chunk.heading_path for chunk in chunks] == [("Root",), ("Real",)]
+
+
 def test_empty_document_has_no_chunks():
     assert chunk_document(b"") == ()
 
