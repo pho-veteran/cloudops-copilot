@@ -1,0 +1,11 @@
+{
+  "absent_image_baseline": "dispatch_permit failed to parse BuildKit progress mixed with status JSON",
+  "fixed_path": "The actual dispatch_permit function was exercised with a fresh owned image alias and authority volume, using --quiet-build. It parsed status and issued the fresh-install permit.",
+  "dispatchable_job_kinds": [
+    "development_collection_v1",
+    "recommendation_report_v1",
+    "recovery_execution_v1"
+  ],
+  "full_k3s_bootstrap": "Completed in the live project using the prebuilt backend image; the absent-image admin branch was then separately exercised.",
+  "unrelated_authority": "No existing permit or unrelated project was replaced."
+}

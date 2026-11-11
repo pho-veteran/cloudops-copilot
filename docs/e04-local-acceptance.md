@@ -2,6 +2,20 @@
 
 Acceptance record for [E04 #50](https://github.com/pho-veteran/cloudops-copilot/issues/50) and parent [E04 #7](https://github.com/pho-veteran/cloudops-copilot/issues/7). This record covers the five fixed investigation packs, the actual configured `live_kubernetes` and `prometheus` producers, normal admission/worker/checkpoints, stored evidence/citation/comparison/timeline consumers, restart and role/session behavior. It is not an E06 diagnosis, recovery engine, E07/E10 restore qualification or cloud release claim.
 
+## Final acceptance verification
+
+The current [acceptance binding](evidence/e04-integration/final/manifest.json) supersedes the earlier desktop citation captures. The older `verified-browser.json` desktop entries show loading, so they are retained as historical attempts and do not establish resolved desktop target visibility.
+
+- [Fresh live collection](evidence/e04-integration/final/acceptance.json): all five packs through normal API/worker/checkpoints, immutable evidence IDs/digests after restart, a guarded same-UID revision 1 → 2, deterministic repeat/Swap, exact citations and saved export preservation. CrashLoop/OOM remain partial for missing previous logs; the other three packs are available. No missing sample is replaced with zero.
+- The fixture revision write now reads and verifies the API-selected Deployment UID and uses atomic JSON Patch UID/resourceVersion tests. [Actual K3s rejection](evidence/e04-integration/final/atomic-guard.json) and two regressions cover wrong UID/stale version boundaries without changing the template.
+- [Fresh restore](evidence/e04-integration/final/restore.json) repeats real PostgreSQL rollback, independent three-class permits and retired-epoch refusal with the unknown lock retained. [Provider outage](evidence/e04-integration/final/outage.json) preserves 13 exact Run/content/timeline/comparison/saved-export reads after Prometheus stops.
+- [Fresh user-connected Edge proof](evidence/e04-integration/final/browser.json): resolved revision/value/digest, keyboard focus and complete target geometry at 1280/390/320 in light/dark; real comparison selection, Back, Swap, Viewer and protected-read 401 route preservation. Final screenshots were captured after the navigation and paint settled, then visually inspected. Examples: [desktop dark](evidence/e04-integration/final/citation-1280-dark.jpg), [320 light](evidence/e04-integration/final/citation-320-light.jpg).
+- The Edge download-event helper timed out; no fresh Edge file-byte capture is claimed. Actual prior IAB downloads remain separately recorded in `verified-browser.json`, whose source/receipt binding matched the original candidate. Fresh API saved-export SHA-256 `7f24ee3fcb0300f1d7b3260777a4f1ab9a3ddb38df1a4fabb91135a30dc6de44` remains unchanged through revision/comparison/restart/provider outage. This distinguishes stored-byte preservation, prior download proof and current Edge capture limits.
+- [Checks and diagnostics](evidence/e04-integration/final/checks.json): one clean local run of **1,158 backend tests**, **195 web tests**, build, Ruff (193 files), contracts and deliberate drift rejection. The first fresh-image bootstrap failure was reproduced; suppressing build progress keeps admin status valid JSON. [The absent-image path](evidence/e04-integration/final/bootstrap.json) issues all three fresh-install permits without replacing existing authority.
+- [Runtime binding](evidence/e04-integration/final/runtime-binding.json) matches actual API/web source hashes and launch-driver hashes to the fixed source. Earlier receipts keep their original source binding and are not relabeled as this run.
+
+These results establish the scoped E04 acceptance task. They do not certify production telemetry, E06 diagnosis, E07/E10 executor/cloud restore or release completion.
+
 ## Original source and environment binding
 
 - Implementation base: `f6941c9` (`#47` Kubernetes collectors merged; `#48` Prometheus metrics/timeline merged at `bd455ed`).

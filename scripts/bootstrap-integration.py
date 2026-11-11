@@ -22,7 +22,7 @@ def kubectl(*args, body=None):
 
 def dispatch_permit():
     """Issue the fresh-install DispatchPermit/v1 once; an existing authority is never replaced."""
-    admin = [*COMPOSE, "run", "--rm", "-T", "dispatch-admin"]
+    admin = [*COMPOSE, "run", "--rm", "-T", "--quiet-build", "dispatch-admin"]
     status = json.loads(
         subprocess.run(
             [*admin, "status"], capture_output=True, text=True, check=True, cwd=ROOT

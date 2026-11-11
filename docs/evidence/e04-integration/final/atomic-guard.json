@@ -1,0 +1,6 @@
+{
+  "deployment_uid": "0007b834-c15c-4934-8d42-ee01c3dbed3f",
+  "mismatched_uid_write_rejected": true,
+  "stale_resource_version_write_rejected": true,
+  "template_unchanged": true
+}

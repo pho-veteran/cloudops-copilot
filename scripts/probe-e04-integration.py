@@ -1,4 +1,4 @@
-"""Read-only five-pack E04 acceptance probe over an owned K3s + Prometheus lab."""
+"""Five-pack E04 acceptance probe over an owned K3s + Prometheus lab."""
 
 import argparse
 import hashlib
@@ -190,6 +190,42 @@ def detail(http, headers, left, right):
     raise RuntimeError("State comparison exceeded the acceptance page bound.")
 
 
+def change_revision(workload):
+    """Change only the bootstrap-owned Deployment captured by the API."""
+    if workload["name"] != "checkout" or workload["namespace"] != "demo":
+        raise RuntimeError("The revision fixture must be demo/checkout.")
+    kubectl = [*COMPOSE, "exec", "-T", "k3s", "/bin/kubectl"]
+
+    def command(*args):
+        return subprocess.run(
+            [*kubectl, *args], cwd=ROOT, check=True, capture_output=True, text=True
+        ).stdout
+
+    before = json.loads(command("get", "deployment/checkout", "-n", "demo", "-o", "json"))
+    metadata = before["metadata"]
+    if metadata["uid"] != workload["uid"]:
+        raise RuntimeError("The revision fixture Deployment UID changed; no mutation sent.")
+    containers = before["spec"]["template"]["spec"]["containers"]
+    env = [row for row in containers[0].get("env", []) if row["name"] != "CLOUDOPS_E04_REVISION"]
+    env.append({"name": "CLOUDOPS_E04_REVISION", "value": str(uuid4())})
+    patch = [
+        {"op": "test", "path": "/metadata/uid", "value": workload["uid"]},
+        {"op": "test", "path": "/metadata/resourceVersion", "value": metadata["resourceVersion"]},
+        {"op": "add", "path": "/spec/template/spec/containers/0/env", "value": env},
+    ]
+    command("patch", "deployment/checkout", "-n", "demo", "--type=json", "-p", json.dumps(patch))
+    command("rollout", "status", "deployment/checkout", "-n", "demo", "--timeout=180s")
+    after = json.loads(command("get", "deployment/checkout", "-n", "demo", "-o", "json"))
+    if after["metadata"]["uid"] != workload["uid"]:
+        raise RuntimeError("The revision fixture Deployment UID changed after the guarded write.")
+    return {
+        "uid_before": metadata["uid"],
+        "uid_after": after["metadata"]["uid"],
+        "resource_version_before": metadata["resourceVersion"],
+        "resource_version_after": after["metadata"]["resourceVersion"],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--origin", default="https://localhost:8443")
@@ -289,43 +325,7 @@ def main():
                 "reason": "Observe a controlled template/revision change",
             },
         ).raise_for_status()
-        # Only the bootstrap-owned local Deployment is mutated; never host kubectl.
-        subprocess.run(
-            [
-                *COMPOSE,
-                "exec",
-                "-T",
-                "k3s",
-                "/bin/kubectl",
-                "set",
-                "env",
-                "deployment/checkout",
-                "-n",
-                "demo",
-                f"CLOUDOPS_E04_REVISION={uuid4()}",
-            ],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-        )
-        subprocess.run(
-            [
-                *COMPOSE,
-                "exec",
-                "-T",
-                "k3s",
-                "/bin/kubectl",
-                "rollout",
-                "status",
-                "deployment/checkout",
-                "-n",
-                "demo",
-                "--timeout=180s",
-            ],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-        )
+        report["revision_change"] = change_revision(checkout)
         end = datetime.now(timezone.utc)
         response = operator.post(
             f"/api/incidents/{first_ids['incident_id']}/runs",

@@ -1,0 +1,288 @@
+{
+  "schema": "E04ActualRestore/v1",
+  "driver_sha256": "539a1754169767cc0b58bfddfcb5f6734b16aed2a06aa409185fa12f48cf5b7f",
+  "project": "cloudops-e04-restore-pr57-review",
+  "database": "cloudops_e04_restore_test",
+  "worker_image": "sha256:2bf40eeb8b99f8171f9b60302ebaf77d9a730004d8c622589d66098489f09f4d",
+  "proof_class": "Actual pg_dump/pg_restore, host permit CLI, real current handlers and HTTP transports; DB-seeded current records and controlled loopback KRR/gateway fixtures. No Kubernetes writer, actual KRR or E07/E10 executor restore qualification.",
+  "steps": {
+    "bootstrap": {
+      "status": "applied",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "88beb611-d6b0-4859-88a5-79c7b1283913",
+        "generation": 1,
+        "mode": "normal",
+        "allowed_job_kinds": [
+          "collection",
+          "recommendation",
+          "recovery_execution"
+        ],
+        "valid_until": "2026-12-11T05:31:45.520872Z",
+        "issued_at": "2026-11-11T05:31:45.520872Z",
+        "operation": "bootstrap"
+      }
+    },
+    "snapshot": {
+      "jobs": {
+        "development_collection_v1": {
+          "id": "2d956878-c96b-4b49-a008-1210af18cf1a",
+          "subject_id": "c1be03e5-e8e9-4d4f-a98c-db4339bcb098",
+          "state": "queued",
+          "attempts": 0
+        },
+        "recommendation_report_v1": {
+          "id": "ac73bdd6-a4a3-4a66-a61a-a9c0b6d6fc1a",
+          "subject_id": "29ceb5cc-efae-482c-b0e7-a95d00a8d670",
+          "state": "queued",
+          "attempts": 0
+        },
+        "recovery_execution_v1": {
+          "id": "461b6e6e-2737-4846-aebc-efbe5296371c",
+          "subject_id": "914d925e-73b0-499e-815d-eea43c31ce3f",
+          "state": "queued",
+          "attempts": 0
+        }
+      }
+    },
+    "consumed_before_restore": {
+      "jobs": {
+        "development_collection_v1": {
+          "id": "2d956878-c96b-4b49-a008-1210af18cf1a",
+          "subject_id": "c1be03e5-e8e9-4d4f-a98c-db4339bcb098",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recommendation_report_v1": {
+          "id": "ac73bdd6-a4a3-4a66-a61a-a9c0b6d6fc1a",
+          "subject_id": "29ceb5cc-efae-482c-b0e7-a95d00a8d670",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recovery_execution_v1": {
+          "id": "461b6e6e-2737-4846-aebc-efbe5296371c",
+          "subject_id": "914d925e-73b0-499e-815d-eea43c31ce3f",
+          "state": "completed",
+          "attempts": 1
+        }
+      },
+      "calls": [
+        "collection",
+        "recovery_execution",
+        "recommendation"
+      ],
+      "execution": {
+        "state": "manual_intervention",
+        "holds_lock": false,
+        "maintenance_released": false
+      },
+      "real_writes": 0,
+      "retired_gateway_epoch": false
+    },
+    "enter_recovery": {
+      "status": "applied",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "88beb611-d6b0-4859-88a5-79c7b1283913",
+        "generation": 2,
+        "mode": "recovery",
+        "allowed_job_kinds": [],
+        "valid_until": "2026-12-11T05:31:52.881450Z",
+        "issued_at": "2026-11-11T05:31:52.881450Z",
+        "operation": "enter_recovery"
+      }
+    },
+    "restored_without_permit": {
+      "jobs": {
+        "development_collection_v1": {
+          "id": "2d956878-c96b-4b49-a008-1210af18cf1a",
+          "subject_id": "c1be03e5-e8e9-4d4f-a98c-db4339bcb098",
+          "state": "queued",
+          "attempts": 0
+        },
+        "recommendation_report_v1": {
+          "id": "ac73bdd6-a4a3-4a66-a61a-a9c0b6d6fc1a",
+          "subject_id": "29ceb5cc-efae-482c-b0e7-a95d00a8d670",
+          "state": "queued",
+          "attempts": 0
+        },
+        "recovery_execution_v1": {
+          "id": "461b6e6e-2737-4846-aebc-efbe5296371c",
+          "subject_id": "914d925e-73b0-499e-815d-eea43c31ce3f",
+          "state": "queued",
+          "attempts": 0
+        }
+      },
+      "calls": [],
+      "execution": {
+        "state": "queued",
+        "holds_lock": true,
+        "maintenance_released": false
+      },
+      "real_writes": 0,
+      "retired_gateway_epoch": true
+    },
+    "resume_collection": {
+      "status": "applied",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "88beb611-d6b0-4859-88a5-79c7b1283913",
+        "generation": 3,
+        "mode": "recovery",
+        "allowed_job_kinds": [
+          "collection"
+        ],
+        "valid_until": "2026-12-11T05:31:56.877452Z",
+        "issued_at": "2026-11-11T05:31:56.877452Z",
+        "operation": "resume"
+      }
+    },
+    "after_collection": {
+      "jobs": {
+        "development_collection_v1": {
+          "id": "2d956878-c96b-4b49-a008-1210af18cf1a",
+          "subject_id": "c1be03e5-e8e9-4d4f-a98c-db4339bcb098",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recommendation_report_v1": {
+          "id": "ac73bdd6-a4a3-4a66-a61a-a9c0b6d6fc1a",
+          "subject_id": "29ceb5cc-efae-482c-b0e7-a95d00a8d670",
+          "state": "queued",
+          "attempts": 0
+        },
+        "recovery_execution_v1": {
+          "id": "461b6e6e-2737-4846-aebc-efbe5296371c",
+          "subject_id": "914d925e-73b0-499e-815d-eea43c31ce3f",
+          "state": "queued",
+          "attempts": 0
+        }
+      },
+      "calls": [
+        "collection"
+      ],
+      "execution": {
+        "state": "queued",
+        "holds_lock": true,
+        "maintenance_released": false
+      },
+      "real_writes": 0,
+      "retired_gateway_epoch": true
+    },
+    "resume_recommendation": {
+      "status": "applied",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "88beb611-d6b0-4859-88a5-79c7b1283913",
+        "generation": 4,
+        "mode": "recovery",
+        "allowed_job_kinds": [
+          "collection",
+          "recommendation"
+        ],
+        "valid_until": "2026-12-11T05:32:02.888181Z",
+        "issued_at": "2026-11-11T05:32:02.888181Z",
+        "operation": "resume"
+      }
+    },
+    "after_recommendation": {
+      "jobs": {
+        "development_collection_v1": {
+          "id": "2d956878-c96b-4b49-a008-1210af18cf1a",
+          "subject_id": "c1be03e5-e8e9-4d4f-a98c-db4339bcb098",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recommendation_report_v1": {
+          "id": "ac73bdd6-a4a3-4a66-a61a-a9c0b6d6fc1a",
+          "subject_id": "29ceb5cc-efae-482c-b0e7-a95d00a8d670",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recovery_execution_v1": {
+          "id": "461b6e6e-2737-4846-aebc-efbe5296371c",
+          "subject_id": "914d925e-73b0-499e-815d-eea43c31ce3f",
+          "state": "queued",
+          "attempts": 0
+        }
+      },
+      "calls": [
+        "recommendation"
+      ],
+      "execution": {
+        "state": "queued",
+        "holds_lock": true,
+        "maintenance_released": false
+      },
+      "real_writes": 0,
+      "retired_gateway_epoch": true
+    },
+    "resume_recovery_execution": {
+      "status": "applied",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "88beb611-d6b0-4859-88a5-79c7b1283913",
+        "generation": 5,
+        "mode": "recovery",
+        "allowed_job_kinds": [
+          "collection",
+          "recommendation",
+          "recovery_execution"
+        ],
+        "valid_until": "2026-12-11T05:32:10.064731Z",
+        "issued_at": "2026-11-11T05:32:10.064731Z",
+        "operation": "resume"
+      }
+    },
+    "after_recovery_execution": {
+      "jobs": {
+        "development_collection_v1": {
+          "id": "2d956878-c96b-4b49-a008-1210af18cf1a",
+          "subject_id": "c1be03e5-e8e9-4d4f-a98c-db4339bcb098",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recommendation_report_v1": {
+          "id": "ac73bdd6-a4a3-4a66-a61a-a9c0b6d6fc1a",
+          "subject_id": "29ceb5cc-efae-482c-b0e7-a95d00a8d670",
+          "state": "completed",
+          "attempts": 1
+        },
+        "recovery_execution_v1": {
+          "id": "461b6e6e-2737-4846-aebc-efbe5296371c",
+          "subject_id": "914d925e-73b0-499e-815d-eea43c31ce3f",
+          "state": "completed",
+          "attempts": 1
+        }
+      },
+      "calls": [
+        "recovery_execution"
+      ],
+      "execution": {
+        "state": "outcome_unknown",
+        "holds_lock": true,
+        "maintenance_released": false
+      },
+      "real_writes": 0,
+      "retired_gateway_epoch": true
+    },
+    "exit_recovery": {
+      "status": "applied",
+      "permit": {
+        "schema": "DispatchPermit/v1",
+        "authority_id": "88beb611-d6b0-4859-88a5-79c7b1283913",
+        "generation": 6,
+        "mode": "normal",
+        "allowed_job_kinds": [
+          "collection",
+          "recommendation",
+          "recovery_execution"
+        ],
+        "valid_until": "2026-12-11T05:32:18.235144Z",
+        "issued_at": "2026-11-11T05:32:18.235144Z",
+        "operation": "exit_recovery"
+      }
+    }
+  },
+  "dump_sha256": "7c2082276e679c146c3abfd0152ed5fa78bf23f0dc8d50da9423e6b06130afd8"
+}
