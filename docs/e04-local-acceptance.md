@@ -2,15 +2,15 @@
 
 Acceptance record for [E04 #50](https://github.com/pho-veteran/cloudops-copilot/issues/50) and parent [E04 #7](https://github.com/pho-veteran/cloudops-copilot/issues/7). This record covers the five fixed investigation packs, the actual configured `live_kubernetes` and `prometheus` producers, normal admission/worker/checkpoints, stored evidence/citation/comparison/timeline consumers, restart and role/session behavior. It is not an E06 diagnosis, recovery engine, E07/E10 restore qualification or cloud release claim.
 
-## Source and environment binding
+## Original source and environment binding
 
 - Implementation base: `f6941c9` (`#47` Kubernetes collectors merged; `#48` Prometheus metrics/timeline merged at `bd455ed`).
 - Acceptance run: owned Docker Compose project `cloudops-e04-50`, separate database, K3s `v1.37.1+k3s1`, PostgreSQL `17.11-bookworm`, Prometheus `v3.5.0`, Caddy `2.10.2-alpine`, Python `3.13.11`, Node `24.21.0`.
 - Producer mode: `COLLECTION_SOURCE_MODE=live_kubernetes,prometheus` with deployment-owned `KUBE_READ_CONFIG` and `PROMETHEUS_READ_CONFIG`; no fixture fallback.
 - Browser: Microsoft Edge launched through agent-browser on the loopback HTTP development origin. No certificate/profile/trust bypass.
-- The final commit and source/image hashes are in [`source-binding.json`](evidence/e04-integration/source-binding.json); the API/browser receipts were captured from the working-tree candidate before the final evidence commit.
+- The original candidate and source/image hashes are in [`source-binding.json`](evidence/e04-integration/source-binding.json). Those receipts remain historical; follow-up corrections and their separately bound evidence are below.
 
-## Verification summary
+## Original verification summary
 
 - Backend: 1155 collected, **1145 passed / 10 skipped** in two commands (917+10 skipped without `test_permissions.py`, 228 permissions tests); focused E04 suite 9 tests passed 10/10 consecutive runs.
 - Web: 194 tests / 22 files passed; production web build passed.
@@ -21,53 +21,45 @@ Acceptance record for [E04 #50](https://github.com/pho-veteran/cloudops-copilot/
 
 ```sh
 export POSTGRES_PASSWORD='<disposable-local-password>'
-export CLOUDOPS_LAB_PROJECT=cloudops-e04-50
-LAB="docker compose -p $CLOUDOPS_LAB_PROJECT -f compose.yaml -f compose.https.yaml -f compose.integration.yaml -f compose.metrics.yaml -f compose.e04.yaml"
+export CLOUDOPS_LAB_PROJECT=cloudops-e04-fix57
+LAB="docker compose -p $CLOUDOPS_LAB_PROJECT -f compose.yaml -f compose.https.yaml -f compose.integration.yaml -f compose.metrics.yaml -f compose.e04.yaml --profile http-development"
 
 uv run --project services/backend python scripts/bootstrap-integration.py
 $LAB up -d --build --wait --wait-timeout 300 --no-deps https prometheus metrics-fixture
 uv run --project services/backend python scripts/bootstrap-metrics.py
-$LAB up -d --build --wait --wait-timeout 300 api worker
+$LAB up -d --build --wait --wait-timeout 300 api worker web
 ```
 
 `bootstrap-integration.py` applies `config/lab/workload.yaml` and `config/lab/kubernetes-incident-families.yaml`, waits for one Pod per fixture, records all five Deployment UIDs in the trusted reader scope and writes the Prometheus workload list. `bootstrap-metrics.py` copies only the Caddy CA into the ignored lab folder and writes the scoped read config.
 
-Provision two disposable accounts and run the probe:
+`compose.e04.yaml` configures API/worker for the HTTP development origin before web starts. The HTTPS proxy remains the CA-validated, fixed Prometheus read destination; browser/API requests use the Vite HTTP origin. Set two disposable local account passwords, then provision them and run the probe from the repository root:
 
 ```sh
-$LAB exec -T api python -m cloudops.entrypoints.cli account operator --role operator --password-stdin
-$LAB exec -T api python -m cloudops.entrypoints.cli account viewer --role viewer --password-stdin
+printf '%s\n' "$OPERATOR_PASSWORD" | $LAB exec -T api python -m cloudops.entrypoints.cli account operator --role operator --password-stdin
+printf '%s\n' "$VIEWER_PASSWORD" | $LAB exec -T api python -m cloudops.entrypoints.cli account viewer --role viewer --password-stdin
 printf '%s\n%s\n' "$OPERATOR_PASSWORD" "$VIEWER_PASSWORD" |
   uv run --project services/backend python scripts/probe-e04-integration.py \
     --origin http://localhost:5173 \
     --ca tmp/e01-integration/prometheus/ca.crt --password-stdin --restart
 ```
 
-The probe creates one explicit one-minute Run per pack plus a second traffic Run for comparison. It reads every available content payload and verifies the canonical post-redaction SHA-256, checks pack coverage, compares 12 sources, resolves an exact sample citation, reads the timeline as Operator and Viewer, checks wrong-scope 404, restarts API/worker and confirms the same evidence IDs/hashes. The acceptance run used the same loopback HTTP origin for the probe and browser; the HTTPS API origin was not used.
+The probe waits until actual Prometheus range results cover a full minute. It creates one explicit one-minute Run per pack, saves/resolves the traffic incident, freezes its saved export, reopens it and changes the owned checkout Pod template through the lab K3s container. A second Run under the same Deployment UID captures the new revision. Per-source state differences must repeat identically and reverse under Swap; exact revision citations resolve both sides. The saved export and all first-Run evidence IDs/hashes must survive comparison and API/worker restart. Numeric sample alignment for unequal windows remains a separate `not_comparable` case.
 
 For the provider-outage check, stop the owned `prometheus` service after a Run is stored and re-read its Run, available evidence content, timeline and 12-source comparison from PostgreSQL/API; [`provider-outage.json`](evidence/e04-integration/provider-outage.json) records the exact incident/Run IDs and the unchanged hashes. No provider is contacted by those reads.
 
-The browser evidence uses the same loopback HTTP origin. The temporary override is deliberately not committed:
+Vite serves `http://localhost:5173` and proxies the API. No temporary Origin override, certificate warning or trust bypass is needed. Use a fresh owned project; lab bootstrap writes scoped credentials into the ignored `tmp/e01-integration` directory, so do not run it concurrently with another lab using that folder.
+
+### Reproduce the shared-dispatch restore drill
 
 ```sh
-cat > tmp/compose.e04-http.yaml <<'YAML'
-services:
-  api:
-    environment:
-      WEB_ORIGIN: http://localhost:5173
-      COOKIE_SECURE: "false"
-  worker:
-    environment:
-      WEB_ORIGIN: http://localhost:5173
-      COOKIE_SECURE: "false"
-YAML
-$LAB -f tmp/compose.e04-http.yaml --profile http-development \
-  up -d --build --wait --wait-timeout 300 api worker web
+# Requires the backend image built above and a new project name.
+uv run --project services/backend python scripts/probe-e04-restore.py \
+  --project cloudops-e04-restore-57 --output tmp/e04-restore.json
 ```
 
-Vite serves `http://localhost:5173` and proxies the API; `WEB_ORIGIN`/`COOKIE_SECURE` must match that origin. No certificate warning or trust bypass is used.
+This driver refuses existing project containers/volumes and only restores its dedicated `cloudops_e04_restore_test` database. It seeds current collection/report/approved-execution records, takes an actual `pg_dump -Fc`, dispatches all three through the real worker handlers, enters recovery, then uses `pg_restore --clean` to bring the queued records back. No class may dispatch until explicitly resumed. Each class then dispatches alone; the restored execution reaches a controlled loopback HTTP gateway that rejects its retired epoch and retains `outcome_unknown`/the lock. KRR and executor transports are labeled fixtures without a write capability; the drill proves shared worker/class-permit behavior across actual PostgreSQL rollback, not actual KRR execution or E07/E10 executor recovery qualification. The permit volume is independent of the restored database.
 
-## Five-pack result
+## Original five-pack result
 
 [`acceptance.json`](evidence/e04-integration/acceptance.json) records the actual Run/evidence IDs and all 12 source outcomes per pack.
 
@@ -110,12 +102,38 @@ Screenshots are under `docs/evidence/e04-integration/` (`traffic-*`, `crashloop-
 | Parent AC | Proof |
 |---|---|
 | AC1 · Five scoped packs with required/optional coverage and no invented zeros | Live five-pack Runs, pack rows above, bounded state/events/logs and six metric sources; CrashLoop/OOM previous-log gaps explicit; every stored row reports `standard_v1` from the configured catalog, not adapter merge order |
-| AC2 · Exact citation navigation and deterministic immutable comparison | Live compare of two 12-source Runs; exact metric sample citation; live Prometheus-stop receipt preserves existing content/timeline/compare; `test_e04_integration` structured/log/series citations, stored handoff export bytes, failed-successor reads and injector canary exclusion; no original hash/pin changes |
+| AC2 · Exact citation navigation and deterministic immutable comparison | Follow-up live template/revision change under one UID, per-source semantic detail, repeat/Swap and exact revision citations in `verified-acceptance.json`; mobile/desktop focus and actual comparison/saved-export downloads in `verified-browser.json`; frozen saved-export regression through failed reinvestigation |
 | AC3 · Restart/checkpoint/takeover durability and stale-worker fencing | Batch/checkpoint/takeover parity, live probe restart hash match, real worker kill/takeover in `dispatch.json` and `test_collection_checkpoints`; all process/concurrency tests use the owned `cloudops_test` database |
 | AC4 · Honest cancellation and no false provider/write cancellation | Live queued/collecting cancellation boundary in `dispatch.json`; `waiting_for_quota` remains a DB-seeded contract fixture, not an E06 producer |
 | AC5 · Bounded/redacted logs, no scope expansion/Secret reads/injector truth | Live K3s state/events/logs under reader RBAC; previous-log gap explicit; ConfigMap metadata disabled; injector canary and Secret reference absent from every stored payload; `test_evidence_redaction` covers source allocations, truncation and the 20,000-sample/8 MiB caps; no Secret read path |
 | AC6 · Failed reinvestigation leaves prior useful evidence readable | `test_e04_integration` useful Run → failed successor → unchanged latest-useful pin, readable content/timeline/compare and stored export |
-| AC7 · Recovery/restore dispatch requires independent class permits | Actual collection-class takeover/class resumes and `enter-recovery`/`exit-recovery` restore order in `dispatch.json`; all three classes and DB future-state rejection in `test_dispatch_gate`; executor maintenance/restore/unknown gates remain E07/E10 |
+| AC7 · Recovery/restore dispatch requires independent class permits | Actual `pg_dump`/`pg_restore` rollback and real three-class worker dispatch in `verified-restore.json`; no calls before class permits, class isolation and restored-epoch denial retain the unknown lock. Current records/providers are labeled fixtures; broader executor/cloud restore qualification remains E07/E10 |
+
+## Follow-up acceptance after the completeness review
+
+The follow-up adds one integrated backend regression, one web regression, an actual shared-dispatch restore driver and a citation navigation correction. No database migration or transport schema changes are introduced.
+
+- [`verified-acceptance.json`](evidence/e04-integration/verified-acceptance.json): fresh owned `cloudops-e04-fix57` K3s/Prometheus collection of all five packs, a template environment change under the same Deployment UID, state detail comparison with repeated/swap results and exact revision citations, saved export preservation and API/worker restart equality. The driver hash and images at launch are in the receipt.
+- [`verified-ui-input.json`](evidence/e04-integration/verified-ui-input.json): the first follow-up collection, retained because the browser intentionally reads that earlier historical pair (revision 1 → 2). The later API repeat uses a different pair; IDs are not silently substituted between receipts.
+- [`verified-restore.json`](evidence/e04-integration/verified-restore.json): actual custom-format PostgreSQL snapshot/restore in an owned `_test` database, independent permit volume, zero calls after rollback until resumption, one matching class call per resume and a retired-epoch gateway refusal with `outcome_unknown`/lock retained. The real worker handlers use controlled loopback KRR/gateway fixtures, not a live executor or a Kubernetes write.
+- [`verified-browser.json`](evidence/e04-integration/verified-browser.json): actual Codex in-app browser at 320/390/1280 light/dark, explicitly authorized fallback after the running Edge client twice stopped because it could not verify the URL. Edge reached sign-in/comparison but its incomplete walkthrough is not promoted into the completed browser proof. No trust/profile permission bypass occurred.
+- The browser uses real comparison/citation links, keyboard Return, browser Back and Swap; pair/filter context survives. Each screenshot captures the actual revision row or focused exact target inside the viewport, rather than the Run header. Viewer reads work without a mutation form; session revocation requires sign-in while preserving the exact URL.
+- The actual saved-handoff download is 10,746 bytes with SHA-256 `456664fe2c4bb509ed0ed225c867701a3cc73576b9a3ee3221681b42e1c8a7f9`, identical to its pre-reinvestigation API baseline. Comparison JSON is also downloaded through the UI. Filenames/IDs and bytes are task-local fixtures, not production data.
+
+### Citation navigation correction
+
+An exact target used to sit below the full lazy payload. Loading a large payload and the document's smooth scrolling could leave the focused citation far outside the viewport. Citation targets now precede full content; the parent evidence heading does not steal exact-target focus. Exact navigation focuses without automatic smooth scrolling and explicitly exposes the target immediately. The new web regression delays a large payload; real browser checks verify both focus and target geometry at each required viewport/theme.
+
+### Follow-up checks and unsuccessful attempts
+
+- Linux backend: 1,156 collected. The first container run passed 1,139 but lacked repo scripts/Compose/docs for 17 existing wiring/probe tests (14 setup errors, 3 failures). After mounting those files, all 17 passed. Thus every collected case passed across the initial run and focused environment-corrected repeat; this is not a claim of a single clean full invocation. No case was waived or skipped.
+- Web: 195 tests in 22 files passed, TypeScript check and production build passed after the focus correction. Existing JSDOM scroll warnings are not browser evidence.
+- Ruff check/format, generated contracts and deliberate drift checks passed. [`verified-checks.json`](evidence/e04-integration/verified-checks.json) records checks; [`verified-source-binding.json`](evidence/e04-integration/verified-source-binding.json) records the follow-up source/receipt/image binding.
+- The first restore-driver attempt asserted the attempt state `succeeded` against the Job row, whose successful state is `completed`; the driver assertion was corrected and the full drill repeated in a fresh project. Failed owned projects were kept separate from the passing receipt.
+- The new image-change test respects anonymous template-object identities (removed/added image fields) while requiring a changed stable Deployment revision. Existing locator keys and stored evidence bytes are not rewritten to force a match.
+- Intermediate browser captures were rejected when the focus/viewport predicate had not settled. The committed `verified-*` captures were regenerated after the navigation correction and passed the geometry checks.
+
+The original outage, process-loss/takeover and future-state fixture receipts remain separately scoped. Completing this task does not itself declare the entire E04/E07/E10 release complete or release unknown execution locks.
 
 ## Failed attempts and corrections
 

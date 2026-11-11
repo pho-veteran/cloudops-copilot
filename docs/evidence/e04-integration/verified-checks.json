@@ -1,0 +1,57 @@
+{
+  "schema": "E04FollowupChecks/v1",
+  "recorded_at": "2026-11-11T04:22:49.392079+00:00",
+  "backend": {
+    "collected": 1156,
+    "initial": {
+      "passed": 1139,
+      "failed": 3,
+      "errors": 14,
+      "duration_seconds": 459.35,
+      "cause": "The runtime image omits repository scripts/compose.yaml/.env.example/docs. These were missing inputs for existing tests, not waived failures."
+    },
+    "corrected_repeat": {
+      "files": [
+        "services/backend/tests_unit/test_e02_probe.py",
+        "services/backend/tests/test_kubernetes_live_wiring.py"
+      ],
+      "passed": 17,
+      "duration_seconds": 7.88,
+      "correction": "Mounted current scripts, compose.yaml, .env.example and docs read-only into the same isolated Linux image."
+    },
+    "all_collected_cases_passed_after_repeat": true,
+    "skipped": 0,
+    "database": "cloudops_pr57_fix_test"
+  },
+  "web": {
+    "passed": 195,
+    "files": 22,
+    "duration_seconds": 15.51,
+    "typecheck": "passed",
+    "production_build": "passed"
+  },
+  "ruff": {
+    "check": "passed",
+    "format": "192 Python files already formatted"
+  },
+  "contracts": {
+    "generated": "match",
+    "deliberate_drift": "rejected",
+    "synchronized_artifacts": "accepted"
+  },
+  "runtime": {
+    "live_five_pack": "verified-acceptance.json",
+    "actual_postgresql_restore": "verified-restore.json",
+    "browser": "verified-browser.json",
+    "browser_class": "User-authorized Codex IAB fallback; native Edge attempt stopped by URL policy"
+  },
+  "warnings": [
+    "Existing Starlette/httpx TestClient deprecation",
+    "Existing JSDOM scrollTo implementation warnings"
+  ],
+  "not_claimed": [
+    "A clean single full backend invocation",
+    "Fresh final-head GitHub CI before publication",
+    "E06 diagnosis or E07/E10 executor/cloud restore qualification"
+  ]
+}

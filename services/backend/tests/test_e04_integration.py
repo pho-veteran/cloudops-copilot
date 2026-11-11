@@ -228,6 +228,114 @@ def test_injector_truth_and_secret_values_never_enter_evidence(client, monkeypat
     assert e04.INJECTOR_SECRET not in encoded
 
 
+def test_collected_revision_diff_and_saved_export_survive_reinvestigation(client, monkeypatch):
+    """Real producers on controlled transports; no direct evidence payload seeding."""
+    headers = sign_in(client)
+    left, _ = collect_batch(client, headers, monkeypatch, "healthy", "Revision one")
+    original = stored(left)
+    incident = left["incident_id"]
+    assert (
+        client.post(
+            f"/api/incidents/{incident}/lifecycle",
+            headers=headers,
+            json={"action": "resolve", "reason": "Freeze collected revision one"},
+        ).status_code
+        == 200
+    )
+    activity = client.get(f"/api/incidents/{incident}/activity").json()["items"]
+    resolution = next(row["id"] for row in activity if row["kind"] == "resolve")
+    export = f"/api/incidents/{incident}/handoff?resolution_id={resolution}"
+    baseline = client.get(export)
+    assert baseline.status_code == 200 and baseline.content
+    assert (
+        client.post(
+            f"/api/incidents/{incident}/lifecycle",
+            headers=headers,
+            json={"action": "reopen", "reason": "Observe a new revision"},
+        ).status_code
+        == 200
+    )
+    right = rerun(client, headers, incident).json()
+    set_window(right)
+    binding = e04.binding(monkeypatch, "changed")
+    monkeypatch.setattr(worker, "configured_adapters", lambda _mode: binding)
+    assert run_once()
+    assert run_view(client, right)["state"] == "insufficient_evidence"
+
+    def detail(a, b):
+        response = client.get(
+            f"/api/incidents/{a['incident_id']}/runs/{a['run_id']}/compare",
+            params={
+                "right_incident_id": b["incident_id"],
+                "right_run_id": b["run_id"],
+                "source_key": "kubernetes.state",
+                "catalog_version": "standard_v1",
+                "limit": 100,
+            },
+        )
+        assert response.status_code == 200, response.text
+        return response.json()
+
+    forward = detail(left, right)
+    assert forward == detail(left, right)
+    changed = [row for row in forward["items"] if row["status"] == "changed"]
+    assert any(row["left"] == "1" and row["right"] == "2" for row in changed)
+    # Anonymous template objects retain content identities; their changed image
+    # is represented as removed/added rather than inventing a historical match.
+    assert any(
+        row["left"] == "fixture:1" and row["status"] == "removed" for row in forward["items"]
+    )
+    assert any(row["right"] == "fixture:2" and row["status"] == "added" for row in forward["items"])
+    assert any(row["status"] == "unchanged" for row in forward["items"])
+    reverse = detail(right, left)
+    reversed_rows = {row["key"]: row for row in reverse["items"]}
+    for row in changed:
+        other = reversed_rows[row["key"]]
+        assert other["left"] == row["right"] and other["right"] == row["left"]
+        for side, ids in (("left", left), ("right", right)):
+            ref = row[f"{side}_citation"]
+            response = client.get(
+                f"/api/incidents/{ids['incident_id']}/runs/{ids['run_id']}/evidence/{ref['evidence_id']}/citation",
+                params={
+                    "locator_kind": ref["locator"]["kind"],
+                    "locator_key": ref["locator"]["key"],
+                },
+            )
+            assert response.status_code == 200, response.text
+            assert response.json()["target"]["value"] == row[side]
+
+    monkeypatch.setenv("COLLECTOR_FAIL", "true")
+    settings.cache_clear()
+    failed = rerun(client, headers, incident).json()
+    for _ in range(3):
+        assert run_once()
+    assert run_view(client, failed)["state"] == "failed"
+    monkeypatch.setenv("COLLECTOR_FAIL", "false")
+    settings.cache_clear()
+    # New engine/session connections model a reader process restart, not worker takeover.
+    from cloudops.shared.database import engine
+
+    engine().dispose()
+
+    from cloudops.features.incidents import handoff
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Saved export must not compose current incident state.")
+
+    monkeypatch.setattr(handoff, "compose", forbidden)
+    assert client.get(export).content == baseline.content
+    assert stored(left) == original
+    with sessions()() as db:
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(EvidencePin)
+                .where(EvidencePin.kind == "resolution", EvidencePin.owner_id == UUID(resolution))
+            )
+            > 0
+        )
+
+
 def test_integrated_compare_citation_timeline_and_read_only(client, monkeypatch):
     monkeypatch.setenv("KUBE_CONFIGMAP_ENABLED", "1")
     headers = sign_in(client)
@@ -440,7 +548,7 @@ def test_integrated_compare_citation_timeline_and_read_only(client, monkeypatch)
     assert "execution_created" in kinds and "execution_finished" in kinds
     assert body["truncated"] is False
 
-    # Real persisted export bytes, not a re-rendered client-side fixture.
+    # Current preview/export parity; frozen saved exports have a separate regression above.
     preview = client.get(f"/api/incidents/{left['incident_id']}/handoff/preview")
     assert preview.status_code == 200, preview.text
     exported = client.get(f"/api/incidents/{left['incident_id']}/handoff")

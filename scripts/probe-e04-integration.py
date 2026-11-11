@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import httpx
 
-from local_lab import COMPOSE, ROOT
+from local_lab import COMPOSE, PROJECT, ROOT
 
 PACKS = {
     "checkout-crashloop": "crashloop_startup",
@@ -139,6 +139,57 @@ def pack_status(run, pack):
     return next(row for row in run["pack_coverage"] if row["pack"] == pack)
 
 
+def warm_metrics(ca, workload):
+    """Wait for a complete minute in actual Prometheus, not a guessed sleep."""
+    query = (
+        "sum by (namespace, deployment_uid) (cloudops_requests_per_second{"
+        f'namespace="{workload["namespace"]}",deployment_uid="{workload["uid"]}"' + "})"
+    )
+    deadline = time.monotonic() + 180
+    with client("https://localhost:8443", ca) as prometheus:
+        while time.monotonic() < deadline:
+            end = time.time()
+            response = prometheus.get(
+                "/prometheus/api/v1/query_range",
+                params={
+                    "query": query,
+                    "start": end - 60,
+                    "end": end,
+                    "step": 30,
+                },
+            )
+            response.raise_for_status()
+            series = response.json().get("data", {}).get("result", [])
+            if series and all(len(row.get("values", [])) >= 3 for row in series):
+                return
+            time.sleep(2)
+    raise RuntimeError("Prometheus has not retained a full one-minute metric window.")
+
+
+def detail(http, headers, left, right):
+    params = {
+        "right_incident_id": right["incident_id"],
+        "right_run_id": right["run_id"],
+        "source_key": "kubernetes.state",
+        "catalog_version": "standard_v1",
+        "limit": 100,
+    }
+    rows = []
+    for _ in range(20):
+        response = http.get(
+            f"/api/incidents/{left['incident_id']}/runs/{left['run_id']}/compare",
+            params=params,
+            headers=headers,
+        )
+        response.raise_for_status()
+        page = response.json()
+        rows.extend(page["items"])
+        if not page["next_cursor"]:
+            return rows
+        params["cursor"] = page["next_cursor"]
+    raise RuntimeError("State comparison exceeded the acceptance page bound.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--origin", default="https://localhost:8443")
@@ -153,6 +204,7 @@ def main():
         passwords = {role: input(f"{role} password: ") for role in ("operator", "viewer")}
     report = {
         "schema": "E04IntegratedAcceptance/v1",
+        "driver_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         "origin": args.origin,
         "proof_classes": {
@@ -162,11 +214,24 @@ def main():
         },
         "packs": {},
     }
+    images = json.loads(
+        subprocess.run(
+            [*COMPOSE, "images", "--format", "json"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    )
+    report["runtime_images"] = [
+        row for row in images if row["ContainerName"].startswith(PROJECT + "-")
+    ]
     with client(args.origin, args.ca) as operator, client(args.origin, args.ca) as viewer:
         ready(operator)
         operator_headers = sign_in(operator, args.origin, "operator", passwords["operator"])
         viewer_headers = sign_in(viewer, args.origin, "viewer", passwords["viewer"])
         available = workloads(operator, operator_headers)
+        warm_metrics(args.ca, available["checkout"])
         runs = {}
         for name, pack in PACKS.items():
             workload = available.get(name)
@@ -197,7 +262,85 @@ def main():
             report["packs"][pack] = entry
 
         checkout = available["checkout"]
-        second_ids = create_run(operator, operator_headers, checkout, "E04 traffic comparison")
+        first_ids = runs["checkout"]
+        lifecycle = f"/api/incidents/{first_ids['incident_id']}/lifecycle"
+        operator.post(
+            lifecycle,
+            headers=operator_headers,
+            json={
+                "action": "resolve",
+                "reason": "Freeze E04 evidence before the revision change",
+            },
+        ).raise_for_status()
+        activity = operator.get(f"/api/incidents/{first_ids['incident_id']}/activity").json()[
+            "items"
+        ]
+        resolution = next(row["id"] for row in activity if row["kind"] == "resolve")
+        export_path = (
+            f"/api/incidents/{first_ids['incident_id']}/handoff?resolution_id={resolution}"
+        )
+        baseline_export = operator.get(export_path)
+        baseline_export.raise_for_status()
+        operator.post(
+            lifecycle,
+            headers=operator_headers,
+            json={
+                "action": "reopen",
+                "reason": "Observe a controlled template/revision change",
+            },
+        ).raise_for_status()
+        # Only the bootstrap-owned local Deployment is mutated; never host kubectl.
+        subprocess.run(
+            [
+                *COMPOSE,
+                "exec",
+                "-T",
+                "k3s",
+                "/bin/kubectl",
+                "set",
+                "env",
+                "deployment/checkout",
+                "-n",
+                "demo",
+                f"CLOUDOPS_E04_REVISION={uuid4()}",
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            [
+                *COMPOSE,
+                "exec",
+                "-T",
+                "k3s",
+                "/bin/kubectl",
+                "rollout",
+                "status",
+                "deployment/checkout",
+                "-n",
+                "demo",
+                "--timeout=180s",
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+        )
+        end = datetime.now(timezone.utc)
+        response = operator.post(
+            f"/api/incidents/{first_ids['incident_id']}/runs",
+            headers={**operator_headers, "Idempotency-Key": str(uuid4())},
+            json={
+                "workload_id": checkout["id"],
+                "reason": "Compare the changed template revision",
+                "window": {
+                    "start": (end - timedelta(minutes=1)).isoformat(),
+                    "end": end.isoformat(),
+                },
+            },
+        )
+        response.raise_for_status()
+        second_ids = response.json()
         second_run = wait_run(operator, second_ids, operator_headers)
         second_rows = evidence(operator, second_ids, second_run, operator_headers)
         if len(second_rows) != 12:
@@ -220,10 +363,51 @@ def main():
                 "The two traffic Runs did not compare as the same 12-source identity."
             )
         report["comparison"] = {
+            "left_incident": first_ids["incident_id"],
+            "right_incident": second_ids["incident_id"],
             "left_run": runs["checkout"]["run_id"],
             "right_run": second_ids["run_id"],
             "status": compare_body["status"],
             "sources": len(compare_body["sources"]),
+        }
+        forward = detail(operator, operator_headers, first_ids, second_ids)
+        assert forward == detail(operator, operator_headers, first_ids, second_ids)
+        revision = next(row for row in forward if row["label"] == "deployment/revision")
+        assert revision["status"] == "changed" and revision["left"] != revision["right"]
+        reverse = {
+            row["key"]: row for row in detail(operator, operator_headers, second_ids, first_ids)
+        }
+        for row in forward:
+            other = reverse[row["key"]]
+            assert other["left"] == row["right"] and other["right"] == row["left"]
+            assert other["status"] == {"added": "removed", "removed": "added"}.get(
+                row["status"], row["status"]
+            )
+        for side, ids in (("left", first_ids), ("right", second_ids)):
+            ref = revision[f"{side}_citation"]
+            exact = operator.get(
+                f"/api/incidents/{ids['incident_id']}/runs/{ids['run_id']}/evidence/{ref['evidence_id']}/citation",
+                params={
+                    "locator_kind": ref["locator"]["kind"],
+                    "locator_key": ref["locator"]["key"],
+                },
+            )
+            exact.raise_for_status()
+            assert exact.json()["target"]["value"] == revision[side]
+        report["comparison"]["semantic_state"] = {
+            "rows": len(forward),
+            "revision": revision,
+            "repeat_identical": True,
+            "swap_reversed": True,
+            "same_workload_uid": checkout["uid"],
+        }
+        assert operator.get(export_path).content == baseline_export.content
+        report["saved_export"] = {
+            "incident_id": first_ids["incident_id"],
+            "resolution_id": resolution,
+            "sha256": hashlib.sha256(baseline_export.content).hexdigest(),
+            "bytes": len(baseline_export.content),
+            "unchanged_after_reopen_revision_compare": True,
         }
 
         traffic_evidence = runs["checkout"]["sources"]
@@ -324,6 +508,10 @@ def main():
             report["restart"] = {"before": before, "after": after, "matches": before == after}
             if before != after:
                 raise RuntimeError("Restart changed stored evidence IDs or hashes.")
+            saved = operator.get(export_path)
+            saved.raise_for_status()
+            assert saved.content == baseline_export.content
+            report["saved_export"]["unchanged_after_restart"] = True
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8", newline="\n")

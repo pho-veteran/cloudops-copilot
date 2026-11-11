@@ -225,8 +225,8 @@ export function EvidenceCatalog({
   useEffect(() => {
     // Focus a persistent heading so loading and failures are visible too. A small
     // focus target scrolls into view without centering an oversized payload panel.
-    selectedHeading.current?.focus();
-  }, [selectedEvidence, run.id]);
+    if (!targetSelected) selectedHeading.current?.focus();
+  }, [selectedEvidence, run.id, targetSelected]);
   return (
     <article className="foundation-panel">
       <h2>Evidence</h2>
@@ -285,6 +285,8 @@ export function EvidenceCatalog({
           <h3 ref={selectedHeading} tabIndex={-1}>
             Selected evidence
           </h3>
+          <button type="button" onClick={() => setShowTargets(!showTargets)} aria-expanded={showTargets || targetSelected}>Inspect stable citation targets</button>
+          {(showTargets || targetSelected) && <CitationTarget key={`citation:${run.id}:${selectedEvidence}`} incidentId={incidentId} runId={run.id} evidenceId={selectedEvidence} />}
           <EvidenceDetail
             key={`${run.id}:${selectedEvidence}`}
             incidentId={incidentId}
@@ -292,8 +294,6 @@ export function EvidenceCatalog({
             evidenceId={selectedEvidence}
             record={run.evidence.find((row) => row.id === selectedEvidence)}
           />
-          <button type="button" onClick={() => setShowTargets(!showTargets)} aria-expanded={showTargets || targetSelected}>Inspect stable citation targets</button>
-          {(showTargets || targetSelected) && <CitationTarget key={`citation:${run.id}:${selectedEvidence}`} incidentId={incidentId} runId={run.id} evidenceId={selectedEvidence} />}
         </section>
       )}
     </article>

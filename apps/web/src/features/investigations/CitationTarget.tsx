@@ -68,7 +68,12 @@ export function CitationTarget({
     gcTime: 0,
   });
   useEffect(() => {
-    if (selection.locatorKey) heading.current?.focus();
+    if (selection.locatorKey) {
+      // Exact navigation must expose the target immediately; the document's
+      // smooth scrolling otherwise leaves keyboard focus far outside view.
+      heading.current?.focus({ preventScroll: true });
+      heading.current?.scrollIntoView?.({ behavior: "instant", block: "center" });
+    }
   }, [selection.locatorKey, resolved.data, resolved.error]);
   return (
     <section

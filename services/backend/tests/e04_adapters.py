@@ -61,6 +61,7 @@ class FakeKubernetes:
 
     def __init__(self, scenario: str = "healthy"):
         self.scenario = scenario
+        self.revision = 2 if scenario == "changed" else 1
 
     def _pod(self, namespace: str, name: str, index: int) -> dict:
         uid = f"pod-{index}"
@@ -181,9 +182,9 @@ class FakeKubernetes:
                 "uid": expected_uid,
                 "namespace": namespace,
                 "name": name,
-                "generation": 1,
-                "resourceVersion": "rv-1",
-                "annotations": {"deployment.kubernetes.io/revision": "1"},
+                "generation": self.revision,
+                "resourceVersion": f"rv-{self.revision}",
+                "annotations": {"deployment.kubernetes.io/revision": str(self.revision)},
             },
             "spec": {
                 "replicas": 1,
@@ -192,7 +193,7 @@ class FakeKubernetes:
                         "containers": [
                             {
                                 "name": "app",
-                                "image": "fixture:1",
+                                "image": f"fixture:{self.revision}",
                                 "resources": {"requests": {"cpu": "100m"}},
                                 "envFrom": [{"configMapRef": {"name": "checkout-config"}}],
                             }
@@ -201,7 +202,7 @@ class FakeKubernetes:
                 },
             },
             "status": {
-                "observedGeneration": 1,
+                "observedGeneration": self.revision,
                 "replicas": 1,
                 "readyReplicas": 1,
                 "updatedReplicas": 1,
