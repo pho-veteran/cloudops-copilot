@@ -544,9 +544,8 @@ def test_metadata_change_requires_new_version(checker, tmp_path):
     assert report.version_conflicts
 
 
-def test_release_coverage_rejects_missing_guide_and_wrong_mapping(checker, tmp_path):
-    source = ROOT / "runbooks"
-    copy = tmp_path / "runbooks"
+@pytest.fixture
+def release_corpus(tmp_path):
     (tmp_path / "docs").mkdir()
     for name in (
         "kubernetes-evidence.md",
@@ -556,11 +555,17 @@ def test_release_coverage_rejects_missing_guide_and_wrong_mapping(checker, tmp_p
         "foundation.md",
     ):
         (tmp_path / "docs" / name).write_text("# Linked documentation\n", encoding="utf-8")
-    shutil.copytree(source, copy)
+    shutil.copytree(ROOT / "runbooks", tmp_path / "runbooks")
+    return tmp_path
+
+
+def test_release_coverage_rejects_missing_guide_and_wrong_mapping(checker, release_corpus):
+    source = ROOT / "runbooks"
+    copy = release_corpus / "runbooks"
     manifest = json.loads((copy / "catalog.json").read_text(encoding="utf-8"))
     manifest["documents"] = manifest["documents"][:-1]
     (copy / "catalog.json").write_text(json.dumps(manifest), encoding="utf-8")
-    report = checker.check_corpus(tmp_path)
+    report = checker.check_corpus(release_corpus)
     assert not report.valid
     assert any("eight guides" in error for error in report.errors)
 
@@ -569,9 +574,34 @@ def test_release_coverage_rejects_missing_guide_and_wrong_mapping(checker, tmp_p
     manifest = json.loads((copy / "catalog.json").read_text(encoding="utf-8"))
     manifest["documents"][0]["applicability"]["symptom_families"] = ["image_pull"]
     (copy / "catalog.json").write_text(json.dumps(manifest), encoding="utf-8")
-    report = checker.check_corpus(tmp_path)
+    report = checker.check_corpus(release_corpus)
     assert not report.valid
     assert any("wrong symptom family" in error for error in report.errors), report.errors
+
+
+def test_release_allows_moving_a_guide_with_a_new_version(checker, release_corpus):
+    catalog = release_corpus / "runbooks/catalog.json"
+    manifest = json.loads(catalog.read_text(encoding="utf-8"))
+    old_name = "crashloop-startup.md"
+    new_name = "startup-troubleshooting.md"
+    (release_corpus / "runbooks" / old_name).rename(release_corpus / "runbooks" / new_name)
+    for row in manifest["documents"]:
+        moved = row["document_key"] == "crashloop-startup"
+        if moved:
+            row["source_path"] = f"runbooks/{new_name}"
+        path = release_corpus / row["source_path"]
+        original = path.read_text(encoding="utf-8")
+        updated = original.replace(f"({old_name})", f"({new_name})")
+        if moved or updated != original:
+            row["version"] = str(int(row["version"]) + 1)
+            path.write_text(updated, encoding="utf-8")
+    catalog.write_text(json.dumps(manifest), encoding="utf-8")
+
+    report = checker.check_corpus(release_corpus, baseline_root=ROOT)
+    assert report.valid, (report.errors, report.version_conflicts)
+    moved = next(row for row in report.documents if row["document_key"] == "crashloop-startup")
+    assert moved["source_path"] == f"runbooks/{new_name}"
+    assert moved["version"] == "2"
 
 
 def test_broken_local_link_and_title_mismatch_are_rejected(checker, tmp_path):

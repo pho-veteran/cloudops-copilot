@@ -44,7 +44,7 @@ git diff --check
 
 The checker computes a SHA-256 over exact UTF-8 file bytes and a separate author-side canonical metadata digest. That metadata digest is a comparison aid, not a claim of importer compatibility. #59 owns stored content/metadata hashes, immutable document-version rows, chunks and generation identity. Moving a file or changing a logical key is a versioned metadata change; paths are provenance, not identity.
 
-The same `(document_key, version)` with different content or metadata is rejected. A new version is required. A new version does not rewrite the prior Git bytes or any later stored reference; #59 must retain historical rows/chunks. This corpus does not provide database retention proof.
+When `--baseline-root` is supplied, the checker rejects the same `(document_key, version)` with different content or metadata compared with that snapshot. The default check does not compare Git history, and a supplied baseline does not cover every previously published version. A new version is required for changed content or versioned metadata. A new version does not rewrite the prior Git bytes or any later stored reference; #59 must check conflicts against all stored versions and retain historical rows/chunks. This corpus does not provide database retention proof.
 
 ## Review and handoff
 

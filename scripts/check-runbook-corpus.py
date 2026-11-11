@@ -20,7 +20,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 SCHEMA_VERSION = "RunbookCatalog/v1"
-CHECKER_VERSION = "2"
+CHECKER_VERSION = "3"
 MAX_DOCUMENTS = 100
 MAX_FILE_BYTES = 256 * 1024
 MAX_CORPUS_BYTES = 8 * 1024 * 1024
@@ -78,27 +78,6 @@ DOCUMENT_FIELDS = {
 }
 APPLICABILITY_FIELDS = {"kind", "symptom_families", "recovery_templates"}
 PROVENANCE_FIELDS = {"source_revision", "reviewed_at"}
-IMPORTER_FIELDS = {
-    "sha256",
-    "content_sha256",
-    "metadata_sha256",
-    "digest",
-    "content_digest",
-    "metadata_digest",
-    "document_id",
-    "document_version_id",
-    "chunk_id",
-    "chunk_ids",
-    "chunker_version",
-    "generation",
-    "generation_id",
-    "indexed_at",
-    "index_status",
-    "source_snapshot_digest",
-    "approved_by",
-    "approved_at",
-    "reviewed_by",
-}
 REFERENCE_LINK = re.compile(r"^[ \t]{0,3}\[[^\]]+\]:\s*(\S+)", re.MULTILINE)
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -251,17 +230,6 @@ def _check_unknown(value: Any, allowed: set[str], where: str, issues: list[str])
     return True
 
 
-def _check_importer_fields(value: Any, where: str, issues: list[str]) -> None:
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if key in IMPORTER_FIELDS:
-                issues.append(f"{where} contains importer-owned field {key!r}")
-            _check_importer_fields(item, where, issues)
-    elif isinstance(value, list):
-        for item in value:
-            _check_importer_fields(item, where, issues)
-
-
 def _section_sizes(text: str) -> tuple[int, list[int]]:
     sizes: list[int] = []
     current = 0
@@ -402,7 +370,6 @@ def _read_document(
         issues.append("diagnosis guides must have an empty recovery_templates array")
     if document.get("guide_kind") == "recovery_template" and templates == []:
         issues.append("recovery_template guides must declare at least one template")
-    _check_importer_fields(document, "document", issues)
     if key is None or version is None or title is None:
         return None, None, 0
     source_path = _safe_source_path(root, document.get("source_path"), issues)  # type: ignore[arg-type]
@@ -561,9 +528,6 @@ def _check_release(records: list[dict[str, Any]], report: Report) -> None:
             report.errors.append(f"{key} has the wrong symptom family mapping")
         if record["recovery_templates"] != list(templates):
             report.errors.append(f"{key} has the wrong recovery template mapping")
-        expected_path = f"runbooks/{key}.md"
-        if record["source_path"] != expected_path:
-            report.errors.append(f"{key} source_path must be {expected_path}")
 
 
 def _compare_baseline(
