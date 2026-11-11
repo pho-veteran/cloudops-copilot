@@ -1,0 +1,141 @@
+{
+  "schema_version": "RunbookCatalog/v1",
+  "documents": [
+    {
+      "document_key": "crashloop-startup",
+      "version": "1",
+      "title": "Investigate CrashLoop and startup failures after a change",
+      "source_path": "runbooks/crashloop-startup.md",
+      "guide_kind": "diagnosis",
+      "tags": ["crashloop", "startup", "rollout", "logs"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["crashloop_startup"],
+        "recovery_templates": []
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "oom-restarts",
+      "version": "2",
+      "title": "Investigate OOM and repeated restarts",
+      "source_path": "runbooks/oom-restarts.md",
+      "guide_kind": "diagnosis",
+      "tags": ["oom", "memory", "restarts", "metrics"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["oom_restarts"],
+        "recovery_templates": []
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "traffic-latency-errors",
+      "version": "2",
+      "title": "Investigate traffic, latency and error increases",
+      "source_path": "runbooks/traffic-latency-errors.md",
+      "guide_kind": "diagnosis",
+      "tags": ["traffic", "latency", "errors", "metrics", "timeline"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["traffic_latency_errors"],
+        "recovery_templates": []
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "pending-unschedulable",
+      "version": "1",
+      "title": "Investigate Pending and unschedulable Pods",
+      "source_path": "runbooks/pending-unschedulable.md",
+      "guide_kind": "diagnosis",
+      "tags": ["pending", "scheduling", "capacity", "manual"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["pending_unschedulable"],
+        "recovery_templates": []
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "image-pull",
+      "version": "1",
+      "title": "Investigate image pull failures",
+      "source_path": "runbooks/image-pull.md",
+      "guide_kind": "diagnosis",
+      "tags": ["image-pull", "registry", "events", "manual"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["image_pull"],
+        "recovery_templates": []
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "restore-deployment-template",
+      "version": "1",
+      "title": "Review a known-good Deployment template restore",
+      "source_path": "runbooks/restore-deployment-template.md",
+      "guide_kind": "recovery_template",
+      "tags": ["recovery", "restore", "baseline", "deployment"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["crashloop_startup"],
+        "recovery_templates": ["restore_deployment_template"]
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "set-memory-profile",
+      "version": "1",
+      "title": "Review a bounded memory profile change",
+      "source_path": "runbooks/set-memory-profile.md",
+      "guide_kind": "recovery_template",
+      "tags": ["recovery", "memory", "oom", "bounded"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["oom_restarts"],
+        "recovery_templates": ["set_memory_profile"]
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    },
+    {
+      "document_key": "scale-deployment",
+      "version": "1",
+      "title": "Review bounded Deployment scaling",
+      "source_path": "runbooks/scale-deployment.md",
+      "guide_kind": "recovery_template",
+      "tags": ["recovery", "scaling", "capacity", "deployment"],
+      "applicability": {
+        "kind": "Deployment",
+        "symptom_families": ["traffic_latency_errors"],
+        "recovery_templates": ["scale_deployment"]
+      },
+      "provenance": {
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
+        "reviewed_at": "2026-11-11"
+      }
+    }
+  ]
+}
