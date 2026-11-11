@@ -1,0 +1,26 @@
+{
+  "schema": "E04FollowupCleanup/v1",
+  "recorded_at": "2026-11-11T04:28:32.869575+00:00",
+  "stopped_and_retained": [
+    "cloudops-e04-fix57",
+    "cloudops-e04-restore-57d",
+    "cloudops-pr57-fix-db"
+  ],
+  "removed_owned_intermediates": [
+    "cloudops-e04-restore-57",
+    "cloudops-e04-restore-57b",
+    "cloudops-e04-restore-57c"
+  ],
+  "retained": [
+    "Owned PostgreSQL/K3s/permit volumes for review",
+    "Ignored tmp/e01-integration scoped credentials; tokens expire after eight hours",
+    "Two task-generated browser downloads in the user Downloads folder"
+  ],
+  "accounts": [
+    "operator and viewer in the owned live lab",
+    "restore-operator in the owned restore fixture database"
+  ],
+  "browser": "Codex temporary tabs closed and viewport override reset. Existing Edge tabs preserved; no trust/profile permission bypass.",
+  "unrelated_resources": "Existing cloudops-test-db and unrelated projects/volumes left untouched",
+  "aws_resources_created": false
+}
