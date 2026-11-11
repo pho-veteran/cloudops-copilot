@@ -14,7 +14,7 @@ The current corpus was reviewed against source revision `6c8eea37e982f3dc6de2755
 - `provenance.source_revision` is the reviewed application commit and `reviewed_at` is the actual review date. Do not supply approval, digest, chunk, index or generation fields; those are importer-owned by #59.
 - The release corpus uses these stable keys: `crashloop-startup`, `oom-restarts`, `traffic-latency-errors`, `pending-unschedulable`, `image-pull`, `restore-deployment-template`, `set-memory-profile`, `scale-deployment`.
 
-The corpus author-side checker is `scripts/check-runbook-corpus.py`. It uses only the Python standard library and reads only the manifest and validated source files. It rejects duplicate JSON keys, unknown/imported fields, malformed types, path escapes, symlinks/reparse traversal, invalid UTF-8, broken local links, oversize input and release-coverage gaps. `--no-release` is available for small schema-level fixtures; release checks use the default mode. `--baseline-root <copy>` compares same-key/version content and versioned metadata for the controlled update drill.
+The corpus author-side checker is `scripts/check-runbook-corpus.py`. It uses only the Python standard library and validates the manifest path before reading it, then reads validated source files. It rejects non-object catalogs in both modes, duplicate JSON keys, unknown/imported fields, malformed types, path escapes, symlinks/reparse traversal, invalid UTF-8, broken local links, oversize input and release-coverage gaps. Manifest and document reads are bounded at I/O as well as checked before and after reading; non-regular files are rejected. `--no-release` is available for small schema-level fixtures; release checks use the default mode. `--baseline-root <copy>` compares same-key/version content and versioned metadata for the controlled update drill.
 
 ## Bounds
 
@@ -37,7 +37,7 @@ uv run --project services/backend ruff format --check --config services/backend/
 git diff --check
 ```
 
-5. For a version drill, use a temporary baseline copy. Run the checker with `--baseline-root <copy>`. A same-key/version content or metadata change must report a conflict; changing only the version must produce a new digest while the original bytes remain unchanged. Do not put a temporary v2 fixture into the release catalog.
+5. For a version drill, use a temporary baseline copy. Run the checker with `--baseline-root <copy>`. A same-key/version content or metadata change must report a conflict; increasing the version permits the revision while the original bytes remain unchanged. The content digest changes only with content bytes, while versioned metadata has its own digest. Do not put a temporary revision fixture into the release catalog.
 6. Review the rendered text and all local links. The content review record belongs under `docs/evidence/knowledge58/`; a green checker does not prove prose quality or recovery eligibility.
 
 ## Version and digest rules

@@ -170,6 +170,83 @@ def test_unknown_root_schema_is_rejected(checker, tmp_path):
     assert any("schema_version" in error for error in report.errors)
 
 
+@pytest.mark.parametrize("value", [[], None, True, 1, "invalid catalog"])
+@pytest.mark.parametrize("release", [True, False])
+def test_non_object_catalog_fails_cli_in_both_modes(checker, tmp_path, capsys, value, release):
+    write_corpus(tmp_path, [])
+    (tmp_path / "runbooks/catalog.json").write_text(json.dumps(value), encoding="utf-8")
+    args = ["--root", str(tmp_path), "--json"]
+    if not release:
+        args.append("--no-release")
+    assert checker.main(args) == 1
+    report = json.loads(capsys.readouterr().out)
+    assert report["valid"] is False
+    assert "catalog must be an object" in report["errors"]
+
+
+@pytest.mark.parametrize("reparse_name", ["runbooks", "catalog.json"])
+def test_catalog_reparse_is_rejected_before_read(checker, tmp_path, monkeypatch, reparse_name):
+    write_corpus(tmp_path, [document()])
+    monkeypatch.setattr(checker, "_is_reparse", lambda path: path.name == reparse_name)
+
+    def forbidden_read(_path):
+        pytest.fail("The catalog must not be read through a reparse point")
+
+    monkeypatch.setattr(checker, "_load_json", forbidden_read)
+    report = checker.check_corpus(tmp_path, release=False)
+    assert not report.valid
+    assert any("symlink" in error or "reparse" in error for error in report.errors)
+
+
+@pytest.mark.parametrize("target", ["catalog.json", "fixture-guide.md"])
+@pytest.mark.parametrize("grow_after_stat", [False, True])
+def test_corpus_reads_are_bounded_at_io(checker, tmp_path, monkeypatch, target, grow_after_stat):
+    write_corpus(tmp_path, [document()])
+    limit = checker.MAX_CORPUS_BYTES if target == "catalog.json" else checker.MAX_FILE_BYTES
+    original_open = Path.open
+    reads = []
+
+    class BoundedReader:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.stream.close()
+
+        def read(self, size=-1):
+            assert 0 < size <= limit + 1, "A pre-read stat does not bound the actual read"
+            reads.append(size)
+            return self.stream.read(size)
+
+    def guarded_open(path, *args, **kwargs):
+        if path.name == target and grow_after_stat:
+            with original_open(path, "ab") as writer:
+                writer.write(b"x" * (limit + 1))
+        stream = original_open(path, *args, **kwargs)
+        return BoundedReader(stream) if path.name == target else stream
+
+    monkeypatch.setattr(Path, "open", guarded_open)
+    report = checker.check_corpus(tmp_path, release=False)
+    assert report.valid is not grow_after_stat, report.errors
+    if grow_after_stat:
+        assert any("cap" in error for error in report.errors)
+    assert len(reads) == 1
+
+
+@pytest.mark.parametrize("target", ["catalog.json", "fixture-guide.md"])
+def test_non_regular_corpus_input_is_rejected(checker, tmp_path, target):
+    write_corpus(tmp_path, [document()])
+    path = tmp_path / "runbooks" / target
+    path.unlink()
+    path.mkdir()
+    report = checker.check_corpus(tmp_path, release=False)
+    assert not report.valid
+    assert any("regular file" in error for error in report.errors)
+
+
 def test_duplicate_json_key_is_rejected_before_overwrite(checker, tmp_path):
     (tmp_path / "runbooks").mkdir()
     (tmp_path / "runbooks/catalog.json").write_text(

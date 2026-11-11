@@ -20,7 +20,7 @@ See [scoped Prometheus metric evidence](../docs/prometheus-metrics.md) for metri
 
 Supporting evidence includes a terminated reason consistent with OOM, a restart count increase in the same window, memory working set approaching the configured limit, and logs or events consistent with memory exhaustion. The coincidence of a recent rollout or traffic increase is a lead, not proof.
 
-Contradicting evidence includes restarts caused by an application exit, failed probes, image or scheduling errors, or memory series that are absent rather than zero. A single OOM observation does not establish a leak. A working set below a limit in a later window does not prove the earlier pressure did not occur.
+Evidence of a different restart cause, such as an application exit or failed probe, can contradict an OOM explanation for that specific restart; image or scheduling failures can instead explain why a container never started. None excludes a separate memory problem in another container or interval. A single OOM observation does not establish a leak, and a working set below a limit in a later window does not disprove earlier pressure. Absent memory series are an evidence gap, not support for or against a memory hypothesis.
 
 `partial`, `no_samples`, `stale`, `truncated`, `ownership_unproven` and `source_unavailable` are coverage facts. Missing samples must not be treated as zero pressure, and an unavailable metric does not rule out memory pressure.
 

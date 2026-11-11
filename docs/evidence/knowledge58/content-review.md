@@ -2,7 +2,7 @@
 
 - Reviewed source revision: `6c8eea37e982f3dc6de2755e7a482eb16aaf1f16`
 - Source revision exists in this repository as a commit; review date: `2026-11-11`
-- Release corpus: eight documents, versions `"1"`
+- Release corpus: eight documents; OOM and traffic guidance are version `"2"`, the other six guides remain version `"1"`
 - Review scope: source/corpus review by the implementer; no independent human approval is claimed
 - Runtime claims: none. This review covers repository guidance and an author-side validator, not indexing, retrieval, UI or recovery execution.
 
@@ -23,6 +23,7 @@
 
 - All five diagnosis families reuse the E04 family IDs and name the real stored source keys; the five pack coverage outcomes are not treated as a diagnosis.
 - Missing, partial, stale, truncated, `not_applicable`, ownership and identity-change states remain visible and are never converted to zero or a ruled-out cause.
+- OOM and traffic v2 explicitly separate absent metric series from contradictory observations; missing telemetry cannot support or refute a hypothesis. A competing explanation is scoped to the observed restart/container or request interval rather than ruling out unrelated failures.
 - Pending and ImagePull have no recovery template mapping. The release checker enforces that mapping.
 - Restore guidance links [healthy baseline preparation](../../../docs/workload-baselines.md) and reports the current `restore_not_implemented` boundary; it does not instruct an external configuration rollback or unhealthy baseline confirmation.
 - Memory guidance records that no profile execution API exists at the reviewed source. Scaling guidance records the actual bounded `scale_deployment` contract (`replicas` 1–3, exact plan, approval, fresh eligibility and controller/capacity checks).

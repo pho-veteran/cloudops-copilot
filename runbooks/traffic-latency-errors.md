@@ -17,7 +17,7 @@ See [scoped Prometheus metric evidence](../docs/prometheus-metrics.md) and [Run 
 
 Supporting observations include an error-ratio increase with a compatible latency/request-rate change, a revision or load change near onset, and metric series that are finite, in-window and bound to the exact UID. A traffic increase alone does not prove application saturation.
 
-Contradicting observations include stable latency while errors rise due to rejected requests, a request-rate drop that leaves a small error denominator, or missing series that prevent a valid rate/ratio calculation. Gapped, stale or zero-traffic windows are not evidence of healthy service or of a zero error count.
+Stable latency while errors rise from rejected requests can contradict the hypothesis that every failing request experienced increased latency. A request-rate drop and small denominator can weaken an apparent error-ratio trend without ruling out real failures. Missing series prevent a valid rate/ratio calculation and are an evidence gap, not counter-evidence. Gapped, stale or zero-traffic windows do not establish healthy service or a zero error count.
 
 Never interpolate across missing samples. A healthy workload after a load generator stops does not prove that a scaling or application change restored service.
 

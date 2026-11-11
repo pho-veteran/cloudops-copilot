@@ -20,7 +20,7 @@
     },
     {
       "document_key": "oom-restarts",
-      "version": "1",
+      "version": "2",
       "title": "Investigate OOM and repeated restarts",
       "source_path": "runbooks/oom-restarts.md",
       "guide_kind": "diagnosis",
@@ -37,7 +37,7 @@
     },
     {
       "document_key": "traffic-latency-errors",
-      "version": "1",
+      "version": "2",
       "title": "Investigate traffic, latency and error increases",
       "source_path": "runbooks/traffic-latency-errors.md",
       "guide_kind": "diagnosis",

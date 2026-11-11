@@ -20,7 +20,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 SCHEMA_VERSION = "RunbookCatalog/v1"
-CHECKER_VERSION = "1"
+CHECKER_VERSION = "2"
 MAX_DOCUMENTS = 100
 MAX_FILE_BYTES = 256 * 1024
 MAX_CORPUS_BYTES = 8 * 1024 * 1024
@@ -135,13 +135,16 @@ def _strict_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _load_json(path: Path) -> Any:
     try:
-        size = path.stat().st_size
+        info = path.stat()
     except OSError as exc:
         raise CorpusError(f"cannot read {path.name}: {exc.strerror}") from exc
-    if size > MAX_CORPUS_BYTES:
+    if not stat.S_ISREG(info.st_mode):
+        raise CorpusError("catalog must be a regular file")
+    if info.st_size > MAX_CORPUS_BYTES:
         raise CorpusError("catalog exceeds the corpus byte cap")
     try:
-        raw = path.read_bytes()
+        with path.open("rb") as stream:
+            raw = stream.read(MAX_CORPUS_BYTES + 1)
     except OSError as exc:
         raise CorpusError(f"cannot read {path.name}: {exc.strerror}") from exc
     if len(raw) > MAX_CORPUS_BYTES:
@@ -406,15 +409,20 @@ def _read_document(
     if source_path is None:
         return None, None, 0
     try:
-        size = source_path.stat().st_size
+        info = source_path.stat()
     except OSError:
         issues.append(f"source file does not exist: {document.get('source_path')}")
         return None, None, 0
+    if not stat.S_ISREG(info.st_mode):
+        issues.append(f"source must be a regular file: {document.get('source_path')}")
+        return None, None, 0
+    size = info.st_size
     if size > MAX_FILE_BYTES:
         issues.append(f"source file exceeds the 256 KiB cap: {document.get('source_path')}")
         return None, None, size
     try:
-        raw = source_path.read_bytes()
+        with source_path.open("rb") as stream:
+            raw = stream.read(MAX_FILE_BYTES + 1)
     except OSError:
         issues.append(f"source file cannot be read: {document.get('source_path')}")
         return None, None, size
@@ -480,14 +488,18 @@ def _read_document(
 def _load_manifest(root: Path, release: bool) -> tuple[list[dict[str, Any]], Report]:
     report = Report(release=release)
     catalog_path = root / "runbooks" / "catalog.json"
+    if any(_is_reparse(path) for path in (catalog_path.parent, catalog_path)):
+        report.errors.append("catalog path traverses a symlink or reparse point")
+        return [], report
     try:
         data = _load_json(catalog_path)
     except CorpusError as exc:
         report.errors.append(str(exc))
         return [], report
-    if not isinstance(data, dict) or not _check_unknown(
-        data, ROOT_FIELDS, "catalog", report.errors
-    ):
+    if not isinstance(data, dict):
+        report.errors.append("catalog must be an object")
+        return [], report
+    if not _check_unknown(data, ROOT_FIELDS, "catalog", report.errors):
         return [], report
     if data.get("schema_version") != SCHEMA_VERSION:
         report.errors.append(f"schema_version must be {SCHEMA_VERSION}")
