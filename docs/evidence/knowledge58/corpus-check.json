@@ -1,5 +1,5 @@
 {
-  "checker_version": "2",
+  "checker_version": "3",
   "counts": {
     "corpus_bytes": 35493,
     "diagnosis": 5,
@@ -267,12 +267,12 @@
   "version_conflicts": [],
   "warnings": [],
   "capture": {
-    "recorded_at": "2026-11-11T11:35:08.447705+00:00",
+    "recorded_at": "2026-11-11T14:50:56.574245+00:00",
     "reviewed_source_commit": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
-    "corpus_commit": "87a249d2165bcfc3cfa666fec41f899081870dce",
+    "corpus_commit": "9e23f40c2b2418e1fe38ada50000cf362d19afaa",
     "corpus_state": "committed corpus and checker source",
-    "checker_command": "uv run --project services/backend python scripts/check-runbook-corpus.py --root . --json",
-    "checker_sha256": "bd476f68f3a263c79f644f115a90e3d7789290cb3da2ba6924d91e318226c756",
+    "checker_command": "python scripts/check-runbook-corpus.py --root . --json",
+    "checker_sha256": "031bc18cbb127c7ea88bc8898a386dd1f508009c1da1cd242578918bc27fdb3d",
     "proof_class": "Author-side schema/path/size/coverage check; not index, retrieval or content approval"
   }
 }
