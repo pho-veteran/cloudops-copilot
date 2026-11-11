@@ -110,11 +110,14 @@ def _safe_close(connection: Connection, *, acquired: bool) -> None:
 
 def lock_present(db: Session | Connection) -> bool:
     try:
-        row = db.execute(_HELD_SQL, {"high": _LOCK_HIGH, "low": _LOCK_LOW}).first()
         if isinstance(db, Session):
-            db.rollback()
-        else:
-            db.commit()
+            bind = db.get_bind()
+            with bind.connect() as connection:
+                row = connection.execute(_HELD_SQL, {"high": _LOCK_HIGH, "low": _LOCK_LOW}).first()
+                connection.commit()
+                return row is not None
+        row = db.execute(_HELD_SQL, {"high": _LOCK_HIGH, "low": _LOCK_LOW}).first()
+        db.commit()
         return row is not None
     except Exception:
         return False

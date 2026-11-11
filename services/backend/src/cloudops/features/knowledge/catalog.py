@@ -273,8 +273,8 @@ def read_chunk(db: Session, chunk_id: UUID, document_version_id: UUID) -> Knowle
 
 
 def index_status(db: Session) -> KnowledgeIndexStatus:
-    # Probe the lock before loading projection rows so the read stays one
-    # database snapshot and the GET never mutates or discards session work.
+    # Probe the lock on a separate connection before loading projection rows;
+    # this keeps the read session untouched and one coherent snapshot.
     updating = lock_present(db)
     state = db.get(KnowledgeIndexState, 1)
     active = (

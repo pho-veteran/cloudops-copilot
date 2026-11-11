@@ -10,7 +10,7 @@
     },
     {
       "command": "pytest -q services/backend/tests --ignore=test_permissions.py",
-      "result": "518 passed, 9 skipped"
+      "result": "523 passed, 9 skipped"
     },
     {
       "command": "pytest -q services/backend/tests/test_permissions.py",
@@ -22,7 +22,7 @@
     },
     {
       "command": "pytest -q services/backend/tests/test_knowledge_*",
-      "result": "27 passed"
+      "result": "28 passed"
     },
     {
       "command": "npm --prefix apps/web test (NODE_ENV=test)",

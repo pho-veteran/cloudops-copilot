@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 SCHEMA_VERSION = "RunbookCatalog/v1"
-CANONICALIZATION_VERSION = "1"
+CANONICALIZATION_VERSION = "2"
 MAX_DOCUMENTS = 100
 MAX_FILE_BYTES = 256 * 1024
 MAX_CORPUS_BYTES = 8 * 1024 * 1024
@@ -204,7 +204,7 @@ def _file_bytes(path: Path, source_path: str, max_bytes: int = MAX_FILE_BYTES) -
     if before.st_size > max_bytes:
         if max_bytes == MAX_FILE_BYTES:
             raise CorpusError(f"source file exceeds the 256 KiB cap: {source_path}")
-        raise CorpusError("corpus exceeds the 8 MiB cap")
+        raise CorpusError(f"source file exceeds the remaining corpus budget: {source_path}")
     try:
         with path.open("rb") as stream:
             content = stream.read(max_bytes + 1)
