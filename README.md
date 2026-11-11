@@ -16,6 +16,8 @@ Optional [scoped Prometheus metric evidence](docs/prometheus-metrics.md) adds si
 
 [Integrated E04 evidence acceptance](docs/e04-local-acceptance.md) records the five live Kubernetes/Prometheus pack journeys, checkpoint/restart/compare/citation/timeline consumers, role/session behavior and the exact remaining gaps. It does not claim a live AI diagnosis or release completion.
 
+The reviewed [versioned runbook corpus](docs/runbook-corpus.md) adds eight source-controlled guidance documents and an author-side manifest self-check. It is not indexed or retrieved by the current application; Knowledge persistence, retrieval and UI remain E05 child work.
+
 ## Quick start
 
 Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.
