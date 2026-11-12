@@ -1,0 +1,163 @@
+{
+  "schema": "Knowledge61Acceptance/v1",
+  "recorded_at": "2026-11-12T09:05:37.976790+00:00",
+  "source_commit": "c7cacb7588a3403e019863f22a9778fea8369d5d",
+  "backend_commit": "5ebf594498ac369966fd06cf0acc1f32a103fd70",
+  "backend_merged_main": "e011fe2319d79f96e5bba5ddd4b219feab7b3eb4",
+  "proof_class": "Connected Microsoft Edge, separate lab tabs; Vite development proxy, real HTTP API and owned PostgreSQL 17. Synthetic accounts/admissions, release corpus plus temporary hostile/removal snapshots. No model or live cluster.",
+  "checks": {
+    "catalog_search_and_tag_filter": {
+      "query": "memory",
+      "tags": [
+        "oom"
+      ],
+      "document": "6222ef86-06ac-4b0d-bf9c-1e7de6c6e00d",
+      "back_and_refresh_retained_filters": true
+    },
+    "operator_find_guidance": {
+      "incident_id": "72e3eabb-1ba7-444a-b0d0-00062f23f2d6",
+      "run_id": "28135ec0-3dc9-435e-a945-c33897bcdad6",
+      "selection_id": "e5bc72fc-c3b3-4c1d-bca5-ec145dd2c75b",
+      "status": "matched",
+      "keyboard_enter_and_exact_chunk_focus": true,
+      "back_and_refresh_same_selection": true
+    },
+    "viewer": {
+      "read_historical_document_and_chunk": true,
+      "read_saved_run_selection_after_refresh": true,
+      "no_find_or_new_incident_controls": true,
+      "provenance_download_completed": true
+    },
+    "downloads": {
+      "operator_document_download_completed": true,
+      "viewer_provenance_download_completed": true,
+      "browser_save_dialogs_completed_by_user": true,
+      "document_bytes": 4915,
+      "content_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+      "document_version_id": "6222ef86-06ac-4b0d-bf9c-1e7de6c6e00d",
+      "version": "2",
+      "provenance_sha256": "6422c44a15e66791df32d4df5b38eef9ef15b141987cc2fbe4e318030468b5b1",
+      "document_matches_release_source_bytes": true
+    },
+    "historical_and_degraded": {
+      "temporary_snapshot_removed_oom_guide": true,
+      "failed_next_import": "source file is missing: runbooks/crashloop-startup.md",
+      "last_good_generation": "4586d1f5-64ee-41b7-b970-ce3410055588",
+      "exact_saved_reference_remained_readable": true,
+      "historical_label_visible": true,
+      "knowledge_connections_same_generation_and_checked_success_times": true,
+      "release_generation_restored": "9b860e3b-4f87-410b-a420-59bb6a66763b"
+    },
+    "inert_content": {
+      "temporary_document_id": "c66ef0cf-83cc-40a3-afc1-6dbeb301f491",
+      "html_script_img_markdown_image_and_javascript_link_remained_plain_text": true,
+      "active_script_image_iframe_or_unsafe_anchor_elements": 0,
+      "script_marker_attribute": null,
+      "crlf_and_human_quote_preserved": true
+    },
+    "session": {
+      "operator_sign_out_then_viewer_fresh_read_same_exact_route": true,
+      "owned_viewer_sessions_expired_in_database": true,
+      "protected_reader_removed_on_next_read": true,
+      "sign_in_as_operator_retained_exact_document_chunk_selection_and_run": true,
+      "find_expiry_no_post_replay": "Generated-contract SessionBoundary regression; no live expired mutation is claimed."
+    }
+  },
+  "responsive": [
+    {
+      "height": 900,
+      "readerWidth": 692.7999877929688,
+      "scrollWidth": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "height": 900,
+      "readerWidth": 470.8000183105469,
+      "scrollWidth": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "height": 900,
+      "readerWidth": 311.20001220703125,
+      "scrollWidth": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "height": 900,
+      "readerWidth": 240.8000030517578,
+      "scrollWidth": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "height": 900,
+      "readerWidth": 692.7999877929688,
+      "scrollWidth": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "height": 900,
+      "readerWidth": 470.8000183105469,
+      "scrollWidth": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "height": 900,
+      "readerWidth": 311.20001220703125,
+      "scrollWidth": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "height": 900,
+      "readerWidth": 240.8000030517578,
+      "scrollWidth": 305,
+      "theme": "light",
+      "width": 320
+    }
+  ],
+  "local_checks": {
+    "web_tests": 223,
+    "typescript_vite_build": "passed",
+    "contracts_and_deliberate_drift": "passed, generated artifacts unchanged",
+    "diff_check": "passed"
+  },
+  "browser_qa": {
+    "score_out_of_5": 4,
+    "verdict": "Passed focused Knowledge journeys. Long inert source text intentionally requires scrolling; native download save dialogs required user completion."
+  },
+  "screenshots": [
+    {
+      "path": "catalog-reader-light.jpg",
+      "sha256": "632e2c79fe14cd4d1d31aca6f01adf6d074e9f60dd54c8ff8ccba546ed6cacb1"
+    },
+    {
+      "path": "connections-degraded-light.jpg",
+      "sha256": "cda0f4a1b601ccdb89b6fc3efa2a9a24c3e23a9f12b9085ac960a5809ea730bd"
+    },
+    {
+      "path": "history-viewer-dark.jpg",
+      "sha256": "0047c2592f060b6a3a0354b39e8e0a8fe66fb1d99c37c64c7c95c3ab3cd431d3"
+    },
+    {
+      "path": "inert-390-dark.jpg",
+      "sha256": "7f3a4bcb414fbcd6b1b4f178f8282829ef79812eff748fa62335d565bf5195fe"
+    },
+    {
+      "path": "reader-320-light.jpg",
+      "sha256": "16094a3170170ec40e17c063b217c2b29291f4aa95e9e3b7d6f4c0164f10ba67"
+    }
+  ],
+  "limits": [
+    "Focused development API/browser acceptance; installed-stack restart/reindex and complete release relevance ledger remain in #62.",
+    "Empty/not-indexed, recoverable 503 reads, missing membership, legacy/no-match and failed/expired Find requests are frontend regressions with generated-contract fixtures; not every failure was injected in Edge.",
+    "No real Kubernetes collection/recovery, model/embedding calls or E06 guidance-consumer integration was exercised.",
+    "The browser policy denied edge://downloads/ inspection because only HTTP/HTTPS are allowed. No workaround or profile permission/trust change was used; the user completed native save dialogs and the resulting files were verified.",
+    "Only this task's lab tabs and viewport override were used; unrelated browser tabs were preserved."
+  ]
+}
