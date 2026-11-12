@@ -178,3 +178,43 @@ class KnowledgeIndexState(Base):
     last_outcome: Mapped[str | None] = mapped_column(String(32))
     last_reason: Mapped[str | None] = mapped_column(String(512))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class KnowledgeSelection(Base):
+    __tablename__ = "knowledge_selections"
+    __table_args__ = (
+        UniqueConstraint(
+            "run_id", "consumer", "request_identity", name="knowledge_selection_request"
+        ),
+        UniqueConstraint("id", "generation_id", name="knowledge_selection_generation"),
+        Index("ix_knowledge_selections_run", "run_id"),
+    )
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    run_id: Mapped[UUID] = mapped_column(ForeignKey("investigation_runs.id"))
+    generation_id: Mapped[UUID] = mapped_column(ForeignKey("knowledge_generations.id"))
+    consumer: Mapped[str] = mapped_column(String(32))
+    request_identity: Mapped[str] = mapped_column(String(128))
+    actor_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    payload: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class KnowledgeSelectionChunk(Base):
+    __tablename__ = "knowledge_selection_chunks"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["selection_id", "generation_id"],
+            ["knowledge_selections.id", "knowledge_selections.generation_id"],
+            name="knowledge_selection_chunk_owner",
+        ),
+        ForeignKeyConstraint(
+            ["generation_id", "chunk_id"],
+            ["knowledge_generation_chunks.generation_id", "knowledge_generation_chunks.chunk_id"],
+            name="knowledge_selection_chunk_member",
+        ),
+        CheckConstraint("ordinal >= 0 AND ordinal < 10", name="knowledge_selection_chunk_ordinal"),
+    )
+    selection_id: Mapped[UUID] = mapped_column(primary_key=True)
+    ordinal: Mapped[int] = mapped_column(Integer, primary_key=True)
+    generation_id: Mapped[UUID] = mapped_column()
+    chunk_id: Mapped[UUID] = mapped_column()

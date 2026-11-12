@@ -61,6 +61,17 @@ OPERATIONS = {
     ),
     "read_knowledge_chunk": Operation("GET", "/api/knowledge/chunks/{chunk_id}", "protected_read"),
     "get_knowledge_index_status": Operation("GET", "/api/knowledge/index-status", "protected_read"),
+    "get_run_guidance": Operation(
+        "GET", "/api/incidents/{incident_id}/runs/{run_id}/knowledge", "protected_read"
+    ),
+    "create_run_guidance": Operation(
+        "POST", "/api/incidents/{incident_id}/runs/{run_id}/knowledge", "operator_mutation"
+    ),
+    "resolve_run_guidance": Operation(
+        "GET",
+        "/api/incidents/{incident_id}/runs/{run_id}/knowledge/selections/{selection_id}/chunks/{chunk_id}",
+        "protected_read",
+    ),
     "create_incident": Operation("POST", "/api/incidents", "operator_mutation"),
     "create_run": Operation("POST", "/api/incidents/{incident_id}/runs", "operator_mutation"),
     "cancel_run": Operation(

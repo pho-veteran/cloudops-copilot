@@ -38,6 +38,8 @@ from cloudops.features.knowledge.models import (
     KnowledgeGenerationDocument,
     KnowledgeIndexAttempt,
     KnowledgeIndexState,
+    KnowledgeSelection,
+    KnowledgeSelectionChunk,
 )
 from intake_fixtures import TOKEN as INTAKE_TOKEN, configure_intake
 
@@ -64,6 +66,8 @@ DOMAIN_MODELS = (
     KnowledgeGenerationDocument,
     KnowledgeIndexAttempt,
     KnowledgeIndexState,
+    KnowledgeSelection,
+    KnowledgeSelectionChunk,
 )
 
 
@@ -94,6 +98,7 @@ class Context:
     knowledge_document_id: str | None = None
     knowledge_chunk_id: str | None = None
     knowledge_generation_id: str | None = None
+    knowledge_selection_id: str | None = None
 
 
 def snapshot(models=DOMAIN_MODELS):

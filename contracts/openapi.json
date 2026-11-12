@@ -1981,6 +1981,55 @@
         "title": "ExecutionView",
         "type": "object"
       },
+      "GuidanceChunk": {
+        "additionalProperties": false,
+        "properties": {
+          "applicability": {
+            "$ref": "#/components/schemas/KnowledgeApplicability"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "heading_path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Heading Path",
+            "type": "array"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/KnowledgeProvenance"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/KnowledgeRef"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "source_path": {
+            "title": "Source Path",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "title",
+          "heading_path",
+          "content",
+          "source_path",
+          "provenance",
+          "applicability",
+          "score"
+        ],
+        "title": "GuidanceChunk",
+        "type": "object"
+      },
       "HandoffPreview": {
         "properties": {
           "incident_id": {
@@ -3065,6 +3114,105 @@
         "title": "KnowledgeProvenance",
         "type": "object"
       },
+      "KnowledgeRef": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "chunk_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Chunk Sha256",
+            "type": "string"
+          },
+          "chunker_version": {
+            "title": "Chunker Version",
+            "type": "string"
+          },
+          "document_key": {
+            "title": "Document Key",
+            "type": "string"
+          },
+          "document_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Document Sha256",
+            "type": "string"
+          },
+          "document_version_id": {
+            "format": "uuid",
+            "title": "Document Version Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "runbook",
+            "default": "runbook",
+            "title": "Kind",
+            "type": "string"
+          },
+          "metadata_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Metadata Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "KnowledgeRef/v1",
+            "default": "KnowledgeRef/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_key",
+          "document_version_id",
+          "version",
+          "chunk_id",
+          "chunker_version",
+          "document_sha256",
+          "metadata_sha256",
+          "chunk_sha256"
+        ],
+        "title": "KnowledgeRef",
+        "type": "object"
+      },
+      "KnowledgeReferenceTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk": {
+            "$ref": "#/components/schemas/KnowledgeChunkDetail"
+          },
+          "document": {
+            "$ref": "#/components/schemas/KnowledgeDocumentDetail"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/KnowledgeRef"
+          },
+          "selection_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Id"
+          }
+        },
+        "required": [
+          "reference",
+          "document",
+          "chunk"
+        ],
+        "title": "KnowledgeReferenceTarget",
+        "type": "object"
+      },
       "KnowledgeRetainedCounts": {
         "additionalProperties": false,
         "properties": {
@@ -3087,6 +3235,331 @@
           "generations"
         ],
         "title": "KnowledgeRetainedCounts",
+        "type": "object"
+      },
+      "KnowledgeRetrieval": {
+        "additionalProperties": false,
+        "properties": {
+          "chunker_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunker Version"
+          },
+          "chunks": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceChunk"
+            },
+            "maxItems": 10,
+            "title": "Chunks",
+            "type": "array"
+          },
+          "content_bytes": {
+            "default": 0,
+            "maximum": 32768.0,
+            "minimum": 0.0,
+            "title": "Content Bytes",
+            "type": "integer"
+          },
+          "degraded": {
+            "default": false,
+            "title": "Degraded",
+            "type": "boolean"
+          },
+          "generation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation Id"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "mode": {
+            "const": "full_text",
+            "default": "full_text",
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query"
+          },
+          "query_version": {
+            "const": "websearch_english/v1",
+            "default": "websearch_english/v1",
+            "title": "Query Version",
+            "type": "string"
+          },
+          "ranking_config_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ranking Config Version"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "retrieval_version": {
+            "const": "full_text/v1",
+            "default": "full_text/v1",
+            "title": "Retrieval Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "KnowledgeRetrieval/v1",
+            "default": "KnowledgeRetrieval/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeRunScope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "search_config_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Config Version"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Digest"
+          },
+          "status": {
+            "enum": [
+              "matched",
+              "partial",
+              "no_matches",
+              "not_indexed",
+              "unavailable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "KnowledgeRetrieval",
+        "type": "object"
+      },
+      "KnowledgeRunScope": {
+        "additionalProperties": false,
+        "properties": {
+          "cluster": {
+            "title": "Cluster",
+            "type": "string"
+          },
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "Deployment",
+            "default": "Deployment",
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "namespace": {
+            "title": "Namespace",
+            "type": "string"
+          },
+          "recovery_template": {
+            "anyOf": [
+              {
+                "enum": [
+                  "restore_deployment_template",
+                  "set_memory_profile",
+                  "scale_deployment"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Template"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "symptom_family": {
+            "anyOf": [
+              {
+                "enum": [
+                  "crashloop_startup",
+                  "oom_restarts",
+                  "traffic_latency_errors",
+                  "pending_unschedulable",
+                  "image_pull"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symptom Family"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          },
+          "workload_uid": {
+            "title": "Workload Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "run_id",
+          "workload_id",
+          "cluster",
+          "namespace",
+          "name",
+          "workload_uid",
+          "window_start",
+          "window_end"
+        ],
+        "title": "KnowledgeRunScope",
+        "type": "object"
+      },
+      "KnowledgeSelectionView": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "manual",
+              "trusted"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "retrieval": {
+            "$ref": "#/components/schemas/KnowledgeRetrieval"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "actor_id",
+          "created_at",
+          "origin",
+          "retrieval"
+        ],
+        "title": "KnowledgeSelectionView",
         "type": "object"
       },
       "Locator": {
@@ -3138,6 +3611,12 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "ManualGuidanceRequest": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "ManualGuidanceRequest",
         "type": "object"
       },
       "ManualIncidentRequest": {
@@ -4382,6 +4861,46 @@
           "sources"
         ],
         "title": "RunComparison",
+        "type": "object"
+      },
+      "RunGuidance": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeSelectionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "enum": [
+              "not_selected",
+              "saved",
+              "unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "title": "RunGuidance",
         "type": "object"
       },
       "RunPage": {
@@ -9065,6 +9584,391 @@
         "summary": "Content",
         "tags": [
           "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/knowledge": {
+      "get": {
+        "operationId": "get_run_guidance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunGuidance"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "knowledge"
+        ]
+      },
+      "post": {
+        "operationId": "create_run_guidance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ManualGuidanceRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunGuidance"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/knowledge/selections/{selection_id}/chunks/{chunk_id}": {
+      "get": {
+        "operationId": "resolve_run_guidance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "selection_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Selection Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "chunk_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Chunk Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "document_version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Version Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeReferenceTarget"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Resolve",
+        "tags": [
+          "knowledge"
         ]
       }
     },
