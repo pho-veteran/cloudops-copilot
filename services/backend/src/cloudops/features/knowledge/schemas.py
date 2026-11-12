@@ -1,6 +1,6 @@
 """Public Knowledge read DTOs and index status projection."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -11,16 +11,37 @@ class KnowledgeModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class KnowledgeApplicability(KnowledgeModel):
+    kind: Literal["Deployment"]
+    symptom_families: list[
+        Literal[
+            "crashloop_startup",
+            "oom_restarts",
+            "traffic_latency_errors",
+            "pending_unschedulable",
+            "image_pull",
+        ]
+    ]
+    recovery_templates: list[
+        Literal["restore_deployment_template", "set_memory_profile", "scale_deployment"]
+    ]
+
+
+class KnowledgeProvenance(KnowledgeModel):
+    source_revision: str
+    reviewed_at: date
+
+
 class KnowledgeDocumentSummary(KnowledgeModel):
     id: UUID
     document_key: str
     version: str
     title: str
-    guide_kind: str
+    guide_kind: Literal["diagnosis", "recovery_template"]
     tags: list[str]
-    applicability: dict
+    applicability: KnowledgeApplicability
     source_path: str
-    provenance: dict
+    provenance: KnowledgeProvenance
     content_sha256: str
     metadata_sha256: str
     bytes: int

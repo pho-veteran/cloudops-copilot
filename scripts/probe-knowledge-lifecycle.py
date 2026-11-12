@@ -160,6 +160,8 @@ def manifest(root, *, version="1", present=True, body="Original snapshot."):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    if not __debug__:
+        parser.error("This acceptance probe requires Python assertions; disable optimization.")
     parser.add_argument("--container", required=True, help="Owned PostgreSQL container to restart.")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()

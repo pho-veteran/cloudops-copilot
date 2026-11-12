@@ -66,6 +66,8 @@ def test_both_roles_read_catalog_exact_document_and_chunk(client, tmp_path):
         assert detail.status_code == 200, detail.text
         assert detail.json()["content"].startswith("# Fixture guide")
         assert detail.json()["id"] == str(document_id)
+        assert detail.json()["applicability"] == document()["applicability"]
+        assert detail.json()["provenance"] == document()["provenance"]
 
         chunk = client.get(
             f"/api/knowledge/chunks/{chunk_id}",

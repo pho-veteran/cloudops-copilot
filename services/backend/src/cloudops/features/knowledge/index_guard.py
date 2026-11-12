@@ -125,15 +125,3 @@ def lock_present(db: Session | Connection) -> bool:
         return row is not None
     except Exception:
         return False
-
-
-def lock_owned_by_current_session(db: Session | Connection) -> bool:
-    try:
-        row = db.execute(_HELD_BY_SESSION_SQL, {"high": _LOCK_HIGH, "low": _LOCK_LOW}).first()
-        if isinstance(db, Session):
-            db.rollback()
-        else:
-            db.commit()
-        return row is not None
-    except Exception:
-        return False

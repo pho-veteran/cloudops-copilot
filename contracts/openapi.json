@@ -2375,6 +2375,49 @@
         "type": "object"
       },
       "JsonValue": {},
+      "KnowledgeApplicability": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "Deployment",
+            "title": "Kind",
+            "type": "string"
+          },
+          "recovery_templates": {
+            "items": {
+              "enum": [
+                "restore_deployment_template",
+                "set_memory_profile",
+                "scale_deployment"
+              ],
+              "type": "string"
+            },
+            "title": "Recovery Templates",
+            "type": "array"
+          },
+          "symptom_families": {
+            "items": {
+              "enum": [
+                "crashloop_startup",
+                "oom_restarts",
+                "traffic_latency_errors",
+                "pending_unschedulable",
+                "image_pull"
+              ],
+              "type": "string"
+            },
+            "title": "Symptom Families",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "symptom_families",
+          "recovery_templates"
+        ],
+        "title": "KnowledgeApplicability",
+        "type": "object"
+      },
       "KnowledgeAttemptView": {
         "additionalProperties": false,
         "properties": {
@@ -2571,9 +2614,7 @@
         "additionalProperties": false,
         "properties": {
           "applicability": {
-            "additionalProperties": true,
-            "title": "Applicability",
-            "type": "object"
+            "$ref": "#/components/schemas/KnowledgeApplicability"
           },
           "bytes": {
             "title": "Bytes",
@@ -2596,6 +2637,10 @@
             "type": "string"
           },
           "guide_kind": {
+            "enum": [
+              "diagnosis",
+              "recovery_template"
+            ],
             "title": "Guide Kind",
             "type": "string"
           },
@@ -2609,9 +2654,7 @@
             "type": "string"
           },
           "provenance": {
-            "additionalProperties": true,
-            "title": "Provenance",
-            "type": "object"
+            "$ref": "#/components/schemas/KnowledgeProvenance"
           },
           "source_path": {
             "title": "Source Path",
@@ -2726,9 +2769,7 @@
         "additionalProperties": false,
         "properties": {
           "applicability": {
-            "additionalProperties": true,
-            "title": "Applicability",
-            "type": "object"
+            "$ref": "#/components/schemas/KnowledgeApplicability"
           },
           "bytes": {
             "title": "Bytes",
@@ -2743,6 +2784,10 @@
             "type": "string"
           },
           "guide_kind": {
+            "enum": [
+              "diagnosis",
+              "recovery_template"
+            ],
             "title": "Guide Kind",
             "type": "string"
           },
@@ -2756,9 +2801,7 @@
             "type": "string"
           },
           "provenance": {
-            "additionalProperties": true,
-            "title": "Provenance",
-            "type": "object"
+            "$ref": "#/components/schemas/KnowledgeProvenance"
           },
           "source_path": {
             "title": "Source Path",
@@ -3000,6 +3043,26 @@
           "retained"
         ],
         "title": "KnowledgeIndexStatus",
+        "type": "object"
+      },
+      "KnowledgeProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "reviewed_at": {
+            "format": "date",
+            "title": "Reviewed At",
+            "type": "string"
+          },
+          "source_revision": {
+            "title": "Source Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_revision",
+          "reviewed_at"
+        ],
+        "title": "KnowledgeProvenance",
         "type": "object"
       },
       "KnowledgeRetainedCounts": {

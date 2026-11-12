@@ -1656,6 +1656,18 @@ export interface components {
             delivery_id: string;
         };
         JsonValue: unknown;
+        /** KnowledgeApplicability */
+        KnowledgeApplicability: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "Deployment";
+            /** Recovery Templates */
+            recovery_templates: ("restore_deployment_template" | "set_memory_profile" | "scale_deployment")[];
+            /** Symptom Families */
+            symptom_families: ("crashloop_startup" | "oom_restarts" | "traffic_latency_errors" | "pending_unschedulable" | "image_pull")[];
+        };
         /** KnowledgeAttemptView */
         KnowledgeAttemptView: {
             /** Chunk Count */
@@ -1720,10 +1732,7 @@ export interface components {
         };
         /** KnowledgeDocumentDetail */
         KnowledgeDocumentDetail: {
-            /** Applicability */
-            applicability: {
-                [key: string]: unknown;
-            };
+            applicability: components["schemas"]["KnowledgeApplicability"];
             /** Bytes */
             bytes: number;
             /** Canonicalization Version */
@@ -1734,8 +1743,11 @@ export interface components {
             content_sha256: string;
             /** Document Key */
             document_key: string;
-            /** Guide Kind */
-            guide_kind: string;
+            /**
+             * Guide Kind
+             * @enum {string}
+             */
+            guide_kind: "diagnosis" | "recovery_template";
             /**
              * Id
              * Format: uuid
@@ -1743,10 +1755,7 @@ export interface components {
             id: string;
             /** Metadata Sha256 */
             metadata_sha256: string;
-            /** Provenance */
-            provenance: {
-                [key: string]: unknown;
-            };
+            provenance: components["schemas"]["KnowledgeProvenance"];
             /** Source Path */
             source_path: string;
             /** Tags */
@@ -1773,18 +1782,18 @@ export interface components {
         };
         /** KnowledgeDocumentSummary */
         KnowledgeDocumentSummary: {
-            /** Applicability */
-            applicability: {
-                [key: string]: unknown;
-            };
+            applicability: components["schemas"]["KnowledgeApplicability"];
             /** Bytes */
             bytes: number;
             /** Content Sha256 */
             content_sha256: string;
             /** Document Key */
             document_key: string;
-            /** Guide Kind */
-            guide_kind: string;
+            /**
+             * Guide Kind
+             * @enum {string}
+             */
+            guide_kind: "diagnosis" | "recovery_template";
             /**
              * Id
              * Format: uuid
@@ -1792,10 +1801,7 @@ export interface components {
             id: string;
             /** Metadata Sha256 */
             metadata_sha256: string;
-            /** Provenance */
-            provenance: {
-                [key: string]: unknown;
-            };
+            provenance: components["schemas"]["KnowledgeProvenance"];
             /** Source Path */
             source_path: string;
             /** Tags */
@@ -1881,6 +1887,16 @@ export interface components {
              * @enum {string}
              */
             state: "not_indexed" | "updating" | "degraded" | "ready";
+        };
+        /** KnowledgeProvenance */
+        KnowledgeProvenance: {
+            /**
+             * Reviewed At
+             * Format: date
+             */
+            reviewed_at: string;
+            /** Source Revision */
+            source_revision: string;
         };
         /** KnowledgeRetainedCounts */
         KnowledgeRetainedCounts: {
