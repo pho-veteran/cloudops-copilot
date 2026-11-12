@@ -1,0 +1,55 @@
+{
+  "schema": "Knowledge59VerificationFollowup/v1",
+  "source_commit": "2d932ebb13449c170231df733a2ff772a4e9e33a",
+  "checks": [
+    {
+      "command": "pytest -q services/backend/tests_unit",
+      "result": "529 passed, 3 skipped"
+    },
+    {
+      "command": "pytest -q services/backend/tests/test_knowledge_api.py services/backend/tests/test_knowledge_cli.py services/backend/tests/test_knowledge_index.py services/backend/tests/test_knowledge_migration.py services/backend/tests/test_knowledge_recovery.py services/backend/tests/test_evidence_migration.py",
+      "result": "35 passed"
+    },
+    {
+      "command": "pytest -q services/backend/tests/test_knowledge_index.py services/backend/tests/test_knowledge_recovery.py",
+      "result": "25 passed, including moved-source provenance and PostgreSQL guard-loss synchronization"
+    },
+    {
+      "command": "pytest -q services/backend/tests/test_knowledge_api.py services/backend/tests/test_knowledge_index.py services/backend/tests/test_knowledge_recovery.py",
+      "result": "32 passed, including public status redaction for rejected document keys"
+    },
+    {
+      "command": "pytest -q services/backend/tests",
+      "result": "772 passed, 9 skipped, 1 failed in test_guard_loss_prevents_late_publish; its immediate lock-release assumption raced PostgreSQL backend termination. Replaced with a bounded wait for observed lock release; the focused Knowledge and populated-migration suite then passed. Full-suite rerun is delegated to CI on this exact candidate."
+    },
+    {
+      "command": "npm --prefix apps/web test (NODE_ENV=test)",
+      "result": "195 passed"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "passed; Vite reports the existing 500 kB bundle-size advisory"
+    },
+    {
+      "command": "ruff check and ruff format --check for services/backend, scripts and services/krr",
+      "result": "passed"
+    },
+    {
+      "command": "python scripts/contracts.py",
+      "result": "contract artifacts match backend models"
+    },
+    {
+      "command": "python scripts/test-contract-drift.py",
+      "result": "deliberate schema drift rejected; generated files remained unchanged"
+    },
+    {
+      "command": "scripts/probe-knowledge-lifecycle.py against owned PostgreSQL 17 _test lab",
+      "result": "passed; see lifecycle-followup.json"
+    }
+  ],
+  "limits": [
+    "The full backend suite must pass on the final PR head in CI before review is requested.",
+    "The local lifecycle corpus changes are controlled temporary fixtures. The eight release guides are indexed as a read-only snapshot.",
+    "No browser, semantic retrieval, Run pinning, production deployment or live Kubernetes recovery is claimed."
+  ]
+}
