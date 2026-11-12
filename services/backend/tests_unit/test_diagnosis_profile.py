@@ -211,6 +211,17 @@ def test_ca_file_is_resolved_relative_to_profile(tmp_path):
         ModelProfile.load(path)
 
 
+@pytest.mark.parametrize("override", [{"tls": {"ca_file": "\ud800"}}, {"model": "\udfff"}])
+def test_profile_rejects_surrogates_before_use(override, tmp_path):
+    with pytest.raises(ValidationError):
+        profile(**override)
+    data = profile().model_dump(mode="json", by_alias=True) | override
+    path = tmp_path / "invalid-unicode.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ProfileError):
+        ModelProfile.load(path)
+
+
 def test_committed_example_profile_is_valid():
     root = Path(__file__).resolve().parents[3]
     loaded = ModelProfile.load(root / "config/diagnosis-model.example.json")

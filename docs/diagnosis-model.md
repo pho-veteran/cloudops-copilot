@@ -63,7 +63,7 @@ Usage is never invented:
 - malformed/bool/negative → `usage=None`, `usage_status="invalid"`;
 - valid → `usage_status="observed"`.
 
-`Retry-After` is preserved as integer seconds (or parsed HTTP-date), clamped to 0..86400, plus a bounded printable raw value. The transport never retries, rotates credentials/models or follows redirects.
+`Retry-After` is parsed from the complete header as nonnegative integer seconds (or HTTP-date), clamped to 0..86400. Only its printable display value is truncated to 64 characters. The transport never retries, rotates credentials/models or follows redirects.
 
 The transport creates one `AsyncClient`, one `SSLContext` and one event loop per call. It does not promise cross-call connection pooling; `pool_timeout_seconds` is still applied as a bounded phase setting but is not expected to be contended. Usage with only some token fields is `observed` with the absent fields set to `null`; `observed` does not mean every field is present.
 
@@ -74,7 +74,7 @@ Guaranteed:
 - the path, configured headers and body built by this client; exactly one selected output-limit parameter;
 - no implicit retry, redirect or environment proxy;
 - certificate verification on; no profile field disables it;
-- bounded serialized input and decoded response;
+- bounded serialized input and response body; responses with a non-identity content encoding are rejected before reading or decompressing their body;
 - whole-call deadline, including header and body trickle (except a blocking synchronous admission callback);
 - no upstream error body, provider text or credential in the returned classification.
 

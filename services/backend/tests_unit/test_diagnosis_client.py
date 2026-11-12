@@ -186,6 +186,8 @@ def test_429_retry_after_variants_are_observed_not_retried():
         ({"Retry-After": "0"}, 0),
         ({"Retry-After": "not-a-date"}, None),
         ({"Retry-After": "9" * 200}, 86400),
+        ({"Retry-After": "0" * 5000 + "300"}, 300),
+        ({"Retry-After": "0" * 5000}, 0),
     ]:
         result, seen = _send(
             status=429,
@@ -364,10 +366,33 @@ def test_content_filter_and_length_non_string():
 
 
 def test_retry_after_control_text_is_dropped():
-    result, _ = _send(status=429, payload={}, headers={"Retry-After": "30\x1b]0;x"})
-    assert result.kind is CallKind.RATE_LIMITED
-    assert result.retry_after_seconds is None
-    assert result.retry_after_raw is None
+    for raw in ("30\x1b]0;x", "0" * 64 + "\x1b]0;x"):
+        result, _ = _send(status=429, payload={}, headers={"Retry-After": raw})
+        assert result.kind is CallKind.RATE_LIMITED
+        assert result.retry_after_seconds is None
+        assert result.retry_after_raw is None
+
+
+@pytest.mark.parametrize("encoding", ["gzip", "deflate", "br", "unsupported"])
+def test_compressed_response_is_rejected_without_reading_body(encoding):
+    class UnreadBody(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            pytest.fail("compressed response must not be read or decompressed")
+            yield b""
+
+    client = ModelClient(
+        profile(),
+        transport=mock(
+            lambda request: httpx.Response(
+                200,
+                stream=UnreadBody(),
+                headers={"Content-Type": "application/json", "Content-Encoding": encoding},
+            )
+        ),
+    )
+    result = client.send(MESSAGES, before_send=lambda: None)
+    assert result.kind is CallKind.INVALID_ENCODING
+    assert result.response_bytes == 0
 
 
 def test_unusable_ca_returns_config_invalid_without_network():

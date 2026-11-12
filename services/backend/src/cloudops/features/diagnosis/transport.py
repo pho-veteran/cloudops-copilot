@@ -22,7 +22,7 @@ from cloudops.features.diagnosis.schemas import (
 )
 
 _JSON_MEDIA = {"application/json"}
-_ALLOWED_ENCODINGS = {"", "identity", "gzip", "deflate"}
+_ALLOWED_ENCODINGS = {"", "identity"}
 
 
 class _HookAbort(Exception):
@@ -235,7 +235,7 @@ class ModelClient:
                 retry=(retry_seconds, retry_raw),
             )
         length = response.headers.get("content-length")
-        if encoding in {"", "identity"} and length is not None:
+        if length is not None:
             try:
                 declared = int(length)
             except ValueError:
@@ -251,16 +251,17 @@ class ModelClient:
         body = bytearray()
         try:
             async for chunk in response.aiter_bytes():
-                body.extend(chunk)
-                if len(body) > self._max_response():
+                received = len(body) + len(chunk)
+                if received > self._max_response():
                     return self._failure(
                         CallKind.RESPONSE_TOO_LARGE,
                         identity,
                         started,
                         status=status,
                         retry=(retry_seconds, retry_raw),
-                        response_bytes=len(body),
+                        response_bytes=received,
                     )
+                body.extend(chunk)
         except httpx.DecodingError:
             return self._failure(
                 CallKind.INVALID_ENCODING,

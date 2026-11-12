@@ -52,6 +52,10 @@ def _safe_text(value: Any, where: str, maximum: int) -> str:
         raise ValueError(f"{where} must be a string of 1..{maximum} characters")
     if any(ord(char) < 32 or ord(char) == 127 for char in value):
         raise ValueError(f"{where} contains control characters")
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError:
+        raise ValueError(f"{where} must be valid UTF-8") from None
     return value
 
 

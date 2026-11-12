@@ -111,7 +111,8 @@ def test_gzip_bomb_and_unsupported_encoding():
     body, headers = gzip_payload(payload)
     with serve(lambda handler: respond(handler, None, body=body, headers=headers)) as server:
         result = _send(server.url + "/v1", limits={"max_response_bytes": 1024})
-        assert result.kind is CallKind.RESPONSE_TOO_LARGE
+        assert result.kind is CallKind.INVALID_ENCODING
+        assert result.response_bytes == 0
 
     with serve(
         lambda handler: respond(

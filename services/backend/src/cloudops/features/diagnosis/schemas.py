@@ -110,15 +110,16 @@ def parse_retry_after(headers: Mapping[str, str]) -> tuple[int | None, str | Non
     raw_value = headers.get("retry-after")
     if raw_value is None:
         return None, None
-    raw = raw_value[:64]
-    if not raw.isprintable():
+    if not raw_value.isprintable():
         return None, None
+    raw = raw_value[:64]
+    if raw_value.isascii() and raw_value.isdecimal():
+        digits = raw_value.lstrip("0") or "0"
+        return min(int(digits), 86400) if len(digits) <= 5 else 86400, raw
+    if len(raw_value) > 64:
+        return None, raw
     try:
-        return min(max(0, int(raw)), 86400), raw
-    except ValueError:
-        pass
-    try:
-        when = parsedate_to_datetime(raw)
+        when = parsedate_to_datetime(raw_value)
     except (TypeError, ValueError, OverflowError):
         return None, raw
     if when is None:
