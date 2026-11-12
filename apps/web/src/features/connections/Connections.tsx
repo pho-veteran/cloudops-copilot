@@ -4,6 +4,7 @@ import { Failure, Loading } from "@/app/Feedback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertReceipts } from "./AlertReceipts";
+import { KnowledgeStatus } from "@/features/knowledge/KnowledgeStatus";
 
 export function Connections({ canMutate }: { canMutate: boolean }) {
   const cache = useQueryClient();
@@ -85,6 +86,7 @@ export function Connections({ canMutate }: { canMutate: boolean }) {
         </div>
       )}
       <AlertReceipts />
+      <KnowledgeStatus />
     </section>
   );
 }

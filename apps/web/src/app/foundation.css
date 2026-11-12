@@ -1,6 +1,36 @@
 .foundation-app {
   min-height: 100vh;
 }
+.knowledge-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  line-height: 1.75;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+.knowledge-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+.knowledge-filters > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.knowledge-catalog li + li {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.knowledge-catalog a {
+  color: var(--ops-blue);
+  text-decoration: underline;
+}
+.knowledge-catalog [aria-current="page"] {
+  font-weight: 650;
+}
 .workload-context-dialog,
 .workload-context-dialog .foundation-stack {
   grid-template-columns: minmax(0, 1fr);

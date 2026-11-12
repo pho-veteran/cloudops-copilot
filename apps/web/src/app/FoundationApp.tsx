@@ -14,6 +14,7 @@ import {
   Moon,
   Plug,
   Sun,
+  BookOpen,
 } from "lucide-react";
 import { ApiError, api, transport, unwrap } from "@/lib/api/client";
 import { SignIn } from "@/features/access/SignIn";
@@ -24,6 +25,7 @@ import { InvestigationWorkspace } from "@/features/investigations/InvestigationW
 import { clearRequestKeys } from "@/features/investigations/request";
 import { Connections } from "@/features/connections/Connections";
 import { Reports } from "@/features/recommendations/Reports";
+import { Knowledge } from "@/features/knowledge/Knowledge";
 import { Failure, Loading } from "./Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -247,6 +249,7 @@ export function Workspace() {
               { path: "workloads", label: "Workloads", icon: Boxes },
               { path: "connections", label: "Connections", icon: Plug },
               { path: "reports", label: "Resource reports", icon: ListTodo },
+              { path: "knowledge", label: "Knowledge", icon: BookOpen },
             ].map((n) => (
               <a
                 key={n.path}
@@ -306,6 +309,8 @@ export function Workspace() {
             <Connections canMutate={canMutate} />
           ) : route.page === "reports" ? (
             <Reports canMutate={canMutate} />
+          ) : route.page === "knowledge" ? (
+            <Knowledge route={route.knowledge ?? {}} />
           ) : route.page === "incidents" && route.id ? (
             <InvestigationWorkspace
               key={route.id}

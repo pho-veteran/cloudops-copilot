@@ -1,0 +1,162 @@
+/** Synthetic generated-contract API fixtures for Knowledge tests. */
+import type { components } from "@/lib/api/generated/schema";
+export const ids = {
+  document: "10000000-0000-4000-8000-000000000001",
+  chunk: "10000000-0000-4000-8000-000000000002",
+  incident: "10000000-0000-4000-8000-000000000003",
+  run: "10000000-0000-4000-8000-000000000004",
+  selection: "10000000-0000-4000-8000-000000000005",
+  generation: "10000000-0000-4000-8000-000000000006",
+};
+const content =
+  '# Synthetic memory guide\r\n\r\n<script>document.body.dataset.unsafe="ran"</script>\r\n![image](https://example.invalid/pixel.png)\r\n[unsafe](javascript:alert(1))\r\nHuman quote: giữ nguyên.\r\n';
+
+export const documentFixture = {
+  id: ids.document,
+  document_key: "memory-guide",
+  version: "2",
+  title: "Synthetic memory guide",
+  guide_kind: "diagnosis",
+  tags: ["memory", "fixture"],
+  applicability: {
+    kind: "Deployment",
+    symptom_families: ["oom_restarts"],
+    recovery_templates: [],
+  },
+  source_path: "runbooks/memory-guide.md",
+  provenance: { source_revision: "f".repeat(40), reviewed_at: "2026-11-12" },
+  content_sha256:
+    "05c1c62f1c9e7a642cb39d4ea23c18b770f125705dbed17aa4d3415c6f9ddbb0",
+  metadata_sha256: "b".repeat(64),
+  bytes: 186,
+  content,
+  canonicalization_version: "2",
+} satisfies components["schemas"]["KnowledgeDocumentDetail"];
+export const chunkFixture = {
+  id: ids.chunk,
+  document_version_id: ids.document,
+  ordinal: 0,
+  chunker_version: "2",
+  heading_path: ["Synthetic memory guide"],
+  heading_label: "Synthetic memory guide",
+  heading_locator: "heading:" + "c".repeat(64),
+  start_byte: 0,
+  end_byte: 186,
+  content,
+  content_sha256: documentFixture.content_sha256,
+  bytes: 186,
+} satisfies components["schemas"]["KnowledgeChunkDetail"];
+const {
+  content: _content,
+  canonicalization_version: _canonical,
+  ...summaryFixture
+} = documentFixture;
+export const pageFixture = {
+  items: [summaryFixture],
+  next_cursor: null,
+  generation_id: ids.generation,
+  source_digest: "d".repeat(64),
+  has_active_generation: true,
+  catalog_empty_reason: null,
+} satisfies components["schemas"]["KnowledgeDocumentPage"];
+export const statusFixture = {
+  state: "ready",
+  observed_at: "2026-11-12T00:00:00Z",
+  active_generation: {
+    id: ids.generation,
+    fingerprint: "e".repeat(64),
+    source_digest: "d".repeat(64),
+    chunker_version: "2",
+    index_format_version: "1",
+    search_config_version: "2",
+    ranking_config_version: "2",
+    config_digest: "f".repeat(64),
+    document_count: 1,
+    chunk_count: 1,
+    captured_at: "2026-11-12T00:00:00Z",
+    indexed_at: "2026-11-12T00:00:00Z",
+  },
+  last_attempt: null,
+  last_success: null,
+  last_checked_source_digest: "d".repeat(64),
+  last_checked_at: "2026-11-12T00:00:00Z",
+  last_success_at: "2026-11-12T00:00:00Z",
+  has_active_generation: true,
+  read_available: true,
+  catalog_search_available: true,
+  retrieval_available: true,
+  retrieval_mode: "catalog_full_text",
+  semantic_mode: "not_configured",
+  retained: { document_versions: 1, chunks: 1, generations: 1 },
+} satisfies components["schemas"]["KnowledgeIndexStatus"];
+export const refFixture = {
+  schema_version: "KnowledgeRef/v1",
+  kind: "runbook",
+  document_key: documentFixture.document_key,
+  document_version_id: ids.document,
+  version: documentFixture.version,
+  chunk_id: ids.chunk,
+  chunker_version: "2",
+  document_sha256: documentFixture.content_sha256,
+  metadata_sha256: documentFixture.metadata_sha256,
+  chunk_sha256: chunkFixture.content_sha256,
+} satisfies components["schemas"]["KnowledgeRef"];
+export const savedFixture = {
+  state: "saved",
+  reason: null,
+  selection: {
+    id: ids.selection,
+    run_id: ids.run,
+    actor_id: null,
+    created_at: "2026-11-12T00:00:00Z",
+    origin: "manual",
+    retrieval: {
+      schema_version: "KnowledgeRetrieval/v1",
+      mode: "full_text",
+      status: "matched",
+      reason: null,
+      query: "memory",
+      query_version: "websearch_english/v1",
+      retrieval_version: "full_text/v1",
+      generation_id: ids.generation,
+      source_digest: "d".repeat(64),
+      chunker_version: "2",
+      ranking_config_version: "2",
+      search_config_version: "2",
+      scope: {
+        incident_id: ids.incident,
+        run_id: ids.run,
+        workload_id: ids.document,
+        cluster: "fixture",
+        namespace: "demo",
+        name: "fixture",
+        workload_uid: "fixture-uid",
+        kind: "Deployment",
+        window_start: "2026-11-11T23:30:00Z",
+        window_end: "2026-11-12T00:00:00Z",
+        symptom_family: null,
+        recovery_template: null,
+      },
+      chunks: [
+        {
+          reference: refFixture,
+          title: documentFixture.title,
+          heading_path: chunkFixture.heading_path,
+          content,
+          source_path: documentFixture.source_path,
+          provenance: documentFixture.provenance,
+          applicability: documentFixture.applicability,
+          score: 0.5,
+        },
+      ],
+      content_bytes: 186,
+      limit: 10,
+      truncated: false,
+      degraded: false,
+      limitations: [
+        "Methodology only; not telemetry, a diagnosis or execution approval.",
+        "Symptom family applicability is unverified.",
+      ],
+    },
+  },
+} satisfies components["schemas"]["RunGuidance"];
