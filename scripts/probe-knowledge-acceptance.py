@@ -297,6 +297,28 @@ def negative(lab, ids, case):
     }
 
 
+def manual_diagnosis(operator, cases):
+    rows = []
+    for case in cases["positives"]:
+        if case.get("recovery_template"):
+            continue
+        ids = create(operator, case["query"])
+        result = request(operator, "POST", guidance(ids), json={}).json()["selection"]["retrieval"]
+        assert result["scope"]["symptom_family"] is None
+        assert result["scope"]["recovery_template"] is None and result["query"] == case["query"]
+        assessed = rank(
+            {**case, "symptom_family": None}, {**result, "chunks": result["chunks"][:5]}
+        )
+        rows.append({**assessed, "run_id": ids["run_id"], "observed_scope": result["scope"]})
+    assert len(rows) == 10
+    return {
+        "results": rows,
+        "guide_recall_at_5": sum(r["guide_rank"] is not None for r in rows) / 10,
+        "guide_mrr_at_5": sum(1 / r["guide_rank"] for r in rows if r["guide_rank"]) / 10,
+        "section_recall_at_5": sum(r["section_rank"] is not None for r in rows) / 10,
+    }
+
+
 def prepare(lab, operator, viewer, receipt, cases):
     status = request(operator, "GET", "/api/knowledge/index-status").json()
     assert status["state"] == "not_indexed"
@@ -409,6 +431,7 @@ def prepare(lab, operator, viewer, receipt, cases):
     receipt["original_hashes"] = capture(operator, receipt)
     preserved(operator, viewer, receipt)
     receipt["browser_ids"] = create(operator, "memory")
+    receipt["manual_diagnosis"] = manual_diagnosis(operator, cases)
     receipt["phases"].append("prepare")
 
 
@@ -590,6 +613,7 @@ def main():
     return (
         0
         if receipt["metrics"]["guide_recall_at_5"] == 1
+        and receipt.get("manual_diagnosis", {}).get("guide_recall_at_5") == 1
         and all(n["passed"] for n in receipt["negatives"])
         else 1
     )
