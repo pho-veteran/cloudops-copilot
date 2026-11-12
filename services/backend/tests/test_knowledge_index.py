@@ -80,6 +80,31 @@ def test_update_retains_old_exact_document_and_chunk(db, tmp_path):
     assert len(_ids(db)) == 2
 
 
+def test_moved_source_with_new_version_retains_old_path_provenance(db, tmp_path):
+    write_corpus(tmp_path)
+    assert index_corpus(tmp_path).outcome == "indexed"
+    db.expire_all()
+    old_document = _ids(db)[0]
+    old_content = old_document.content
+    (tmp_path / old_document.source_path).unlink()
+
+    write_corpus(
+        tmp_path,
+        [document(version="2", source_path="runbooks/moved-guide.md")],
+        {"fixture-guide": "# Fixture guide\n\nMoved with a new version.\n"},
+    )
+    result = index_corpus(tmp_path)
+    assert result.outcome == "indexed"
+    db.expire_all()
+    versions = _ids(db)
+    assert len(versions) == 2
+    assert versions[0].source_path == "runbooks/fixture-guide.md"
+    assert versions[0].content == old_content
+    assert versions[1].version == "2"
+    assert versions[1].source_path == "runbooks/moved-guide.md"
+    assert versions[1].id != versions[0].id
+
+
 def test_remove_documents_creates_empty_ready_generation(db, tmp_path):
     write_corpus(tmp_path)
     assert index_corpus(tmp_path).outcome == "indexed"
