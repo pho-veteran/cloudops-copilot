@@ -73,8 +73,8 @@ class ModelCall:
 
     def __post_init__(self):
         # Guard against accidentally putting provider text in a public code field.
-        if self.error_code is not None and self.error_code not in {kind.value for kind in CallKind}:
-            raise ValueError("error_code must be a local CallKind value")
+        if self.error_code is not None and self.error_code != self.kind.value:
+            raise ValueError("error_code must match the local CallKind")
 
 
 def safe_identifier(value: object) -> str | None:

@@ -35,5 +35,5 @@
       "impact": "Error classification must use status plus a local enum; provider bodies must never be returned as public diagnostics."
     }
   ],
-  "decision": "Do not use 9router as a runtime dependency, CI fixture, or compatibility claim. Its observed behaviors are encoded as negative fixtures in the owned loopback tests."
+  "decision": "Do not use 9router as a runtime dependency, CI fixture, or compatibility claim. The refusal finish reason, SSE/content-type and redirect observations are encoded as negative fixtures; the hidden-prompt and unauthenticated-models observations remain design notes only."
 }

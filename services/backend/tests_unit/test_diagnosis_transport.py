@@ -158,6 +158,7 @@ def test_connection_refused_and_ambient_proxy_ignored(monkeypatch):
     with serve(lambda handler: respond(handler, {}, status=502)) as recorder:
         monkeypatch.setenv("HTTP_PROXY", recorder.url)
         monkeypatch.setenv("HTTPS_PROXY", recorder.url)
+        monkeypatch.setenv("ALL_PROXY", recorder.url)
         with serve(_text) as target:
             result = _send(target.url + "/v1")
             assert result.kind is CallKind.TEXT

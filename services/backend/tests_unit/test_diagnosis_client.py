@@ -368,3 +368,14 @@ def test_retry_after_control_text_is_dropped():
     assert result.kind is CallKind.RATE_LIMITED
     assert result.retry_after_seconds is None
     assert result.retry_after_raw is None
+
+
+def test_unusable_ca_returns_config_invalid_without_network():
+    calls = []
+    value = profile(tls={"ca_file": "missing-ca.pem"})
+    result = ModelClient(
+        value,
+        transport=mock(lambda request: calls.append(request) or response(text_payload())),
+    ).send(MESSAGES, before_send=lambda: None)
+    assert result.kind is CallKind.CONFIG_INVALID
+    assert calls == []

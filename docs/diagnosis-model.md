@@ -42,7 +42,7 @@ Rules:
 - `base_url` is the API root. Exactly one `chat/completions` is appended. An existing `/v1`, `/v1beta` or `/api/v1` path is retained; no second `/v1` is added.
 - HTTP is allowed only for an explicitly flagged loopback host (`localhost`, `127.0.0.1`, `::1`). External endpoints require HTTPS.
 - TLS verification cannot be disabled. `tls.ca_file` replaces the trust store with a deployment CA.
-- `proxy` is the only proxy that can be used. Ambient `HTTP_PROXY`/`HTTPS_PROXY` settings are ignored (`trust_env=False`).
+- `proxy` is the only proxy that can be used. Ambient `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` settings (and netrc) are ignored (`trust_env=False`).
 - `output_limit.param` is exactly one of `max_tokens`, `max_completion_tokens` or `omit`. `omit` requires an explicit `omit_policy_id`; the transport cannot verify remote enforcement.
 - `limits` are hard bounds. Input is measured after UTF-8 JSON serialization; response bytes are measured after decoding.
 - `settings()` in shared config is not involved and remains free of diagnosis policy.
@@ -64,6 +64,8 @@ Usage is never invented:
 - valid → `usage_status="observed"`.
 
 `Retry-After` is preserved as integer seconds (or parsed HTTP-date), clamped to 0..86400, plus a bounded printable raw value. The transport never retries, rotates credentials/models or follows redirects.
+
+The transport creates one `AsyncClient`, one `SSLContext` and one event loop per call. It does not promise cross-call connection pooling; `pool_timeout_seconds` is still applied as a bounded phase setting but is not expected to be contended. Usage with only some token fields is `observed` with the absent fields set to `null`; `observed` does not mean every field is present.
 
 ## Guarantees and non-guarantees
 
@@ -92,6 +94,7 @@ The tests use an owned loopback fake server, not a model account:
 
 ```sh
 uv run --project services/backend pytest -q services/backend/tests_unit/test_diagnosis_profile.py \
+  services/backend/tests_unit/test_diagnosis_messages.py \
   services/backend/tests_unit/test_diagnosis_client.py \
   services/backend/tests_unit/test_diagnosis_transport.py
 ```

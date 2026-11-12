@@ -217,3 +217,16 @@ def test_committed_example_profile_is_valid():
     assert loaded.mode.value == "evaluation_only"
     assert loaded.request_url().endswith("/v1/chat/completions")
     assert loaded.credential.name == "DIAGNOSIS_MODEL_TOKEN"
+
+
+def test_profile_is_frozen_after_validation():
+    value = profile()
+    with pytest.raises(ValidationError):
+        value.base_url = "http://127.0.0.1:1/v1"
+
+
+def test_load_rejects_recursive_profile_json(tmp_path):
+    path = tmp_path / "recursive.json"
+    path.write_bytes(b"[" * 30_000 + b"]" * 30_000)
+    with pytest.raises(ProfileError):
+        ModelProfile.load(path)
