@@ -296,5 +296,7 @@ CASES = {
 }
 
 from consumer_cases import CASES as CONSUMER_CASES  # noqa: E402
+from knowledge_cases import CASES as KNOWLEDGE_CASES  # noqa: E402
 
 CASES.update(CONSUMER_CASES)
+CASES.update(KNOWLEDGE_CASES)

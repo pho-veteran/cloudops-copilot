@@ -293,6 +293,7 @@ To pause all background jobs, run `docker compose run --rm dispatch-admin enter-
 | E02 | `features/workloads`: configured stable identity, allowlist and known-good metadata | Admission, baseline preparation and Workloads UI |
 | E03 | `features/incidents`: manual admission, notes/lifecycle and stored handoff | Work queue and investigation workspace |
 | E04 | `features/investigations` and shared job mechanics | Worker composition and run/evidence UI |
+| E05 | `features/knowledge` immutable corpus, index CLI and read catalog | Knowledge/Connections UI, Run retrieval and relevance acceptance |
 | E07 | `features/recovery`: immutable manual plans, session-bound review, isolated executor and proof | Recovery UI, worker and trusted maintenance CLI |
 | E08 | `features/recommendations`: bounded KRR jobs and stored reports | Report UI/export, worker and pinned read-only runner |
 | E09 | `features/health` and `features/connections`: classified observations and fixed checks | Connections UI |
@@ -321,7 +322,7 @@ these tests do not override the principal or permission dependencies.
 
 | Classification | Current operation IDs | Required behavior |
 |---|---|---|
-| Protected reads | `get_session`, `list_workloads`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
+| Protected reads | `get_session`, `list_workloads`, `list_incidents`, `get_incident`, `list_runs`, `get_run`, `get_health`, `list_knowledge_documents`, `read_knowledge_document`, `read_knowledge_chunk`, `get_knowledge_index_status` | Viewer and Operator read existing workspace records; anonymous/expired requests return `401 session_expired` |
 | Operator domain mutations | `create_incident`, `create_run`, `confirm_baseline`, `add_incident_note`, `transition_incident`, `create_connection_check`, `create_recommendation_report`, `propose_plan`, `decide_plan` | Valid Viewer requests return `403 permission_denied`; Operators may admit work subject to feature rules |
 | Protected feature reads/exports | `list_baselines`, `list_incident_activity`, `preview_incident_handoff`, `export_incident_handoff`, `list_connection_checks`, `list_recommendation_reports`, `get_recommendation_report`, `export_recommendation_report`, `list_plans`, `list_executions` | Both roles inspect persisted records; no domain mutation |
 | Protected observation | `get_baseline_candidate`, `get_recovery_context` | Both roles may save bounded read-only observation metadata; recovery context without a selection performs no live read. Neither grants execution authority or writes to Kubernetes |

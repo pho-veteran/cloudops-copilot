@@ -55,9 +55,23 @@ def main():
         "evidence-purge", help="Report expired unpinned evidence; use --apply to clear content."
     )
     purge.add_argument("--apply", action="store_true", help="Permanently clear eligible content.")
+    knowledge_index = sub.add_parser(
+        "knowledge-index",
+        help="Trusted: capture, validate and atomically activate a runbook corpus.",
+    )
+    knowledge_index.add_argument(
+        "--root", default=".", help="Trusted source root containing runbooks/."
+    )
+    knowledge_index.add_argument("--json", action="store_true", help="Emit one JSON receipt.")
+    knowledge_status = sub.add_parser(
+        "knowledge-status", help="Trusted: read the current Knowledge index status."
+    )
+    knowledge_status.add_argument("--json", action="store_true", help="Emit one JSON status.")
     args = parser.parse_args()
     try:
-        run(args)
+        code = run(args)
+        if code:
+            sys.exit(code)
     except ValidationError as exc:
         # Pydantic echoes rejected input values; keep them (and any password) out of the output.
         details = "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in exc.errors())
@@ -70,6 +84,10 @@ def main():
 
 
 def run(args):
+    if args.command in {"knowledge-index", "knowledge-status"}:
+        from cloudops.features.knowledge.cli import run_knowledge
+
+        return run_knowledge(args)
     if args.command == "bootstrap":
         from alembic import command
         from alembic.config import Config

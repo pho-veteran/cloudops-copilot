@@ -1,0 +1,4 @@
+services:
+  migrate:
+    volumes:
+      - ./runbooks:/workspace/runbooks:ro

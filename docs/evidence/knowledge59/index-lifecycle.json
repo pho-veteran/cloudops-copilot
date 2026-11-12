@@ -1,0 +1,74 @@
+{
+  "index": {
+    "attempt_id": "e770f1f3-d01a-4321-ae66-e434c5e111ba",
+    "chunk_count": 64,
+    "document_count": 8,
+    "generation_id": "7c423494-49b4-4d55-816c-d0ee88376bc5",
+    "outcome": "indexed",
+    "reason": null,
+    "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
+  },
+  "proof_class": "Local trusted CLI over isolated PostgreSQL _test lab; records IDs/digests, not relevance or UI.",
+  "schema": "Knowledge59IndexLifecycle/v1",
+  "source": {
+    "corpus": "runbooks/catalog.json",
+    "root": ".",
+    "schema_version": "RunbookCatalog/v1"
+  },
+  "status": {
+    "active_generation": {
+      "captured_at": "2026-11-11T18:10:57.326692Z",
+      "chunk_count": 64,
+      "chunker_version": "1",
+      "config_digest": "92d5d5b067fe2bd1aa499a3a5b052791d6b709200a005d5ae9ac2d8ab54e2e2e",
+      "document_count": 8,
+      "fingerprint": "690b2c363c42e47def96e4d2e724b2d8685782ce2f9b4898634ed22f41f3524d",
+      "id": "7c423494-49b4-4d55-816c-d0ee88376bc5",
+      "index_format_version": "1",
+      "indexed_at": "2026-11-11T18:10:57.343922Z",
+      "ranking_config_version": "1",
+      "search_config_version": "1",
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
+    },
+    "catalog_search_available": true,
+    "has_active_generation": true,
+    "last_attempt": {
+      "chunk_count": 64,
+      "document_count": 8,
+      "finished_at": "2026-11-11T18:10:57.597104Z",
+      "generation_fingerprint": "690b2c363c42e47def96e4d2e724b2d8685782ce2f9b4898634ed22f41f3524d",
+      "id": "e770f1f3-d01a-4321-ae66-e434c5e111ba",
+      "outcome": "indexed",
+      "phase": "activated",
+      "reason": null,
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8",
+      "started_at": "2026-11-11T18:10:57.291317Z"
+    },
+    "last_checked_at": "2026-11-11T18:10:57.597104Z",
+    "last_checked_source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8",
+    "last_success": {
+      "chunk_count": 64,
+      "document_count": 8,
+      "finished_at": "2026-11-11T18:10:57.597104Z",
+      "generation_fingerprint": "690b2c363c42e47def96e4d2e724b2d8685782ce2f9b4898634ed22f41f3524d",
+      "id": "e770f1f3-d01a-4321-ae66-e434c5e111ba",
+      "outcome": "indexed",
+      "phase": "activated",
+      "reason": null,
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8",
+      "started_at": "2026-11-11T18:10:57.291317Z"
+    },
+    "last_success_at": "2026-11-11T18:10:57.597104Z",
+    "observed_at": "2026-11-11T18:10:59.088585Z",
+    "read_available": true,
+    "retained": {
+      "chunks": 64,
+      "document_versions": 8,
+      "generations": 1
+    },
+    "retrieval_available": true,
+    "retrieval_mode": "catalog_full_text",
+    "semantic_mode": "not_configured",
+    "state": "ready"
+  }
+}

@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 from permission_cases import CASES
 from consumer_cases import CONSUMER_MODELS, seed as seed_consumers
+from knowledge_cases import seed as seed_knowledge
 from permission_inventory import FRAMEWORK_ROUTES, OPERATIONS, verify_inventory
 from sqlalchemy import select, update
 
@@ -29,6 +30,15 @@ from cloudops.features.workloads.observation_models import (
     WorkloadObservation,
     ObservationAttempt,
 )
+from cloudops.features.knowledge.models import (
+    KnowledgeChunk,
+    KnowledgeDocumentVersion,
+    KnowledgeGeneration,
+    KnowledgeGenerationChunk,
+    KnowledgeGenerationDocument,
+    KnowledgeIndexAttempt,
+    KnowledgeIndexState,
+)
 from intake_fixtures import TOKEN as INTAKE_TOKEN, configure_intake
 
 ORIGIN = "http://localhost:5173"
@@ -47,6 +57,13 @@ DOMAIN_MODELS = (
     AlertEpisode,
     AlertReceipt,
     *CONSUMER_MODELS,
+    KnowledgeChunk,
+    KnowledgeDocumentVersion,
+    KnowledgeGeneration,
+    KnowledgeGenerationChunk,
+    KnowledgeGenerationDocument,
+    KnowledgeIndexAttempt,
+    KnowledgeIndexState,
 )
 
 
@@ -74,6 +91,9 @@ class Context:
     evidence_id: str
     body: dict
     secrets: set[str]
+    knowledge_document_id: str | None = None
+    knowledge_chunk_id: str | None = None
+    knowledge_generation_id: str | None = None
 
 
 def snapshot(models=DOMAIN_MODELS):
@@ -209,6 +229,7 @@ def permission_context(seeded, monkeypatch, tmp_path):
             secrets,
         )
         seed_consumers(context, monkeypatch)
+        seed_knowledge(context, tmp_path)
         yield context
 
 

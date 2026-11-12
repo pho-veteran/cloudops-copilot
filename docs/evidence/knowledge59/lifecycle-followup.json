@@ -1,0 +1,138 @@
+{
+  "cleanup": {
+    "database_retained": true,
+    "owned_api_stopped": true,
+    "temporary_sources_removed": true
+  },
+  "driver_sha256": "9e07aae741da33ca344009633e28a069890d05f227e0f46c44e833d31393b701",
+  "limits": [
+    "Temporary corpus is synthetic; release corpus is indexed separately.",
+    "Fault barriers wrap the normal CLI only inside owned subprocesses.",
+    "No browser, semantic retrieval, Run pinning or Kubernetes recovery claim."
+  ],
+  "postgres_image": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+  "proof_class": "Host CLI and HTTP API against task-owned PostgreSQL; controlled process barriers.",
+  "schema": "Knowledge59LifecycleFollowup/v1",
+  "source_commit": "1451f4d8a6145cda8ef581cdb9d60e9e215de069",
+  "steps": {
+    "api_database_restart": {
+      "both_roles": true,
+      "chunk_id": "7ffe8cf1-87f7-438e-a191-6219f44d07f8",
+      "chunk_sha256": "ecda71b0c4774dc72d080bc664811032333946b5ee2d71f7959dd34d6cccbe74",
+      "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+      "document_version_id": "1abb6075-f9cf-4227-85f8-161bddc98a9e",
+      "same_bytes_and_metadata": true,
+      "same_generation": "7df10bbd-0153-4548-b97f-df87a225acf3",
+      "source_missing": true
+    },
+    "approved_old_snapshot": {
+      "attempt_id": "6b1efe4f-215d-49db-9470-e2046203f402",
+      "chunk_count": 1,
+      "document_count": 1,
+      "generation_id": "45dd33d5-7bc6-4e5c-866d-ddb1e97d1e91",
+      "outcome": "reactivated",
+      "reason": null,
+      "source_digest": "d0d727cb90812ec963216715ddf5244a7da1bfc79369ffdc2bf90930c67cdc10"
+    },
+    "competing_before_capture": {
+      "attempt_id": null,
+      "chunk_count": null,
+      "document_count": null,
+      "generation_id": null,
+      "outcome": "index_busy",
+      "reason": "Another Knowledge index writer is active.",
+      "source_digest": null
+    },
+    "empty": "not_indexed",
+    "final_explicit_retry": {
+      "attempt_id": "0a6d74e0-f073-424f-8df7-99b3abb63109",
+      "chunk_count": 64,
+      "document_count": 8,
+      "generation_id": "468bcab9-1991-4f63-827f-4228488c889c",
+      "outcome": "reactivated",
+      "reason": null,
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
+    },
+    "fixture_v1": {
+      "attempt_id": "69d07ff0-99dc-4636-b7e8-6bd116400583",
+      "chunk_count": 1,
+      "document_count": 1,
+      "generation_id": "45dd33d5-7bc6-4e5c-866d-ddb1e97d1e91",
+      "outcome": "indexed",
+      "reason": null,
+      "source_digest": "d0d727cb90812ec963216715ddf5244a7da1bfc79369ffdc2bf90930c67cdc10"
+    },
+    "fixture_v2": {
+      "attempt_id": "297365e4-1170-4aaf-a9f4-a4721260a40a",
+      "chunk_count": 1,
+      "document_count": 1,
+      "generation_id": "c945e7d5-0b0e-4d4b-ae4c-ba65ee8c3d7a",
+      "outcome": "indexed",
+      "reason": null,
+      "source_digest": "583f0ebe86854a0b3f22bbf896f34cfbb1fe7f8721037a6c7a8817c6c24f74c4"
+    },
+    "killed_capture_retry": {
+      "attempt_id": "0638b4f7-d0bb-46fd-ae8e-5576492b90bc",
+      "chunk_count": 1,
+      "document_count": 1,
+      "generation_id": "c945e7d5-0b0e-4d4b-ae4c-ba65ee8c3d7a",
+      "outcome": "reactivated",
+      "reason": null,
+      "source_digest": "583f0ebe86854a0b3f22bbf896f34cfbb1fe7f8721037a6c7a8817c6c24f74c4"
+    },
+    "killed_committed_retry": {
+      "attempt_id": "f5fd701f-b1a1-40b1-bfac-459e5bb32945",
+      "chunk_count": 1,
+      "document_count": 1,
+      "generation_id": "7df10bbd-0153-4548-b97f-df87a225acf3",
+      "outcome": "unchanged",
+      "reason": null,
+      "source_digest": "dbf59b7392387284168f04627257cd883bb5c3e898ebd4f837ad6116f4ecee27"
+    },
+    "missing_source": {
+      "attempt_id": null,
+      "chunk_count": null,
+      "document_count": null,
+      "generation_id": null,
+      "outcome": "failed",
+      "reason": "source file is missing: runbooks/probe-guide.md",
+      "source_digest": null
+    },
+    "release": {
+      "attempt_id": "f5bc15dc-1169-4a3c-9991-1918f55a9e19",
+      "chunk_count": 64,
+      "document_count": 8,
+      "generation_id": "468bcab9-1991-4f63-827f-4228488c889c",
+      "outcome": "indexed",
+      "reason": null,
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
+    },
+    "release_repeat": {
+      "attempt_id": "1e1ec18e-a61b-4fb2-856a-e77ca8a31737",
+      "chunk_count": 64,
+      "document_count": 8,
+      "generation_id": "468bcab9-1991-4f63-827f-4228488c889c",
+      "outcome": "unchanged",
+      "reason": null,
+      "source_digest": "b14462f560df31122ce24a27dcb1231e9eb3d0fe8f747ae07982c174368d55d8"
+    },
+    "removed": {
+      "attempt_id": "b6fe1de2-870c-4939-b3d8-377cfcd7c309",
+      "chunk_count": 0,
+      "document_count": 0,
+      "generation_id": "0ca4406c-55c8-49ae-bd43-134a795c8cf9",
+      "outcome": "indexed",
+      "reason": null,
+      "source_digest": "acb198437779fd2b1e7b59d30645f766f351f6b903658bacbcc6a5d034af2fc5"
+    },
+    "retired_conflict": {
+      "attempt_id": "0445212c-c707-48b5-a472-7f30346df19a",
+      "chunk_count": null,
+      "document_count": null,
+      "generation_id": null,
+      "outcome": "failed",
+      "reason": "Same key/version has different content or metadata.",
+      "source_digest": null
+    }
+  }
+}

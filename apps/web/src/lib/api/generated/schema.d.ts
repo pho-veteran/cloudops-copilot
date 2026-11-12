@@ -422,6 +422,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/knowledge/chunks/{chunk_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chunk */
+        get: operations["read_knowledge_chunk"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Documents */
+        get: operations["list_knowledge_documents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge/documents/{document_version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Document */
+        get: operations["read_knowledge_document"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge/index-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["get_knowledge_index_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login": {
         parameters: {
             query?: never;
@@ -1588,6 +1656,257 @@ export interface components {
             delivery_id: string;
         };
         JsonValue: unknown;
+        /** KnowledgeApplicability */
+        KnowledgeApplicability: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "Deployment";
+            /** Recovery Templates */
+            recovery_templates: ("restore_deployment_template" | "set_memory_profile" | "scale_deployment")[];
+            /** Symptom Families */
+            symptom_families: ("crashloop_startup" | "oom_restarts" | "traffic_latency_errors" | "pending_unschedulable" | "image_pull")[];
+        };
+        /** KnowledgeAttemptView */
+        KnowledgeAttemptView: {
+            /** Chunk Count */
+            chunk_count: number | null;
+            /** Document Count */
+            document_count: number | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Generation Fingerprint */
+            generation_fingerprint: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Outcome */
+            outcome: string | null;
+            /** Phase */
+            phase: string;
+            /** Reason */
+            reason: string | null;
+            /** Source Digest */
+            source_digest: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+        };
+        /** KnowledgeChunkDetail */
+        KnowledgeChunkDetail: {
+            /** Bytes */
+            bytes: number;
+            /** Chunker Version */
+            chunker_version: string;
+            /** Content */
+            content: string;
+            /** Content Sha256 */
+            content_sha256: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /** End Byte */
+            end_byte: number;
+            /** Heading Label */
+            heading_label: string | null;
+            /** Heading Locator */
+            heading_locator: string;
+            /** Heading Path */
+            heading_path: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Start Byte */
+            start_byte: number;
+        };
+        /** KnowledgeDocumentDetail */
+        KnowledgeDocumentDetail: {
+            applicability: components["schemas"]["KnowledgeApplicability"];
+            /** Bytes */
+            bytes: number;
+            /** Canonicalization Version */
+            canonicalization_version: string;
+            /** Content */
+            content: string;
+            /** Content Sha256 */
+            content_sha256: string;
+            /** Document Key */
+            document_key: string;
+            /**
+             * Guide Kind
+             * @enum {string}
+             */
+            guide_kind: "diagnosis" | "recovery_template";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Metadata Sha256 */
+            metadata_sha256: string;
+            provenance: components["schemas"]["KnowledgeProvenance"];
+            /** Source Path */
+            source_path: string;
+            /** Tags */
+            tags: string[];
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
+        };
+        /** KnowledgeDocumentPage */
+        KnowledgeDocumentPage: {
+            /** Catalog Empty Reason */
+            catalog_empty_reason?: string | null;
+            /** Generation Id */
+            generation_id: string | null;
+            /** Has Active Generation */
+            has_active_generation: boolean;
+            /** Items */
+            items: components["schemas"]["KnowledgeDocumentSummary"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Source Digest */
+            source_digest: string | null;
+        };
+        /** KnowledgeDocumentSummary */
+        KnowledgeDocumentSummary: {
+            applicability: components["schemas"]["KnowledgeApplicability"];
+            /** Bytes */
+            bytes: number;
+            /** Content Sha256 */
+            content_sha256: string;
+            /** Document Key */
+            document_key: string;
+            /**
+             * Guide Kind
+             * @enum {string}
+             */
+            guide_kind: "diagnosis" | "recovery_template";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Metadata Sha256 */
+            metadata_sha256: string;
+            provenance: components["schemas"]["KnowledgeProvenance"];
+            /** Source Path */
+            source_path: string;
+            /** Tags */
+            tags: string[];
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
+        };
+        /** KnowledgeGenerationView */
+        KnowledgeGenerationView: {
+            /**
+             * Captured At
+             * Format: date-time
+             */
+            captured_at: string;
+            /** Chunk Count */
+            chunk_count: number;
+            /** Chunker Version */
+            chunker_version: string;
+            /** Config Digest */
+            config_digest: string;
+            /** Document Count */
+            document_count: number;
+            /** Fingerprint */
+            fingerprint: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Index Format Version */
+            index_format_version: string;
+            /**
+             * Indexed At
+             * Format: date-time
+             */
+            indexed_at: string;
+            /** Ranking Config Version */
+            ranking_config_version: string;
+            /** Search Config Version */
+            search_config_version: string;
+            /** Source Digest */
+            source_digest: string;
+        };
+        /** KnowledgeIndexStatus */
+        KnowledgeIndexStatus: {
+            active_generation: components["schemas"]["KnowledgeGenerationView"] | null;
+            /** Catalog Search Available */
+            catalog_search_available: boolean;
+            /** Has Active Generation */
+            has_active_generation: boolean;
+            last_attempt: components["schemas"]["KnowledgeAttemptView"] | null;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Last Checked Source Digest */
+            last_checked_source_digest: string | null;
+            last_success: components["schemas"]["KnowledgeAttemptView"] | null;
+            /** Last Success At */
+            last_success_at: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Read Available */
+            read_available: boolean;
+            retained: components["schemas"]["KnowledgeRetainedCounts"];
+            /** Retrieval Available */
+            retrieval_available: boolean;
+            /**
+             * Retrieval Mode
+             * @constant
+             */
+            retrieval_mode: "catalog_full_text";
+            /**
+             * Semantic Mode
+             * @constant
+             */
+            semantic_mode: "not_configured";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_indexed" | "updating" | "degraded" | "ready";
+        };
+        /** KnowledgeProvenance */
+        KnowledgeProvenance: {
+            /**
+             * Reviewed At
+             * Format: date
+             */
+            reviewed_at: string;
+            /** Source Revision */
+            source_revision: string;
+        };
+        /** KnowledgeRetainedCounts */
+        KnowledgeRetainedCounts: {
+            /** Chunks */
+            chunks: number;
+            /** Document Versions */
+            document_versions: number;
+            /** Generations */
+            generations: number;
+        };
         /** Locator */
         Locator: {
             /** Key */
@@ -4723,6 +5042,313 @@ export interface operations {
             };
             /** @description Unsupported Media Type */
             415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_knowledge_chunk: {
+        parameters: {
+            query: {
+                document_version_id: string;
+            };
+            header?: never;
+            path: {
+                chunk_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeChunkDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_knowledge_documents: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                tags?: string[] | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeDocumentPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_knowledge_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeDocumentDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_knowledge_index_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeIndexStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

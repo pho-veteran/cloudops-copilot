@@ -1,0 +1,15 @@
+{
+  "proof_class": "PostgreSQL tests with the real session-level advisory guard, including a scoped pg_terminate_backend barrier; not a production kill test.",
+  "result": "guard busy produced index_busy; failed/interrupted writes retained the last active generation; a terminated writer session could not late-publish; a rival generation remained active; explicit retry recovered.",
+  "schema": "Knowledge59WriterRecovery/v1",
+  "tests": [
+    "test_guard_busy_does_not_start_an_attempt",
+    "test_failed_update_then_retry_preserves_last_good",
+    "test_interrupted_attempt_is_reconciled_by_next_writer",
+    "test_same_version_conflict_keeps_active_generation",
+    "test_invalid_source_keeps_last_good",
+    "test_guard_loss_prevents_late_publish",
+    "test_status_marks_an_unfinished_attempt_as_degraded",
+    "test_failed_update_keeps_last_checked_source_digest"
+  ]
+}
