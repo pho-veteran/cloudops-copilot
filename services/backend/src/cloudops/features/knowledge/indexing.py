@@ -245,9 +245,7 @@ def _conflict(db: Session, prepared: PreparedDocument) -> None:
         or current.metadata_sha256 != document.metadata_sha256
         or current.canonicalization_version != CANONICALIZATION_VERSION
     ):
-        raise KnowledgeConflict(
-            f"Same key/version has different content or metadata: {document.document_key} v{document.version}"
-        )
+        raise KnowledgeConflict("Same key/version has different content or metadata.")
 
 
 def _document_row(db: Session, document: CapturedDocument) -> KnowledgeDocumentVersion:

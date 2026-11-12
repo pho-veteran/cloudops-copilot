@@ -177,3 +177,26 @@ def test_malformed_cursor_is_typed_at_the_api_and_failed_source_reason_is_safe(c
     assert status.status_code == 200
     assert status.json()["last_attempt"]["outcome"] == "failed"
     assert marker not in status.text
+
+
+def test_rejected_key_version_are_not_echoed_in_public_status(client, tmp_path):
+    marker = "private-corpus-key-canary"
+    write_corpus(
+        tmp_path,
+        [document(document_key=marker, source_path=f"runbooks/{marker}.md")],
+        {marker: "# Private candidate\n\nRetained original.\n"},
+    )
+    assert index_corpus(tmp_path).outcome == "indexed"
+    write_corpus(
+        tmp_path,
+        [document(document_key=marker, source_path=f"runbooks/{marker}.md")],
+        {marker: "# Private candidate\n\nConflicting rejected bytes.\n"},
+    )
+    failed = index_corpus(tmp_path)
+    assert failed.outcome == "failed"
+    assert marker not in failed.reason
+
+    status = client.get("/api/knowledge/index-status", headers=_headers(client))
+    assert status.status_code == 200
+    assert marker not in status.text
+    assert status.json()["last_attempt"]["outcome"] == "failed"
