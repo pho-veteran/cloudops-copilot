@@ -1,0 +1,61 @@
+{
+  "proof_class": "Owned loopback HTTP and profile loader; synthetic credential; no external model",
+  "gzip": {
+    "kind": "invalid_encoding",
+    "response_bytes": 0,
+    "cap": 1024,
+    "compressed_bytes": 8195,
+    "traced_peak_bytes": 321723
+  },
+  "retry_after": {
+    "kind": "rate_limited",
+    "retry_after_seconds": 300,
+    "raw_chars": 64,
+    "request_count": 1
+  },
+  "invalid_ca": "ProfileError before network",
+  "schema": "E06R1Checks/v1",
+  "source_commit": "5597c58e395523f62d5632117726d801fbbd6e24",
+  "commands": [
+    {
+      "command": "pytest -q services/backend/tests_unit/test_diagnosis_profile.py services/backend/tests_unit/test_diagnosis_messages.py services/backend/tests_unit/test_diagnosis_client.py services/backend/tests_unit/test_diagnosis_transport.py",
+      "result": "102 passed"
+    },
+    {
+      "command": "pytest -q services/backend/tests_unit",
+      "result": "637 passed; one upstream Starlette/httpx deprecation warning"
+    },
+    {
+      "command": "ruff check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "result": "passed"
+    },
+    {
+      "command": "ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "result": "235 files already formatted"
+    },
+    {
+      "command": "python scripts/contracts.py",
+      "result": "artifacts match; no contract change"
+    },
+    {
+      "command": "python scripts/test-contract-drift.py",
+      "result": "deliberate drift rejected; synchronized artifacts accepted; working tree untouched"
+    }
+  ],
+  "runtime_checks": [
+    "probe-diagnosis-client.py run_wire(): real loopback POST /v1/chat/completions, identity encoding request, synthetic authorization redacted, normalized text and observed usage",
+    "probe-diagnosis-client.py run_matrix(): nine in-process classification cases",
+    "Real loopback gzip response expanding to 8 MiB rejected at headers; response_bytes=0",
+    "Real loopback 429 with 5000 leading zeroes and 300 suffix preserves 300 seconds; one request",
+    "ModelProfile.load rejects an escaped lone surrogate in tls.ca_file as ProfileError before network"
+  ],
+  "regressions": [
+    "Compressed gzip/deflate streams must not be read; control text after display cutoff rejected; very long decimal delays parsed without an unbounded integer conversion; surrogate CA/model rejected both in memory and from JSON"
+  ],
+  "limits": [
+    "Owned loopback and in-process fixtures only; no external model, credential, spend or quality qualification.",
+    "No UI or public API changed; interactive browser journey not run.",
+    "Database integration and migration/HTTPS checks are covered by final-head CI, not this local unit run.",
+    "Traced peak allocation is an observation, not a memory ceiling for the Python process."
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "commands": [
+    {
+      "command": "pytest -q services/backend/tests_unit/test_diagnosis_profile.py services/backend/tests_unit/test_diagnosis_messages.py services/backend/tests_unit/test_diagnosis_client.py services/backend/tests_unit/test_diagnosis_transport.py",
+      "result": "96 passed"
+    },
+    {
+      "command": "pytest -q services/backend/tests_unit",
+      "result": "628 passed, 3 skipped"
+    },
+    {
+      "command": "ruff check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "result": "passed"
+    },
+    {
+      "command": "ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "result": "passed"
+    },
+    {
+      "command": "python scripts/contracts.py",
+      "result": "artifacts match; no contract change"
+    },
+    {
+      "command": "python scripts/test-contract-drift.py",
+      "result": "deliberate drift rejected; working tree untouched"
+    },
+    {
+      "command": "python scripts/probe-diagnosis-client.py",
+      "result": "wrote wire-capture.json and failure-matrix.json"
+    }
+  ],
+  "coverage": [
+    "profile/base URL/credential/output-limit/digest validation, frozen profile and recursive-profile rejection",
+    "message role/content/size/multibyte/control/surrogate validation",
+    "exact request path, configured headers, body and one output-limit parameter",
+    "text, truncation, refusal, tool output, unsupported finish/shape, invalid envelope, usage states",
+    "401/403/429/5xx/4xx/redirect/204 classification and bounded Retry-After",
+    "zero-call disabled, missing/invalid credential, oversized input and config/CA failure",
+    "pre-call hook once/deny propagation",
+    "real slow headers, body trickle, oversized/chunked/gzip responses and encoding rejection",
+    "ambient HTTP(S)/ALL proxy ignored; explicit proxy used; injected transport cannot silently use a proxy",
+    "real local TLS verification failure and CA success (test proof)",
+    "recursive/deep JSON and no token/provider body in returned result",
+    "reusable canonical envelopes and local fake servers for #69/#70"
+  ],
+  "limits": [
+    "No external endpoint, model account, spend or diagnostic-quality claim.",
+    "Remote enforcement of output limits cannot be proven by the client; #72 owns live qualification.",
+    "A blocking synchronous admission callback is outside the transport deadline; each call creates a fresh loop/client/SSL context and does not promise cross-call pooling.",
+    "TLS proof is in test_diagnosis_transport.py, not a JSON receipt.",
+    "9router is an external observation only and is not a runtime or CI dependency."
+  ],
+  "schema": "E06R1Checks/v1",
+  "source_commit": "396e1ffc9ca2664366e9ab30af3cc45beb8c52fc"
+}

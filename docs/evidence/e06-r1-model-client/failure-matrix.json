@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "case": "text",
+      "error_code": null,
+      "http_status": 200,
+      "kind": "text",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "refusal",
+      "error_code": null,
+      "http_status": 200,
+      "kind": "refusal",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "truncated",
+      "error_code": null,
+      "http_status": 200,
+      "kind": "truncated",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "invalid_envelope",
+      "error_code": "invalid_envelope",
+      "http_status": 200,
+      "kind": "invalid_envelope",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "auth_denied",
+      "error_code": "auth_denied",
+      "http_status": 401,
+      "kind": "auth_denied",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "rate_limited",
+      "error_code": "rate_limited",
+      "http_status": 429,
+      "kind": "rate_limited",
+      "retry_after_raw": "30",
+      "retry_after_seconds": 30
+    },
+    {
+      "case": "upstream_error",
+      "error_code": "upstream_error",
+      "http_status": 503,
+      "kind": "upstream_error",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "redirect",
+      "error_code": "unexpected_redirect",
+      "http_status": 308,
+      "kind": "unexpected_redirect",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    },
+    {
+      "case": "request_rejected",
+      "error_code": "request_rejected",
+      "http_status": 404,
+      "kind": "request_rejected",
+      "retry_after_raw": null,
+      "retry_after_seconds": null
+    }
+  ],
+  "proof_class": "MockTransport classification matrix; no external network.",
+  "schema": "E06ModelClientFailureMatrix/v1"
+}

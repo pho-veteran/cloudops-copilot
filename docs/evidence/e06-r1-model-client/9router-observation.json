@@ -1,0 +1,39 @@
+{
+  "schema": "E06RouterObservation/v1",
+  "router": "9router@0.5.86 (pre-existing local install)",
+  "bind": "127.0.0.1:20130 (explicit test port)",
+  "status": "External observation only; not compatibility or quality evidence.",
+  "measurements": [
+    {
+      "id": "hidden-prompt",
+      "observation": "A six-character user-only prompt reported prompt_tokens=2487; adding a short system message reduced the same call to 15-33 tokens.",
+      "impact": "Without a system message the router injects a large instruction block, so reported usage does not equal the caller's prepared context."
+    },
+    {
+      "id": "output-limit-ignored",
+      "observation": "max_tokens in {1,4,8,32}, max_completion_tokens in {1,8}, both, and omitted all returned the same 182 completion tokens with finish_reason=stop.",
+      "impact": "A declared output limit cannot be assumed to bound remote work or cost at this endpoint."
+    },
+    {
+      "id": "refusal-shape",
+      "observation": "A refused prompt returned HTTP 200 with finish_reason=failed, empty content and zeroed usage.",
+      "impact": "Refusal must be classified by finish reason and must not be accepted as supported text."
+    },
+    {
+      "id": "unauthenticated-models",
+      "observation": "GET /v1/models returned 200 with no key and with an invalid key; chat required a valid key.",
+      "impact": "A models probe cannot be used as an authorization check."
+    },
+    {
+      "id": "path-and-stream",
+      "observation": "/v1/chat/completions worked; /chat/completions returned an HTML 404; /v1/v1/chat/completions returned 400 JSON; a trailing slash returned 308; stream=true produced text/event-stream.",
+      "impact": "Append chat/completions exactly once, reject non-JSON content types and disable redirects."
+    },
+    {
+      "id": "provider-diagnostics",
+      "observation": "Upstream 400/403/404/503 bodies contained provider names, internal connection identifiers and localized provider messages.",
+      "impact": "Error classification must use status plus a local enum; provider bodies must never be returned as public diagnostics."
+    }
+  ],
+  "decision": "Do not use 9router as a runtime dependency, CI fixture, or compatibility claim. The refusal finish reason, SSE/content-type and redirect observations are encoded as negative fixtures; the hidden-prompt and unauthenticated-models observations remain design notes only."
+}

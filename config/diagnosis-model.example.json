@@ -1,0 +1,33 @@
+{
+  "schema": "DiagnosisModelProfile/v1",
+  "config_id": "example-evaluation",
+  "config_version": "1",
+  "mode": "evaluation_only",
+  "endpoint_label": "example-invalid",
+  "base_url": "https://model.example.invalid/v1",
+  "allow_insecure_loopback": false,
+  "model": "replace-with-a-free-model-id",
+  "credential": {
+    "kind": "env",
+    "name": "DIAGNOSIS_MODEL_TOKEN"
+  },
+  "tls": {
+    "ca_file": null
+  },
+  "proxy": null,
+  "limits": {
+    "max_input_bytes": 65536,
+    "max_response_bytes": 262144,
+    "connect_timeout_seconds": 3,
+    "read_timeout_seconds": 10,
+    "pool_timeout_seconds": 2,
+    "deadline_seconds": 30
+  },
+  "output_limit": {
+    "param": "max_tokens",
+    "value": 800,
+    "omit_policy_id": null
+  },
+  "authorization_id": "replace-with-deployment-authority",
+  "budget_policy_id": "replace-with-budget-policy"
+}
