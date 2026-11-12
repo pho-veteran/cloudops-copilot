@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from uuid import uuid4
+import hashlib
+from uuid import UUID, uuid4
 
 from sqlalchemy import func
 
@@ -25,6 +26,8 @@ from cloudops.features.knowledge.schemas import (
 )
 from cloudops.shared.database import sessions
 from permission_cases import RequestCase, validated
+from cloudops.features.knowledge.guidance import pin_guidance
+from cloudops.features.knowledge.guidance_schemas import RunGuidance, KnowledgeReferenceTarget
 
 CONTENT = b"# Fixture guide\n\nFixture body.\n"
 SOURCE_DIGEST = "a" * 64
@@ -58,7 +61,7 @@ def seed(context, _tmp_path):
                 "reviewed_at": "2026-11-11",
             },
             content=CONTENT,
-            content_sha256="c" * 64,
+            content_sha256=hashlib.sha256(CONTENT).hexdigest(),
             metadata_sha256="d" * 64,
             canonicalization_version="1",
         )
@@ -137,6 +140,17 @@ def seed(context, _tmp_path):
     context.knowledge_document_id = str(document_id)
     context.knowledge_chunk_id = str(chunk_id)
     context.knowledge_generation_id = str(generation_id)
+    with sessions()() as db:
+        selected = pin_guidance(
+            db,
+            UUID(context.incident_id),
+            UUID(context.run_id),
+            consumer="analysis",
+            request_identity="permission-fixture",
+            query="Fixture",
+        )
+        db.commit()
+        context.knowledge_selection_id = str(selected.selection.id)
 
 
 def list_request(context):
@@ -180,9 +194,47 @@ def status_check(response, context, actor):
     assert value.catalog_search_available
 
 
+def guidance_request(context):
+    return {"path_params": {"incident_id": context.incident_id, "run_id": context.run_id}}
+
+
+def guidance_check(response, context, actor):
+    value = validated(RunGuidance, response)
+    assert value.state == "not_selected"
+
+
+def guidance_create_check(response, context, actor):
+    value = validated(RunGuidance, response)
+    assert value.state == "saved"
+    assert str(value.selection.run_id) == context.run_id
+    assert value.selection.origin == "manual"
+
+
+def guidance_resolve_request(context):
+    return {
+        "path_params": {
+            "incident_id": context.incident_id,
+            "run_id": context.run_id,
+            "selection_id": context.knowledge_selection_id,
+            "chunk_id": context.knowledge_chunk_id,
+        },
+        "params": {"document_version_id": context.knowledge_document_id},
+    }
+
+
+def guidance_resolve_check(response, context, actor):
+    value = validated(KnowledgeReferenceTarget, response)
+    assert str(value.selection_id) == context.knowledge_selection_id
+    assert str(value.document.id) == context.knowledge_document_id
+    assert value.chunk.content
+
+
 CASES = {
     "list_knowledge_documents": RequestCase(list_request, list_check),
     "read_knowledge_document": RequestCase(document_request, document_check),
     "read_knowledge_chunk": RequestCase(chunk_request, chunk_check),
     "get_knowledge_index_status": RequestCase(list_request, status_check),
+    "get_run_guidance": RequestCase(guidance_request, guidance_check),
+    "create_run_guidance": RequestCase(guidance_request, guidance_create_check),
+    "resolve_run_guidance": RequestCase(guidance_resolve_request, guidance_resolve_check),
 }

@@ -39,7 +39,7 @@ def test_populated_0009_upgrade_is_repeatable_and_preserves_legacy_rows():
         ).first()
         assert row == ("migration-owner", "viewer")
         heads = connection.execute(text("SELECT version_num FROM alembic_version")).scalars().all()
-        assert heads == ["0010_knowledge_index"]
+        assert heads == ["0011_knowledge_selections"]
 
 
 def test_downgrade_refuses_to_drop_retained_knowledge_history(db, tmp_path):

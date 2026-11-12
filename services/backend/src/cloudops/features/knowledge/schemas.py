@@ -11,20 +11,20 @@ class KnowledgeModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+SymptomFamily = Literal[
+    "crashloop_startup",
+    "oom_restarts",
+    "traffic_latency_errors",
+    "pending_unschedulable",
+    "image_pull",
+]
+RecoveryTemplate = Literal["restore_deployment_template", "set_memory_profile", "scale_deployment"]
+
+
 class KnowledgeApplicability(KnowledgeModel):
     kind: Literal["Deployment"]
-    symptom_families: list[
-        Literal[
-            "crashloop_startup",
-            "oom_restarts",
-            "traffic_latency_errors",
-            "pending_unschedulable",
-            "image_pull",
-        ]
-    ]
-    recovery_templates: list[
-        Literal["restore_deployment_template", "set_memory_profile", "scale_deployment"]
-    ]
+    symptom_families: list[SymptomFamily]
+    recovery_templates: list[RecoveryTemplate]
 
 
 class KnowledgeProvenance(KnowledgeModel):

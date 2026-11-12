@@ -1,0 +1,48 @@
+{
+  "schema": "Knowledge60Acceptance/v1",
+  "source_commit": "4c789a08ab206bc125d27ac80f4890e0aca80db3",
+  "proof_class": "Owned loopback HTTP API and PostgreSQL; synthetic admissions, real release corpus.",
+  "incident_id": "83234901-884e-4ef5-9188-6841a1761f92",
+  "run_id": "2bbe05e6-10a0-441e-8105-ca52dda5d2f0",
+  "selection_id": "be34fe8f-89bf-4191-911d-475696fa412f",
+  "reference": {
+    "schema_version": "KnowledgeRef/v1",
+    "kind": "runbook",
+    "document_key": "oom-restarts",
+    "document_version_id": "6222ef86-06ac-4b0d-bf9c-1e7de6c6e00d",
+    "version": "2",
+    "chunk_id": "038ef871-7fcb-4d31-9c19-5b0088c76d02",
+    "chunker_version": "2",
+    "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+    "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+    "chunk_sha256": "63d906c0cfcad48ff659d11c881fab82a748d2aef0a3dd62410d50d8fde1d8b8"
+  },
+  "selection_json_sha256": "01e15e87353ebbd278b738a17c859cf8c0af213f69c1cccf9a21c2b0eff9bc9a",
+  "target_json_sha256": "5d712e1f9a7a71866c2715a706b06e7479d4cb3096cf4085b3e65f3f8d7bd5b8",
+  "checks": {
+    "operator_manual_guidance": true,
+    "viewer_read_only": true,
+    "anonymous_denied": true,
+    "csrf_denied": true,
+    "browser_consumer_rejected": true,
+    "exact_parent_mismatch_rejected": true,
+    "duplicate_request_same_selection": true,
+    "run_domain_state_unchanged": true,
+    "manual_no_match_then_distinct_trusted_match": true,
+    "source_removal_retains_reference": true,
+    "api_postgresql_restart_same_selection_and_reference": true,
+    "both_roles_history_after_restart": true
+  },
+  "limits": [
+    "Trusted consumer invocation is a controlled service fixture; no E06 handler is implemented.",
+    "Release-corpus relevance and browser acceptance belong to #62 and #61."
+  ],
+  "recorded_at": "2026-11-12T08:18:34.515124+00:00",
+  "local_checks": {
+    "guidance_tests_passed": 22,
+    "unit_tests_passed": 535,
+    "web_tests_passed": 195,
+    "contract_generation_and_drift": "passed",
+    "ruff_and_diff": "passed"
+  }
+}
