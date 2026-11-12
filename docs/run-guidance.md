@@ -22,10 +22,11 @@ Unknown family does not mean unrestricted execution eligibility. Manual requests
 
 ## Trusted consumers
 
-The feature-owned service resolves identity from persisted Run relationships. Callers control their own transaction:
+The feature-owned service resolves identity from persisted Run relationships. Backend entrypoints register models through `cloudops.entrypoints.metadata`; initialized consumers control their own transaction:
 
 ```python
 from cloudops.features.knowledge.guidance import pin_guidance
+from cloudops.shared.database import sessions
 
 with sessions()() as db, db.begin():
     result = pin_guidance(
