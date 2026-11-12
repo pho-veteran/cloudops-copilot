@@ -1,0 +1,222 @@
+{
+  "schema": "KnowledgeRelevanceCases/v1",
+  "frozen_at": "2026-11-12T09:30:27.078203+00:00",
+  "product_baseline": "d395c5411777e0f1163b88c9c8192e0688c86f02",
+  "oracle": "Maintainer-authored labels from guide scope/sections, frozen before retrieval. Single reviewer; finite lexical relevance sample, not diagnosis quality.",
+  "limit": 5,
+  "threshold": "All 16 expected guides in top 5; independently report labeled-section relevance. All four negatives obey scope/status with zero leaked chunks.",
+  "positives": [
+    {
+      "id": "positive-01",
+      "document_key": "crashloop-startup",
+      "query": "container startup probe failures",
+      "symptom_family": "crashloop_startup",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Supporting and contradicting observations"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-02",
+      "document_key": "crashloop-startup",
+      "query": "current previous container logs",
+      "symptom_family": "crashloop_startup",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Evidence to inspect",
+        "Investigation steps"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-03",
+      "document_key": "oom-restarts",
+      "query": "working set approaching limit",
+      "symptom_family": null,
+      "recovery_template": null,
+      "relevant_sections": [
+        "Supporting and contradicting observations"
+      ],
+      "path": "manual_api"
+    },
+    {
+      "id": "positive-04",
+      "document_key": "oom-restarts",
+      "query": "restart termination reason",
+      "symptom_family": "oom_restarts",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Evidence to inspect"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-05",
+      "document_key": "traffic-latency-errors",
+      "query": "latency error ratio request rate",
+      "symptom_family": "traffic_latency_errors",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Evidence to inspect",
+        "Supporting and contradicting observations",
+        "Investigation steps"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-06",
+      "document_key": "traffic-latency-errors",
+      "query": "missing samples zero traffic",
+      "symptom_family": "traffic_latency_errors",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Supporting and contradicting observations",
+        "Missing and unverified cases"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-07",
+      "document_key": "pending-unschedulable",
+      "query": "PodScheduled FailedScheduling",
+      "symptom_family": "pending_unschedulable",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Evidence to inspect"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-08",
+      "document_key": "pending-unschedulable",
+      "query": "taints affinity storage",
+      "symptom_family": "pending_unschedulable",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Investigation steps",
+        "Manual continuation and abstention"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-09",
+      "document_key": "image-pull",
+      "query": "ImagePullBackOff waiting reason",
+      "symptom_family": "image_pull",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Evidence to inspect"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-10",
+      "document_key": "image-pull",
+      "query": "registry authentication network",
+      "symptom_family": "image_pull",
+      "recovery_template": null,
+      "relevant_sections": [
+        "Supporting and contradicting observations",
+        "Investigation steps",
+        "Missing and unverified cases",
+        "Manual continuation and abstention"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-11",
+      "document_key": "restore-deployment-template",
+      "query": "baseline digest supported diff",
+      "symptom_family": "crashloop_startup",
+      "recovery_template": "restore_deployment_template",
+      "relevant_sections": [
+        "Evidence and eligibility gates",
+        "Manual handoff"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-12",
+      "document_key": "restore-deployment-template",
+      "query": "external ConfigMap Secret rollback",
+      "symptom_family": "crashloop_startup",
+      "recovery_template": "restore_deployment_template",
+      "relevant_sections": [
+        "Verification and rollback limits"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-13",
+      "document_key": "set-memory-profile",
+      "query": "memory profile capacity controller",
+      "symptom_family": "oom_restarts",
+      "recovery_template": "set_memory_profile",
+      "relevant_sections": [
+        "Prerequisites",
+        "Evidence and eligibility gates"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-14",
+      "document_key": "set-memory-profile",
+      "query": "request limit free text",
+      "symptom_family": "oom_restarts",
+      "recovery_template": "set_memory_profile",
+      "relevant_sections": [
+        "Evidence and eligibility gates"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-15",
+      "document_key": "scale-deployment",
+      "query": "replicas controller capacity",
+      "symptom_family": "traffic_latency_errors",
+      "recovery_template": "scale_deployment",
+      "relevant_sections": [
+        "Prerequisites"
+      ],
+      "path": "trusted_service_fixture"
+    },
+    {
+      "id": "positive-16",
+      "document_key": "scale-deployment",
+      "query": "plan digest expiry approval",
+      "symptom_family": "traffic_latency_errors",
+      "recovery_template": "scale_deployment",
+      "relevant_sections": [
+        "Review and approval"
+      ],
+      "path": "trusted_service_fixture"
+    }
+  ],
+  "negatives": [
+    {
+      "id": "unmatched",
+      "query": "unmatchedguidancexyz",
+      "expected_status": "no_matches"
+    },
+    {
+      "id": "out-of-applicability",
+      "query": "working set approaching limit",
+      "symptom_family": "image_pull",
+      "expected_status": "no_matches"
+    },
+    {
+      "id": "removed-current",
+      "query": "working set approaching limit",
+      "symptom_family": "oom_restarts",
+      "remove_document_key": "oom-restarts",
+      "expected_status": "no_matches"
+    },
+    {
+      "id": "invalid-scope",
+      "query": "memory",
+      "symptom_family": "unsupported-family",
+      "expected_error": "invalid_guidance_scope"
+    }
+  ]
+}
