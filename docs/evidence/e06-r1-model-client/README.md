@@ -7,7 +7,8 @@ These receipts belong to issue #68 only. They exercise a provider-independent tr
 - `wire-capture.json` — actual local-server request path/headers/body with the synthetic credential redacted, plus the normalized text result.
 - `failure-matrix.json` — a selected `CallKind` matrix exercised through `MockTransport` with observed status and retry hint.
 - `9router-observation.json` — external observation of a pre-existing local router; **not** compatibility evidence. It records why 9router is not a runtime/CI dependency.
-- `checks.json` — commands and results bound to the source commit.
+- `checks.json` — initial commands and results bound to the source commit.
+- `bounds-checks.json` — response-encoding, retry-header and Unicode validation checks at `5597c58`, including fresh local transport proof and unit/contract results.
 
 ## Proof classes
 
