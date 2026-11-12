@@ -5,16 +5,16 @@ These receipts belong to issue #68 only. They exercise a provider-independent tr
 ## Files
 
 - `wire-capture.json` — actual local-server request path/headers/body with the synthetic credential redacted, plus the normalized text result.
-- `failure-matrix.json` — each `CallKind` exercised through `MockTransport` with observed status and retry hint.
+- `failure-matrix.json` — a selected `CallKind` matrix exercised through `MockTransport` with observed status and retry hint.
 - `9router-observation.json` — external observation of a pre-existing local router; **not** compatibility evidence. It records why 9router is not a runtime/CI dependency.
 - `checks.json` — commands and results bound to the source commit.
 
 ## Proof classes
 
-- Profile and request-shape tests: pure Python, no I/O.
+- Profile, message and request-shape tests: pure Python, no I/O.
 - `MockTransport` matrix: in-process HTTP semantics, no socket.
 - Local server: actual HTTP path, headers, body, timeout, redirect, compression and proxy behavior.
-- TLS: local certificate generated with OpenSSL; verification failure and explicit CA success.
+- TLS: local certificate generated with OpenSSL; verification failure and explicit CA success are proven by `test_diagnosis_transport.py`, not a receipt file.
 - 9router: manual external observation only, never claimed as product compatibility or quality.
 
 ## Limits

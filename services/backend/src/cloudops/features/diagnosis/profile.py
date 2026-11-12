@@ -233,7 +233,7 @@ class OutputLimit(BaseModel):
 
 
 class ModelProfile(BaseModel):
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True)
     schema_: Literal["DiagnosisModelProfile/v1"] = Field(alias="schema")
     config_id: str
     config_version: str
@@ -260,7 +260,11 @@ class ModelProfile(BaseModel):
         if self.model is not None:
             _safe_text(self.model, "model", 200)
         if self.base_url is not None:
-            self.base_url = validate_base_url(self.base_url, self.allow_insecure_loopback)
+            object.__setattr__(
+                self,
+                "base_url",
+                validate_base_url(self.base_url, self.allow_insecure_loopback),
+            )
         if self.authorization_id is not None:
             _safe_text(self.authorization_id, "authorization_id", 128)
         if self.budget_policy_id is not None:
@@ -341,7 +345,7 @@ class ModelProfile(BaseModel):
         try:
             raw = profile_path.read_bytes()
             value = json.loads(raw.decode("utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError):
             raise ProfileError("model profile is not valid UTF-8 JSON") from None
         if not isinstance(value, dict):
             raise ProfileError("model profile must be a JSON object")

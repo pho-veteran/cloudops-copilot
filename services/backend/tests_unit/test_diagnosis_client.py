@@ -8,7 +8,8 @@ from email.utils import format_datetime
 import httpx
 import pytest
 
-from cloudops.features.diagnosis.messages import Message, MessageError
+from cloudops.features.diagnosis.messages import Message
+from cloudops.features.diagnosis.profile import ProfileError
 from cloudops.features.diagnosis.schemas import CallKind
 from cloudops.features.diagnosis.transport import ModelClient
 from diagnosis_fake import mock
@@ -117,7 +118,11 @@ def test_normalized_outcomes(payload, kind, usage_status):
     result, _ = _send(payload=payload)
     assert result.kind is kind
     assert result.usage_status == usage_status
-    assert result.error_code == (None if kind is CallKind.TEXT else kind.value)
+    assert result.error_code == (
+        None
+        if kind in {CallKind.TEXT, CallKind.TRUNCATED, CallKind.REFUSAL, CallKind.TOOL_OUTPUT}
+        else kind.value
+    )
 
 
 def test_finish_failed_and_null_are_unsupported():
@@ -180,7 +185,7 @@ def test_429_retry_after_variants_are_observed_not_retried():
         ({"Retry-After": future}, (25, 35)),
         ({"Retry-After": "0"}, 0),
         ({"Retry-After": "not-a-date"}, None),
-        ({"Retry-After": "9" * 200}, int("9" * 64)),
+        ({"Retry-After": "9" * 200}, 86400),
     ]:
         result, seen = _send(
             status=429,
@@ -270,9 +275,23 @@ def test_zero_call_paths(monkeypatch):
 
     monkeypatch.setenv("DIAGNOSIS_TEST_TOKEN", TOKEN)
     small = profile(limits={"max_input_bytes": 1})
-    with pytest.raises(MessageError):
-        ModelClient(small, transport=handler).send(MESSAGES, before_send=lambda: None)
+    result = ModelClient(small, transport=handler).send(MESSAGES, before_send=lambda: None)
+    assert result.kind is CallKind.INPUT_REJECTED
     assert calls == []
+
+
+def test_recursive_json_is_normalized():
+    payload = b"[" * 100_000 + b"]" * 100_000
+    client = ModelClient(
+        profile(),
+        transport=mock(
+            lambda request: httpx.Response(
+                200, content=payload, headers={"Content-Type": "application/json"}
+            )
+        ),
+    )
+    result = client.send(MESSAGES, before_send=lambda: None)
+    assert result.kind is CallKind.INVALID_ENVELOPE
 
 
 def test_hook_runs_once_and_propagates_denial():
@@ -314,3 +333,38 @@ def test_secret_never_appears_in_result():
     )
     assert TOKEN not in repr(result)
     assert "invalid_api_key" not in repr(result)
+
+
+def test_transport_and_proxy_cannot_be_combined():
+    with pytest.raises(ValueError, match="proxy"):
+        ModelClient(
+            profile(proxy={"url": "http://127.0.0.1:3128"}),
+            transport=mock(lambda request: response(text_payload())),
+        )
+
+
+def test_from_config_path_missing_and_invalid(tmp_path):
+    assert ModelClient.from_config_path(None).profile is None
+    assert ModelClient.from_config_path(tmp_path / "missing.json").profile is None
+    (tmp_path / "bad.json").write_text("{", encoding="utf-8")
+    with pytest.raises(ProfileError):
+        ModelClient.from_config_path(tmp_path / "bad.json")
+
+
+def test_content_filter_and_length_non_string():
+    content_filter = text_payload("x", finish="content_filter")
+    result, _ = _send(payload=content_filter)
+    assert result.kind is CallKind.REFUSAL
+
+    length = text_payload()
+    length["choices"][0]["message"]["content"] = None
+    length["choices"][0]["finish_reason"] = "length"
+    result, _ = _send(payload=length)
+    assert result.kind is CallKind.UNSUPPORTED_SHAPE
+
+
+def test_retry_after_control_text_is_dropped():
+    result, _ = _send(status=429, payload={}, headers={"Retry-After": "30\x1b]0;x"})
+    assert result.kind is CallKind.RATE_LIMITED
+    assert result.retry_after_seconds is None
+    assert result.retry_after_raw is None

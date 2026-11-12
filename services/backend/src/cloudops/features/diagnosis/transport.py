@@ -10,8 +10,8 @@ from collections.abc import Callable, Mapping
 
 import httpx
 
-from cloudops.features.diagnosis.messages import prepare_payload
-from cloudops.features.diagnosis.profile import Mode, ModelProfile
+from cloudops.features.diagnosis.messages import MessageError, prepare_payload
+from cloudops.features.diagnosis.profile import Mode, ModelProfile, ProfileError
 from cloudops.features.diagnosis.schemas import (
     CallIdentity,
     CallKind,
@@ -21,9 +21,8 @@ from cloudops.features.diagnosis.schemas import (
     safe_identifier,
 )
 
-_ERROR_BODY_BYTES = 8 * 1024
 _JSON_MEDIA = {"application/json"}
-_ALLOWED_ENCODINGS = {"", "identity", "gzip", "deflate", "br", "zstd"}
+_ALLOWED_ENCODINGS = {"", "identity", "gzip", "deflate"}
 
 
 class _HookAbort(Exception):
@@ -45,6 +44,8 @@ class ModelClient:
         self.profile = profile
         self.transport = transport
         self.environ = environ if environ is not None else os.environ
+        if transport is not None and profile is not None and profile.proxy is not None:
+            raise ValueError("an injected transport cannot be combined with a profile proxy")
 
     @classmethod
     def from_config_path(
@@ -87,9 +88,14 @@ class ModelClient:
         credential, credential_error = self._credential(profile)
         if credential_error is not None:
             return self._failure(credential_error, identity, started)
-        body = prepare_payload(profile, messages)
-        url = profile.request_url()
-        context = profile.ssl_context()
+        try:
+            body = prepare_payload(profile, messages)
+            url = profile.request_url()
+            context = profile.ssl_context()
+        except MessageError:
+            return self._failure(CallKind.INPUT_REJECTED, identity, started)
+        except ProfileError:
+            return self._failure(CallKind.CONFIG_INVALID, identity, started)
         deadline = profile.limits.deadline_seconds
         phase = httpx.Timeout(
             connect=min(profile.limits.connect_timeout_seconds, deadline),
@@ -265,7 +271,7 @@ class ModelClient:
             )
         try:
             value = json.loads(body.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
+        except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError):
             return self._failure(
                 CallKind.INVALID_ENVELOPE,
                 identity,
@@ -367,7 +373,9 @@ class ModelClient:
             request_id=request_id,
             served_model=served_model,
             http_status=status,
-            error_code=None if kind is CallKind.TEXT else kind.value,
+            error_code=None
+            if kind in {CallKind.TEXT, CallKind.TRUNCATED, CallKind.REFUSAL, CallKind.TOOL_OUTPUT}
+            else kind.value,
             retry_after_seconds=retry[0],
             retry_after_raw=retry[1],
             elapsed_ms=int((time.monotonic() - started) * 1000),

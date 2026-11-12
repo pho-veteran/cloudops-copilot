@@ -10,7 +10,7 @@
     },
     {
       "case": "refusal",
-      "error_code": "refusal",
+      "error_code": null,
       "http_status": 200,
       "kind": "refusal",
       "retry_after_raw": null,
@@ -18,7 +18,7 @@
     },
     {
       "case": "truncated",
-      "error_code": "truncated",
+      "error_code": null,
       "http_status": 200,
       "kind": "truncated",
       "retry_after_raw": null,

@@ -31,6 +31,8 @@ class CallKind(StrEnum):
     RESPONSE_TOO_LARGE = "response_too_large"
     CREDENTIAL_UNAVAILABLE = "credential_unavailable"
     CREDENTIAL_INVALID = "credential_invalid"
+    INPUT_REJECTED = "input_rejected"
+    CONFIG_INVALID = "config_invalid"
     NOT_CONFIGURED = "not_configured"
 
 
@@ -109,8 +111,10 @@ def parse_retry_after(headers: Mapping[str, str]) -> tuple[int | None, str | Non
     if raw_value is None:
         return None, None
     raw = raw_value[:64]
+    if not raw.isprintable():
+        return None, None
     try:
-        return max(0, int(raw)), raw
+        return min(max(0, int(raw)), 86400), raw
     except ValueError:
         pass
     try:
@@ -122,4 +126,4 @@ def parse_retry_after(headers: Mapping[str, str]) -> tuple[int | None, str | Non
     if when.tzinfo is None:
         when = when.replace(tzinfo=timezone.utc)
     seconds = int((when - datetime.now(timezone.utc)).total_seconds())
-    return max(0, seconds), raw
+    return min(max(0, seconds), 86400), raw

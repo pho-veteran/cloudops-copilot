@@ -51,9 +51,11 @@ Rules:
 
 `ModelClient.send(messages, before_send=...)` is the synchronous facade used by the worker. `await ModelClient.asend(...)` is the async form. Calling `send()` inside an existing event loop raises and directs the caller to `asend()`.
 
-The admission callback is required and runs once, after request serialization and immediately before network access. If it raises, the exception propagates and no request is sent.
+The admission callback is required and runs once, after request serialization and immediately before network access. If it raises, the exception propagates and no request is sent. It is synchronous by contract; a blocking callback is the caller's responsibility and is outside the transport's cancellable deadline.
 
-Every HTTP/transport outcome returns a `ModelCall` instead of raising. `CallKind` distinguishes text, truncation, refusal, tool output, unsupported shape/finish, invalid envelope/content type/encoding, timeout, transport error, auth denial, rate limit, upstream error, rejection, redirect, oversized response, credential failure and unconfigured state.
+Every HTTP/transport outcome returns a `ModelCall` instead of raising. Invalid serialized input returns `input_rejected`; an unusable profile/CA returns `config_invalid`; neither has made a network call. `CallKind` distinguishes text, truncation, refusal, tool output, unsupported shape/finish, invalid envelope/content type/encoding, timeout, transport error, auth denial, rate limit, upstream error, rejection, redirect, oversized response, credential failure, input/config rejection and unconfigured state.
+
+`kind` is the authoritative outcome. `error_code` is a local echo of `kind` for failure states and is `null` for the semantic text/truncation/refusal/tool outcomes; it is never copied from a provider body.
 
 Usage is never invented:
 
@@ -61,18 +63,20 @@ Usage is never invented:
 - malformed/bool/negative → `usage=None`, `usage_status="invalid"`;
 - valid → `usage_status="observed"`.
 
-`Retry-After` is preserved as integer seconds (or parsed HTTP-date) plus a bounded raw value. The transport never retries, rotates credentials/models or follows redirects.
+`Retry-After` is preserved as integer seconds (or parsed HTTP-date), clamped to 0..86400, plus a bounded printable raw value. The transport never retries, rotates credentials/models or follows redirects.
 
 ## Guarantees and non-guarantees
 
 Guaranteed:
 
-- exact request path, headers and body; one selected output-limit parameter;
+- the path, configured headers and body built by this client; exactly one selected output-limit parameter;
 - no implicit retry, redirect or environment proxy;
-- certificate verification on;
+- certificate verification on; no profile field disables it;
 - bounded serialized input and decoded response;
-- whole-call deadline, including header and body trickle;
-- no upstream error body or credential in the returned classification.
+- whole-call deadline, including header and body trickle (except a blocking synchronous admission callback);
+- no upstream error body, provider text or credential in the returned classification.
+
+The default trust store can be influenced by process-level `SSL_CERT_FILE`/`SSL_CERT_DIR`; deployments that require a fixed root must set `tls.ca_file`. A relative `tls.ca_file` is resolved against the profile file loaded by `ModelProfile.load`.
 
 Not guaranteed:
 
@@ -96,8 +100,8 @@ Coverage includes request shape, all normalized outcomes, zero-call paths, real 
 
 ## 9router
 
-A local 9router gateway was probed only as an external observation. It is not a dependency, default profile or compatibility claim. Observed issues: it injects a large hidden instruction block when no system message is present, ignores `max_tokens`/`max_completion_tokens`, returns refusals as HTTP 200 with `finish_reason="failed"` and zero usage, and answers `/v1/models` without authentication. These behaviors are encoded as negative fixtures; no live gateway is required by CI.
+A local 9router gateway was probed only as an external observation. It is not a dependency, default profile or compatibility claim. Observed issues: it injects a large hidden instruction block when no system message is present, ignores `max_tokens`/`max_completion_tokens`, returns refusals as HTTP 200 with `finish_reason="failed"` and zero usage, and answers `/v1/models` without authentication. The non-standard refusal and SSE/content-type behaviors are encoded as negative fixtures; the hidden-prompt and unauthenticated-models observations remain design notes in `9router-observation.json`. No live gateway is required by CI.
 
 ## Evidence
 
-Sanitized receipts live in `docs/evidence/e06-r1-model-client/`. They distinguish generated fixtures, a local HTTP server, a local TLS server and the out-of-repo router observation. No real endpoint, model key or diagnostic quality is claimed.
+Sanitized receipts live in `docs/evidence/e06-r1-model-client/`. They distinguish generated fixtures, a local HTTP server and the out-of-repo router observation. TLS verification is proven by `test_diagnosis_transport.py::test_tls_verification_and_ca_override`; it is not a receipt file. No real endpoint, model key or diagnostic quality is claimed.

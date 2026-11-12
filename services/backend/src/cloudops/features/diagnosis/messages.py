@@ -77,7 +77,10 @@ def prepare_payload(
     }
     if profile.output_limit.param is not OutputLimitParam.OMIT:
         body[profile.output_limit.param.value] = profile.output_limit.value
-    encoded = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    try:
+        encoded = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    except UnicodeEncodeError:
+        raise MessageError("serialized model input contains an invalid Unicode sequence") from None
     if len(encoded) > profile.limits.max_input_bytes:
         raise MessageError("serialized model input exceeds max_input_bytes")
     return encoded
