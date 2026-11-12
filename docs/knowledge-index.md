@@ -65,3 +65,45 @@ Temporary sources and owned API/CLI processes are cleaned up. The database and c
 - The first use of PostgreSQL `tsvector`/GIN is part of migration `0010_knowledge_index`; no PostgreSQL extension or model provider is required.
 - Historical rows grow with every accepted new version/generation. Check `knowledge-status` retained counts and storage before operational cleanup; deleting Knowledge history is not part of this feature.
 - This feature does not establish release relevance, live recovery, AI diagnosis or automatic execution. Those remain with #60-#62 and later EPICs.
+
+## Installed E05 acceptance
+
+Use a new disposable Compose project for `scripts/probe-knowledge-acceptance.py`, with a corpus copy outside the checkout. It refuses non-loopback origins, unowned containers, non-test databases, live collection and optimized Python. The probe provisions only synthetic accounts, issues the fresh-install dispatch permit and mutates only the disposable corpus. The overlay uses separate images, loopback ports 8012/5182 and `cloudops_knowledge62_test`. Compose must support `!override` (tested with 5.6.1).
+
+With the locked backend Python environment available, choose one disposable password of at least 12 URL-safe characters:
+
+```sh
+export KNOWLEDGE_ACCEPTANCE_CORPUS="$(mktemp -d /tmp/cloudops-knowledge62-corpus.XXXXXX)"
+cp runbooks/* "$KNOWLEDGE_ACCEPTANCE_CORPUS/"
+read -rs -p 'Disposable lab password: ' KNOWLEDGE_ACCEPTANCE_PASSWORD
+KNOWLEDGE_ACCEPTANCE_ENV="$(mktemp)"
+printf 'POSTGRES_PASSWORD=%s\nWEB_ORIGIN=http://127.0.0.1:5182\nCOOKIE_SECURE=false\nCOLLECTION_SOURCE_MODE=development_fixture\nCOLLECTOR_DELAY_SECONDS=0\n' \
+  "$KNOWLEDGE_ACCEPTANCE_PASSWORD" > "$KNOWLEDGE_ACCEPTANCE_ENV"
+docker compose --env-file "$KNOWLEDGE_ACCEPTANCE_ENV" -p cloudops-knowledge62 \
+  -f compose.yaml -f compose.knowledge-acceptance.yaml up -d --build --wait api worker web
+
+knowledge_probe() {
+  printf '%s\n' "$KNOWLEDGE_ACCEPTANCE_PASSWORD" | \
+    uv run --project services/backend python scripts/probe-knowledge-acceptance.py "$1" \
+      --compose-file compose.yaml --compose-file compose.knowledge-acceptance.yaml \
+      --env-file "$KNOWLEDGE_ACCEPTANCE_ENV" --project cloudops-knowledge62 \
+      --corpus "$KNOWLEDGE_ACCEPTANCE_CORPUS" --base-url http://127.0.0.1:8012 \
+      --web-origin http://127.0.0.1:5182 --output /tmp/cloudops-knowledge62-receipt.json
+}
+knowledge_probe prepare
+# Check the installed catalog and Run guidance in a separate browser lab tab.
+knowledge_probe mutate
+# Check historical references and matching degraded Knowledge/Connections status.
+knowledge_probe finish
+```
+
+`prepare` requires an unused receipt and unindexed database. It runs the frozen [16-positive/four-negative set](../scripts/fixtures/knowledge-relevance.json), both-role reads, Operator/CSRF/body boundaries and separate manual/trusted selections. The removed-current negative runs in `mutate`. Expected guide/section labels must be frozen before execution; results include exact chunk references and ranks. `finish` explicitly retries indexing, restarts PostgreSQL/API/worker/web, checks both roles against the captured selection/target/resolution hashes, creates a later Run and restores the release catalog. No ranking tuning or model/embedding call is performed by the probe. A failure retains its receipt; inspect it before changing the source or starting a separate cohort.
+
+Stop the owned project after inspection; this removes its test database and dispatch volume:
+
+```sh
+docker compose --env-file "$KNOWLEDGE_ACCEPTANCE_ENV" -p cloudops-knowledge62 \
+  -f compose.yaml -f compose.knowledge-acceptance.yaml down --volumes
+```
+
+Remove the disposable corpus/env file afterward; keep credentials out of receipts and commits. [Recorded E05 acceptance](evidence/knowledge62/README.md) separates installed-stack results, child regressions and unconfigured semantic scope.

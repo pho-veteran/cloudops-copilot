@@ -1,0 +1,71 @@
+{
+  "schema": "Knowledge62BrowserAcceptance/v1",
+  "productCandidate": "6dfc8976662a6621931c754c2d80c68c14d328e9",
+  "browser": "Connected user Microsoft Edge, separate lab tab",
+  "target": "http://127.0.0.1:5182",
+  "checks": {
+    "catalogScalingVersion2WithFiltersAndBack": true,
+    "operatorExplicitFindGuidanceAcknowledgementDuringDegradedIndex": true,
+    "manualFamilyUnverifiedAndNoAIClaim": true,
+    "originalPinnedRunExactSourceAfterRemoval": true,
+    "keyboardEnterFocusedExactChunk": true,
+    "knowledgeConnectionsSameProjection": true,
+    "viewerNoCreationControls": true,
+    "viewerExactRouteAfterStackRestart": true,
+    "revokedSessionRemovedProtectedReader": true,
+    "safeRouteAfterReauthentication": true,
+    "backToOriginalRunAfterLaterRun": true,
+    "inertReaderActiveContentElements": 0
+  },
+  "responsive": [
+    {
+      "scrollWidth": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "scrollWidth": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "scrollWidth": 375,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "scrollWidth": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "scrollWidth": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "scrollWidth": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "scrollWidth": 375,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "scrollWidth": 305,
+      "theme": "light",
+      "width": 320
+    }
+  ],
+  "qa": {
+    "scoreOutOf5": 4,
+    "reason": "Required journeys passed; long inert source text requires scrolling. This is a bounded local acceptance check, not a general accessibility audit."
+  },
+  "limits": [
+    "Native content/provenance downloads and hostile-source rendering reuse #61 evidence on unchanged web source; they were not repeated here.",
+    "Expired Find mutation replay is covered by the unchanged SessionBoundary regression, while live browser revocation exercised a read.",
+    "No browser permission or certificate trust change; no model, embedding or live cluster endpoint."
+  ]
+}

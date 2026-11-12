@@ -1,0 +1,110 @@
+{
+  "schema": "Knowledge62Checks/v1",
+  "candidate_commit": "6dfc8976662a6621931c754c2d80c68c14d328e9",
+  "relevance_fixture_sha256": "0c91010f7a8f5961850a8b4cb1d3956c6bd33e088f0cd118e11fa04bf3cb2344",
+  "backend_web_transport_unchanged_from_d395c54": true,
+  "commands": [
+    {
+      "command": "scripts/check-runbook-corpus.py --baseline-root <d395c54-checkout> --json",
+      "exit": 0,
+      "errors": 0,
+      "warnings": 0,
+      "version_conflicts": 0
+    },
+    {
+      "command": "npm ci --prefix apps/web; npm --prefix apps/web test",
+      "environment": "Host checkout, locked Node 24.21.0",
+      "exit": 0,
+      "tests_passed": 223
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "exit": 0
+    },
+    {
+      "command": "ruff check and ruff format --check services/backend scripts services/krr",
+      "exit": 0,
+      "format_files": 224
+    },
+    {
+      "command": "scripts/contracts.py and scripts/test-contract-drift.py",
+      "environment": "Locked backend Python 3.13.11 and contract tooling",
+      "exit": 0,
+      "artifacts_unchanged": true
+    },
+    {
+      "command": "probe-knowledge-acceptance.py prepare/mutate/finish",
+      "exit": 0,
+      "receipt": "acceptance.json"
+    },
+    {
+      "command": "oracle self-check with wrong guide and out-of-applicability chunk",
+      "exit": 0,
+      "bad_inputs_rejected": true
+    },
+    {
+      "command": "python -O scripts/probe-knowledge-acceptance.py <lab arguments>",
+      "exit": 2,
+      "refused_before_lab_access": true
+    }
+  ],
+  "setup_adaptations": [
+    {
+      "attempt": "npm test inside runtime web image",
+      "result": "221 tests passed; one suite unavailable because checkout-only contracts/openapi.json was not copied into runtime image",
+      "remedy": "Run documented host checkout workflow; all 223 tests and build passed. Runtime image was not changed for test-only files."
+    },
+    {
+      "attempt": "Oracle self-check with system Python",
+      "result": "httpx unavailable",
+      "remedy": "Use the locked backend Python environment; assertions passed."
+    }
+  ],
+  "cleanup": {
+    "owned_containers_volumes_network_removed": true,
+    "browser_viewport_reset_and_lab_tab_closed": true,
+    "image_cache_and_worktree_retained": true
+  },
+  "artifacts": [
+    {
+      "path": "acceptance.json",
+      "sha256": "d81a9784564e4b0761fffeabedda2584a89cfc723e81761428cd701b07a0b7f2"
+    },
+    {
+      "path": "access.json",
+      "sha256": "6d5e86155dc1a23f39f8b3d94b3f1d2c5f80bff9e731b02d98df1d104a62d0e5"
+    },
+    {
+      "path": "baseline-relevance.json",
+      "sha256": "bdd382e6dde75b01ceb17e76ea919ebedb67aba90b2d7e2b00cf10ce5e290660"
+    },
+    {
+      "path": "browser.json",
+      "sha256": "aac638e7fd50bcba093cccdb6a1882481d3e001b0fc84c1a6df980f9dc9195e0"
+    },
+    {
+      "path": "connections-degraded-light.jpg",
+      "sha256": "5ea250703282a9e4c57871b9242dcde245ec255e8c4378984ecdb94dea16ddc1"
+    },
+    {
+      "path": "corpus-check.json",
+      "sha256": "22ee2531e051b98d07b63373638ee58ec236f6a886829aeb5fe90de26dac56a7"
+    },
+    {
+      "path": "expired-session-320.jpg",
+      "sha256": "f70bed154235fa510d34dbff7780cc4238acd59aae0bf3a2b7ac5fb9fbd3235e"
+    },
+    {
+      "path": "history-degraded-light.jpg",
+      "sha256": "0f8142027dbc3a26867036ad8bf31edde5eeaddbd4b0c971b27c1cab60dc4d18"
+    },
+    {
+      "path": "scaling-v2-light.jpg",
+      "sha256": "aec4ddecd1d4c29a02efe7afd57ca99ce075a4d11da60d6ce95466c494ea6291"
+    },
+    {
+      "path": "viewer-after-restart-dark.jpg",
+      "sha256": "03155e6ed828d78e02a9bfa769ac8c2bcea57bd7fc9c400a832a9ef1b0732b4b"
+    }
+  ]
+}
