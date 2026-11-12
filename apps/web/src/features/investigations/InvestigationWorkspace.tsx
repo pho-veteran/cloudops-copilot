@@ -29,6 +29,7 @@ import { buildIncidentHash, incidentReturnHash, safeRoute } from "@/app/routes";
 import { EvidenceCatalog } from "./EvidenceCatalog";
 import { RunComparison } from "./RunComparison";
 import { CancelRun, CollectionProgress } from "./RunProgress";
+import { RunGuidance } from "@/features/knowledge/RunGuidance";
 
 function RequestInvestigation({
   incidentId,
@@ -343,6 +344,7 @@ export function InvestigationWorkspace({
                 selectedEvidence={selectedEvidence}
                 selectedResolution={selectedResolution}
               />
+              <RunGuidance key={current.data.id} incidentId={id} runId={current.data.id} canMutate={canMutate} />
               <RunComparison key={`${runId}:${JSON.stringify(safeRoute(window.location.hash).selection)}`} incidentId={id} runId={current.data.id} />
               <article className="foundation-panel">
                 <h2>Collection attempts</h2>

@@ -16,7 +16,7 @@ Optional [scoped Prometheus metric evidence](docs/prometheus-metrics.md) adds si
 
 [Integrated E04 evidence acceptance](docs/e04-local-acceptance.md) records the five live Kubernetes/Prometheus pack journeys, checkpoint/restart/compare/citation/timeline consumers, role/session behavior and the exact remaining gaps. It does not claim a live AI diagnosis or release completion.
 
-The reviewed [versioned runbook corpus](docs/runbook-corpus.md) adds eight source-controlled guidance documents and an author-side manifest self-check. A trusted CLI builds the [immutable runbook index](docs/knowledge-index.md); [Run guidance APIs](docs/run-guidance.md) retain exact selections and references across updates. Persisted Knowledge UI remains separate feature work. Runbook search is methodology, not diagnosis or execution approval.
+The reviewed [versioned runbook corpus](docs/runbook-corpus.md) adds eight source-controlled guidance documents and an author-side manifest self-check. A trusted CLI builds the [immutable runbook index](docs/knowledge-index.md); [Run guidance APIs](docs/run-guidance.md) retain exact selections and references across updates. The persisted [Knowledge UI](docs/knowledge-ui.md) supports catalog search, exact readers/downloads and Operator-initiated Run guidance. Runbook search is methodology, not diagnosis or execution approval.
 
 ## Quick start
 

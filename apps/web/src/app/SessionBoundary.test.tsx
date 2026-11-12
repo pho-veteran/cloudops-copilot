@@ -5,6 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Workspace } from "./FoundationApp";
 import { transport } from "@/lib/api/client";
+import { buildKnowledgeHash } from "./routes";
+import {
+  documentFixture,
+  ids,
+  pageFixture,
+  statusFixture,
+} from "@/features/knowledge/fixtures";
 
 const network = vi.hoisted(() => ({ fetch: vi.fn<typeof fetch>() }));
 vi.mock("@/lib/api/client", async (importOriginal) => {
@@ -61,6 +68,53 @@ afterEach(() => {
   cleanup();
   cache?.clear();
   transport.clearSession();
+});
+
+it("clears exact Knowledge content on expiry and rereads the safe version as Viewer", async () => {
+  const hash = buildKnowledgeHash({ document: ids.document, search: "memory" });
+  window.location.hash = hash;
+  let viewer = false;
+  network.fetch.mockImplementation(async (r) => {
+    const url = path(r);
+    if (url === "/api/login") viewer = true;
+    if (url === "/api/session" || url === "/api/login")
+      return Response.json(viewer ? b : a);
+    if (url.endsWith("index-status")) return Response.json(statusFixture);
+    if (url.endsWith("/documents")) return Response.json(pageFixture);
+    return Response.json(documentFixture);
+  });
+  mount();
+  await screen.findByRole("heading", { name: documentFixture.title });
+  expect(
+    cache.getQueryCache().findAll({ queryKey: ["knowledge"] }).length,
+  ).toBeGreaterThan(0);
+  act(() => window.dispatchEvent(new Event("cloudops:session-expired")));
+  await screen.findByRole("heading", { name: "Sign in to your workspace" });
+  expect(
+    screen.queryByRole("heading", { name: documentFixture.title }),
+  ).toBeNull();
+  expect(
+    cache.getQueryCache().findAll({ queryKey: ["knowledge"] }),
+  ).toHaveLength(0);
+  const reads = network.fetch.mock.calls.filter(([r]) =>
+    path(r).endsWith(ids.document),
+  ).length;
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText("Username"), "viewer");
+  await user.type(screen.getByLabelText("Password"), "local-test-password");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  await screen.findByRole("heading", { name: documentFixture.title });
+  expect(window.location.hash).toBe(hash);
+  expect(
+    network.fetch.mock.calls.filter(([r]) => path(r).endsWith(ids.document))
+      .length,
+  ).toBeGreaterThan(reads);
+  expect(
+    network.fetch.mock.calls
+      .map(([r]) => r as Request)
+      .filter((r) => r.method === "POST")
+      .map((r) => path(r)),
+  ).toEqual(["/api/login"]);
 });
 
 it("rechecks authority after returning to a tab and hides stale mutations until 401 is known", async () => {
@@ -196,12 +250,13 @@ it("keeps navigation usable without discarding authority on a route change", asy
   expect(screen.getByRole("button", { name: "New incident" })).toBeDefined();
 });
 
-it("returns to the selected saved incident/run with fresh reads after reauthentication and never replays a mutation", async () => {
+it("returns to the selected Run after Find guidance expires without replaying the action", async () => {
   const id = "74483c3e-adc2-4d05-93a6-c218afc6ebe7";
   const run = "00000000-0000-4000-8000-000000000002";
   window.history.replaceState(null, "", `/#/incidents/${id}?run=${run}`);
   const fixture = (r: RequestInfo | URL) => {
     const url = path(r);
+    if (url.endsWith("/knowledge")) return { state: "not_selected", selection: null, reason: null };
     if (url.endsWith("/activity")) return { items: [], total: 0, next_cursor: null };
     if (url.endsWith("/handoff/preview")) return { incident_id: id, resolution_id: null, schema_version: "HandoffSnapshot/v2", snapshot: {}, markdown: "Current handoff" };
     if (url.endsWith("/plans") || url.endsWith("/executions")) return [];
@@ -229,16 +284,16 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
       workload: { active: true, namespace: "demo", name: "checkout" },
     };
   };
-  network.fetch.mockImplementation(async (r) => Response.json(fixture(r)));
+  network.fetch.mockImplementation(async (r) =>
+    (r as Request).method === "POST" && path(r).endsWith("/knowledge")
+      ? expired()
+      : Response.json(fixture(r)),
+  );
   mount();
   await screen.findByRole("heading", { name: "Saved incident" });
-  network.fetch.mockImplementationOnce(async () => expired());
-  act(() => {
-    window.dispatchEvent(new Event("blur"));
-    window.dispatchEvent(new Event("focus"));
-  });
-  await screen.findByRole("heading", { name: "Sign in to your workspace" });
   const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: "Find guidance" }));
+  await screen.findByRole("heading", { name: "Sign in to your workspace" });
   await user.type(screen.getByLabelText("Username"), "operator");
   await user.type(screen.getByLabelText("Password"), "local-test-password");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
@@ -247,7 +302,7 @@ it("returns to the selected saved incident/run with fresh reads after reauthenti
   const requests = network.fetch.mock.calls.map(([r]) => r as Request);
   expect(
     requests.filter((r) => r.method === "POST").map((r) => path(r)),
-  ).toEqual(["/api/login"]);
+  ).toEqual([`/api/incidents/${id}/runs/${run}/knowledge`, "/api/login"]);
   expect(
     requests.filter((r) => path(r) === `/api/incidents/${id}`),
   ).toHaveLength(2);

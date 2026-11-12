@@ -1,6 +1,37 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { buildIncidentHash, buildWorkQueueHash, incidentReturnHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
+import { buildIncidentHash, buildWorkQueueHash, buildKnowledgeHash, incidentReturnHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
+
+describe("Knowledge route identity and return context", () => {
+  const id = "10000000-0000-4000-8000-000000000001";
+  it("round-trips exact Run selection/chunk IDs with filters and incident return context", () => {
+    const returnTo = buildIncidentHash(id, id, "#/queue?search=memory", id, id);
+    const knowledge = { search: "memory", tags: ["oom", "restart"], document: id, chunk: id, incident: id, run: id, selection: id, returnTo };
+    const hash = buildKnowledgeHash(knowledge);
+    window.history.replaceState(null, "", `/${hash}`);
+    expect(readRoute()).toMatchObject({ page: "knowledge", knowledge });
+    expect(window.location.hash).toBe(hash);
+  });
+  it.each([
+    `#/knowledge?chunk=${id}`,
+    `#/knowledge?document=${id}&document=${id}`,
+    `#/knowledge?document=${id}&chunk=${id}&run=${id}`,
+    `#/knowledge?document=${id}&chunk=${id}&incident=${id}&run=${id}`,
+    `#/knowledge?document=raw-path`,
+    `#/knowledge?q=${"x".repeat(2001)}`,
+    `#/knowledge?tag=${"x".repeat(65)}`,
+    "#/knowledge?tag=one&tag=one",
+    `#/knowledge?${Array.from({ length: 17 }, (_, i) => `tag=t${i}`).join("&")}`,
+    "#/knowledge?return_to=javascript%3Aalert(1)",
+    "#/knowledge?return_to=https%3A%2F%2Fevil.invalid",
+    "#/knowledge?token=private",
+  ])("rejects unsafe or incomplete Knowledge context: %s", (hash) => {
+    expect(safeRoute(hash).page).toBe("queue");
+  });
+  it("keeps an exact historical document without requiring active catalog membership", () => {
+    expect(safeRoute(buildKnowledgeHash({ document: id, chunk: id }))).toMatchObject({ page: "knowledge", knowledge: { document: id, chunk: id } });
+  });
+});
 
 describe("safe return navigation", () => {
   const id = "74483c3e-adc2-4d05-93a6-c218afc6ebe7";

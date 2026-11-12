@@ -172,14 +172,74 @@ export function buildIncidentHash(id: string, run = "", returnTo = "#/queue", re
   return `#/incidents/${id}${suffix ? `?${suffix}` : ""}`;
 }
 
+export interface KnowledgeRoute {
+  search?: string;
+  tags?: string[];
+  document?: string;
+  chunk?: string;
+  incident?: string;
+  run?: string;
+  selection?: string;
+  returnTo?: string;
+}
+
+function knowledgeReturnTarget(hash: string): string | undefined {
+  if (hash.length > 4096 || !hash.startsWith("#/incidents/")) return undefined;
+  const route = safeRoute(hash);
+  if (route.page !== "incidents" || !route.run) return undefined;
+  return buildIncidentHash(route.id, route.run, incidentReturnHash(hash), route.resolution, route.evidence, route.selection);
+}
+
+export function buildKnowledgeHash(route: KnowledgeRoute = {}): string {
+  const params = new URLSearchParams();
+  if (route.search) params.set("q", route.search);
+  for (const tag of route.tags ?? []) params.append("tag", tag);
+  for (const key of ["document", "chunk", "incident", "run", "selection"] as const)
+    if (route[key]) params.set(key, route[key]);
+  const target = route.returnTo && knowledgeReturnTarget(route.returnTo);
+  if (target) params.set("return_to", target);
+  return `#/knowledge${params.size ? `?${params}` : ""}`;
+}
+
+function parseKnowledgeHash(hash: string): KnowledgeRoute | null {
+  const match = /^#\/knowledge(?:\?([^#]*))?$/.exec(hash);
+  if (!match) return null;
+  const params = new URLSearchParams(match[1] ?? "");
+  const allowed = ["q", "tag", "document", "chunk", "incident", "run", "selection", "return_to"];
+  if ([...params.keys()].some((key) => !allowed.includes(key) || key !== "tag" && params.getAll(key).length > 1)) return null;
+  const search = params.get("q") || undefined;
+  const tags = params.getAll("tag");
+  if ((search?.length ?? 0) > 2000 || tags.length > 16 || new Set(tags).size !== tags.length || tags.some((tag) => !tag || tag.length > 64)) return null;
+  const route: KnowledgeRoute = { ...(search ? { search } : {}), ...(tags.length ? { tags } : {}) };
+  for (const key of ["document", "chunk", "incident", "run", "selection"] as const) {
+    const value = params.get(key);
+    if (value !== null) {
+      if (!uuid.test(value)) return null;
+      route[key] = value;
+    }
+  }
+  if (route.chunk && !route.document) return null;
+  if ((route.incident || route.run || route.selection) && !(route.incident && route.run && route.selection && route.document && route.chunk)) return null;
+  const returnTo = params.get("return_to");
+  if (returnTo !== null) {
+    const target = knowledgeReturnTarget(returnTo);
+    if (!target) return null;
+    route.returnTo = target;
+  }
+  return route;
+}
+
 interface SafeRoute {
   page: string; id: string; run: string; evidence: string; resolution: string; baseline: string;
   selection?: EvidenceSelection;
+  knowledge?: KnowledgeRoute;
 }
 
 export function safeRoute(hash: string): SafeRoute {
   const fallback = { page: "queue", id: "", run: "", evidence: "", resolution: "", baseline: "" };
   if (/^#\/queue(?:\?[^#]*)?$/.test(hash)) return { ...fallback, page: "queue" };
+  const knowledge = parseKnowledgeHash(hash);
+  if (knowledge) return { ...fallback, page: "knowledge", knowledge };
   const match = /^#\/(workloads|connections|reports)$/.exec(hash);
   if (match) return { ...fallback, page: match[1] };
   const workload = /^#\/workloads\?workload=([^&#]+)(?:&baseline=([^&#]+))?$/.exec(hash);
@@ -229,6 +289,8 @@ export function readRoute() {
   const canonical =
     route.page === "incidents"
       ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash), route.resolution, route.evidence, route.selection)
+      : route.page === "knowledge"
+        ? buildKnowledgeHash(route.knowledge)
       : route.page === "queue"
         ? buildWorkQueueHash(parseWorkQueueHash(window.location.hash))
         : `#/${route.page}${route.page === "workloads" && route.id ? `?workload=${route.id}${route.baseline ? `&baseline=${route.baseline}` : ""}` : ""}`;
