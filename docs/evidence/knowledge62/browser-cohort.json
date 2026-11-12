@@ -1,0 +1,991 @@
+{
+  "schema": "Knowledge62Acceptance/v1",
+  "product_baseline": "d395c5411777e0f1163b88c9c8192e0688c86f02",
+  "candidate_commit": "6dfc8976662a6621931c754c2d80c68c14d328e9",
+  "probe_commit": "6dfc8976662a6621931c754c2d80c68c14d328e9",
+  "probe_sha256": "05dc92e626eff0ba66a884d5b9e48b13ca7fcac2d7d3e4f793ff0fc06221d6b5",
+  "fixture_sha256": "0c91010f7a8f5961850a8b4cb1d3956c6bd33e088f0cd118e11fa04bf3cb2344",
+  "environment": {
+    "database": "cloudops_knowledge62_test",
+    "python": "3.13.11",
+    "source_mode": "development_fixture",
+    "sqlalchemy": "2.0.44",
+    "model_mode": "unconfigured"
+  },
+  "images": {
+    "db": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+    "api": "sha256:c5d2cb3452249cfb8e3f72c26cf9a1ff7db401da5adadc594e4231712553d2b0",
+    "worker": "sha256:c5d2cb3452249cfb8e3f72c26cf9a1ff7db401da5adadc594e4231712553d2b0",
+    "web": "sha256:13b39d90060f825e8e4e01d3cf6f785783824cd169f85c30817dcbb3a4a84a2b"
+  },
+  "phases": [
+    "prepare",
+    "mutate",
+    "finish"
+  ],
+  "ids": {
+    "incident_id": "a0d982db-b781-4911-a2af-0be1406cf400",
+    "run_id": "0e37a4b7-eb5b-40f0-a160-485de5147a7d",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-12T09:12:59.198019Z",
+      "end": "2026-11-12T09:42:59.198019Z",
+      "source": "preset_30"
+    }
+  },
+  "initial_index": {
+    "attempt_id": "c39e3582-425d-4177-8aa2-d944b30c6f7a",
+    "chunk_count": 64,
+    "document_count": 8,
+    "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+    "outcome": "indexed",
+    "reason": null,
+    "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df"
+  },
+  "run_outcome": {
+    "state": "insufficient_evidence",
+    "reason": "Evidence collection saved. Analysis and recovery planning are unavailable.",
+    "outcome_code": "analysis_unavailable",
+    "diagnosis": "unavailable",
+    "recovery": "unavailable"
+  },
+  "positives": [
+    {
+      "id": "positive-01",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "crashloop-startup",
+            "document_version_id": "fca77c40-2f6a-4117-850c-7a8a3932f205",
+            "version": "1",
+            "chunk_id": "958c14f0-f284-4bde-8b90-fce96afaabd4",
+            "chunker_version": "2",
+            "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+            "metadata_sha256": "d12d9b30e8094265a12f5c3a4594e9ad4e4f895ace64de9ad301826df588aa22",
+            "chunk_sha256": "15e7de53fbb1c9397c8df1621ab7aead0ba34ae58339c7905ecb3ff7d5728a63"
+          },
+          "heading_path": [
+            "Investigate CrashLoop and startup failures after a change",
+            "Supporting and contradicting observations"
+          ],
+          "score": 0.031700768
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "crashloop-startup",
+            "document_version_id": "fca77c40-2f6a-4117-850c-7a8a3932f205",
+            "version": "1",
+            "chunk_id": "4a6df73a-4f7c-4a55-8bf3-dff5b4be0d02",
+            "chunker_version": "2",
+            "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+            "metadata_sha256": "d12d9b30e8094265a12f5c3a4594e9ad4e4f895ace64de9ad301826df588aa22",
+            "chunk_sha256": "400aed1415f8bb5d7ebf9ca8fb2f65aa3883a85047a1320dc49969f5d8d0433a"
+          },
+          "heading_path": [
+            "Investigate CrashLoop and startup failures after a change",
+            "Evidence to inspect"
+          ],
+          "score": 0.0053333333
+        },
+        {
+          "rank": 3,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "crashloop-startup",
+            "document_version_id": "fca77c40-2f6a-4117-850c-7a8a3932f205",
+            "version": "1",
+            "chunk_id": "ba95e36b-9106-4748-a33d-4d8e74255650",
+            "chunker_version": "2",
+            "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+            "metadata_sha256": "d12d9b30e8094265a12f5c3a4594e9ad4e4f895ace64de9ad301826df588aa22",
+            "chunk_sha256": "e1ea16778e93c97035dedd615877c3a9598874f12df8189c3fda657291ca63f5"
+          },
+          "heading_path": [
+            "Investigate CrashLoop and startup failures after a change",
+            "Investigation steps"
+          ],
+          "score": 0.0023809525
+        }
+      ]
+    },
+    {
+      "id": "positive-02",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "crashloop-startup",
+            "document_version_id": "fca77c40-2f6a-4117-850c-7a8a3932f205",
+            "version": "1",
+            "chunk_id": "4a6df73a-4f7c-4a55-8bf3-dff5b4be0d02",
+            "chunker_version": "2",
+            "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+            "metadata_sha256": "d12d9b30e8094265a12f5c3a4594e9ad4e4f895ace64de9ad301826df588aa22",
+            "chunk_sha256": "400aed1415f8bb5d7ebf9ca8fb2f65aa3883a85047a1320dc49969f5d8d0433a"
+          },
+          "heading_path": [
+            "Investigate CrashLoop and startup failures after a change",
+            "Evidence to inspect"
+          ],
+          "score": 0.028571429
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "crashloop-startup",
+            "document_version_id": "fca77c40-2f6a-4117-850c-7a8a3932f205",
+            "version": "1",
+            "chunk_id": "ba95e36b-9106-4748-a33d-4d8e74255650",
+            "chunker_version": "2",
+            "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+            "metadata_sha256": "d12d9b30e8094265a12f5c3a4594e9ad4e4f895ace64de9ad301826df588aa22",
+            "chunk_sha256": "e1ea16778e93c97035dedd615877c3a9598874f12df8189c3fda657291ca63f5"
+          },
+          "heading_path": [
+            "Investigate CrashLoop and startup failures after a change",
+            "Investigation steps"
+          ],
+          "score": 0.01
+        }
+      ]
+    },
+    {
+      "id": "positive-03",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "oom-restarts",
+            "document_version_id": "254a97ab-dd46-41e4-b031-201ca425afe1",
+            "version": "2",
+            "chunk_id": "86008d8c-6682-4f8c-909d-eecc81d76dce",
+            "chunker_version": "2",
+            "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+            "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+            "chunk_sha256": "63d906c0cfcad48ff659d11c881fab82a748d2aef0a3dd62410d50d8fde1d8b8"
+          },
+          "heading_path": [
+            "Investigate OOM and repeated restarts",
+            "Supporting and contradicting observations"
+          ],
+          "score": 0.071544714
+        }
+      ]
+    },
+    {
+      "id": "positive-04",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "oom-restarts",
+            "document_version_id": "254a97ab-dd46-41e4-b031-201ca425afe1",
+            "version": "2",
+            "chunk_id": "920b891b-34df-4377-b194-7100df06254d",
+            "chunker_version": "2",
+            "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+            "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+            "chunk_sha256": "48ded0e08981648466c515185a50a26c12097748d1963c5e3869752263b7ed15"
+          },
+          "heading_path": [
+            "Investigate OOM and repeated restarts",
+            "Evidence to inspect"
+          ],
+          "score": 0.09166667
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "oom-restarts",
+            "document_version_id": "254a97ab-dd46-41e4-b031-201ca425afe1",
+            "version": "2",
+            "chunk_id": "86008d8c-6682-4f8c-909d-eecc81d76dce",
+            "chunker_version": "2",
+            "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+            "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+            "chunk_sha256": "63d906c0cfcad48ff659d11c881fab82a748d2aef0a3dd62410d50d8fde1d8b8"
+          },
+          "heading_path": [
+            "Investigate OOM and repeated restarts",
+            "Supporting and contradicting observations"
+          ],
+          "score": 0.05846154
+        },
+        {
+          "rank": 3,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "oom-restarts",
+            "document_version_id": "254a97ab-dd46-41e4-b031-201ca425afe1",
+            "version": "2",
+            "chunk_id": "208927f7-e188-465a-9d8d-3cab38b88605",
+            "chunker_version": "2",
+            "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+            "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+            "chunk_sha256": "477c9cf57283c6c2663fd51b1fb7d5516f28d7d33c12a9439e997d119337a14e"
+          },
+          "heading_path": [
+            "Investigate OOM and repeated restarts",
+            "Applicability"
+          ],
+          "score": 0.022222223
+        },
+        {
+          "rank": 4,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "oom-restarts",
+            "document_version_id": "254a97ab-dd46-41e4-b031-201ca425afe1",
+            "version": "2",
+            "chunk_id": "86bc3408-0974-4559-9612-126bfb7e911a",
+            "chunker_version": "2",
+            "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+            "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+            "chunk_sha256": "1f0c3e1f72058866388caf19446adfa9ef67cc74698ec980af55f4a70251588a"
+          },
+          "heading_path": [
+            "Investigate OOM and repeated restarts",
+            "Manual continuation and abstention"
+          ],
+          "score": 0.0096
+        }
+      ]
+    },
+    {
+      "id": "positive-05",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 2,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "traffic-latency-errors",
+            "document_version_id": "033135c2-c11b-4298-acda-b3d7cdfbeb7c",
+            "version": "2",
+            "chunk_id": "9b6e47e6-c52a-4a24-b816-e050f23b3b4d",
+            "chunker_version": "2",
+            "document_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+            "metadata_sha256": "7d2342dd6a2cb4477afcd3da4df46ed1dba922d60bbcf3f61b0a659f69e903a4",
+            "chunk_sha256": "53f979212da7a190dbd304c6c35c04ae8a12f3c5e107add96adaff6ab890e152"
+          },
+          "heading_path": [
+            "Investigate traffic, latency and error increases",
+            "Applicability"
+          ],
+          "score": 0.120000005
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "traffic-latency-errors",
+            "document_version_id": "033135c2-c11b-4298-acda-b3d7cdfbeb7c",
+            "version": "2",
+            "chunk_id": "00e011ca-412a-4ef8-ade7-1d7a05aa9617",
+            "chunker_version": "2",
+            "document_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+            "metadata_sha256": "7d2342dd6a2cb4477afcd3da4df46ed1dba922d60bbcf3f61b0a659f69e903a4",
+            "chunk_sha256": "e50db199da0f7c8581cf2b8717a0f7347a698f13f59244d687ff0ea5801cca30"
+          },
+          "heading_path": [
+            "Investigate traffic, latency and error increases",
+            "Supporting and contradicting observations"
+          ],
+          "score": 0.02037037
+        },
+        {
+          "rank": 3,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "traffic-latency-errors",
+            "document_version_id": "033135c2-c11b-4298-acda-b3d7cdfbeb7c",
+            "version": "2",
+            "chunk_id": "66b9b8ad-d975-430d-9dde-47691397a811",
+            "chunker_version": "2",
+            "document_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+            "metadata_sha256": "7d2342dd6a2cb4477afcd3da4df46ed1dba922d60bbcf3f61b0a659f69e903a4",
+            "chunk_sha256": "c3c29818bf80039d141f85b73b1029cd6a7baa0e4778200ca9cdfde3597c58f4"
+          },
+          "heading_path": [
+            "Investigate traffic, latency and error increases",
+            "Investigation steps"
+          ],
+          "score": 0.017918553
+        }
+      ]
+    },
+    {
+      "id": "positive-06",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "traffic-latency-errors",
+            "document_version_id": "033135c2-c11b-4298-acda-b3d7cdfbeb7c",
+            "version": "2",
+            "chunk_id": "6099ad75-2609-4949-9cca-ad5ab163bafa",
+            "chunker_version": "2",
+            "document_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+            "metadata_sha256": "7d2342dd6a2cb4477afcd3da4df46ed1dba922d60bbcf3f61b0a659f69e903a4",
+            "chunk_sha256": "ded35c7649aa4d81c33b0b5c62150a53b4d283b7fb1ecc3399ba35526534ebdd"
+          },
+          "heading_path": [
+            "Investigate traffic, latency and error increases",
+            "Missing and unverified cases"
+          ],
+          "score": 0.03256917
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "traffic-latency-errors",
+            "document_version_id": "033135c2-c11b-4298-acda-b3d7cdfbeb7c",
+            "version": "2",
+            "chunk_id": "00e011ca-412a-4ef8-ade7-1d7a05aa9617",
+            "chunker_version": "2",
+            "document_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+            "metadata_sha256": "7d2342dd6a2cb4477afcd3da4df46ed1dba922d60bbcf3f61b0a659f69e903a4",
+            "chunk_sha256": "e50db199da0f7c8581cf2b8717a0f7347a698f13f59244d687ff0ea5801cca30"
+          },
+          "heading_path": [
+            "Investigate traffic, latency and error increases",
+            "Supporting and contradicting observations"
+          ],
+          "score": 0.014285714
+        },
+        {
+          "rank": 3,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "traffic-latency-errors",
+            "document_version_id": "033135c2-c11b-4298-acda-b3d7cdfbeb7c",
+            "version": "2",
+            "chunk_id": "66b9b8ad-d975-430d-9dde-47691397a811",
+            "chunker_version": "2",
+            "document_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+            "metadata_sha256": "7d2342dd6a2cb4477afcd3da4df46ed1dba922d60bbcf3f61b0a659f69e903a4",
+            "chunk_sha256": "c3c29818bf80039d141f85b73b1029cd6a7baa0e4778200ca9cdfde3597c58f4"
+          },
+          "heading_path": [
+            "Investigate traffic, latency and error increases",
+            "Investigation steps"
+          ],
+          "score": 0.002469136
+        }
+      ]
+    },
+    {
+      "id": "positive-07",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "pending-unschedulable",
+            "document_version_id": "9c6b8952-d679-4f9a-ba46-d70aca342408",
+            "version": "1",
+            "chunk_id": "99059db8-4ca1-452d-a281-c1b36cb6bf6a",
+            "chunker_version": "2",
+            "document_sha256": "f5f2e66c073058c5e9afcaccba64a5212716c87a9b5a3c710fb2e6a4e005839a",
+            "metadata_sha256": "fd8a48b07d465dc83b7e9c40a4dddb6fbebca29abebfc05c7dcf0d87935ce7ff",
+            "chunk_sha256": "aea47e405e7bc240b1dd2f5b42c7d12944ac31c8c0da13c6bd64b3f9a1bcd57c"
+          },
+          "heading_path": [
+            "Investigate Pending and unschedulable Pods",
+            "Evidence to inspect"
+          ],
+          "score": 0.005882353
+        }
+      ]
+    },
+    {
+      "id": "positive-08",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 2,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "pending-unschedulable",
+            "document_version_id": "9c6b8952-d679-4f9a-ba46-d70aca342408",
+            "version": "1",
+            "chunk_id": "3f9f3167-fa44-4cbf-bbea-1cefd177f1ce",
+            "chunker_version": "2",
+            "document_sha256": "f5f2e66c073058c5e9afcaccba64a5212716c87a9b5a3c710fb2e6a4e005839a",
+            "metadata_sha256": "fd8a48b07d465dc83b7e9c40a4dddb6fbebca29abebfc05c7dcf0d87935ce7ff",
+            "chunk_sha256": "02e3fcdf4cd9f3dc34f065480d9e41b793ef0a0cf6ab7bd01c2b8392fa024ee8"
+          },
+          "heading_path": [
+            "Investigate Pending and unschedulable Pods",
+            "Applicability"
+          ],
+          "score": 0.1
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "pending-unschedulable",
+            "document_version_id": "9c6b8952-d679-4f9a-ba46-d70aca342408",
+            "version": "1",
+            "chunk_id": "2df25f7b-ec9f-494c-9865-d4579536c9c0",
+            "chunker_version": "2",
+            "document_sha256": "f5f2e66c073058c5e9afcaccba64a5212716c87a9b5a3c710fb2e6a4e005839a",
+            "metadata_sha256": "fd8a48b07d465dc83b7e9c40a4dddb6fbebca29abebfc05c7dcf0d87935ce7ff",
+            "chunk_sha256": "5ad170a74a3cba629afbb8ce156d1f3d0a72b9eafeef4733e2b8e697ba9cc0f8"
+          },
+          "heading_path": [
+            "Investigate Pending and unschedulable Pods",
+            "Manual continuation and abstention"
+          ],
+          "score": 0.1
+        }
+      ]
+    },
+    {
+      "id": "positive-09",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "image-pull",
+            "document_version_id": "731d9e5b-93b6-4eef-a8f8-eef055891767",
+            "version": "1",
+            "chunk_id": "981fd118-f8df-4817-9d3a-a5bfbb3bcefd",
+            "chunker_version": "2",
+            "document_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+            "metadata_sha256": "94c9d280ab43b77b75665bb51b9ec9da20bfdc088fc9cf95a8d84d64af828069",
+            "chunk_sha256": "62933b374ac0ded88d86adf7b20b3ea4cbcbe953950ef66193a42657d82c5087"
+          },
+          "heading_path": [
+            "Investigate image pull failures",
+            "Evidence to inspect"
+          ],
+          "score": 0.007142857
+        }
+      ]
+    },
+    {
+      "id": "positive-10",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "image-pull",
+            "document_version_id": "731d9e5b-93b6-4eef-a8f8-eef055891767",
+            "version": "1",
+            "chunk_id": "9ebdfa80-9c98-495b-ba23-852285f0bec8",
+            "chunker_version": "2",
+            "document_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+            "metadata_sha256": "94c9d280ab43b77b75665bb51b9ec9da20bfdc088fc9cf95a8d84d64af828069",
+            "chunk_sha256": "98c61e0226e05c12e98b3caa75ff96b2b840dcdfa53f6b48fb5b36018c797aad"
+          },
+          "heading_path": [
+            "Investigate image pull failures",
+            "Missing and unverified cases"
+          ],
+          "score": 0.06666667
+        },
+        {
+          "rank": 2,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "image-pull",
+            "document_version_id": "731d9e5b-93b6-4eef-a8f8-eef055891767",
+            "version": "1",
+            "chunk_id": "91e3b27e-b99a-4e2f-807b-d5ef9497d1ac",
+            "chunker_version": "2",
+            "document_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+            "metadata_sha256": "94c9d280ab43b77b75665bb51b9ec9da20bfdc088fc9cf95a8d84d64af828069",
+            "chunk_sha256": "fe2449f027f637107b65e36f6ebe40301e315e911522fd842c338574e30fd478"
+          },
+          "heading_path": [
+            "Investigate image pull failures",
+            "Supporting and contradicting observations"
+          ],
+          "score": 0.02
+        }
+      ]
+    },
+    {
+      "id": "positive-11",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "restore-deployment-template",
+            "document_version_id": "1a82a135-d864-475f-a775-c99e161dc27a",
+            "version": "1",
+            "chunk_id": "a6d5829a-2654-4342-a1b1-0e4678675c63",
+            "chunker_version": "2",
+            "document_sha256": "fd239c377f509c06036f45f5fb33fa6f29c9ffaa8ec431c648f03f403cccc095",
+            "metadata_sha256": "87d1119f00eacb8d9a2699ddd3ae51a8deead6e7cdce02f11c2e890fdac4c6e4",
+            "chunk_sha256": "fccbf79acf49e4c401b1f9945c6ad7edc56d53cfddd545885054d5ae05747d60"
+          },
+          "heading_path": [
+            "Review a known-good Deployment template restore",
+            "Evidence and eligibility gates"
+          ],
+          "score": 0.2
+        }
+      ]
+    },
+    {
+      "id": "positive-12",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "restore-deployment-template",
+            "document_version_id": "1a82a135-d864-475f-a775-c99e161dc27a",
+            "version": "1",
+            "chunk_id": "aabf7b1c-fa2e-4eb1-b09f-b6176728b246",
+            "chunker_version": "2",
+            "document_sha256": "fd239c377f509c06036f45f5fb33fa6f29c9ffaa8ec431c648f03f403cccc095",
+            "metadata_sha256": "87d1119f00eacb8d9a2699ddd3ae51a8deead6e7cdce02f11c2e890fdac4c6e4",
+            "chunk_sha256": "6c5ae8af4fd76f7b88f36b02072fbf0d3de78615eabb2efda28098b59e280245"
+          },
+          "heading_path": [
+            "Review a known-good Deployment template restore",
+            "Verification and rollback limits"
+          ],
+          "score": 0.025757575
+        }
+      ]
+    },
+    {
+      "id": "positive-13",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "set-memory-profile",
+            "document_version_id": "8a853a81-10c9-4fd2-9ff7-ee65fce30c35",
+            "version": "1",
+            "chunk_id": "5a54c33a-6ee4-4db4-984c-b1d4f67ad54f",
+            "chunker_version": "2",
+            "document_sha256": "78cd2f4b21279672243950548fa30bc4e750a37164d6161aec8d90190f58b62b",
+            "metadata_sha256": "156995e1b9a52c37c68b5ff51a80beed6636de3c6f94011950790fcf6173d697",
+            "chunk_sha256": "b615d4b933e536eb92eddea9446d275ccebe28ffcfea5ffe49535ac07401b560"
+          },
+          "heading_path": [
+            "Review a bounded memory profile change",
+            "Evidence and eligibility gates"
+          ],
+          "score": 0.0054054055
+        }
+      ]
+    },
+    {
+      "id": "positive-14",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "set-memory-profile",
+            "document_version_id": "8a853a81-10c9-4fd2-9ff7-ee65fce30c35",
+            "version": "1",
+            "chunk_id": "5a54c33a-6ee4-4db4-984c-b1d4f67ad54f",
+            "chunker_version": "2",
+            "document_sha256": "78cd2f4b21279672243950548fa30bc4e750a37164d6161aec8d90190f58b62b",
+            "metadata_sha256": "156995e1b9a52c37c68b5ff51a80beed6636de3c6f94011950790fcf6173d697",
+            "chunk_sha256": "b615d4b933e536eb92eddea9446d275ccebe28ffcfea5ffe49535ac07401b560"
+          },
+          "heading_path": [
+            "Review a bounded memory profile change",
+            "Evidence and eligibility gates"
+          ],
+          "score": 0.018181818
+        }
+      ]
+    },
+    {
+      "id": "positive-15",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "scale-deployment",
+            "document_version_id": "dc1956f0-14d9-4f63-99c9-5b874686f9b9",
+            "version": "2",
+            "chunk_id": "6c92e101-c5bb-485c-ad4f-aa91ec710305",
+            "chunker_version": "2",
+            "document_sha256": "7dc3637da550db01a3f0725541930b62db5a2fead61f7437a8416c0967380101",
+            "metadata_sha256": "4577bd79a1246a547d3fce8a061ae1162d3687e4022b4e3cd641834f6aac5a13",
+            "chunk_sha256": "8710198d5d28592f6c9db57c59b6c1a471fdb22ec8a4f64519191ea3237418f9"
+          },
+          "heading_path": [
+            "Review bounded Deployment scaling",
+            "Prerequisites"
+          ],
+          "score": 0.023737375
+        }
+      ]
+    },
+    {
+      "id": "positive-16",
+      "status": "matched",
+      "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+      "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df",
+      "ranking_config_version": "2",
+      "query_version": "websearch_english/v1",
+      "guide_rank": 1,
+      "section_rank": 1,
+      "results": [
+        {
+          "rank": 1,
+          "reference": {
+            "schema_version": "KnowledgeRef/v1",
+            "kind": "runbook",
+            "document_key": "scale-deployment",
+            "document_version_id": "dc1956f0-14d9-4f63-99c9-5b874686f9b9",
+            "version": "2",
+            "chunk_id": "1129ca5c-7919-4140-9eac-d24c7e748670",
+            "chunker_version": "2",
+            "document_sha256": "7dc3637da550db01a3f0725541930b62db5a2fead61f7437a8416c0967380101",
+            "metadata_sha256": "4577bd79a1246a547d3fce8a061ae1162d3687e4022b4e3cd641834f6aac5a13",
+            "chunk_sha256": "ddf932ae63ffb39b7b81363b03f21e8f8605b94cbbd4f650884a2c06c50b0ddd"
+          },
+          "heading_path": [
+            "Review bounded Deployment scaling",
+            "Review and approval"
+          ],
+          "score": 0.028777473
+        }
+      ]
+    }
+  ],
+  "negatives": [
+    {
+      "id": "unmatched",
+      "passed": true,
+      "status": "no_matches",
+      "error": null,
+      "returned_chunks": 0
+    },
+    {
+      "id": "out-of-applicability",
+      "passed": true,
+      "status": "no_matches",
+      "error": null,
+      "returned_chunks": 0
+    },
+    {
+      "id": "invalid-scope",
+      "passed": true,
+      "status": null,
+      "error": "invalid_guidance_scope",
+      "returned_chunks": 0
+    },
+    {
+      "id": "removed-current",
+      "passed": true,
+      "status": "no_matches",
+      "error": null,
+      "returned_chunks": 0
+    }
+  ],
+  "resolution_id": "b98f9a63-b36f-4fe5-9d69-8bec6c0b4c1a",
+  "selection_id": "9f3eaf55-432f-45bf-b979-b7578d627cb1",
+  "reference": {
+    "schema_version": "KnowledgeRef/v1",
+    "kind": "runbook",
+    "document_key": "oom-restarts",
+    "document_version_id": "254a97ab-dd46-41e4-b031-201ca425afe1",
+    "version": "2",
+    "chunk_id": "86008d8c-6682-4f8c-909d-eecc81d76dce",
+    "chunker_version": "2",
+    "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+    "metadata_sha256": "5879e7588e4b76f090584b76e3c1672270728949e012403dbd115291d35fbb64",
+    "chunk_sha256": "63d906c0cfcad48ff659d11c881fab82a748d2aef0a3dd62410d50d8fde1d8b8"
+  },
+  "original_hashes": {
+    "selection": "718e04fd4ce5e7f0e41bc54930565b7122cb42c096199ac3e9c5945a7ebae7bb",
+    "target": "3ece6bf0cda786e2dd326803ddabf484f80d6bf99f2d8b051de0295c009253ef",
+    "resolution_markdown": "e16f3261c20f7febb9585e8209c38e5d136a0782123a92b2022dd8c2547b738d",
+    "resolution_preview": "0c90549a5d2f3296d6fa6bb2749fec03d8b0bfc8df33b1819f69e4dee0075062"
+  },
+  "browser_ids": {
+    "incident_id": "70b389d8-0dd6-4358-8093-d5a2b37412df",
+    "run_id": "0747206e-78d4-4c87-8cf2-c482d7055f09",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-12T09:13:18.144985Z",
+      "end": "2026-11-12T09:43:18.144985Z",
+      "source": "preset_30"
+    }
+  },
+  "metrics": {
+    "positive_cases": 16,
+    "guide_recall_at_5": 1.0,
+    "guide_mrr_at_5": 1.0,
+    "section_recall_at_5": 1.0,
+    "section_mrr_at_5": 0.9375,
+    "negatives_passed": 4
+  },
+  "recorded_at": "2026-11-12T09:51:25.630641+00:00",
+  "updated_index": {
+    "attempt_id": "5bdb48e0-868e-4320-b3f9-65734c9efdbb",
+    "chunk_count": 64,
+    "document_count": 8,
+    "generation_id": "52978e13-4c49-471b-9da3-cbad2c726811",
+    "outcome": "indexed",
+    "reason": null,
+    "source_digest": "b25f39ebbfbde6171b5e961137ed85fc8cd5f45f8e124e08fba0eb91783a79b7"
+  },
+  "removed_index": {
+    "attempt_id": "f2ba7fd7-5589-4cdf-9db2-4d013c1e7726",
+    "chunk_count": 56,
+    "document_count": 7,
+    "generation_id": "5e1a6115-8034-4df9-aea1-0e99b17a9240",
+    "outcome": "indexed",
+    "reason": null,
+    "source_digest": "192618030cffdc14db8d3b025aa91198f64e9ec1c13ac47c1ebcf184ae87ca4e"
+  },
+  "failed_index": {
+    "attempt_id": null,
+    "chunk_count": null,
+    "document_count": null,
+    "generation_id": null,
+    "outcome": "failed",
+    "reason": "source file is missing: runbooks/missing-acceptance.md",
+    "source_digest": null
+  },
+  "degraded_status": {
+    "state": "degraded",
+    "observed_at": "2026-11-12T09:45:19.804546Z",
+    "active_generation": {
+      "id": "5e1a6115-8034-4df9-aea1-0e99b17a9240",
+      "fingerprint": "0e52971a4c90fe63bbd7a124d7d704f7c37166cd5784848e980d8b991c302f8e",
+      "source_digest": "192618030cffdc14db8d3b025aa91198f64e9ec1c13ac47c1ebcf184ae87ca4e",
+      "chunker_version": "2",
+      "index_format_version": "1",
+      "search_config_version": "2",
+      "ranking_config_version": "2",
+      "config_digest": "906f951b89bd89b0fc8e543dc1838de8b6ada7b3a3c552d5b9615033755d7172",
+      "document_count": 7,
+      "chunk_count": 56,
+      "captured_at": "2026-11-12T09:45:15.923543Z",
+      "indexed_at": "2026-11-12T09:45:15.930881Z"
+    },
+    "last_attempt": {
+      "id": "38876063-94ed-41de-9994-d98ac44861a5",
+      "phase": "failed",
+      "outcome": "failed",
+      "started_at": "2026-11-12T09:45:19.417311Z",
+      "finished_at": "2026-11-12T09:45:19.425803Z",
+      "source_digest": null,
+      "generation_fingerprint": null,
+      "document_count": null,
+      "chunk_count": null,
+      "reason": "source file is missing: runbooks/missing-acceptance.md"
+    },
+    "last_success": {
+      "id": "f2ba7fd7-5589-4cdf-9db2-4d013c1e7726",
+      "phase": "activated",
+      "outcome": "indexed",
+      "started_at": "2026-11-12T09:45:15.915677Z",
+      "finished_at": "2026-11-12T09:45:16.000044Z",
+      "source_digest": "192618030cffdc14db8d3b025aa91198f64e9ec1c13ac47c1ebcf184ae87ca4e",
+      "generation_fingerprint": "0e52971a4c90fe63bbd7a124d7d704f7c37166cd5784848e980d8b991c302f8e",
+      "document_count": 7,
+      "chunk_count": 56,
+      "reason": null
+    },
+    "last_checked_source_digest": "192618030cffdc14db8d3b025aa91198f64e9ec1c13ac47c1ebcf184ae87ca4e",
+    "last_checked_at": "2026-11-12T09:45:19.425803Z",
+    "last_success_at": "2026-11-12T09:45:16.000044Z",
+    "has_active_generation": true,
+    "read_available": true,
+    "catalog_search_available": true,
+    "retrieval_available": true,
+    "retrieval_mode": "catalog_full_text",
+    "semantic_mode": "not_configured",
+    "retained": {
+      "document_versions": 9,
+      "chunks": 72,
+      "generations": 3
+    }
+  },
+  "degraded_ids": {
+    "incident_id": "09a9b808-aff3-49d1-82a7-6abb8555809a",
+    "run_id": "46892432-d968-4cec-9055-601341053e8d",
+    "state": "queued",
+    "queue_reason": null,
+    "window": {
+      "start": "2026-11-12T09:15:19.859394Z",
+      "end": "2026-11-12T09:45:19.859394Z",
+      "source": "preset_30"
+    }
+  },
+  "retry_index": {
+    "attempt_id": "0ddf8f5a-84ca-40e2-a110-ba0c9f1bb58f",
+    "chunk_count": 56,
+    "document_count": 7,
+    "generation_id": "5e1a6115-8034-4df9-aea1-0e99b17a9240",
+    "outcome": "unchanged",
+    "reason": null,
+    "source_digest": "192618030cffdc14db8d3b025aa91198f64e9ec1c13ac47c1ebcf184ae87ca4e"
+  },
+  "restored_release_index": {
+    "attempt_id": "11d07a54-8571-463e-94bc-b92426a314f8",
+    "chunk_count": 64,
+    "document_count": 8,
+    "generation_id": "5bee7906-c35e-4e6b-a0e5-494a1aed8ad2",
+    "outcome": "reactivated",
+    "reason": null,
+    "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df"
+  },
+  "restart_and_saved_resolution_preservation": true,
+  "later_run_id": "885ea390-84d3-464c-b0ad-08552cfc13e9"
+}

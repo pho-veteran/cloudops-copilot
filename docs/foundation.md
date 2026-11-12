@@ -293,7 +293,7 @@ To pause all background jobs, run `docker compose run --rm dispatch-admin enter-
 | E02 | `features/workloads`: configured stable identity, allowlist and known-good metadata | Admission, baseline preparation and Workloads UI |
 | E03 | `features/incidents`: manual admission, notes/lifecycle and stored handoff | Work queue and investigation workspace |
 | E04 | `features/investigations` and shared job mechanics | Worker composition and run/evidence UI |
-| E05 | `features/knowledge` immutable corpus, index CLI, read catalog, [Run-pinned guidance](run-guidance.md) and [persisted Knowledge UI](knowledge-ui.md) | Integrated release relevance acceptance (#62) |
+| E05 | `features/knowledge` immutable corpus, index CLI, read catalog, [Run-pinned guidance](run-guidance.md) and [persisted Knowledge UI](knowledge-ui.md) | Optional semantic retrieval (unconfigured); E06 final context/egress/RCA |
 | E07 | `features/recovery`: immutable manual plans, session-bound review, isolated executor and proof | Recovery UI, worker and trusted maintenance CLI |
 | E08 | `features/recommendations`: bounded KRR jobs and stored reports | Report UI/export, worker and pinned read-only runner |
 | E09 | `features/health` and `features/connections`: classified observations and fixed checks | Connections UI |

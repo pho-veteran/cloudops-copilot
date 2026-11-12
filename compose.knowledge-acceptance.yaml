@@ -1,0 +1,29 @@
+x-acceptance-env: &acceptance-env
+  DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Set a disposable password}@db:5432/cloudops_knowledge62_test
+services:
+  db:
+    environment:
+      POSTGRES_DB: cloudops_knowledge62_test
+    labels: {cloudops.task: knowledge62}
+  migrate:
+    image: cloudops-knowledge62-backend
+    environment: *acceptance-env
+    volumes: !override
+      - ${KNOWLEDGE_ACCEPTANCE_CORPUS:?Set an absolute disposable corpus copy}:/workspace/runbooks:ro
+    labels: {cloudops.task: knowledge62}
+  api:
+    image: cloudops-knowledge62-backend
+    environment: *acceptance-env
+    ports: !override ['127.0.0.1:8012:8000']
+    labels: {cloudops.task: knowledge62}
+  worker:
+    image: cloudops-knowledge62-backend
+    environment: *acceptance-env
+    labels: {cloudops.task: knowledge62}
+  dispatch-admin:
+    image: cloudops-knowledge62-backend
+    labels: {cloudops.task: knowledge62}
+  web:
+    image: cloudops-knowledge62-web
+    ports: !override ['127.0.0.1:5182:5173']
+    labels: {cloudops.task: knowledge62}

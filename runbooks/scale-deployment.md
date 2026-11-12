@@ -10,7 +10,7 @@ A guide match is not a scale decision. Scale is not a remedy for Pending or Imag
 
 - An exact active Deployment UID and an incident context that remains open.
 - A current live observation of the target's replica count, resource version and controller state.
-- A supported topology and declared capacity/quota sufficient for the proposed change.
+- A supported topology and declared capacity and quota sufficient for the proposed change.
 - A check that HPA/VPA or another controller does not conflict with manual scaling.
 - Fresh target authority and no active, blocking or unclassified execution on the same workload.
 - The bounded replica policy, currently 1–3, from the actual implementation.

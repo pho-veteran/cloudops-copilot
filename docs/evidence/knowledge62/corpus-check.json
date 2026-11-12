@@ -1,0 +1,269 @@
+{
+  "checker_version": "3",
+  "counts": {
+    "corpus_bytes": 35497,
+    "diagnosis": 5,
+    "documents": 8,
+    "recovery_templates": 3
+  },
+  "coverage": {
+    "recovery_templates": [
+      "restore_deployment_template",
+      "scale_deployment",
+      "set_memory_profile"
+    ],
+    "symptom_families": [
+      "crashloop_startup",
+      "image_pull",
+      "oom_restarts",
+      "pending_unschedulable",
+      "traffic_latency_errors"
+    ]
+  },
+  "documents": [
+    {
+      "bytes": 5164,
+      "content_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+      "document_key": "crashloop-startup",
+      "guide_kind": "diagnosis",
+      "largest_section_bytes": 1077,
+      "metadata_sha256": "d7d8a8de5a1afb2bfe8a5d025c439853573679dcf0352cb167f797004b0ca735",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [],
+      "sections": [
+        61,
+        461,
+        1077,
+        812,
+        1015,
+        776,
+        721,
+        241
+      ],
+      "source_path": "runbooks/crashloop-startup.md",
+      "symptom_families": [
+        "crashloop_startup"
+      ],
+      "title": "Investigate CrashLoop and startup failures after a change",
+      "version": "1"
+    },
+    {
+      "bytes": 4915,
+      "content_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+      "document_key": "oom-restarts",
+      "guide_kind": "diagnosis",
+      "largest_section_bytes": 1104,
+      "metadata_sha256": "13911d1a9785e46ed6d3e46ff47ccbdf7162b95c2badedc0de2eb02d2097efd4",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [],
+      "sections": [
+        41,
+        360,
+        947,
+        1104,
+        891,
+        666,
+        691,
+        215
+      ],
+      "source_path": "runbooks/oom-restarts.md",
+      "symptom_families": [
+        "oom_restarts"
+      ],
+      "title": "Investigate OOM and repeated restarts",
+      "version": "2"
+    },
+    {
+      "bytes": 4755,
+      "content_sha256": "1e675f64b72d3189c04f4fa11a2d442730081bb319c0d862291a6f22bb31eff4",
+      "document_key": "traffic-latency-errors",
+      "guide_kind": "diagnosis",
+      "largest_section_bytes": 1064,
+      "metadata_sha256": "ddcae8c390dcb4304ae09805d932f0972e47ac7bfcf6c7a8175af65f7eeeeb24",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [],
+      "sections": [
+        52,
+        325,
+        852,
+        943,
+        1064,
+        668,
+        645,
+        206
+      ],
+      "source_path": "runbooks/traffic-latency-errors.md",
+      "symptom_families": [
+        "traffic_latency_errors"
+      ],
+      "title": "Investigate traffic, latency and error increases",
+      "version": "2"
+    },
+    {
+      "bytes": 4584,
+      "content_sha256": "f5f2e66c073058c5e9afcaccba64a5212716c87a9b5a3c710fb2e6a4e005839a",
+      "document_key": "pending-unschedulable",
+      "guide_kind": "diagnosis",
+      "largest_section_bytes": 982,
+      "metadata_sha256": "d79b9365c978d3ba8af2683a501fb85ef5505c0998c93b9c23c707f8c37869c3",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [],
+      "sections": [
+        46,
+        420,
+        982,
+        667,
+        938,
+        598,
+        650,
+        283
+      ],
+      "source_path": "runbooks/pending-unschedulable.md",
+      "symptom_families": [
+        "pending_unschedulable"
+      ],
+      "title": "Investigate Pending and unschedulable Pods",
+      "version": "1"
+    },
+    {
+      "bytes": 4239,
+      "content_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+      "document_key": "image-pull",
+      "guide_kind": "diagnosis",
+      "largest_section_bytes": 792,
+      "metadata_sha256": "edb3506e14574809dfc2b5f748f2606680e329c4d6265d8522dcc394c1eec8fb",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [],
+      "sections": [
+        35,
+        444,
+        792,
+        767,
+        778,
+        594,
+        574,
+        255
+      ],
+      "source_path": "runbooks/image-pull.md",
+      "symptom_families": [
+        "image_pull"
+      ],
+      "title": "Investigate image pull failures",
+      "version": "1"
+    },
+    {
+      "bytes": 4190,
+      "content_sha256": "fd239c377f509c06036f45f5fb33fa6f29c9ffaa8ec431c648f03f403cccc095",
+      "document_key": "restore-deployment-template",
+      "guide_kind": "recovery_template",
+      "largest_section_bytes": 736,
+      "metadata_sha256": "b314a6531474e10dc2f21a551c02177fb69a649695e61ac5ef11a0c270bd5610",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [
+        "restore_deployment_template"
+      ],
+      "sections": [
+        51,
+        559,
+        729,
+        736,
+        562,
+        646,
+        589,
+        318
+      ],
+      "source_path": "runbooks/restore-deployment-template.md",
+      "symptom_families": [
+        "crashloop_startup"
+      ],
+      "title": "Review a known-good Deployment template restore",
+      "version": "1"
+    },
+    {
+      "bytes": 3772,
+      "content_sha256": "78cd2f4b21279672243950548fa30bc4e750a37164d6161aec8d90190f58b62b",
+      "document_key": "set-memory-profile",
+      "guide_kind": "recovery_template",
+      "largest_section_bytes": 771,
+      "metadata_sha256": "3f9c96f41b9a222604d347c06622be7b648c530772d23df649e251ce61956a8a",
+      "provenance": {
+        "reviewed_at": "2026-11-11",
+        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16"
+      },
+      "recovery_templates": [
+        "set_memory_profile"
+      ],
+      "sections": [
+        42,
+        518,
+        771,
+        632,
+        479,
+        524,
+        521,
+        285
+      ],
+      "source_path": "runbooks/set-memory-profile.md",
+      "symptom_families": [
+        "oom_restarts"
+      ],
+      "title": "Review a bounded memory profile change",
+      "version": "1"
+    },
+    {
+      "bytes": 3878,
+      "content_sha256": "7dc3637da550db01a3f0725541930b62db5a2fead61f7437a8416c0967380101",
+      "document_key": "scale-deployment",
+      "guide_kind": "recovery_template",
+      "largest_section_bytes": 692,
+      "metadata_sha256": "0493085e3bea939068157599fbd46049935a91b1b87b0466740576d1c19d0a80",
+      "provenance": {
+        "reviewed_at": "2026-11-12",
+        "source_revision": "d395c5411777e0f1163b88c9c8192e0688c86f02"
+      },
+      "recovery_templates": [
+        "scale_deployment"
+      ],
+      "sections": [
+        37,
+        491,
+        692,
+        669,
+        529,
+        586,
+        552,
+        322
+      ],
+      "source_path": "runbooks/scale-deployment.md",
+      "symptom_families": [
+        "traffic_latency_errors"
+      ],
+      "title": "Review bounded Deployment scaling",
+      "version": "2"
+    }
+  ],
+  "errors": [],
+  "release_check": true,
+  "schema": "RunbookCorpusCheck/v1",
+  "valid": true,
+  "version_conflicts": [],
+  "warnings": []
+}
