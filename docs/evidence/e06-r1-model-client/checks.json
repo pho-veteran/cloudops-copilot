@@ -1,14 +1,14 @@
 {
   "schema": "E06R1Checks/v1",
-  "source_commit": "6b6060db9a34e249d06de7db68e8f9c97c511c30",
+  "source_commit": "b63c38d4a488b85f99e353c571200cc0d7b15bdb",
   "commands": [
     {
-      "command": "pytest -q services/backend/tests_unit/test_diagnosis_profile.py services/backend/tests_unit/test_diagnosis_client.py services/backend/tests_unit/test_diagnosis_transport.py",
-      "result": "76 passed"
+      "command": "pytest -q services/backend/tests_unit/test_diagnosis_profile.py services/backend/tests_unit/test_diagnosis_messages.py services/backend/tests_unit/test_diagnosis_client.py services/backend/tests_unit/test_diagnosis_transport.py",
+      "result": "93 passed"
     },
     {
       "command": "pytest -q services/backend/tests_unit",
-      "result": "608 passed, 3 skipped"
+      "result": "625 passed, 3 skipped"
     },
     {
       "command": "ruff check --config services/backend/pyproject.toml services/backend scripts services/krr",
@@ -32,20 +32,24 @@
     }
   ],
   "coverage": [
-    "profile/base URL/credential/output-limit/digest validation",
-    "exact request path, headers, body and one output-limit parameter",
-    "text, truncation, refusal, tool output, invalid envelope, usage states",
-    "401/403/429/5xx/4xx/redirect classification and Retry-After",
-    "zero-call disabled, missing/invalid credential and oversized input",
+    "profile/base URL/credential/output-limit/digest validation and immutability",
+    "message role/content/size/multibyte/control/surrogate validation",
+    "exact request path, configured headers, body and one output-limit parameter",
+    "text, truncation, refusal, tool output, unsupported finish/shape, invalid envelope, usage states",
+    "401/403/429/5xx/4xx/redirect/204 classification and bounded Retry-After",
+    "zero-call disabled, missing/invalid credential, oversized input and config/CA failure",
     "pre-call hook once/deny propagation",
-    "real slow headers, body trickle, oversized/chunked/gzip responses",
-    "ambient proxy ignored; explicit proxy used",
-    "real local TLS verification failure and CA success",
-    "no token/provider body in returned result"
+    "real slow headers, body trickle, oversized/chunked/gzip responses and encoding rejection",
+    "ambient proxy ignored; explicit proxy used; injected transport cannot silently use a proxy",
+    "real local TLS verification failure and CA success (test proof)",
+    "recursive/deep JSON and no token/provider body in returned result",
+    "reusable canonical envelopes and local fake servers for #69/#70"
   ],
   "limits": [
     "No external endpoint, model account, spend or diagnostic-quality claim.",
     "Remote enforcement of output limits cannot be proven by the client; #72 owns live qualification.",
+    "A blocking synchronous admission callback is outside the transport's cancellable deadline.",
+    "TLS proof is in test_diagnosis_transport.py, not a JSON receipt.",
     "9router is an external observation only and is not a runtime or CI dependency."
   ]
 }
