@@ -122,7 +122,7 @@
     },
     {
       "document_key": "scale-deployment",
-      "version": "1",
+      "version": "2",
       "title": "Review bounded Deployment scaling",
       "source_path": "runbooks/scale-deployment.md",
       "guide_kind": "recovery_template",
@@ -133,8 +133,8 @@
         "recovery_templates": ["scale_deployment"]
       },
       "provenance": {
-        "source_revision": "6c8eea37e982f3dc6de2755e7a482eb16aaf1f16",
-        "reviewed_at": "2026-11-11"
+        "source_revision": "d395c5411777e0f1163b88c9c8192e0688c86f02",
+        "reviewed_at": "2026-11-12"
       }
     }
   ]
