@@ -76,3 +76,17 @@ def test_chunk_cap_is_enforced():
 def test_invalid_utf8_is_rejected():
     with pytest.raises(ChunkingError, match="UTF-8"):
         chunk_document(b"# Root\n\n\xff")
+
+
+def test_skipped_heading_levels_keep_real_parent_hierarchy():
+    content = b"# Root\n### First\na\n### Peer\nb\n## Mid\nc\n#### Deep\nd\n### Next\ne\n"
+    chunks = chunk_document(content)
+    assert [chunk.heading_path for chunk in chunks] == [
+        ("Root",),
+        ("Root", "First"),
+        ("Root", "Peer"),
+        ("Root", "Mid"),
+        ("Root", "Mid", "Deep"),
+        ("Root", "Mid", "Next"),
+    ]
+    assert b"".join(chunk.content for chunk in chunks) == content

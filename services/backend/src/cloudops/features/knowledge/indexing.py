@@ -33,18 +33,22 @@ from cloudops.features.knowledge.models import (
 from cloudops.features.knowledge.schemas import KnowledgeIndexRequestResult
 
 INDEX_FORMAT_VERSION = "1"
-SEARCH_CONFIG_VERSION = "1"
-RANKING_CONFIG_VERSION = "1"
-SEARCH_CONFIG = {
-    "chunker": CHUNKER_VERSION,
-    "format": INDEX_FORMAT_VERSION,
-    "search": SEARCH_CONFIG_VERSION,
-    "ranking": RANKING_CONFIG_VERSION,
-    "weights": {"title": "A", "heading": "B", "body": "C"},
-}
-CONFIG_DIGEST = hashlib.sha256(
-    json.dumps(SEARCH_CONFIG, sort_keys=True, separators=(",", ":")).encode("utf-8")
-).hexdigest()
+SEARCH_CONFIG_VERSION = "2"
+RANKING_CONFIG_VERSION = "2"
+
+
+def _search_config() -> dict:
+    return {
+        "chunker": CHUNKER_VERSION,
+        "format": INDEX_FORMAT_VERSION,
+        "search": SEARCH_CONFIG_VERSION,
+        "ranking": RANKING_CONFIG_VERSION,
+        "weights": {"title": "A", "heading": "B", "body": "C"},
+    }
+
+
+def _config_digest() -> str:
+    return _sha(_canonical(_search_config()))
 
 
 class KnowledgeConflict(ValueError):
@@ -80,7 +84,7 @@ def _generation_fingerprint(source_digest: str) -> str:
                 "index_format_version": INDEX_FORMAT_VERSION,
                 "search_config_version": SEARCH_CONFIG_VERSION,
                 "ranking_config_version": RANKING_CONFIG_VERSION,
-                "config_digest": CONFIG_DIGEST,
+                "config_digest": _config_digest(),
             }
         )
     )
@@ -99,9 +103,9 @@ def _document_vector(document: CapturedDocument, chunks: tuple) -> object:
     return _vector(document.title, headings, document.content.decode("utf-8"))
 
 
-def _chunk_vector(chunk) -> object:
+def _chunk_vector(document: CapturedDocument, chunk) -> object:
     return _vector(
-        chunk.heading_label or "",
+        document.title,
         " / ".join(chunk.heading_path),
         chunk.content.decode("utf-8"),
     )
@@ -338,8 +342,8 @@ def _activate(
                 index_format_version=INDEX_FORMAT_VERSION,
                 search_config_version=SEARCH_CONFIG_VERSION,
                 ranking_config_version=RANKING_CONFIG_VERSION,
-                config_digest=CONFIG_DIGEST,
-                config=SEARCH_CONFIG,
+                config_digest=_config_digest(),
+                config=_search_config(),
                 document_count=len(prepared),
                 chunk_count=sum(len(item.chunks) for item in prepared),
                 captured_at=captured.captured_at,
@@ -364,7 +368,7 @@ def _activate(
                             generation_id=generation.id,
                             chunk_id=chunk_row.id,
                             document_version_id=document_row.id,
-                            search_vector=_chunk_vector(chunk),
+                            search_vector=_chunk_vector(item.document, chunk),
                         )
                     )
             changed = True

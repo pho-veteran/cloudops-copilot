@@ -7,7 +7,7 @@ import json
 import re
 from dataclasses import dataclass
 
-CHUNKER_VERSION = "1"
+CHUNKER_VERSION = "2"
 MAX_CHUNK_BYTES = 4 * 1024
 MAX_CHUNKS = 200
 HEADING = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*$")
@@ -81,7 +81,7 @@ def chunk_document(content: bytes) -> tuple[Chunk, ...]:
         raise ChunkingError("document must be valid UTF-8") from None
     lines = text.splitlines(keepends=True)
     sections: list[tuple[bytes, int, tuple[str, ...], str | None]] = []
-    stack: list[str] = []
+    stack: list[tuple[int, str]] = []
     section_start = 0
     offset = 0
     fenced = False
@@ -107,14 +107,15 @@ def chunk_document(content: bytes) -> tuple[Chunk, ...]:
                         (
                             content[section_start:offset],
                             section_start,
-                            tuple(stack),
-                            stack[-1] if stack else None,
+                            tuple(label for _level, label in stack),
+                            stack[-1][1] if stack else None,
                         )
                     )
                 level = len(match.group(1))
                 label = match.group(2).strip()
-                stack = stack[: max(level - 1, 0)]
-                stack.append(label)
+                while stack and stack[-1][0] >= level:
+                    stack.pop()
+                stack.append((level, label))
                 section_start = offset
         offset += len(line_bytes)
     if section_start < len(content):
@@ -122,8 +123,8 @@ def chunk_document(content: bytes) -> tuple[Chunk, ...]:
             (
                 content[section_start:],
                 section_start,
-                tuple(stack),
-                stack[-1] if stack else None,
+                tuple(label for _level, label in stack),
+                stack[-1][1] if stack else None,
             )
         )
     chunks: list[Chunk] = []

@@ -10,6 +10,25 @@ from cloudops.features.knowledge.corpus import CorpusError, capture_corpus, meta
 from knowledge_fixtures import document, write_corpus
 
 
+@pytest.mark.parametrize("case", ["source-path", "unknown-field", "duplicate-key"])
+def test_rejection_does_not_echo_private_input_values(tmp_path, case):
+    marker = "/private/cloudops-sensitive-canary"
+    write_corpus(tmp_path)
+    path = tmp_path / "runbooks/catalog.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if case == "source-path":
+        manifest["documents"][0]["source_path"] = marker + ".md"
+    elif case == "unknown-field":
+        manifest[marker] = "untrusted content"
+    if case == "duplicate-key":
+        path.write_text('{"' + marker + '":1,"' + marker + '":2}', encoding="utf-8")
+    else:
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(CorpusError) as error:
+        capture_corpus(tmp_path)
+    assert marker not in str(error.value)
+
+
 def test_valid_corpus_captures_exact_bytes_and_deterministic_digest(tmp_path):
     write_corpus(
         tmp_path,

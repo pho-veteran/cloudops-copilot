@@ -136,7 +136,7 @@ def _pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
         if key in result:
-            raise CorpusError(f"duplicate JSON key: {key}")
+            raise CorpusError("catalog contains a duplicate JSON key")
         result[key] = value
     return result
 
@@ -176,21 +176,21 @@ def _safe_path(root: Path, raw: str) -> Path:
     if not isinstance(raw, str) or not raw or len(raw) > MAX_SOURCE_PATH:
         raise CorpusError(f"source_path must be a string of 1..{MAX_SOURCE_PATH} characters")
     if "\x00" in raw or "\\" in raw or any(ord(char) < 32 for char in raw):
-        raise CorpusError(f"source_path contains an unsupported byte: {raw}")
+        raise CorpusError("source_path contains an unsupported byte")
     value = PurePosixPath(raw)
     if value.is_absolute() or any(part in {"", ".", ".."} for part in value.parts):
-        raise CorpusError(f"source_path must be relative without traversal: {raw}")
+        raise CorpusError("source_path must be relative without traversal")
     if len(value.parts) < 2 or value.parts[0] != "runbooks" or value.suffix != ".md":
-        raise CorpusError(f"source_path must be a Markdown file under runbooks/: {raw}")
+        raise CorpusError("source_path must be a Markdown file under runbooks/")
     current = root
     for part in value.parts:
         current = current / part
         if current.is_symlink() or _is_reparse(current):
-            raise CorpusError(f"source_path traverses a symlink or reparse point: {raw}")
+            raise CorpusError("source_path traverses a symlink or reparse point")
     try:
         current.relative_to(root.resolve())
     except ValueError:
-        raise CorpusError(f"source_path escapes the capture root: {raw}") from None
+        raise CorpusError("source_path escapes the capture root") from None
     return current
 
 
@@ -237,7 +237,7 @@ def _require_fields(value: dict[str, Any], fields: set[str], where: str) -> None
     if missing:
         raise CorpusError(f"{where} is missing fields: {', '.join(sorted(missing))}")
     if unknown:
-        raise CorpusError(f"{where} has unknown fields: {', '.join(sorted(unknown))}")
+        raise CorpusError(f"{where} has unknown fields")
 
 
 def _require_string(value: Any, where: str, maximum: int) -> str:
@@ -379,7 +379,7 @@ def capture_corpus(root: str | Path) -> CapturedCorpus:
             if isinstance(key, str) and isinstance(version, str):
                 pair = (key, version)
                 if pair in seen_tuples:
-                    raise CorpusError(f"duplicate document key/version: {pair[0]} v{pair[1]}")
+                    raise CorpusError("duplicate document key/version")
                 seen_tuples.add(pair)
             if isinstance(source, str):
                 resolved = str(_safe_path(root_path, source).resolve())

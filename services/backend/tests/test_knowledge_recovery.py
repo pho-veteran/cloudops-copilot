@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import time
+
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from cloudops.features.knowledge.catalog import index_status, read_document
-from cloudops.features.knowledge.index_guard import GuardLost, WriterGuard
+from cloudops.features.knowledge.index_guard import GuardLost, LOCK_KEY, WriterGuard, lock_present
 from cloudops.features.knowledge.indexing import (
     _activate,
     _prepare,
@@ -17,8 +19,13 @@ from cloudops.shared.database import engine
 from knowledge_fixtures import document, write_corpus
 
 
-def test_guard_busy_does_not_start_an_attempt(db, tmp_path):
+def test_guard_busy_does_not_start_an_attempt(db, tmp_path, monkeypatch):
     write_corpus(tmp_path)
+
+    def unexpected_capture(root):
+        pytest.fail("A busy writer must not read source files.")
+
+    monkeypatch.setattr("cloudops.features.knowledge.indexing._prepare", unexpected_capture)
     with WriterGuard():
         result = index_corpus(tmp_path)
     assert result.outcome == "index_busy"
@@ -88,6 +95,10 @@ def test_guard_loss_prevents_late_publish(db, tmp_path):
         captured, prepared = _prepare(tmp_path)
         with engine().begin() as killer:
             killer.execute(text("SELECT pg_terminate_backend(:pid)"), {"pid": guard.pid})
+        deadline = time.monotonic() + 5
+        while lock_present(db) and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert not lock_present(db), "PostgreSQL did not release the terminated session lock."
         winner = index_corpus(tmp_path)
         assert winner.outcome == "indexed"
         with pytest.raises((GuardLost, SQLAlchemyError)):
@@ -121,3 +132,21 @@ def test_interrupted_attempt_is_reconciled_by_next_writer(db, tmp_path):
     db.expire_all()
     attempt = db.get(KnowledgeIndexAttempt, attempt_id)
     assert attempt.outcome == "interrupted"
+
+
+def test_status_ignores_same_lock_key_in_another_database(db, tmp_path):
+    write_corpus(tmp_path)
+    assert index_corpus(tmp_path).outcome == "indexed"
+    other = create_engine(engine().url.set(database="postgres"))
+    try:
+        with other.connect() as connection:
+            assert connection.scalar(text("SELECT pg_try_advisory_lock(:key)"), {"key": LOCK_KEY})
+            connection.commit()
+            try:
+                assert not lock_present(db)
+                assert index_status(db).state == "ready"
+            finally:
+                connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": LOCK_KEY})
+                connection.commit()
+    finally:
+        other.dispose()

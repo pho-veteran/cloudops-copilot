@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -146,3 +148,32 @@ def test_index_status_reports_ready_after_activation(client, tmp_path):
     assert body["active_generation"]["document_count"] == 1
     assert body["last_attempt"]["outcome"] == "indexed"
     assert "source_path" not in body
+
+
+def test_malformed_cursor_is_typed_at_the_api_and_failed_source_reason_is_safe(client, tmp_path):
+    headers = _headers(client)
+    cursor = base64.urlsafe_b64encode(
+        json.dumps(
+            {
+                "v": 1,
+                "offset": 0,
+                "generation_id": [],
+                "q": "a",
+                "tags": "b",
+            }
+        ).encode("ascii")
+    ).decode("ascii")
+    response = client.get("/api/knowledge/documents", params={"cursor": cursor}, headers=headers)
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_cursor"
+    write_corpus(tmp_path)
+    marker = "/private/knowledge-canary"
+    manifest = tmp_path / "runbooks/catalog.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    data["documents"][0]["source_path"] = marker + ".md"
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    assert index_corpus(tmp_path).outcome == "failed"
+    status = client.get("/api/knowledge/index-status", headers=headers)
+    assert status.status_code == 200
+    assert status.json()["last_attempt"]["outcome"] == "failed"
+    assert marker not in status.text

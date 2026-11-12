@@ -127,6 +127,8 @@ def _decode_cursor(cursor: str) -> dict:
         raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.")
     if type(value["offset"]) is not int or not 0 <= value["offset"] <= 100:
         raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.")
+    if not isinstance(value["generation_id"], str):
+        raise DomainError(422, "invalid_cursor", "The catalog cursor is invalid.")
     try:
         UUID(value["generation_id"])
     except (ValueError, TypeError):
@@ -146,6 +148,7 @@ def list_documents(
 ) -> KnowledgeDocumentPage:
     if query is not None and len(query) > 2000:
         raise DomainError(422, "invalid_query", "Search text is too long.")
+    query = query.strip() or None if query is not None else None
     if len(tags) > 16 or any(not tag or len(tag) > 64 for tag in tags):
         raise DomainError(422, "invalid_tags", "Tags are invalid or exceed the bound.")
     state = db.get(KnowledgeIndexState, 1)
@@ -193,11 +196,14 @@ def list_documents(
     )
     for tag in tags:
         statement = statement.where(KnowledgeDocumentVersion.tags.contains([tag]))
+    ranking = []
     if query:
         tsquery = func.websearch_to_tsquery("english", query)
         statement = statement.where(KnowledgeGenerationDocument.search_vector.op("@@")(tsquery))
+        ranking.append(func.ts_rank_cd(KnowledgeGenerationDocument.search_vector, tsquery).desc())
     statement = (
         statement.order_by(
+            *ranking,
             KnowledgeDocumentVersion.document_key,
             KnowledgeDocumentVersion.version,
             KnowledgeDocumentVersion.id,

@@ -17,10 +17,14 @@ _UNLOCK_SQL = text("SELECT pg_advisory_unlock(:key)")
 _PID_SQL = text("SELECT pg_backend_pid()")
 _HELD_SQL = text(
     "SELECT 1 FROM pg_locks WHERE locktype = 'advisory' "
+    "AND database = (SELECT oid FROM pg_database WHERE datname = current_database()) "
+    "AND granted "
     "AND classid = :high AND objid = :low AND objsubid = 1 LIMIT 1"
 )
 _HELD_BY_SESSION_SQL = text(
     "SELECT 1 FROM pg_locks WHERE locktype = 'advisory' "
+    "AND database = (SELECT oid FROM pg_database WHERE datname = current_database()) "
+    "AND granted "
     "AND classid = :high AND objid = :low AND objsubid = 1 AND pid = pg_backend_pid() LIMIT 1"
 )
 

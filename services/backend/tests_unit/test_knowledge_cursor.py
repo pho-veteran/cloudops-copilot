@@ -41,3 +41,13 @@ def test_non_ascii_and_oversized_cursor_are_rejected():
         _decode_cursor("not-base64!")
     with pytest.raises(DomainError):
         _decode_cursor("a" * 513)
+
+
+@pytest.mark.parametrize("generation", [None, 12, True, {}, []])
+def test_cursor_generation_must_be_a_uuid_string(generation):
+    payload = {"v": 1, "offset": 0, "generation_id": generation, "q": "a", "tags": "b"}
+    cursor = base64.urlsafe_b64encode(json.dumps(payload).encode("ascii")).decode("ascii")
+    with pytest.raises(DomainError) as error:
+        _decode_cursor(cursor)
+    assert error.value.status == 422
+    assert error.value.code == "invalid_cursor"
