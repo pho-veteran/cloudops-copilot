@@ -1,0 +1,47 @@
+{
+  "proof_class": "Real loopback HTTP server; synthetic credential; Authorization redacted.",
+  "request": {
+    "body": {
+      "max_tokens": 32,
+      "messages": [
+        {
+          "content": "You are a terse assistant.",
+          "role": "system"
+        },
+        {
+          "content": "Reply with exactly: OK",
+          "role": "user"
+        }
+      ],
+      "model": "fixture-model",
+      "stream": false
+    },
+    "headers": {
+      "Accept": "application/json",
+      "Accept-Encoding": "identity",
+      "Authorization": "<redacted>",
+      "Connection": "keep-alive",
+      "Content-Length": "177",
+      "Content-Type": "application/json",
+      "Host": "127.0.0.1:56103",
+      "User-Agent": "python-httpx/0.28.1"
+    },
+    "method": "POST",
+    "path": "/v1/chat/completions"
+  },
+  "result": {
+    "error_code": null,
+    "finish_reason": "stop",
+    "http_status": 200,
+    "kind": "text",
+    "served_model": "fixture-served-model",
+    "text": "OK",
+    "usage": {
+      "completion_tokens": 2,
+      "prompt_tokens": 12,
+      "total_tokens": 14
+    },
+    "usage_status": "observed"
+  },
+  "schema": "E06ModelClientWire/v1"
+}
