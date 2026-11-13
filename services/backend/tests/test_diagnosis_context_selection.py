@@ -3,10 +3,16 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from diagnosis_fixtures import profile
+from knowledge_fixtures import document, write_corpus
 from sqlalchemy import select
 
 from cloudops.features.access.models import User
 from cloudops.features.diagnosis.context import (
+    InsufficientContext,
+    PreparedContext,
+    assemble,
+    build,
     family_matrix,
     load_materials,
     resolve_scope,
@@ -16,7 +22,11 @@ from cloudops.features.diagnosis.egress import EgressPolicy
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.catalog import CATALOG_VERSION, SOURCES
 from cloudops.features.investigations.models import Evidence, InvestigationRun
+from cloudops.features.knowledge.guidance import pin_guidance
+from cloudops.features.knowledge.indexing import index_corpus
+from cloudops.features.knowledge.models import KnowledgeSelection
 from cloudops.features.workloads.models import Workload
+from cloudops.shared.database import sessions
 
 STATE = {"pods": [{"uid": "pod-1", "phase": "Running"}]}
 EVENTS = {"events": [{"uid": "event-1", "reason": "BackOff", "lastTimestamp": 1}]}
@@ -296,3 +306,133 @@ def test_no_family_is_inferred_from_question_or_pack_coverage(db, context):
         "image_pull",
     ]
     assert all(item.eligible_for_assessment is False for item in families)
+
+
+def _crashloop_evidence(db, context):
+    add_evidence(db, context, "kubernetes.state", STATE)
+    add_evidence(db, context, "kubernetes.events", EVENTS)
+    add_evidence(db, context, "kubernetes.logs.current", LOGS)
+    add_evidence(db, context, "kubernetes.logs.previous", LOGS)
+
+
+def _build(db, context, selection=None):
+    return build(
+        db,
+        context[0],
+        context[1],
+        selection=selection,
+        policy=policy(),
+        profile=profile(),
+        analysis_identity="analysis-1",
+    )
+
+
+def test_build_over_persisted_run_matches_the_pure_assembly(db, context):
+    _crashloop_evidence(db, context)
+    scope = resolve_scope(db, context[0], context[1])
+    assert scope is not None
+    execution_policy = policy()
+    pure = assemble(
+        load_materials(db, scope),
+        scope,
+        None,
+        execution_policy,
+        profile(),
+        "analysis-1",
+    )
+    rebuilt = _build(db, context)
+    assert isinstance(pure, PreparedContext)
+    assert isinstance(rebuilt, PreparedContext)
+    assert rebuilt.digest == pure.digest
+    assert rebuilt.message_bytes == pure.message_bytes
+    assert rebuilt.incident_id == context[0]
+    assert rebuilt.run_id == context[1]
+    assert [family.family for family in rebuilt.families] == [
+        family.family for family in pure.families
+    ]
+
+    run = db.get(InvestigationRun, context[1])
+    run.question = None
+    run.question_source = "not_captured"
+    db.commit()
+    legacy = _build(db, context)
+    assert isinstance(legacy, InsufficientContext)
+    assert legacy.reason == "scope_unavailable"
+    assert legacy.source_coverage == []
+    assert legacy.families == []
+
+
+def test_analysis_selection_is_independent_of_manual_selection(db, context, tmp_path):
+    _crashloop_evidence(db, context)
+    run = db.get(InvestigationRun, context[1])
+    run.question = "unmatchedqueryxyz"
+    db.commit()
+    write_corpus(
+        tmp_path,
+        [document(title="Memory guide")],
+        {"fixture-guide": "# Memory guide\n\nMemory pressure and restarts.\n"},
+    )
+    assert index_corpus(tmp_path).outcome in {"indexed", "unchanged", "reactivated"}
+    actor = db.scalar(select(User).where(User.username == "operator"))
+    with sessions()() as session, session.begin():
+        manual = pin_guidance(
+            session,
+            context[0],
+            context[1],
+            consumer="manual",
+            request_identity="manual",
+            actor_id=actor.id,
+        )
+        assert manual.selection.retrieval.status == "no_matches"
+        analysis = pin_guidance(
+            session,
+            context[0],
+            context[1],
+            consumer="analysis",
+            request_identity="analysis-1",
+            query="memory",
+        )
+        assert analysis.selection.retrieval.status == "matched"
+        assert analysis.selection.id != manual.selection.id
+    db.expire_all()
+    first = _build(db, context, analysis.selection)
+    assert isinstance(first, PreparedContext)
+    assert first.selection_id == analysis.selection.id
+    assert first.runbook_status == "matched"
+    assert [(item.alias, item.reference.document_key) for item in first.runbooks] == [
+        ("K001", "fixture-guide")
+    ]
+
+    with sessions()() as session, session.begin():
+        manual_row = session.scalar(
+            select(KnowledgeSelection).where(
+                KnowledgeSelection.run_id == context[1],
+                KnowledgeSelection.consumer == "manual",
+                KnowledgeSelection.request_identity == "manual",
+            )
+        )
+        assert manual_row is not None
+        session.delete(manual_row)
+        session.flush()
+        replacement = pin_guidance(
+            session,
+            context[0],
+            context[1],
+            consumer="manual",
+            request_identity="manual",
+            actor_id=actor.id,
+        )
+        assert replacement.selection.id != manual.selection.id
+        again = pin_guidance(
+            session,
+            context[0],
+            context[1],
+            consumer="analysis",
+            request_identity="analysis-1",
+            query="memory",
+        )
+        assert again.selection.id == analysis.selection.id
+    db.expire_all()
+    second = _build(db, context, again.selection)
+    assert isinstance(second, PreparedContext)
+    assert second.digest == first.digest

@@ -269,7 +269,7 @@ Fields (frozen Pydantic, `extra="forbid"`):
 | Matrix | `families: list[FamilyAssessment]` (all five, fixed order) |
 | Manifest | `required_targets`, `optional_targets: list[ContextTarget]`, `runbooks: list[ContextRunbook]`, `omissions: list[Omission]`, `limitations: list[str]` |
 | Budget | `effective_budget_bytes`, `repair_reserve_bytes`, `repair_available`, `alias_capacity` |
-| Message | `messages: list[Message]` (exactly 1 system + 1 user), `message_bytes`, `content_bytes`, `digest` (SHA-256 of canonical `{versions, scope, request, manifest, messages}`) |
+| Message | `messages: list[Message]` (exactly 1 system + 1 user), `message_bytes`, `content_bytes`, `digest` (SHA-256 of canonical `{versions, policy_digest, scope, request, manifest, messages}`) |
 
 `ContextTarget` = `alias ("E001"…)`, `evidence_id`, `source_key`, `source_class`,
 `locator {kind,key}`, `label` (≤120), `value` (full `Entry.value`, never `Entry.view()`),

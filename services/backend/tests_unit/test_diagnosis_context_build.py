@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
+from diagnosis_fixtures import profile
 
+from cloudops.features.diagnosis import versions
 from cloudops.features.diagnosis.context import (
+    ContextScope,
+    InsufficientContext,
+    PreparedContext,
     SlotMaterial,
+    assemble,
     extract_optional,
     extract_required,
     family_matrix,
@@ -14,9 +21,10 @@ from cloudops.features.diagnosis.context import (
     required_targets,
 )
 from cloudops.features.diagnosis.egress import EgressPolicy
-from cloudops.features.diagnosis import versions
+from cloudops.features.diagnosis.messages import prepare_payload, serialize_payload
 from cloudops.features.diagnosis.versions import SOURCE_CLASSES
 from cloudops.features.investigations.locators import Entry, canonical
+from cloudops.features.knowledge.guidance_schemas import KnowledgeRunScope
 
 
 def test_versions_are_unique_and_pinned():
@@ -114,12 +122,17 @@ def _material(slot, entries=(), *, ambiguous=0, evidence_id=None):
     )
 
 
-def _policy(*classes):
+def _policy(
+    *classes,
+    max_message_bytes=65536,
+    max_target_bytes=8192,
+    policy_version="1",
+):
     return EgressPolicy.model_validate(
         {
             "schema": "EgressPolicy/v1",
             "policy_id": "test-policy",
-            "policy_version": "1",
+            "policy_version": policy_version,
             "destination": {
                 "config_id": "test-config",
                 "config_version": "1",
@@ -137,8 +150,8 @@ def _policy(*classes):
                 "synthetic_fixture",
                 "diagnostic_fixture",
             ],
-            "max_message_bytes": 65536,
-            "max_target_bytes": 8192,
+            "max_message_bytes": max_message_bytes,
+            "max_target_bytes": max_target_bytes,
             "redaction_policy_version": "redaction/v1",
             "deny_patterns": [],
         }
@@ -334,3 +347,238 @@ def test_rule_caps_are_recorded_as_rule_omitted():
         for family in families
         if family.family == "pending_unschedulable"
     )
+
+
+def _scope(request_text="Why did the workload restart?"):
+    now = datetime.now(timezone.utc)
+    return ContextScope(
+        knowledge=KnowledgeRunScope(
+            incident_id=uuid4(),
+            run_id=uuid4(),
+            workload_id=uuid4(),
+            cluster="cluster-a",
+            namespace="namespace-a",
+            name="app",
+            workload_uid="uid-1",
+            window_start=now - timedelta(minutes=30),
+            window_end=now,
+        ),
+        request_text=request_text,
+        request_source="operator",
+        window_source="explicit",
+    )
+
+
+def _build(
+    materials,
+    *,
+    budget=65536,
+    max_target_bytes=8192,
+    request_text=None,
+    policy_version="1",
+    scope=None,
+):
+    scope = scope or (_scope(request_text) if request_text is not None else _scope())
+    execution_policy = _policy(
+        max_message_bytes=budget,
+        max_target_bytes=min(max_target_bytes, budget),
+        policy_version=policy_version,
+    )
+    return assemble(materials, scope, None, execution_policy, profile(), "analysis-1")
+
+
+def _minimal_materials():
+    state = _material("kubernetes.state", [_entry("field", ["uid", "pod-1"], {"uid": "pod-1"})])
+    events = _material("kubernetes.events", [_entry("event", ["uid", "e-1"], {"uid": "e-1"})])
+    return [state, events]
+
+
+def test_effective_budget_uses_the_lower_limit():
+    scope = _scope()
+    execution_policy = _policy()
+    materials = _minimal_materials()
+    wide = assemble(
+        materials,
+        scope,
+        None,
+        execution_policy,
+        profile(limits={"max_input_bytes": 10000}),
+        "analysis-1",
+    )
+    assert isinstance(wide, PreparedContext)
+    assert wide.effective_budget_bytes == 10000
+    narrow_policy = execution_policy.model_copy(update={"max_message_bytes": 20000})
+    narrow = assemble(materials, scope, None, narrow_policy, profile(), "analysis-1")
+    assert isinstance(narrow, PreparedContext)
+    assert narrow.effective_budget_bytes == 20000
+
+
+def test_message_bytes_equals_transport_and_prepare_payload_accepts():
+    context = _build(_minimal_materials())
+    assert isinstance(context, PreparedContext)
+    assert context.message_bytes == len(serialize_payload(profile(), context.messages))
+    assert prepare_payload(profile(), context.messages)
+    assert len(context.messages) == 2
+    assert [message.role for message in context.messages] == ["system", "user"]
+
+
+def test_optional_is_omitted_greedily_under_the_repair_reserve():
+    state = _material("kubernetes.state", [_entry("field", ["uid", "pod-1"], {"uid": "pod-1"})])
+    events = _material("kubernetes.events", [_entry("event", ["uid", "e-1"], {"uid": "e-1"})])
+    configmap = _material(
+        "kubernetes.configmap.metadata",
+        [_entry("field", ["uid", "cm-1"], {"uid": "cm-1", "blob": "y" * 7000})],
+    )
+    fixture = _material("development_fixture", [_entry("field", ["path", "k"], {"k": "small"})])
+    context = _build([state, events, configmap, fixture], budget=12000)
+    assert isinstance(context, PreparedContext)
+    assert context.message_bytes <= 12000 - 4096
+    assert context.repair_available is True
+    assert [target.source_key for target in context.optional_targets] == ["development_fixture"]
+    assert any(
+        omission.code == "budget_omitted" and omission.slot == "kubernetes.configmap.metadata"
+        for omission in context.omissions
+    )
+    envelope = json.loads(context.messages[1].content)
+    assert "synthetic_fixture_not_production_evidence" in envelope["limitations"]
+    assert envelope["limitations"] == context.limitations
+
+
+def test_required_filling_the_budget_sets_repair_unavailable():
+    materials = _minimal_materials()
+    measured = _build(materials)
+    assert isinstance(measured, PreparedContext)
+    context = _build(materials, budget=measured.message_bytes)
+    assert isinstance(context, PreparedContext)
+    assert context.optional_targets == []
+    assert context.repair_available is False
+
+
+def test_required_overflow_returns_insufficiency_without_messages():
+    state_entries = [
+        _entry(
+            "field",
+            ["uid", f"pod-{index:02d}"],
+            {"uid": f"pod-{index:02d}", "blob": "z" * 200},
+        )
+        for index in range(40)
+    ]
+    state = _material("kubernetes.state", state_entries)
+    events = _material("kubernetes.events", [_entry("event", ["uid", "e-1"], {"uid": "e-1"})])
+    context = _build([state, events], budget=6000)
+    assert isinstance(context, InsufficientContext)
+    assert context.reason == "required_targets_exceed_budget"
+    assert not hasattr(context, "messages")
+    families = {item.family: item for item in context.families}
+    assert families["pending_unschedulable"].eligible_for_assessment is True
+    assert families["image_pull"].eligible_for_assessment is True
+
+
+def test_request_exceeds_budget_is_terminal():
+    context = _build(_minimal_materials(), budget=1000, request_text="Q" * 5000)
+    assert isinstance(context, InsufficientContext)
+    assert context.reason == "request_exceeds_budget"
+
+
+def test_alias_capacity_is_999_required():
+    # 250 + 50 + 3 + 3 + 3 * 250 = 1056 required targets; the 1000th alias fails
+    # before any budget check, so a 999-target build cannot be reached here.
+    materials = [
+        _material(
+            "kubernetes.state",
+            [
+                _entry("field", ["uid", f"s-{index:03d}"], {"uid": f"s-{index:03d}"})
+                for index in range(250)
+            ],
+        ),
+        _material(
+            "kubernetes.events",
+            [
+                _entry("event", ["uid", f"e-{index:03d}"], {"uid": f"e-{index:03d}"})
+                for index in range(50)
+            ],
+        ),
+        _material(
+            "kubernetes.logs.current",
+            [
+                _entry("log_segment", ["pod-1", "app", False, str(index), "d"], {"lines": ["x"]})
+                for index in range(3)
+            ],
+        ),
+        _material(
+            "kubernetes.logs.previous",
+            [
+                _entry("log_segment", ["pod-1", "app", True, str(index), "d"], {"lines": ["y"]})
+                for index in range(3)
+            ],
+        ),
+    ]
+    for slot in (
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency",
+    ):
+        materials.append(
+            _material(
+                slot,
+                [
+                    _entry("series", ["metric", f"{slot}-{index:03d}"], {"m": index})
+                    for index in range(250)
+                ],
+            )
+        )
+    context = _build(materials)
+    assert isinstance(context, InsufficientContext)
+    assert context.reason == "required_alias_space_exceeded"
+
+
+def test_request_text_is_envelope_only_and_never_citable():
+    scope = _scope("Distinctive operator request text")
+    materials = _minimal_materials()
+    context = assemble(materials, scope, None, _policy(), profile(), "analysis-1")
+    assert isinstance(context, PreparedContext)
+    user = json.loads(context.messages[1].content)
+    assert user["request"] == {
+        "text": "Distinctive operator request text",
+        "source": "operator",
+    }
+    assert context.messages[1].content.count("Distinctive operator request text") == 1
+    for target in [*context.required_targets, *context.optional_targets]:
+        assert target.source_class != "operator_request"
+        assert "Distinctive operator request text" not in canonical(target.value)
+
+
+def test_insufficiency_has_digest_and_record_shape():
+    context = _build(_minimal_materials(), budget=1000, request_text="SECRET-REQUEST-MARKER" * 200)
+    assert isinstance(context, InsufficientContext)
+    record = context.record()
+    assert record["outcome"] == "insufficient"
+    assert record["message_bytes"] is None
+    assert record["digest"] == context.digest
+    assert record["policy_digest"]
+    assert record["versions"]
+    assert record["scope"] is not None
+    assert "SECRET-REQUEST-MARKER" not in json.dumps(record)
+    prepared = _build(_minimal_materials())
+    assert isinstance(prepared, PreparedContext)
+    prepared_record = prepared.record()
+    assert prepared_record["outcome"] == "prepared"
+    assert isinstance(prepared_record["message_bytes"], int)
+    assert prepared_record["digest"] == prepared.digest
+    assert "Why did the workload restart?" not in json.dumps(prepared_record)
+
+
+def test_rebuild_is_byte_identical_and_digest_stable():
+    materials = _minimal_materials()
+    scope = _scope()
+    first = _build(materials, scope=scope)
+    second = _build(materials, scope=scope)
+    assert isinstance(first, PreparedContext) and isinstance(second, PreparedContext)
+    assert [message.content for message in first.messages] == [
+        message.content for message in second.messages
+    ]
+    assert first.message_bytes == second.message_bytes
+    assert first.digest == second.digest
+    third = _build(materials, scope=scope, policy_version="2")
+    assert isinstance(third, PreparedContext)
+    assert third.digest != first.digest
