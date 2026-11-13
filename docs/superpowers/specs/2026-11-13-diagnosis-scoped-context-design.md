@@ -167,7 +167,7 @@ Composition boundary:
 All versions are written into `PreparedContext`, `RCAResult` and the #70 rows. Changing any
 of them requires a new version string, not an in-place edit.
 
-Two non-versioned bounds live in `context.py` as module constants, are copied into every
+Two non-versioned bounds live in `versions.py` as module constants, are copied into every
 context record, and are part of `e06.targets/v1`'s semantics: `ALIAS_CAPACITY = 999`
 (three-digit `E`/`K` alias space, §8.2) and `REPAIR_RESERVE_BYTES = 4096` (optional
 material leaves room for one bounded repair, §8.3/§10.1).
