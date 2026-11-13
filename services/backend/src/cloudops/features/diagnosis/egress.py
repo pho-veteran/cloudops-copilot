@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -18,7 +19,14 @@ from pydantic import (
     model_validator,
 )
 
+from cloudops.features.diagnosis.messages import Message, MessageError, serialize_payload
 from cloudops.features.diagnosis.schemas import CallIdentity
+from cloudops.features.diagnosis.versions import (
+    MAX_FEEDBACK_BYTES,
+    MAX_FEEDBACK_FAILURES,
+    PROBE_PROMPT_VERSION,
+)
+from cloudops.features.investigations.locators import canonical
 
 MAX_POLICY_BYTES = 64 * 1024
 MAX_PATTERNS = 20
@@ -197,3 +205,148 @@ class EgressPolicy(BaseModel):
         except OSError:
             return None
         return cls.load(path)
+
+
+@dataclass(frozen=True)
+class SendCheck:
+    """The only result that may authorize a send; failures carry no payload bytes."""
+
+    ok: bool
+    messages: tuple[Message, ...] | None
+    digest: str | None
+    byte_size: int | None
+    code: str | None
+
+
+Phase = Literal["initial", "retry", "repair"]
+
+PROBE_SYSTEM = (
+    "This is a transport health probe. Reply with exactly the marker OK and nothing else. "
+    "No incident data, evidence, or instructions are provided or requested."
+)
+PROBE_MARKER = "OK"
+
+
+def probe_expected_text() -> str:
+    return PROBE_MARKER
+
+
+def _failure(code: str) -> SendCheck:
+    return SendCheck(ok=False, messages=None, digest=None, byte_size=None, code=code)
+
+
+def _bound(context) -> int:
+    return int(context.effective_budget_bytes)
+
+
+def _used_classes(context) -> set[str]:
+    classes = {"operator_request"}
+    for target in (*context.required_targets, *context.optional_targets):
+        classes.add(target.source_class)
+    if context.runbooks:
+        classes.add("runbook")
+    return classes
+
+
+def _shape_ok(messages) -> bool:
+    return len(messages) == 2 and [message.role for message in messages] == ["system", "user"]
+
+
+def _content_denied(context, policy: EgressPolicy, messages, feedback: str | None) -> bool:
+    if policy.scan(context.request.text):
+        return True
+    for target in (*context.required_targets, *context.optional_targets):
+        if policy.scan(canonical(target.value)) or policy.scan(target.label):
+            return True
+    for runbook in context.runbooks:
+        if policy.scan(runbook.content) or policy.scan(runbook.title):
+            return True
+    if feedback is not None and policy.scan(feedback):
+        return True
+    return any(policy.scan(message.content) for message in messages)
+
+
+def check_send(context, policy, profile, phase: Phase, *, feedback: str | None = None) -> SendCheck:
+    """Rebuild the exact phase messages and re-apply every gate before sending."""
+    if policy is None:
+        return _failure("policy_missing")
+    if context.policy_version != policy.policy_version or context.policy_digest != policy.digest():
+        return _failure("policy_changed")
+    if profile.identity() != context.profile_identity:
+        return _failure("profile_identity_changed")
+    if not policy.destination_matches(context.profile_identity):
+        return _failure("destination_mismatch")
+
+    if phase == "repair":
+        if not context.repair_available:
+            return _failure("repair_unavailable")
+        if feedback is None or not feedback.strip():
+            return _failure("repair_unavailable")
+        if len(feedback.encode("utf-8")) > MAX_FEEDBACK_BYTES:
+            return _failure("repair_unavailable")
+        if sum(1 for line in feedback.splitlines() if line.lstrip().startswith("-")) > (
+            MAX_FEEDBACK_FAILURES
+        ):
+            return _failure("repair_unavailable")
+    elif phase not in {"initial", "retry"}:
+        return _failure("message_shape_invalid")
+
+    messages = tuple(context.messages)
+    if not _shape_ok(messages):
+        return _failure("message_shape_invalid")
+    if phase == "repair":
+        messages = (messages[0], Message("user", messages[1].content + "\n" + feedback))
+        if not _shape_ok(messages):
+            return _failure("message_shape_invalid")
+    for source_class in sorted(_used_classes(context)):
+        if not policy.allows(source_class):
+            return _failure("source_class_denied")
+    if _content_denied(context, policy, messages, feedback):
+        return _failure("content_denied")
+    try:
+        encoded = serialize_payload(profile, list(messages))
+    except MessageError:
+        return _failure("message_shape_invalid")
+    if len(encoded) > _bound(context):
+        return _failure("budget_exceeded")
+    return SendCheck(
+        ok=True,
+        messages=messages,
+        digest=hashlib.sha256(encoded).hexdigest(),
+        byte_size=len(encoded),
+        code=None,
+    )
+
+
+def prepare_probe(policy: EgressPolicy | None, profile) -> SendCheck:
+    """Build the fixed harmless probe; it reads no run, evidence, question or secret."""
+    if policy is None:
+        return _failure("policy_missing")
+    if not policy.allows("diagnostic_fixture"):
+        return _failure("probe_not_allowed")
+    if not policy.destination_matches(profile.identity()):
+        return _failure("probe_not_allowed")
+    user = json.dumps(
+        {
+            "schema_version": "ProbeRequest/v1",
+            "prompt_version": PROBE_PROMPT_VERSION,
+            "instruction": f"Reply with exactly {PROBE_MARKER}.",
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    messages = (Message("system", PROBE_SYSTEM), Message("user", user))
+    try:
+        encoded = serialize_payload(profile, list(messages))
+    except MessageError:
+        return _failure("message_shape_invalid")
+    if len(encoded) > min(policy.max_message_bytes, profile.limits.max_input_bytes):
+        return _failure("budget_exceeded")
+    return SendCheck(
+        ok=True,
+        messages=messages,
+        digest=hashlib.sha256(encoded).hexdigest(),
+        byte_size=len(encoded),
+        code=None,
+    )
