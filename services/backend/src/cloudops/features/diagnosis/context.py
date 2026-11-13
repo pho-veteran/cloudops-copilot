@@ -5,15 +5,31 @@ Read-only: this module never commits, mutates a Run/Evidence row or opens a sock
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from decimal import Decimal
+from typing import Any
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from cloudops.features.diagnosis.egress import EgressPolicy
-from cloudops.features.diagnosis.versions import FAMILY_REQUIRED, SLOT_CAPS, SOURCE_CLASSES
-from cloudops.features.investigations.locators import Entry, UnsupportedProjection, canonical
+from cloudops.features.diagnosis.versions import (
+    ALIAS_CAPACITY,
+    FAMILY_REQUIRED,
+    SLOT_CAPS,
+    SOURCE_CLASSES,
+)
+from cloudops.features.investigations.citation_schemas import Locator
+from cloudops.features.investigations.locators import (
+    Entry,
+    UnsupportedProjection,
+    canonical,
+    digest as entry_digest,
+)
 from cloudops.features.investigations.locators import project as project_payload
+from cloudops.features.investigations.locators import timestamp as normalize_timestamp
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.investigations.storage import evidence_views
 from cloudops.features.knowledge.guidance import run_scope
@@ -228,3 +244,195 @@ def family_matrix(materials: list[SlotMaterial], policy: EgressPolicy) -> list[F
             )
         )
     return assessments
+
+
+@dataclass(frozen=True)
+class Extracted:
+    slot: str
+    entries: tuple[Entry, ...]
+    rule_omitted: int
+    ambiguous_omitted: int
+
+
+class InsufficientContextError(ValueError):
+    """A build that cannot produce a safe required context; reason is a closed code."""
+
+    def __init__(self, reason: str):
+        self.reason = reason
+        super().__init__(reason)
+
+
+class ContextTarget(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    alias: str = Field(pattern=r"^E\d{3}$")
+    evidence_id: UUID
+    source_key: str
+    source_class: str
+    locator: Locator
+    label: str = Field(min_length=1, max_length=120)
+    value: Any
+    entry_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    evidence_sha256: str
+    time_relation: str
+    coverage_status: str
+    value_bytes: int = Field(ge=1)
+    family_slots: list[str] = Field(default_factory=list)
+
+
+def _clean(material: SlotMaterial) -> tuple[list[Entry], int]:
+    kept = [entry for entry in material.entries if not entry.ambiguous]
+    ambiguous = material.ambiguous_omitted + (len(material.entries) - len(kept))
+    return kept, ambiguous
+
+
+def _value_stamp(entry: Entry) -> Decimal | None:
+    if isinstance(entry.value, dict):
+        for key in ("lastTimestamp", "eventTime", "creationTimestamp"):
+            if key in entry.value:
+                stamp = normalize_timestamp(entry.value[key])
+                if stamp is not None:
+                    return Decimal(stamp)
+    stamp = normalize_timestamp(entry.value)
+    return Decimal(stamp) if stamp is not None else None
+
+
+def _newest_key(entry: Entry) -> tuple:
+    stamp = _value_stamp(entry)
+    return (stamp is None, -stamp if stamp is not None else Decimal(0), entry.key)
+
+
+def _log_identity(entry: Entry) -> tuple[str, Decimal | None]:
+    try:
+        parts = json.loads(entry.identity)
+    except (TypeError, ValueError):
+        return entry.key, None
+    if (
+        isinstance(parts, list)
+        and len(parts) == 5
+        and isinstance(parts[0], str)
+        and isinstance(parts[1], str)
+    ):
+        stamp = normalize_timestamp(parts[3])
+        return canonical([parts[0], parts[1], parts[2]]), (
+            Decimal(stamp) if stamp is not None else None
+        )
+    return entry.key, None
+
+
+def _log_key(entry: Entry) -> tuple:
+    _, stamp = _log_identity(entry)
+    return (stamp is None, -stamp if stamp is not None else Decimal(0), entry.key)
+
+
+def _select(entries: list[Entry], order: str, cap: int) -> tuple[list[Entry], int]:
+    if cap <= 0:
+        return [], len(entries)
+    if order == "group_newest":
+        groups: dict[str, list[Entry]] = {}
+        for entry in entries:
+            group, _ = _log_identity(entry)
+            groups.setdefault(group, []).append(entry)
+        kept: list[Entry] = []
+        omitted = 0
+        for group in sorted(groups):
+            ordered = sorted(groups[group], key=_log_key)
+            kept.extend(ordered[:cap])
+            omitted += max(0, len(ordered) - cap)
+        return kept, omitted
+    if order == "newest_first":
+        ordered = sorted(entries, key=_newest_key)
+    else:
+        ordered = sorted(entries, key=lambda entry: entry.key)
+    return ordered[:cap], max(0, len(ordered) - cap)
+
+
+def _extract(material: SlotMaterial, *, required: bool) -> Extracted:
+    entries, ambiguous = _clean(material)
+    required_cap, optional_cap, order = SLOT_CAPS[material.slot]
+    if required and material.slot == "development_fixture":
+        return Extracted(material.slot, (), 0, ambiguous)
+    selected, omitted = _select(entries, order, required_cap if required else optional_cap)
+    return Extracted(material.slot, tuple(selected), omitted, ambiguous)
+
+
+def extract_required(material: SlotMaterial) -> Extracted:
+    return _extract(material, required=True)
+
+
+def extract_optional(material: SlotMaterial) -> Extracted:
+    return _extract(material, required=False)
+
+
+def _target(alias: str, material: SlotMaterial, entry: Entry, families: list[str]) -> ContextTarget:
+    label = (entry.label or "Stored item")[:120]
+    return ContextTarget(
+        alias=alias,
+        evidence_id=material.evidence_id,
+        source_key=material.slot,
+        source_class=material.source_class,
+        locator=Locator(kind=entry.kind, key=entry.key),
+        label=label,
+        value=entry.value,
+        entry_digest=entry_digest(entry.value),
+        evidence_sha256=material.evidence_sha256 or "",
+        time_relation=material.time_relation,
+        coverage_status=material.coverage_status,
+        value_bytes=len(canonical(entry.value).encode("utf-8")),
+        family_slots=families,
+    )
+
+
+def required_targets(
+    materials: list[SlotMaterial], families: list[FamilyAssessment]
+) -> list[ContextTarget]:
+    by_slot = {material.slot: material for material in materials}
+    chosen: dict[tuple, tuple[SlotMaterial, Entry, list[str]]] = {}
+    for family in families:
+        if not family.eligible_for_assessment:
+            continue
+        for slot in FAMILY_REQUIRED[family.family]:
+            material = by_slot.get(slot)
+            if material is None:
+                continue
+            for entry in extract_required(material).entries:
+                key = (material.evidence_id, entry.kind, entry.key)
+                record = chosen.get(key)
+                if record is None:
+                    chosen[key] = (material, entry, [family.family])
+                elif family.family not in record[2]:
+                    record[2].append(family.family)
+    targets = []
+    for index, (material, entry, slots) in enumerate(chosen.values(), start=1):
+        if index > ALIAS_CAPACITY:
+            raise InsufficientContextError("required_alias_space_exceeded")
+        targets.append(_target(f"E{index:03d}", material, entry, slots))
+    return targets
+
+
+def optional_targets(
+    materials: list[SlotMaterial],
+    families: list[FamilyAssessment],
+    used: set[tuple],
+) -> list[ContextTarget]:
+    required_slots: set[str] = set()
+    for family in families:
+        if family.eligible_for_assessment:
+            required_slots.update(FAMILY_REQUIRED[family.family])
+    by_slot = {material.slot: material for material in materials}
+    targets = []
+    index = len(used)
+    for slot in SLOT_CAPS:
+        if slot in required_slots:
+            continue
+        material = by_slot.get(slot)
+        if material is None:
+            continue
+        for entry in extract_optional(material).entries:
+            key = (material.evidence_id, entry.kind, entry.key)
+            if key in used:
+                continue
+            index += 1
+            if index > ALIAS_CAPACITY:
+                return targets
+            targets.append(_target(f"E{index:03d}", material, entry, []))
+    return targets
