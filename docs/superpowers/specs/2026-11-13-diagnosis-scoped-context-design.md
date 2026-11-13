@@ -301,13 +301,18 @@ general strings non-empty/max 2000 unless narrower:
 | `status` | `supported \| insufficient_evidence` |
 | `cause_category` | one of the five family IDs or `unknown` |
 | `summary` | 1..4000 |
-| `supporting_evidence_ids`, `contradicting_evidence_ids` | telemetry aliases `^E[0-9]{3}$` |
+| `supporting_evidence_ids`, `contradicting_evidence_ids` | telemetry citations `^[EK][0-9]{3}$`; a `K` alias is rejected as `alias_wrong_class` (§10), never accepted as telemetry |
 | `alternatives` | `{hypothesis: 1..200, reason: 1..2000, evidence_ids: list}`; a reason may cite none |
 | `ruled_out_hypotheses` | `{family: family-ID, reason: 1..2000, evidence_ids: nonempty list}` |
 | `unverified_checks` | `{check: 1..200, reason: 1..2000}` — no citation field |
 | `missing_evidence`, `limitations`, `next_steps` | string lists; `next_steps` ≥1 |
-| `runbook_citation_ids` | runbook aliases `^K[0-9]{3}$`; never accepted in telemetry fields |
+| `runbook_citation_ids` | runbook citations `^[EK][0-9]{3}$`; an `E` alias is rejected as `alias_wrong_class` (§10), never accepted as a runbook |
 | `candidate_template_id` | `restore_deployment_template \| set_memory_profile \| scale_deployment \| null` |
+
+Citation fields deliberately share the `^[EK][0-9]{3}$` shape so that a well-formed
+wrong-class alias reaches `validate_structural` as the repairable `alias_wrong_class`
+code instead of becoming an indistinct `schema_invalid` parse error. Class enforcement
+therefore lives in the structural validator, not in the model regex.
 
 ### 6.6 `RCAResult/v1` (`advice.py`) — normalized output
 
