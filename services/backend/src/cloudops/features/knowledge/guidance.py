@@ -83,6 +83,11 @@ def _scope(db, run, family, template) -> KnowledgeRunScope | None:
     )
 
 
+def run_scope(db: Session, incident_id: UUID, run_id: UUID) -> KnowledgeRunScope | None:
+    """Public read-only scope for trusted consumers; identical to internal resolution."""
+    return _scope(db, _run(db, incident_id, run_id), None, None)
+
+
 def _retrieve(db, scope, query, limit) -> KnowledgeRetrieval:
     if type(limit) is not int or not 1 <= limit <= 10:
         raise DomainError(422, "invalid_guidance_limit", "Guidance limit must be 1 to 10.")

@@ -63,10 +63,11 @@ def _normalize(messages: Sequence[Message | Mapping[str, object]]) -> tuple[Mess
     return normalized
 
 
-def prepare_payload(
+def serialize_payload(
     profile: ModelProfile,
     messages: Sequence[Message | Mapping[str, object]],
 ) -> bytes:
+    """Encode the exact request body the transport would send; the only size definition."""
     if profile.model is None or profile.output_limit is None:
         raise MessageError("the model profile is not sendable")
     normalized = _normalize(messages)
@@ -78,9 +79,16 @@ def prepare_payload(
     if profile.output_limit.param is not OutputLimitParam.OMIT:
         body[profile.output_limit.param.value] = profile.output_limit.value
     try:
-        encoded = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        return json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     except UnicodeEncodeError:
         raise MessageError("serialized model input contains an invalid Unicode sequence") from None
+
+
+def prepare_payload(
+    profile: ModelProfile,
+    messages: Sequence[Message | Mapping[str, object]],
+) -> bytes:
+    encoded = serialize_payload(profile, messages)
     if len(encoded) > profile.limits.max_input_bytes:
         raise MessageError("serialized model input exceeds max_input_bytes")
     return encoded
