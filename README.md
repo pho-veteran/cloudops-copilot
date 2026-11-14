@@ -76,6 +76,8 @@ The evidence transport is intentionally breaking: Run list/detail no longer embe
 
 ## Retained local testing lab
 
+For a short walkthrough, use the [six-scenario triage demo](docs/triage-demo.md).
+
 The optional [owned local testing lab](docs/e01-local-lab.md#retained-local-testing-lab)
 reuses Compose/K3s with measured application traffic, scoped resource metrics,
 conditional fault/reset controls and explicit lifecycle/credential guards. Start it

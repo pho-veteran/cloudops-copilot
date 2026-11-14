@@ -218,6 +218,72 @@ def reader_connection():
     }
 
 
+@pytest.mark.parametrize("changed", [None, "image", "ca"])
+def test_resume_reuses_artifacts_and_keeps_optional_load_stopped(lab, driver, monkeypatch, changed):
+    from cloudops.features.workloads.scope_config import cluster_fingerprint
+
+    config = reader_connection()
+    lab.marker.update(
+        sample_image=driver.SAMPLE_IMAGE,
+        namespace_uid="namespace",
+        cluster_fingerprint=cluster_fingerprint(config),
+    )
+    calls = []
+    names = ("db", "k3s", *driver.APP_SERVICES, "https", "prometheus", "alertmanager")
+
+    def dc(*args, **kwargs):
+        calls.append(args)
+        return (
+            json.dumps({"services": {name: {"image": name} for name in names}})
+            if args[0] == "config"
+            else ""
+        )
+
+    monkeypatch.setattr(lab, "dc", dc)
+    monkeypatch.setattr(lab, "volume_guard", lambda: None)
+    monkeypatch.setattr(lab, "credentials_valid", lambda: None)
+    monkeypatch.setattr(lab, "service", lambda name: {"Image": "retained"})
+    monkeypatch.setattr(
+        lab,
+        "command",
+        lambda args: json.dumps(
+            [
+                {
+                    "Id": "different" if changed == "image" else "retained",
+                    "Os": "linux",
+                    "Architecture": "amd64",
+                }
+            ]
+        ),
+    )
+    monkeypatch.setattr(lab, "start_k3s", lambda **kwargs: calls.append(("node", kwargs)))
+    monkeypatch.setattr(lab, "get", lambda *args: {"metadata": {"uid": "namespace"}})
+    monkeypatch.setattr(lab, "deployment", lambda name: None)
+    monkeypatch.setattr(lab, "kube", lambda *args: config["ca_data"])
+    if changed == "ca":
+        lab.marker["cluster_fingerprint"] = "0" * 64
+    monkeypatch.setattr(lab, "dispatch", lambda *args: calls.append(("dispatch", *args)))
+    monkeypatch.setattr(lab, "maintenance", lambda *args: None)
+    monkeypatch.setattr(lab, "no_execution", lambda: None)
+    monkeypatch.setattr(lab, "namespace_check", lambda: None)
+    monkeypatch.setattr(lab, "receipt", lambda *args: None)
+    if changed:
+        with pytest.raises(
+            RuntimeError, match="image changed" if changed == "image" else "identity changed"
+        ):
+            lab.resume()
+    else:
+        lab.resume()
+        assert ("node", {"pull_missing": False}) in calls
+        assert not any(args[0] == "build" or args[-1] in ("load", "krr") for args in calls)
+        assert all(
+            args[args.index("--pull") + 1] == "never" and "--no-build" in args
+            for args in calls
+            if args[0] == "up"
+        )
+        assert not any("recovery_execution" in args for args in calls)
+
+
 def test_reader_scope_pins_cluster_once_and_has_names_separate_from_uid_lists(lab):
     config = reader_connection()
     scope = lab.reader_scope(config)

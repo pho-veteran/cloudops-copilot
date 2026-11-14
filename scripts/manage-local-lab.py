@@ -1065,8 +1065,15 @@ class Lab:
             time.sleep(1)
         raise RuntimeError("K3s readiness and Node IP did not converge within the startup bound.")
 
-    def start_k3s(self, recreate=False):
-        args = ["up", "-d", "--no-deps", "--no-build", "--pull", "never" if recreate else "missing"]
+    def start_k3s(self, recreate=False, *, pull_missing=True):
+        args = [
+            "up",
+            "-d",
+            "--no-deps",
+            "--no-build",
+            "--pull",
+            "missing" if pull_missing and not recreate else "never",
+        ]
         if recreate:
             args.append("--force-recreate")
         self.dc(*args, "k3s", timeout=60)
@@ -1261,6 +1268,100 @@ class Lab:
                 "runtime_images": self.image_receipts(),
                 "stress": "requires a fresh verify/containment check",
                 "accounts": "Provision explicitly through CLI; none seeded.",
+            },
+        )
+
+    def resume(self):
+        self.volume_guard()
+        self.credentials_valid()
+        require(
+            self.marker["sample_image"] == SAMPLE_IMAGE,
+            "Sample source changed; use reviewed setup instead of resume.",
+        )
+        services = ("db", "k3s", *APP_SERVICES, "https", "prometheus", "alertmanager")
+        config = json.loads(self.dc("config", "--format", "json"))["services"]
+        for name in services:
+            image = json.loads(self.command(["docker", "image", "inspect", config[name]["image"]]))[
+                0
+            ]
+            require(
+                image["Id"] == self.service(name)["Image"]
+                and image["Os"] == "linux"
+                and image["Architecture"] == "amd64",
+                "Retained image changed or is missing; resume cannot rebuild or substitute it.",
+            )
+        self.dc(
+            "up",
+            "-d",
+            "--no-deps",
+            "--no-build",
+            "--pull",
+            "never",
+            "--wait",
+            "--wait-timeout",
+            "120",
+            "db",
+            timeout=150,
+        )
+        self.start_k3s(pull_missing=False)
+        require(
+            self.get("namespace", "demo")["metadata"]["uid"] == self.marker["namespace_uid"],
+            "Namespace identity changed.",
+        )
+        for name in self.marker["deployments"]:
+            self.deployment(name)
+        from cloudops.features.workloads.scope_config import cluster_fingerprint
+
+        ca = self.kube(
+            "config",
+            "view",
+            "--raw",
+            "-o",
+            "jsonpath={.clusters[0].cluster.certificate-authority-data}",
+        ).strip()
+        require(
+            cluster_fingerprint({"server": "https://k3s:6443", "ca_data": ca})
+            == self.marker["cluster_fingerprint"],
+            "Cluster identity changed; resume cannot repin it.",
+        )
+        self.dc("up", "-d", "--no-deps", "--no-build", "--pull", "never", "https")
+        self.dc(
+            "up",
+            "-d",
+            "--no-deps",
+            "--force-recreate",
+            "--no-build",
+            "--pull",
+            "never",
+            "prometheus",
+        )
+        self.dc(
+            "up",
+            "-d",
+            "--no-deps",
+            "--no-build",
+            "--pull",
+            "never",
+            "--wait",
+            "--wait-timeout",
+            "120",
+            *APP_SERVICES,
+            timeout=150,
+        )
+        self.dispatch("enter-recovery")
+        self.maintenance("enter_recovery")
+        self.no_execution()
+        for kind in ("collection", "recommendation"):
+            self.dispatch("resume", "--class", kind)
+        self.dc("up", "-d", "--no-deps", "--no-build", "--pull", "never", "alertmanager")
+        self.namespace_check()
+        self.receipt(
+            "resume",
+            {
+                "images": "existing retained artifacts",
+                "accounts": "preserved",
+                "writer": "quarantined",
+                "optional_services": "load and KRR are not started by resume",
             },
         )
 
@@ -2297,6 +2398,7 @@ def main():
     for name in (
         "preflight",
         "start",
+        "resume",
         "status",
         "verify",
         "containment",
