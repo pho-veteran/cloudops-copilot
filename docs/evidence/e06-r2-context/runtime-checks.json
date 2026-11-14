@@ -117,5 +117,24 @@
     "Ruled-out hypotheses rejected for sampled or ambiguous required content; supported partial assessment remains available.",
     "Fixed probe contents obey deny patterns.",
     "Deep JSON and invalid UTF-8 regex configuration return safe failures."
-  ]
+  ],
+  "additional_boundary_check": {
+    "source_commit": "683505805216b10c85d80d59d1f4734eb91c2ad7",
+    "change": "Use the extraction ambiguity count for mixed clean/ambiguous entries in pure assembly.",
+    "checks": [
+      {
+        "command": "pytest -q services/backend/tests_unit/test_diagnosis_advice.py services/backend/tests_unit/test_diagnosis_context_build.py services/backend/tests_unit/test_diagnosis_egress.py",
+        "result": "108 passed"
+      },
+      {
+        "command": "ruff check and ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr",
+        "result": "passed; 246 files formatted"
+      }
+    ],
+    "runtime_observation": {
+      "ambiguous_omitted": 1,
+      "ruled_out_failure": "ruled_out_partial_coverage",
+      "supported_assessment": "allowed"
+    }
+  }
 }
