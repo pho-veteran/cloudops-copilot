@@ -1,0 +1,176 @@
+x-lab: &lab
+  labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use manage-local-lab.py}'}
+  logging:
+    driver: json-file
+    options: {max-size: 5m, max-file: '2'}
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Use generated lab.env}@db:5432/cloudops_lab
+  WEB_ORIGIN: https://localhost:8443
+  COOKIE_SECURE: 'true'
+  COLLECTION_SOURCE_MODE: live_kubernetes,prometheus
+  WORKLOADS_FILE: /run/cloudops-reader/scope.json
+  PROMETHEUS_READ_CONFIG: /run/cloudops-prometheus/read.json
+  COLLECTOR_DELAY_SECONDS: '0'
+services:
+  db:
+    <<: *lab
+    image: postgres:17.12-bookworm@sha256:99d1a998c76487d3abb48b141505bda5dcf8089c0c4cd7be40f75de314fa32f0
+    platform: linux/amd64
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 0.5
+    environment: {POSTGRES_DB: cloudops_lab}
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U cloudops -d cloudops_lab']
+  k3s:
+    <<: *lab
+    volumes:
+      - k3s_logs:/var/log
+      - k3s_cni:/var/lib/cni
+      - k3s_kubelet:/var/lib/kubelet
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: 4
+    command:
+      - server
+      - --node-name=cloudops-local
+      - --tls-san=k3s
+      - --disable=traefik
+      - --disable=servicelb
+      - --cluster-cidr=10.244.0.0/16
+      - --service-cidr=10.245.0.0/16
+      - --kubelet-arg=kube-reserved=cpu=500m,memory=768Mi
+      - --kubelet-arg=system-reserved=cpu=${LAB_SYSTEM_CPU:?Use preflight},memory=${LAB_SYSTEM_MEMORY:?Use preflight}
+    networks:
+      default:
+        aliases: [prometheus, cloudops-local]
+  migrate:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    environment: *app-env
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    volumes:
+      - ./runbooks:/workspace/runbooks:ro
+  api:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    environment: *app-env
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    volumes:
+      - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/prometheus:/run/cloudops-prometheus:ro
+  worker:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    environment: *app-env
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    volumes:
+      - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/prometheus:/run/cloudops-prometheus:ro
+  observer:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    environment: *app-env
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.25
+  executor:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Use generated lab.env}@db:5432/cloudops_lab
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.25
+  dispatch-admin:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.25
+  https:
+    <<: *lab
+    image: cloudops-local-testing-lab-https
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.125
+  alertmanager:
+    <<: *lab
+    user: '0:0'
+    cap_drop: [ALL]
+    cap_add: [DAC_OVERRIDE]
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.125
+    volumes:
+      - alertmanager_data:/alertmanager
+  prometheus:
+    <<: *lab
+    image: prom/prometheus:v3.13.5@sha256:dc30314819e04a1a3d18d0b37eaa9c8e4e18f33f026e3e2d81bf127c7cddcd55
+    platform: linux/amd64
+    network_mode: service:k3s
+    user: '0:0'
+    cap_drop: [ALL]
+    cap_add: [DAC_OVERRIDE]
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 0.75
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus, --storage.tsdb.retention.time=48h, --storage.tsdb.retention.size=2GB]
+    volumes: !override
+      - ./config/lab/prometheus-real.yaml:/etc/prometheus/prometheus.yml:ro
+      - ./config/lab/prometheus-rules.yaml:/etc/prometheus/rules.yml:ro
+      - ./config/lab/prometheus-rules.test.yaml:/etc/prometheus/rules.test.yml:ro
+      - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/monitoring:/run/monitoring:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      k3s: {condition: service_healthy}
+  krr:
+    <<: *lab
+    image: cloudops-local-testing-lab-krr
+    profiles: [lab-krr]
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 0.5
+  sample:
+    <<: *lab
+    image: ${LAB_SAMPLE_IMAGE:?Use generated lab.env}
+    build: {context: ., dockerfile: config/lab/Dockerfile.sample}
+    profiles: [lab-tools]
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+  load:
+    <<: *lab
+    image: ${LAB_SAMPLE_IMAGE:?Use generated lab.env}
+    profiles: [lab-tools]
+    entrypoint: [python, /app/load.py]
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+  test:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    environment:
+      <<: *app-env
+      TEST_DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Use generated lab.env}@db:5432/cloudops_checks_test
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+volumes:
+  database: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  k3s_data: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  k3s_logs: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  k3s_cni: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  k3s_kubelet: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  executor_authority: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  job_dispatch: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  local_https_data: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  local_https_config: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  prometheus_data: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  alertmanager_data: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+networks:
+  default: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}

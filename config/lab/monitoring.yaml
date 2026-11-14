@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Namespace
+metadata: {name: cloudops-lab-monitoring}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: cloudops-monitor, namespace: cloudops-lab-monitoring}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: cloudops-discovery, namespace: demo}
+rules:
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: cloudops-discovery, namespace: demo}
+subjects: [{kind: ServiceAccount, name: cloudops-monitor, namespace: cloudops-lab-monitoring}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: cloudops-discovery}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: cloudops-discovery, namespace: cloudops-lab-monitoring}
+rules:
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: cloudops-discovery, namespace: cloudops-lab-monitoring}
+subjects: [{kind: ServiceAccount, name: cloudops-monitor, namespace: cloudops-lab-monitoring}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: cloudops-discovery}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: cloudops-lab-node-metrics}
+rules:
+  - apiGroups: ['']
+    resources: [nodes/metrics]
+    resourceNames: [cloudops-local]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: cloudops-lab-node-metrics}
+subjects: [{kind: ServiceAccount, name: cloudops-monitor, namespace: cloudops-lab-monitoring}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: cloudops-lab-node-metrics}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: kube-state-metrics, namespace: cloudops-lab-monitoring}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: cloudops-state-metrics, namespace: demo}
+rules:
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [list, watch]
+  - apiGroups: [apps]
+    resources: [deployments, replicasets]
+    verbs: [list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: cloudops-state-metrics, namespace: demo}
+subjects: [{kind: ServiceAccount, name: kube-state-metrics, namespace: cloudops-lab-monitoring}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: cloudops-state-metrics}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: kube-state-metrics, namespace: cloudops-lab-monitoring}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: kube-state-metrics}}
+  template:
+    metadata: {labels: {app: kube-state-metrics}}
+    spec:
+      serviceAccountName: kube-state-metrics
+      containers:
+        - name: metrics
+          image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0@sha256:01171220c7c059afc85034ffe687bfe7249e41c0cc46fbe9a5128503ceee3016
+          args: [--namespaces=demo, '--resources=pods,deployments,replicasets', '--metric-labels-allowlist=pods=[cloudops-lab-workload-uid]']
+          ports: [{name: metrics, containerPort: 8080}]
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 128Mi}

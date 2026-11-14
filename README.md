@@ -74,6 +74,16 @@ If the worker stops during collection, a restarted worker reclaims the job after
 
 The evidence transport is intentionally breaking: Run list/detail no longer embed payloads. Upgrade API, worker and web together using the [evidence migration procedure](docs/foundation.md#source-aware-evidence-and-retention); old evidence IDs/digests and saved report bytes remain unchanged. Unpinned content expires after 30 days, while saved resolutions and the last useful unresolved-incident collection retain independent pins. Payload purge is a trusted dry-run/apply CLI operation, not a browser control.
 
+## Retained local testing lab
+
+The optional [owned local testing lab](docs/e01-local-lab.md#retained-local-testing-lab)
+reuses Compose/K3s with measured application traffic, scoped resource metrics,
+conditional fault/reset controls and explicit lifecycle/credential guards. Start it
+through `scripts/manage-local-lab.py --project cloudops-local-testing-lab start` in
+the backend Python environment. It preserves its own data and remains separate from
+the default fixture stack. Stress requires actual cgroup/capacity proof; runtime
+acceptance and diagnosis/recovery/recommendation qualification remain explicit.
+
 ## Contributor setup and checks
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md). For host development, install Node from `.node-version`, Python from `.python-version` and uv 0.9.26. Keep API/worker/database in Compose and run web locally:

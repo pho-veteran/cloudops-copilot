@@ -2,12 +2,12 @@
 
 import json
 import subprocess
-from pathlib import Path
+from local_lab import COMPOSE, LAB_DIR, OWNED_PROJECT, PROJECT, ROOT, private_write
 
 
-def probe(container, code):
+def probe(service, code):
     result = subprocess.run(
-        ["docker", "exec", container, "python", "-c", code],
+        [*COMPOSE, "exec", "-T", service, "python", "-c", code],
         check=True,
         capture_output=True,
         text=True,
@@ -20,7 +20,7 @@ def main():
     mounts = {}
     code = "import json;from pathlib import Path;print(json.dumps({p:Path(p).exists() for p in ['/run/cloudops-reader/client.json','/run/cloudops-writer/client.json','/var/lib/cloudops-executor/maintenance.sock','/run/cloudops-dispatch/key']}))"
     for service in ("api", "worker"):
-        value = probe(f"cloudops-e01-https-{service}-1", code)
+        value = probe(service, code)
         assert (
             value["/run/cloudops-reader/client.json"]
             and not value["/run/cloudops-writer/client.json"]
@@ -35,7 +35,7 @@ from urllib.request import Request
 from urllib.error import HTTPError
 from cloudops.features.workloads.kubernetes import Kubernetes
 k=Kubernetes(os.environ.get('EXECUTOR_KUBE_CONFIG'))
-entries=json.loads(Path(os.environ.get('EXECUTOR_ALLOWLIST',os.environ.get('WORKLOADS_FILE'))).read_text())
+entries=json.loads(Path(os.environ.get('EXECUTOR_ALLOWLIST','/run/cloudops-reader/workloads.json')).read_text())
 w=SimpleNamespace(**entries[0]); d=k.deployment(w)
 headers={'Authorization':'Bearer '+k.token,'Content-Type':'application/json-patch+json'}
 def denied(path,patch=None):
@@ -49,17 +49,22 @@ def denied(path,patch=None):
 result={'secret_read':denied('/api/v1/namespaces/demo/secrets')}
 """
     reader = probe(
-        "cloudops-e01-https-api-1",
+        "api",
         common
         + "result['deployment_patch']=denied(k.path(w.namespace,w.name),[{'op':'test','path':'/metadata/uid','value':w.uid},{'op':'test','path':'/metadata/resourceVersion','value':d['metadata']['resourceVersion']},{'op':'replace','path':'/spec/replicas','value':d['spec']['replicas']}]);print(json.dumps(result))",
     )
     writer = probe(
-        "cloudops-e01-https-executor-1",
+        "executor",
         common
         + "result['other_target_patch']=denied(k.path(w.namespace,'not-allowlisted-e01'),[{'op':'test','path':'/metadata/uid','value':w.uid}]);print(json.dumps(result))",
     )
-    Path("tmp/e01-credential-boundaries.json").write_text(
-        json.dumps({"mounts": mounts, "reader_denials": reader, "writer_denials": writer}, indent=2)
+    private_write(
+        LAB_DIR / "credential-boundaries.json"
+        if PROJECT == OWNED_PROJECT
+        else ROOT / "tmp/e01-credential-boundaries.json",
+        json.dumps(
+            {"mounts": mounts, "reader_denials": reader, "writer_denials": writer}, indent=2
+        ),
     )
     print(
         "PASS: API/worker have no writer credential or maintenance socket; API has no dispatch key. Real Kubernetes denies reader patches, reader/writer Secret reads and writer patches outside the named target."
