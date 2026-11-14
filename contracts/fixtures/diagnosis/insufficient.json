@@ -1,0 +1,375 @@
+{
+  "proof_class": "Real AnalysisView producer over controlled PostgreSQL/loopback fixtures; no live model quality claim.",
+  "analysis": {
+    "schema_version": "AnalysisView/v1",
+    "status": "insufficient_evidence",
+    "analysis_id": "e8239476-869a-43cc-a636-64d4dda22ae2",
+    "phase": "initial",
+    "reason": "no_evidence",
+    "identity": {
+      "model": "fixture-model",
+      "config_id": "test-config",
+      "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
+      "config_version": "1",
+      "endpoint_label": "loopback",
+      "prompt_version": "e06.rca_prompt/v1",
+      "behavior_digest": "2562b2e4b750842c99e66d1a63385d49af430b25dffed7f51c5e5917c1439db1",
+      "context_version": "e06.context/v1",
+      "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+      "validator_version": "e06.validator/v1"
+    },
+    "context": {
+      "scope": {
+        "kind": "Deployment",
+        "name": "checkout",
+        "run_id": "490e8708-4235-486c-a2b1-061e67d421fa",
+        "cluster": "development",
+        "namespace": "demo",
+        "window_end": "2026-11-14T08:58:50.628435Z",
+        "incident_id": "a37c41d3-dcbe-42c9-a5c7-af7f2f4c7d91",
+        "workload_id": "48d8118b-3f9d-4302-a0b9-86a45df941cc",
+        "window_start": "2026-11-14T08:28:50.628435Z",
+        "workload_uid": "development-checkout-v1",
+        "symptom_family": null,
+        "recovery_template": null
+      },
+      "digest": "ad6c764f9842a6268726c811a4e5d7788aed2e5be392fc62a495da3f9e54e468",
+      "reason": "no_evidence",
+      "outcome": "insufficient",
+      "families": [
+        {
+          "family": "crashloop_startup",
+          "partial": false,
+          "reasons": [
+            "required_slot_unavailable"
+          ],
+          "required_slots": [
+            {
+              "slot": "kubernetes.state",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.events",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.logs.current",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.logs.previous",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            }
+          ],
+          "eligible_for_assessment": false
+        },
+        {
+          "family": "oom_restarts",
+          "partial": false,
+          "reasons": [
+            "required_slot_unavailable"
+          ],
+          "required_slots": [
+            {
+              "slot": "kubernetes.state",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.events",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.logs.current",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.logs.previous",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            }
+          ],
+          "eligible_for_assessment": false
+        },
+        {
+          "family": "traffic_latency_errors",
+          "partial": false,
+          "reasons": [
+            "required_slot_unavailable"
+          ],
+          "required_slots": [
+            {
+              "slot": "prometheus.request_rate",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "prometheus.error_ratio",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "prometheus.p95_latency",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            }
+          ],
+          "eligible_for_assessment": false
+        },
+        {
+          "family": "pending_unschedulable",
+          "partial": false,
+          "reasons": [
+            "required_slot_unavailable"
+          ],
+          "required_slots": [
+            {
+              "slot": "kubernetes.state",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.events",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            }
+          ],
+          "eligible_for_assessment": false
+        },
+        {
+          "family": "image_pull",
+          "partial": false,
+          "reasons": [
+            "required_slot_unavailable"
+          ],
+          "required_slots": [
+            {
+              "slot": "kubernetes.state",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            },
+            {
+              "slot": "kubernetes.events",
+              "status": "source_missing",
+              "usable": false,
+              "waived": false,
+              "targets": 0
+            }
+          ],
+          "eligible_for_assessment": false
+        }
+      ],
+      "versions": {
+        "prompt": "e06.rca_prompt/v1",
+        "context": "e06.context/v1",
+        "targets": "e06.targets/v1",
+        "validator": "e06.validator/v1"
+      },
+      "omissions": [],
+      "limitations": [],
+      "message_bytes": null,
+      "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
+      "policy_version": "1",
+      "request_source": "operator",
+      "schema_version": "ContextInsufficiency/v1",
+      "request_present": true,
+      "source_coverage": [
+        {
+          "slot": "run.request",
+          "status": "available",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "operator_request",
+          "time_relation": "within_requested_window",
+          "content_status": "available"
+        },
+        {
+          "slot": "kubernetes.state",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "kubernetes_state",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "kubernetes.configmap.metadata",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "kubernetes_state",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "kubernetes.events",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "kubernetes_events",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "kubernetes.logs.current",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "container_logs",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "kubernetes.logs.previous",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "container_logs",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "prometheus.request_rate",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "prometheus_series",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "prometheus.error_ratio",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "prometheus_series",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "prometheus.p95_latency",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "prometheus_series",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "prometheus.memory_working_set",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "prometheus_series",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "prometheus.memory_limit",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "prometheus_series",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "prometheus.restarts",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "prometheus_series",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        },
+        {
+          "slot": "development_fixture",
+          "status": "missing",
+          "reasons": [],
+          "evidence_id": null,
+          "source_class": "synthetic_fixture",
+          "time_relation": "not_captured",
+          "content_status": "missing"
+        }
+      ]
+    },
+    "result": null,
+    "attempts": 1,
+    "max_attempts": 3,
+    "calls": 0,
+    "max_calls": 3,
+    "repairs": 0,
+    "max_repairs": 1,
+    "deadline": "2026-11-14T09:13:50.655865Z",
+    "wait_mode": null,
+    "earliest_retry": null,
+    "resume_allowed": false,
+    "resume_denial": "not_waiting_for_resume",
+    "model_slot_busy": false,
+    "history": [],
+    "attempt_history": [
+      {
+        "number": 1,
+        "state": "succeeded",
+        "started_at": "2026-11-14T08:58:50.693495Z",
+        "finished_at": "2026-11-14T08:58:50.747144Z",
+        "error": null
+      }
+    ]
+  },
+  "model_status": {
+    "availability": "available",
+    "identity": {
+      "config_id": "test-config",
+      "config_version": "1",
+      "endpoint_label": "loopback",
+      "behavior_digest": "2562b2e4b750842c99e66d1a63385d49af430b25dffed7f51c5e5917c1439db1",
+      "model": "fixture-model",
+      "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
+      "prompt_version": "e06.rca_prompt/v1",
+      "context_version": "e06.context/v1",
+      "validator_version": "e06.validator/v1",
+      "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900"
+    },
+    "quality": "qualified",
+    "qualification_cohort": "loopback-fixture-not-provider-quality",
+    "dispatch_allowed": true,
+    "dispatch_reason": null,
+    "cooldown_seconds": 60,
+    "last_check": null
+  }
+}

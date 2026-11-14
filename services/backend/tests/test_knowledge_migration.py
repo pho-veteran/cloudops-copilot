@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import text
 
 from cloudops.features.knowledge.indexing import index_corpus
@@ -39,7 +40,7 @@ def test_populated_0009_upgrade_is_repeatable_and_preserves_legacy_rows():
         ).first()
         assert row == ("migration-owner", "viewer")
         heads = connection.execute(text("SELECT version_num FROM alembic_version")).scalars().all()
-        assert heads == ["0011_knowledge_selections"]
+        assert heads == [ScriptDirectory.from_config(config).get_current_head()]
 
 
 def test_downgrade_refuses_to_drop_retained_knowledge_history(db, tmp_path):

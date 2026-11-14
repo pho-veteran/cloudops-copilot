@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from cloudops.features.diagnosis.lifecycle import configure_dispatch
 from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.incidents.intake_settings import intake_config
 from cloudops.features.investigations.admission_settings import deferred_run_limit
@@ -15,6 +16,8 @@ from cloudops.features.investigations.states import COLLECTION_JOB
 from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
 from cloudops.shared.errors import DomainError, domain_error_handler, validation_error_handler
+
+configure_dispatch(GATE)
 
 
 @asynccontextmanager
@@ -59,6 +62,7 @@ def create_app():
     from cloudops.features.recommendations.api import router as recommendations
     from cloudops.features.recovery.api import router as recovery
     from cloudops.features.recovery.baseline_context import router as recovery_context
+    from cloudops.features.diagnosis.api import router as diagnosis
     from cloudops.features.knowledge.api import router as knowledge
     from cloudops.features.knowledge.guidance_api import router as guidance
 
@@ -79,6 +83,7 @@ def create_app():
         recovery_context,
         knowledge,
         guidance,
+        diagnosis,
     ):
         app.include_router(router)
 

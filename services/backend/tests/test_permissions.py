@@ -11,6 +11,15 @@ from fastapi.testclient import TestClient
 from permission_cases import CASES
 from consumer_cases import CONSUMER_MODELS, seed as seed_consumers
 from knowledge_cases import seed as seed_knowledge
+from diagnosis_cases import seed as seed_diagnosis
+from cloudops.features.diagnosis.models import (
+    Analysis,
+    AnalysisCall,
+    AnalysisContext,
+    AnalysisResult,
+    ModelCheck,
+    ResumeReceipt,
+)
 from permission_inventory import FRAMEWORK_ROUTES, OPERATIONS, verify_inventory
 from sqlalchemy import select, update
 
@@ -46,6 +55,12 @@ from intake_fixtures import TOKEN as INTAKE_TOKEN, configure_intake
 ORIGIN = "http://localhost:5173"
 ACTORS = ("anonymous", "expired", "viewer", "operator")
 DOMAIN_MODELS = (
+    Analysis,
+    AnalysisCall,
+    AnalysisContext,
+    AnalysisResult,
+    ModelCheck,
+    ResumeReceipt,
     Incident,
     InvestigationRun,
     Job,
@@ -235,6 +250,7 @@ def permission_context(seeded, monkeypatch, tmp_path):
         )
         seed_consumers(context, monkeypatch)
         seed_knowledge(context, tmp_path)
+        seed_diagnosis(context, tmp_path, monkeypatch)
         yield context
 
 

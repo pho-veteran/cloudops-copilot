@@ -1,0 +1,37 @@
+{
+  "proof_class": "Real AnalysisView producer over controlled PostgreSQL/loopback fixtures; no live model quality claim.",
+  "analysis": {
+    "schema_version": "AnalysisView/v1",
+    "status": "not_available",
+    "analysis_id": null,
+    "phase": null,
+    "reason": "no_operational_analysis",
+    "identity": null,
+    "context": null,
+    "result": null,
+    "attempts": 0,
+    "max_attempts": 3,
+    "calls": 0,
+    "max_calls": 3,
+    "repairs": 0,
+    "max_repairs": 1,
+    "deadline": null,
+    "wait_mode": null,
+    "earliest_retry": null,
+    "resume_allowed": false,
+    "resume_denial": null,
+    "model_slot_busy": false,
+    "history": [],
+    "attempt_history": []
+  },
+  "model_status": {
+    "availability": "not_configured",
+    "identity": {},
+    "quality": "not_established",
+    "qualification_cohort": null,
+    "dispatch_allowed": true,
+    "dispatch_reason": null,
+    "cooldown_seconds": 60,
+    "last_check": null
+  }
+}

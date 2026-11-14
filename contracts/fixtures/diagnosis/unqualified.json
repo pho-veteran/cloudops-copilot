@@ -1,0 +1,48 @@
+{
+  "proof_class": "Real AnalysisView producer over controlled PostgreSQL/loopback fixtures; no live model quality claim.",
+  "analysis": {
+    "schema_version": "AnalysisView/v1",
+    "status": "not_available",
+    "analysis_id": null,
+    "phase": null,
+    "reason": "no_operational_analysis",
+    "identity": null,
+    "context": null,
+    "result": null,
+    "attempts": 0,
+    "max_attempts": 3,
+    "calls": 0,
+    "max_calls": 3,
+    "repairs": 0,
+    "max_repairs": 1,
+    "deadline": null,
+    "wait_mode": null,
+    "earliest_retry": null,
+    "resume_allowed": false,
+    "resume_denial": null,
+    "model_slot_busy": false,
+    "history": [],
+    "attempt_history": []
+  },
+  "model_status": {
+    "availability": "unqualified",
+    "identity": {
+      "config_id": "test-config",
+      "config_version": "1",
+      "endpoint_label": "loopback",
+      "behavior_digest": "36adb9d26e99baeb89079d2ae47a692c8d4ee2e1421001380e32360d56fef9b8",
+      "model": "fixture-model",
+      "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
+      "prompt_version": "e06.rca_prompt/v1",
+      "context_version": "e06.context/v1",
+      "validator_version": "e06.validator/v1",
+      "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900"
+    },
+    "quality": "not_established",
+    "qualification_cohort": null,
+    "dispatch_allowed": true,
+    "dispatch_reason": null,
+    "cooldown_seconds": 60,
+    "last_check": null
+  }
+}

@@ -58,7 +58,7 @@ The browser uses a separate loopback HTTP development origin; API/producer probe
 
 The persisted workspace reads real stored Run/evidence records, not simulation state. `standard_v1` declares five Kubernetes slots, six fixed Prometheus query slots and the explicitly synthetic `development_fixture`. The default stack installs only the fixture adapter. The optional `live_kubernetes` provider uses the read-only server/ca_data/token JSON in `KUBE_READ_CONFIG`; ConfigMap metadata remains disabled unless explicitly enabled. The optional `prometheus` provider requires a trusted read configuration and is documented below. The live providers can be combined as `live_kubernetes,prometheus`; neither combines with the synthetic fixture. Compose and `.env.example` enable the fixture with `COLLECTION_SOURCE_MODE=development_fixture`; host processes without this setting default to `none`. `none` publishes honest `source_not_configured` outcomes for every slot. Unknown modes or adapter/query bindings fail closed, never silently selecting the fixture.
 
-Each new completed batch stores all catalog outcomes and coverage for CrashLoop/startup, OOM/restarts, traffic latency/errors, Pending and ImagePull. Missing required sources and optional gaps stay distinct. Conditional logs can be `not_applicable`; a fixture never satisfies live pack coverage. Any completed collection, even all-unavailable, ends `insufficient_evidence` / `analysis_unavailable`. Only exhausted job/infrastructure failures end `failed` / `collection_failed`; historical null outcomes remain null.
+Each new completed batch stores all catalog outcomes and coverage for CrashLoop/startup, OOM/restarts, traffic latency/errors, Pending and ImagePull. Missing required sources and optional gaps stay distinct. Conditional logs can be `not_applicable`; a fixture never satisfies live pack coverage. Without qualified diagnosis configuration, completed collection ends `insufficient_evidence` / `analysis_unavailable`. The [diagnosis lifecycle](diagnosis-lifecycle.md) atomically admits bounded Analysis when enabled; required context gaps still abstain without a call. Only exhausted job/infrastructure failures end `failed` / `collection_failed`; historical null outcomes remain null.
 
 The non-checkpointed runner uses the existing fenced `development_collection_v1` job and its locked attempt/max-attempts snapshot, not a separate retry budget. Reads run sequentially, below the four-read maximum, with a five-second adapter deadline and a 90-second collection deadline per attempt. Adapters must bound their actual underlying read; no timed-out background read is left running. Transient failures before the last attempt end that attempt within the existing at-most-three budget; the final attempt publishes unavailable source outcomes instead of inventing success. The worker now runs the same per-source policy through durable [collection checkpoints](job-dispatch.md#collection-checkpoints) behind a [trusted dispatch permit](job-dispatch.md#dispatchpermitv1). The optional live providers install the scoped Kubernetes and Prometheus slots; unconfigured providers remain explicit gaps.
 
@@ -112,7 +112,7 @@ Checkpoint progress, trusted dispatch pauses and safe cancellation have their ow
 
 ### Scoped Kubernetes evidence
 
-See [scoped Kubernetes investigation evidence](kubernetes-evidence.md) for reader setup, UID checks, bounded state/events/logs, optional ConfigMap metadata and the K3s/Edge acceptance receipt. AI diagnosis remains unavailable.
+See [scoped Kubernetes investigation evidence](kubernetes-evidence.md) for reader setup, UID checks, bounded state/events/logs, optional ConfigMap metadata and the K3s/Edge acceptance receipt. Diagnosis is opt-in through the [bounded lifecycle](diagnosis-lifecycle.md); default deployments remain unconfigured.
 
 ### Scoped Prometheus metric evidence
 
@@ -120,7 +120,7 @@ The optional `prometheus` provider installs the six fixed metric slots in the ex
 
 Metric evidence uses the same bounded storage, retention, pin and checkpoint rules as other sources. Empty, gapped, non-finite, denied, timed-out, oversized and unproven-ownership results remain distinct from a real zero; at most 25 series per query and the existing 20,000-sample/8 MiB Run bounds apply. There is no new table or migration. The read-only Run timeline endpoint projects persisted E02 rollout observations, E03 activity and E07 execution timestamps without claiming causality.
 
-The optional [metrics lab](prometheus-metrics.md#local-lab) adds a labeled metrics fixture behind the Caddy `/prometheus/*` TLS route and a staged config bootstrap. The fixture is not a product application exporter. [Integrated E04 evidence acceptance](e04-local-acceptance.md) records the five live Kubernetes/Prometheus pack journeys and the remaining proof-class limits. AI diagnosis, live E06 findings, recovery execution and release deployment remain with their owners.
+The optional [metrics lab](prometheus-metrics.md#local-lab) adds a labeled metrics fixture behind the Caddy `/prometheus/*` TLS route and a staged config bootstrap. The fixture is not a product application exporter. [Integrated E04 evidence acceptance](e04-local-acceptance.md) records the five live Kubernetes/Prometheus pack journeys and the remaining proof-class limits. E06 findings UI/provider quality, recovery execution and release deployment retain their separate acceptance gates.
 
 ### Work queue search and prioritization
 
@@ -294,7 +294,7 @@ To pause all background jobs, run `docker compose run --rm dispatch-admin enter-
 | E03 | `features/incidents`: manual admission, notes/lifecycle and stored handoff | Work queue and investigation workspace |
 | E04 | `features/investigations` and shared job mechanics | Worker composition and run/evidence UI |
 | E05 | `features/knowledge` immutable corpus, index CLI, read catalog, [Run-pinned guidance](run-guidance.md) and [persisted Knowledge UI](knowledge-ui.md) | Optional semantic retrieval (unconfigured); E06 final context/egress/RCA |
-| E06 | `features/diagnosis` bounded model transport and reusable fixtures; see [diagnosis-model.md](diagnosis-model.md) | Context/RCA validation, durable analysis, UI and live qualification |
+| E06 | `features/diagnosis` bounded transport/context/RCA validation and durable worker/API lifecycle; see [diagnosis-lifecycle.md](diagnosis-lifecycle.md) | Findings UI and live provider quality qualification |
 | E07 | `features/recovery`: immutable manual plans, session-bound review, isolated executor and proof | Recovery UI, worker and trusted maintenance CLI |
 | E08 | `features/recommendations`: bounded KRR jobs and stored reports | Report UI/export, worker and pinned read-only runner |
 | E09 | `features/health` and `features/connections`: classified observations and fixed checks | Connections UI |
@@ -310,7 +310,7 @@ The implemented operation families are session/login/logout, workload inventory,
 - List APIs use `limit` 1..100 (default 25), `offset` 0..100000 and `next_offset`. Incident/run order is creation time descending with UUID tie-break; workload order is UUID ascending. Concurrent inserts can shift offset pages; this foundation does not promise snapshot pagination.
 - Operator mutations require exact Origin, session cookie, session-bound `X-CSRF-Token` and an `Idempotency-Key` UUID on admissions. The key is bound to actor, operation and canonical request. Identical replay returns the same IDs; a changed request with the same key returns 409. No client automatic mutation retry occurs.
 - Errors use `{error: {code, message}}`: 401 for anonymous/expired session, 403 for Viewer/Origin/CSRF denial, 404 for missing or mismatched records, 409 for conflicts/unavailable content, 410 for expired evidence, 422 for invalid fields/scope and 503 for database unavailability.
-- Collection uses `queued`, `collecting`, `insufficient_evidence`, `failed` and existing queued cancellation. Completed source collection ends `insufficient_evidence` / `analysis_unavailable`; exhausted infrastructure failures use `collection_failed`. Explicit reinvestigation creates a new Run. AI diagnosis remains unavailable; existing manual plan/execution APIs are separate and do not establish live investigation collection.
+- Collection uses `queued`, `collecting`, `insufficient_evidence`, `failed` and existing queued cancellation. Without qualified diagnosis configuration, completed source collection ends `insufficient_evidence` / `analysis_unavailable`; exhausted infrastructure failures use `collection_failed`. Explicit reinvestigation creates a new Run. AI diagnosis remains unavailable; existing manual plan/execution APIs are separate and do not establish live investigation collection.
 
 ## Available-operation authorization checks
 

@@ -1,0 +1,56 @@
+{
+  "schema": "E06LifecycleAcceptance/v1",
+  "base_commit": "78d0e9788670a641bbf05158749511aa94131ae6",
+  "source_sha256": {
+    "scripts/probe-diagnosis-lifecycle.py": "c909ad990a17303030c2bc476dd09f1dd26c4da90530604a9066a56e03c426f2",
+    "services/backend/migrations/versions/0012_diagnosis_lifecycle_durable_bounded_diagnosis.py": "e4b603dd43a9c4978c7281853c30280ff2fe7a0b1d887f4d62a59aa20077d9d2",
+    "services/backend/src/cloudops/entrypoints/dispatch.py": "1cbd87c1439cf63d1649c3362d968799979dbb309f0f946683a2f70571ac14cd",
+    "services/backend/src/cloudops/entrypoints/worker.py": "5a7a8bc9070d59e084d1be02ad63e8081696187633883faee646d25356dbbc35",
+    "services/backend/src/cloudops/features/diagnosis/advice.py": "0ebc20289a17a53f128be1668e540f181d139356304ca6ad5e89644ce9c4fed7",
+    "services/backend/src/cloudops/features/diagnosis/api.py": "4659efd37f9719ba7ceb4c890a40b7bdd87b2d72cd6c5ff9b752d59a1dbb46b2",
+    "services/backend/src/cloudops/features/diagnosis/api_schemas.py": "293b7937b3b10c498f01077e6c84fcfad7704463a5d8e34610ffda80521537a5",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "585eb1ccfbd262dd193d509bb0f79b430f9554595666237d81ab24cd9470f739",
+    "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
+    "services/backend/src/cloudops/features/diagnosis/lifecycle.py": "62234c36d05cc8a49575a0367a158868d63224e69164949aed24a3e0b65df24a",
+    "services/backend/src/cloudops/features/diagnosis/messages.py": "cc2c181f9c96809bed6a3d02a24b5805252d87ab40cd3bbd7d22f5c5d71541a4",
+    "services/backend/src/cloudops/features/diagnosis/models.py": "d91b3287fc0714493f97c547bf3a9ed8998dccc9d9e84e674e488dbd001cd225",
+    "services/backend/src/cloudops/features/diagnosis/pins.py": "f549d9de1d0c98404b3bbf49a13135327849dc6c44649a80493019f04ba94fbd",
+    "services/backend/src/cloudops/features/diagnosis/profile.py": "5ca2865c1a05cc421a5a82c9dfd292cd3ce8dc5fa1b1ba086d1eedf6e80ef538",
+    "services/backend/src/cloudops/features/diagnosis/schemas.py": "54bca6a83bac5883c21efcead8f49f3bf11bb6c32612070c032f6a04f2fc03e1",
+    "services/backend/src/cloudops/features/diagnosis/service.py": "0aae156b0a90d909cb6bde54bdf9a7f6ca66f2f1cc4ddc6f93f5b3b56aafcc29",
+    "services/backend/src/cloudops/features/diagnosis/settings.py": "610f14bfb4e8acdfe78ae1b04bc0ea121849e2ec17b9c5cec164ee6fdb3a2819",
+    "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
+    "services/backend/src/cloudops/features/diagnosis/transport.py": "d15fa3a52aadb961009b0261a7e6b174ba8a75e7733ca4adee6b4c12b50d0315",
+    "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "a28483922ba33e24ca28e40ee4fbf0ea7d6564148bbdd381525a7fa31064f220",
+    "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a"
+  },
+  "proof_classes": [
+    "PostgreSQL state/race tests",
+    "Compatible loopback HTTP wire",
+    "Separate worker processes on Windows and Linux",
+    "Actual PostgreSQL dump/restore and trusted Linux dispatch administration"
+  ],
+  "checks": {
+    "windows_lifecycle_process_migration": "34 passed",
+    "linux_lifecycle_process_migration": "34 passed",
+    "permission_cases_new_operations_and_health": "24 passed",
+    "corrected_inventory_dispatch_migration_regressions": "36 passed",
+    "generated_producer_fixtures": "28 passed",
+    "web": "223 tests passed; production build passed",
+    "contracts": "generated artifacts matched; deliberate drift rejected",
+    "format_lint": "passed"
+  },
+  "regression_audit": {
+    "initial_run": "1597 passed, 12 skipped, 19 failures",
+    "disposition": "All 19 failure cases corrected and rechecked in the 36-case targeted batch; exact final full-suite status is reported by PR CI."
+  },
+  "restore": "restore.json",
+  "limits": [
+    "Only owned loopback fixtures; no external provider quality or paid inference.",
+    "Findings UI/new compare/handoff integration remain #71; real provider cohorts remain #72.",
+    "No browser verification claimed for this backend/API slice.",
+    "No exactly-once remote inference or known cost for an unknown response."
+  ],
+  "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF."
+}

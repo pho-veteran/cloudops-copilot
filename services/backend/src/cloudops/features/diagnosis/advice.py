@@ -655,6 +655,7 @@ def _resolve_runbook(db, context: PreparedContext, alias: str, runbook):
         runbook.selection_id,
         runbook.reference.chunk_id,
         runbook.reference.document_version_id,
+        allow_evaluation=True,
     )
     if resolved.reference != runbook.reference or resolved.selection_id != runbook.selection_id:
         return _failure("runbook_reference_mismatch", "$", repairable=False)

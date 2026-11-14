@@ -6,6 +6,7 @@ import time
 from sqlalchemy.dialects.postgresql import insert
 
 from cloudops.entrypoints import metadata  # noqa: F401
+from cloudops.features.diagnosis.lifecycle import configure_dispatch
 from cloudops.entrypoints.dispatch import GATE, PERMIT_CLASSES
 from cloudops.features.investigations.admission_settings import deferred_run_limit
 from cloudops.features.investigations.collector import (
@@ -22,8 +23,22 @@ from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, require_schema, sessions
 from cloudops.shared.jobs import Claim, claim_next, finish, renew, start_call
 
+from cloudops.features.diagnosis.lifecycle import admit, ANALYSIS_JOB, PROBE_JOB
+from cloudops.features.diagnosis.worker import (
+    AnalysisHandler,
+    ProbeHandler,
+    analyze,
+    probe,
+    expire_waits,
+)
+from cloudops.features.diagnosis.slot import ModelSlot, GuardBusy
+
+configure_dispatch(GATE)
+
 HANDLERS = {
-    "development_collection_v1": CollectionHandler(),
+    ANALYSIS_JOB: AnalysisHandler(),
+    PROBE_JOB: ProbeHandler(),
+    "development_collection_v1": CollectionHandler(finalize=admit),
     "recommendation_report_v1": ReportHandler(),
     "recovery_execution_v1": ExecutionHandler(),
 }
@@ -67,7 +82,29 @@ def run_once() -> bool:
     _report_denial()
     # Deferred investigations take free dispatch slots before the next claim.
     promote_deferred(gate=GATE)
-    claim = claim_next(HANDLERS, GATE)
+    expire_waits()
+    slot = ModelSlot()
+    model_handlers = {
+        key: value for key, value in HANDLERS.items() if key in {ANALYSIS_JOB, PROBE_JOB}
+    }
+    claim = None
+    try:
+        slot.__enter__()
+    except GuardBusy:
+        slot = None
+    if slot is not None:
+        try:
+            claim = claim_next(model_handlers, GATE)
+        except BaseException:
+            slot.release()
+            raise
+        if claim is None:
+            slot.release()
+            slot = None
+    if claim is None:
+        claim = claim_next(
+            {key: value for key, value in HANDLERS.items() if key not in model_handlers}, GATE
+        )
     if not claim:
         return False
     stopped = threading.Event()
@@ -88,6 +125,9 @@ def run_once() -> bool:
     keeper = threading.Thread(target=keep_lease, daemon=True)
     keeper.start()
     try:
+        if claim.kind in {ANALYSIS_JOB, PROBE_JOB}:
+            (analyze if claim.kind == ANALYSIS_JOB else probe)(claim, GATE, slot, lease_lost)
+            return True
         if claim.kind == "development_collection_v1":
             adapters = configured_adapters(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
             context = prepare(
@@ -110,6 +150,9 @@ def run_once() -> bool:
         # No publication under a lost lease or retired permit generation; the lease expires.
         logger.info("Job attempt stopped at a dispatch or lease boundary.")
     except Exception:
+        if claim.kind in {ANALYSIS_JOB, PROBE_JOB}:
+            logger.warning("Model attempt interrupted; its durable reservation governs recovery.")
+            return True
         if not finish(
             claim,
             HANDLERS[claim.kind],
@@ -120,6 +163,8 @@ def run_once() -> bool:
     finally:
         stopped.set()
         keeper.join(timeout=2)
+        if slot is not None:
+            slot.release()
     return True
 
 

@@ -11,3 +11,5 @@ from cloudops.features.connections import models as connections  # noqa: F401
 from cloudops.features.recommendations import models as recommendations  # noqa: F401
 from cloudops.features.recovery import models as recovery  # noqa: F401
 from cloudops.features.knowledge import models as knowledge  # noqa: F401
+
+from cloudops.features.diagnosis import models as diagnosis  # noqa: F401

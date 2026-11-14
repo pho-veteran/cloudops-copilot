@@ -345,7 +345,16 @@ def cancel_pending(db: Session, incident_id: UUID, code: str) -> None:
     """Terminalize queued Runs of a locked incident; collecting work is left to finish."""
     for row in db.scalars(
         select(InvestigationRun)
-        .where(InvestigationRun.incident_id == incident_id, InvestigationRun.state == "queued")
+        .where(
+            InvestigationRun.incident_id == incident_id,
+            (
+                (InvestigationRun.state == "queued")
+                | (
+                    InvestigationRun.state.in_(["analyzing", "waiting_for_quota"])
+                    & (InvestigationRun.provider_call == "none")
+                )
+            ),
+        )
         .with_for_update()
     ):
         terminalize(db, row, code)
