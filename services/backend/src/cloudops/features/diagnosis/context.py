@@ -916,7 +916,7 @@ def _sent_coverage(
                 optional_included=optional_counts.get(slot, 0),
                 rule_omitted=extraction.rule_omitted,
                 budget_omitted=budget_counts.get(slot, 0),
-                ambiguous_omitted=material.ambiguous_omitted,
+                ambiguous_omitted=extraction.ambiguous_omitted,
                 bytes=required_bytes.get(slot, 0) + optional_bytes.get(slot, 0),
             )
         )

@@ -553,7 +553,7 @@ def test_deep_json_is_a_repairable_parse_failure():
     assert _codes(failures) == ["json_invalid"]
 
 
-@pytest.mark.parametrize("omitted", ["rule", "ambiguous"])
+@pytest.mark.parametrize("omitted", ["rule", "ambiguous", "mixed"])
 def test_ruled_out_rejects_incomplete_sent_context(omitted):
     events = _material(
         "kubernetes.events",
@@ -564,6 +564,11 @@ def test_ruled_out_rejects_incomplete_sent_context(omitted):
     )
     if omitted == "ambiguous":
         events = replace(events, ambiguous_omitted=1)
+    elif omitted == "mixed":
+        ambiguous = replace(
+            _entry("event", ["event", "ambiguous"], {"reason": "Conflicting"}), ambiguous=True
+        )
+        events = replace(events, entries=(*events.entries, ambiguous))
     context = _context({"kubernetes.events": events})
     aliases = [
         next(target.alias for target in context.required_targets if target.source_key == slot)
