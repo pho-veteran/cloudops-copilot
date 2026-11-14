@@ -571,6 +571,38 @@ def _coverage(materials: list[SlotMaterial]) -> list[SourceCoverage]:
     ]
 
 
+def _request_coverage(scope: ContextScope, policy: EgressPolicy) -> SourceCoverage:
+    """The envelope-only `run.request` row; it is never a citable target."""
+    if not scope.request_text.strip():
+        status, content, reasons = "missing", "missing", ["request_not_captured"]
+    elif policy.scan(scope.request_text):
+        status, content, reasons = "unavailable", "available", ["request_content_denied"]
+    elif not policy.allows("operator_request"):
+        status, content, reasons = "unavailable", "available", ["policy_denied"]
+    else:
+        status, content, reasons = "available", "available", []
+    return SourceCoverage(
+        slot="run.request",
+        source_class="operator_request",
+        status=status,
+        content_status=content,
+        time_relation="within_requested_window",
+        reasons=reasons,
+        evidence_id=None,
+    )
+
+
+def _optional_eligible(material: SlotMaterial, policy: EgressPolicy) -> bool:
+    """Optional material is selected only from usable, allowlisted slots (§7.2)."""
+    if not policy.allows(material.source_class):
+        return False
+    if material.coverage_status not in {"available", "partial"}:
+        return False
+    if material.content_status != "available":
+        return False
+    return not material.projection_unsupported
+
+
 def _user_content(
     scope: ContextScope,
     coverage: list[SourceCoverage],
@@ -740,7 +772,7 @@ class PreparedContext(BaseModel):
 
 class InsufficientContext(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    schema_version: Literal["InsufficientContext/v1"] = "InsufficientContext/v1"
+    schema_version: Literal["ContextInsufficiency/v1"] = "ContextInsufficiency/v1"
     outcome: Literal["insufficient"] = "insufficient"
     reason: str
     context_version: str
@@ -750,6 +782,7 @@ class InsufficientContext(BaseModel):
     policy_digest: str
     validator_version: str
     scope: KnowledgeRunScope | None
+    request_source: str | None = None
     request_present: bool
     source_coverage: list[SourceCoverage]
     families: list[FamilyAssessment]
@@ -765,6 +798,7 @@ class InsufficientContext(BaseModel):
             "reason": self.reason,
             "versions": _versions(),
             "scope": self.scope.model_dump(mode="json") if self.scope else None,
+            "request_source": self.request_source,
             "request_present": self.request_present,
             "policy_version": self.policy_version,
             "policy_digest": self.policy_digest,
@@ -796,13 +830,14 @@ def _insufficient(
     limitations: list[str] | None = None,
 ) -> InsufficientContext:
     payload = {
-        "outcome": "insufficient",
         "reason": reason,
         "versions": _versions(),
-        "scope": _scope_payload(scope) if scope else None,
-        "request_present": bool(scope and scope.request_text.strip()),
         "policy_digest": policy.digest(),
+        "scope": _scope_payload(scope) if scope else None,
+        "coverage": [item.model_dump(mode="json") for item in coverage],
         "families": [item.model_dump(mode="json") for item in families],
+        "omissions": [item.model_dump(mode="json") for item in (omissions or [])],
+        "limitations": list(limitations or []),
     }
     return InsufficientContext(
         reason=reason,
@@ -813,6 +848,7 @@ def _insufficient(
         policy_digest=policy.digest(),
         validator_version=VALIDATOR_VERSION,
         scope=scope.knowledge if scope else None,
+        request_source=scope.request_source if scope else None,
         request_present=bool(scope and scope.request_text.strip()),
         source_coverage=coverage,
         families=families,
@@ -893,7 +929,7 @@ def assemble(
     analysis_identity: str,
 ) -> PreparedContext | InsufficientContext:
     budget = min(policy.max_message_bytes, profile.limits.max_input_bytes)
-    coverage = _coverage(materials)
+    coverage = [_request_coverage(scope, policy), *_coverage(materials)]
     families = family_matrix(materials, policy)
     limitations = _limitations(scope, materials)
     omissions: list[Omission] = []
@@ -1018,7 +1054,10 @@ def assemble(
 
     used = {(target.evidence_id, target.locator.kind, target.locator.key) for target in required}
     optional: list[ContextTarget] = []
-    for candidate in optional_targets(materials, families, used):
+    optional_materials = [
+        material for material in materials if _optional_eligible(material, policy)
+    ]
+    for candidate in optional_targets(optional_materials, families, used):
         if policy.scan(canonical(candidate.value)) or policy.scan(candidate.label):
             omissions.append(Omission(code="content_denied", slot=candidate.source_key))
             continue
@@ -1056,7 +1095,10 @@ def assemble(
         retrieval = selection.retrieval
         runbook_status = retrieval.status
         runbook_limitations = list(retrieval.limitations)
-        if retrieval.status in {"matched", "partial"}:
+        if retrieval.status in {"matched", "partial"} and not policy.allows("runbook"):
+            omissions.append(Omission(code="content_denied", slot="runbook"))
+            limitations.append("runbook_policy_denied")
+        elif retrieval.status in {"matched", "partial"}:
             for chunk in retrieval.chunks:
                 if len(runbooks) >= 999:
                     omissions.append(Omission(code="alias_space_omitted", slot="runbook"))

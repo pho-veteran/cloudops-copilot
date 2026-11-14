@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timedelta, timezone
+from dataclasses import replace
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
@@ -22,11 +23,18 @@ from cloudops.features.diagnosis.context import (
     optional_targets,
     required_targets,
 )
-from cloudops.features.diagnosis.egress import EgressPolicy
+from cloudops.features.diagnosis.egress import EgressPolicy, check_send
 from cloudops.features.diagnosis.messages import prepare_payload, serialize_payload
 from cloudops.features.diagnosis.versions import SOURCE_CLASSES
 from cloudops.features.investigations.locators import Entry, canonical
-from cloudops.features.knowledge.guidance_schemas import KnowledgeRunScope
+from cloudops.features.knowledge.guidance_schemas import (
+    GuidanceChunk,
+    KnowledgeRef,
+    KnowledgeRetrieval,
+    KnowledgeRunScope,
+    KnowledgeSelectionView,
+)
+from cloudops.features.knowledge.schemas import KnowledgeApplicability, KnowledgeProvenance
 
 
 def test_versions_are_unique_and_pinned():
@@ -584,6 +592,112 @@ def test_rebuild_is_byte_identical_and_digest_stable():
     third = _build(materials, scope=scope, policy_version="2")
     assert isinstance(third, PreparedContext)
     assert third.digest != first.digest
+
+
+def _selection(scope):
+    chunk = GuidanceChunk(
+        reference=KnowledgeRef(
+            document_key="fixture-guide",
+            document_version_id=uuid4(),
+            version="1",
+            chunk_id=uuid4(),
+            chunker_version="markdown/v1",
+            document_sha256="b" * 64,
+            metadata_sha256="b" * 64,
+            chunk_sha256="b" * 64,
+        ),
+        title="Restart guide",
+        heading_path=["Restart guide"],
+        content="Check the previous container logs.",
+        source_path="guides/restart.md",
+        provenance=KnowledgeProvenance(source_revision="1", reviewed_at=date(2026, 1, 1)),
+        applicability=KnowledgeApplicability(
+            kind="Deployment", symptom_families=[], recovery_templates=[]
+        ),
+        score=1.0,
+    )
+    return KnowledgeSelectionView(
+        id=uuid4(),
+        run_id=scope.knowledge.run_id,
+        actor_id=None,
+        created_at=datetime.now(timezone.utc),
+        origin="trusted",
+        retrieval=KnowledgeRetrieval(status="matched", chunks=[chunk], scope=scope.knowledge),
+    )
+
+
+def test_optional_targets_skip_a_policy_denied_class():
+    policy = _policy(
+        *(name for name in _policy().allowed_source_classes if name != "synthetic_fixture")
+    )
+    fixture = _material(
+        "development_fixture", [_entry("field", ["path", "k-1"], {"k": "fixture-value"})]
+    )
+    context = assemble(
+        [*_minimal_materials(), fixture], _scope(), None, policy, profile(), "analysis-1"
+    )
+    assert isinstance(context, PreparedContext)
+    assert all(target.source_class != "synthetic_fixture" for target in context.optional_targets)
+    assert check_send(context, policy, profile(), "initial").ok is True
+
+
+def test_runbook_material_is_omitted_when_its_class_is_denied():
+    scope = _scope()
+    policy = _policy(*(name for name in _policy().allowed_source_classes if name != "runbook"))
+    context = assemble(
+        _minimal_materials(), scope, _selection(scope), policy, profile(), "analysis-1"
+    )
+    assert isinstance(context, PreparedContext)
+    assert context.runbooks == []
+    assert any(
+        omission.code == "content_denied" and omission.slot == "runbook"
+        for omission in context.omissions
+    )
+    assert check_send(context, policy, profile(), "initial").ok is True
+
+
+def test_source_coverage_always_lists_the_run_request():
+    context = _build(_minimal_materials())
+    assert isinstance(context, PreparedContext)
+    request = context.source_coverage[0]
+    assert request.slot == "run.request"
+    assert request.source_class == "operator_request"
+    assert request.status == "available"
+    assert request.content_status == "available"
+    assert request.evidence_id is None
+    assert [item["slot"] for item in context.record()["source_coverage"]][0] == "run.request"
+
+
+def test_insufficiency_digest_covers_coverage_and_omissions():
+    scope = _scope("x" * 2000)
+    policy = _policy(max_message_bytes=1000, max_target_bytes=1000)
+    materials = _minimal_materials()
+    first = assemble(materials, scope, None, policy, profile(), "analysis-1")
+    assert isinstance(first, InsufficientContext)
+    assert first.reason == "request_exceeds_budget"
+    assert first.digest == assemble(materials, scope, None, policy, profile(), "analysis-1").digest
+    wider = [
+        *materials,
+        _material(
+            "kubernetes.configmap.metadata",
+            [_entry("field", ["uid", "cm-1"], {"uid": "cm-1"})],
+        ),
+    ]
+    second = assemble(wider, scope, None, policy, profile(), "analysis-1")
+    assert isinstance(second, InsufficientContext)
+    assert second.reason == first.reason
+    assert second.source_coverage != first.source_coverage
+    assert second.digest != first.digest
+
+
+def test_insufficiency_records_the_request_source_without_its_text():
+    scope = replace(_scope(), request_source="title_default")
+    context = _build(_minimal_materials(), budget=1000, request_text="x" * 2000, scope=scope)
+    assert isinstance(context, InsufficientContext)
+    assert context.schema_version == "ContextInsufficiency/v1"
+    record = context.record()
+    assert record["request_source"] == "title_default"
+    assert "xxxxxxxxxx" not in json.dumps(record)
 
 
 FIXTURES = Path(__file__).resolve().parents[3] / "docs/evidence/e06-r2-context"

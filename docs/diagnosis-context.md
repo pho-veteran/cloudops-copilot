@@ -53,9 +53,16 @@ The five assessment families and their required slots, in fixed order:
 | `image_pull` | state, events |
 
 A family is eligible only when every required slot is usable. `not_applicable` log
-sources are waived, with `source_not_applicable` recorded; missing, unavailable,
+sources are waived and recorded as `not_applicable`/`waived`; missing, unavailable,
 expired, unsupported-projection or synthetic slots are not waived. Partial coverage
 still allows `supported` but blocks `ruled_out_hypotheses`.
+
+`source_coverage` always starts with the envelope-only `run.request` row
+(`source_class="operator_request"`, `status`/`reasons` reflecting capture, deny scan and
+allowlist). It has no evidence id and is never a citable target. Optional material is
+selected only from allowlisted, available slots; a policy-denied runbook selection is
+omitted as `content_denied` with the `runbook_policy_denied` limitation, so a built
+context is always sendable under the policy that built it.
 
 ## Versions and identities
 
@@ -70,7 +77,10 @@ still allows `supported` but blocks `ruled_out_hypotheses`.
 
 `PreparedContext.digest` covers versions, `policy_digest`, scope, request source/text,
 the sent manifest and the final messages. `PreparedContext.record()` is a persistence
-summary: it omits request text and target values.
+summary: it omits request text and target values. `InsufficientContext` is the persistable
+insufficiency record (`ContextInsufficiency/v1`): its digest covers versions,
+`policy_digest`, reason, scope, source coverage, families, omissions and limitations, and
+its `record()` keeps `request_source`/`request_present` without the request text.
 
 ## Aliases, budget and repair
 
