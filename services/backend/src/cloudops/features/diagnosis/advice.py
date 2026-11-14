@@ -1,8 +1,11 @@
 """Evidence-bound `RCAAdvice/v1` parsing, structural validation and normalization.
 
-Pure module: it reads the prepared context, never opens a socket, never touches the
-database and never rewrites the advice. Semantic relevance is out of scope; the result
-carries ``quality="not_established"`` on purpose (issue #69 D2/D5).
+Parsing, structural validation, normalization and feedback construction read the
+prepared context only. ``validate`` additionally performs read-only exact-reference
+resolution against already retained Evidence and a pinned Knowledge selection: it
+never opens a socket, never mutates a row and never rewrites the advice. Semantic
+relevance is out of scope; the result carries ``quality="not_established"`` on
+purpose (issue #69 D2/D5).
 """
 
 from __future__ import annotations
@@ -24,8 +27,17 @@ from cloudops.features.diagnosis.versions import (
     PROMPT_VERSION,
     VALIDATOR_VERSION,
 )
+from cloudops.features.investigations import comparison_service
 from cloudops.features.investigations.citation_schemas import CitationRef
+from cloudops.features.investigations.locators import (
+    UnsupportedProjection,
+)
+from cloudops.features.investigations.locators import digest as entry_digest
+from cloudops.features.investigations.locators import project as project_payload
+from cloudops.features.investigations.service import evidence_content
+from cloudops.features.knowledge import guidance
 from cloudops.features.knowledge.guidance_schemas import KnowledgeRef
+from cloudops.shared.errors import DomainError
 
 AdviceStatus = Literal["supported", "insufficient_evidence"]
 CauseCategory = Literal[
@@ -342,6 +354,7 @@ def validate_structural(context: PreparedContext, advice: RCAAdvice) -> list[Val
             runbooks=runbooks,
         )
     )
+    unknown_support = any(alias not in targets for alias in advice.supporting_evidence_ids)
 
     assessments = {item.family: item for item in context.families}
     if advice.status == "supported":
@@ -365,7 +378,7 @@ def validate_structural(context: PreparedContext, advice: RCAAdvice) -> list[Val
                 alias in targets and targets[alias].source_key in required
                 for alias in advice.supporting_evidence_ids
             )
-            if not matched:
+            if not matched and not unknown_support:
                 failures.append(
                     _failure("supported_requires_family_evidence", "supporting_evidence_ids")
                 )
@@ -552,3 +565,169 @@ def feedback_message(
     if len(encoded) > context.effective_budget_bytes:
         return None
     return feedback
+
+
+_EVIDENCE_DOMAIN_CODES: dict[str, ValidationCode] = {
+    "evidence_expired": "evidence_expired",
+    "evidence_unavailable": "evidence_unavailable",
+    "locator_not_supported": "unsupported_payload_version",
+}
+
+
+def _domain_failure(error: DomainError, *, runbook: bool) -> ValidationFailure:
+    """Map a scoped-read DomainError to a closed terminal code, never its message."""
+    if runbook:
+        return _failure("runbook_reference_mismatch", "$", repairable=False)
+    code = _EVIDENCE_DOMAIN_CODES.get(error.code, "evidence_reference_mismatch")
+    return _failure(code, "$", repairable=False)
+
+
+def _exact_entry(content, target: ContextTarget):
+    try:
+        entries = project_payload(content.payload_kind, content.payload_version, content.payload)
+    except UnsupportedProjection:
+        return None
+    return next(
+        (
+            entry
+            for entry in entries
+            if entry.kind == target.locator.kind and entry.key == target.locator.key
+        ),
+        None,
+    )
+
+
+def _resolve_evidence(db, context: PreparedContext, alias: str, target: ContextTarget):
+    resolution = comparison_service.citation(
+        db,
+        context.incident_id,
+        context.run_id,
+        target.evidence_id,
+        target.locator.kind,
+        target.locator.key,
+    )
+    evidence = resolution.evidence
+    if evidence.payload_version != 1:
+        return _failure("unsupported_payload_version", "$", repairable=False)
+    if evidence.source_key != target.source_key:
+        return _failure("evidence_reference_mismatch", "$", repairable=False)
+    if evidence.sha256 != target.evidence_sha256:
+        return _failure("evidence_hash_mismatch", "$", repairable=False)
+    content = evidence_content(db, context.incident_id, context.run_id, target.evidence_id)
+    entry = _exact_entry(content, target)
+    if entry is None or entry.ambiguous:
+        return _failure("evidence_reference_mismatch", "$", repairable=False)
+    if entry_digest(entry.value) != target.entry_digest:
+        return _failure("evidence_reference_mismatch", "$", repairable=False)
+    return ResolvedEvidence(
+        alias=alias,
+        citation=resolution.citation,
+        source_key=target.source_key,
+        source_class=target.source_class,
+        evidence_sha256=target.evidence_sha256,
+        entry_digest=target.entry_digest,
+        time_relation=target.time_relation,
+        coverage_status=target.coverage_status,
+    )
+
+
+def _resolve_runbook(db, context: PreparedContext, alias: str, runbook):
+    resolved = guidance.resolve_selection_chunk(
+        db,
+        context.incident_id,
+        context.run_id,
+        runbook.selection_id,
+        runbook.reference.chunk_id,
+        runbook.reference.document_version_id,
+    )
+    if resolved.reference != runbook.reference or resolved.selection_id != runbook.selection_id:
+        return _failure("runbook_reference_mismatch", "$", repairable=False)
+    return ResolvedRunbook(
+        alias=alias,
+        selection_id=runbook.selection_id,
+        reference=resolved.reference,
+    )
+
+
+def _database_resolver(db, context: PreparedContext) -> Resolver:
+    """Memoized exact resolution over the sent manifest; failures stay path-free."""
+    targets = _targets(context)
+    runbooks = {item.alias: item for item in context.runbooks}
+    cache: dict[str, ResolvedRef | ValidationFailure] = {}
+
+    def resolve(alias: str) -> ResolvedRef | ValidationFailure:
+        if alias in cache:
+            return cache[alias]
+        try:
+            if alias.startswith("E"):
+                target = targets.get(alias)
+                result: ResolvedRef | ValidationFailure = (
+                    _resolve_evidence(db, context, alias, target)
+                    if target is not None
+                    else _failure("unknown_alias", "$")
+                )
+            else:
+                runbook = runbooks.get(alias)
+                result = (
+                    _resolve_runbook(db, context, alias, runbook)
+                    if runbook is not None
+                    else _failure("runbook_alias_unknown", "$")
+                )
+        except DomainError as error:
+            result = _domain_failure(error, runbook=alias.startswith("K"))
+        cache[alias] = result
+        return result
+
+    return resolve
+
+
+def _occurrences(advice: RCAAdvice) -> list[tuple[str, str, bool]]:
+    """Every cited alias with its advice path, in normalization order."""
+    found: list[tuple[str, str, bool]] = []
+    for index, alias in enumerate(advice.supporting_evidence_ids):
+        found.append((alias, f"supporting_evidence_ids[{index}]", False))
+    for index, alias in enumerate(advice.contradicting_evidence_ids):
+        found.append((alias, f"contradicting_evidence_ids[{index}]", False))
+    for position, item in enumerate(advice.alternatives):
+        for index, alias in enumerate(item.evidence_ids):
+            found.append((alias, f"alternatives[{position}].evidence_ids[{index}]", False))
+    for position, item in enumerate(advice.ruled_out_hypotheses):
+        for index, alias in enumerate(item.evidence_ids):
+            found.append((alias, f"ruled_out_hypotheses[{position}].evidence_ids[{index}]", False))
+    for index, alias in enumerate(advice.runbook_citation_ids):
+        found.append((alias, f"runbook_citation_ids[{index}]", True))
+    return found
+
+
+def _invalid(failures: list[ValidationFailure]) -> ValidationOutcome:
+    return ValidationOutcome(
+        status="invalid",
+        result=None,
+        failures=failures,
+        repairable=any(failure.repairable for failure in failures),
+    )
+
+
+def validate(db, context: PreparedContext, raw_text: str) -> ValidationOutcome:
+    """Parse, structurally check and resolve every citation in advice order.
+
+    ``validate`` is read-only. Structural failures are repairable; any reference that
+    no longer resolves to the exact sent identity is terminal (§10.2).
+    """
+    parsed = parse(raw_text)
+    if isinstance(parsed, list):
+        return _invalid(parsed)
+    structural = validate_structural(context, parsed)
+    if structural:
+        return _invalid(structural)
+    resolver = _database_resolver(db, context)
+    for alias, path, _runbook in _occurrences(parsed):
+        resolved = resolver(alias)
+        if isinstance(resolved, ValidationFailure):
+            terminal = resolved.model_copy(update={"path": path, "repairable": False})
+            return _invalid([terminal])
+    try:
+        result = normalize(context, parsed, resolver)
+    except ResolutionRequired as error:
+        return _invalid([error.failure])
+    return ValidationOutcome(status="valid", result=result, failures=[], repairable=False)

@@ -579,7 +579,9 @@ findings. #70 judges transport/schema/quality distinctly; a probe never grants q
 2. **Alias membership** — every telemetry alias in supporting, contradicting, alternatives
    and ruled-out must be in the sent target manifest; every runbook alias in the sent
    runbook manifest. Wrong-class alias (`K` in a telemetry field / `E` in runbook field),
-   unknown alias, duplicate-within-list → repairable codes.
+   unknown alias, duplicate-within-list → repairable codes. An unknown supporting alias is
+   already reported here, so step 3 withholds the family-evidence conclusion until the
+   citation set is valid.
 3. **Status rules**
    - `supported`: `cause_category` is one of the current `eligible_for_assessment`
      families (never `unknown`); `supporting_evidence_ids` non-empty; at least one
