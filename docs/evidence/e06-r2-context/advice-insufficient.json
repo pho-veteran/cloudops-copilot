@@ -1,0 +1,27 @@
+{
+  "schema": "RCAAdvice/v1",
+  "advice": {
+    "schema_version": "RCAAdvice/v1",
+    "status": "insufficient_evidence",
+    "cause_category": "unknown",
+    "summary": "The stored evidence does not establish a single cause.",
+    "supporting_evidence_ids": [
+      "E003"
+    ],
+    "contradicting_evidence_ids": [],
+    "alternatives": [],
+    "ruled_out_hypotheses": [],
+    "unverified_checks": [],
+    "missing_evidence": [
+      "A second failing replica's logs are not captured."
+    ],
+    "limitations": [
+      "Traffic series cover only the requested window."
+    ],
+    "next_steps": [
+      "Collect logs from another failing replica."
+    ],
+    "runbook_citation_ids": [],
+    "candidate_template_id": null
+  }
+}

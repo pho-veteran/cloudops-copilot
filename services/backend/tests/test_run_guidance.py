@@ -451,3 +451,26 @@ def test_api_roles_csrf_reject_browser_scope_and_resolve_exact_membership(
         client.get(target, params={"document_version_id": ref["document_version_id"]}).status_code
         == 200
     )
+
+
+def test_run_scope_matches_internal_scope(db, context, tmp_path):
+    from cloudops.features.knowledge.guidance import run_scope
+
+    corpus(tmp_path)
+    scope = run_scope(db, *context[:2])
+    selected = pin(context).selection
+    assert scope is not None
+    assert selected.retrieval.scope == scope
+    assert scope.incident_id == context[0]
+    assert scope.run_id == context[1]
+    assert scope.symptom_family is None
+
+
+def test_run_scope_returns_none_for_legacy_request(db, context):
+    from cloudops.features.knowledge.guidance import run_scope
+
+    run = db.get(InvestigationRun, context[1])
+    run.question = None
+    run.question_source = "not_captured"
+    db.commit()
+    assert run_scope(db, *context[:2]) is None

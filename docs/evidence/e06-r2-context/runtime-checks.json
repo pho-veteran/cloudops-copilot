@@ -1,0 +1,140 @@
+{
+  "proof_class": "Owned PostgreSQL 17 and loopback HTTP; synthetic evidence/model response/credential",
+  "prepared": {
+    "digest": "99d91ee874a4bf4e8eae94119fbb3d4fb5c55c82e709f6affd0eb23d22d77e36",
+    "message_bytes": 11422,
+    "required_targets": 5,
+    "runbooks": 1,
+    "analysis_selection_matches": true
+  },
+  "wire": [
+    {
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "bytes": 11422,
+      "authorization": "<redacted>"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "bytes": 11534,
+      "authorization": "<redacted>"
+    }
+  ],
+  "admission_phases": [
+    "initial",
+    "repair"
+  ],
+  "repair": {
+    "rejected_codes": [
+      "schema_invalid"
+    ],
+    "safe_path": "$",
+    "provider_key_resent": false,
+    "result": "valid",
+    "exact_run_references": true,
+    "quality": "not_established"
+  },
+  "retention": {
+    "analysis_pins": 4,
+    "purge_while_pinned": 0,
+    "other_owner_preserved": true,
+    "post_release_purged": 1,
+    "post_purge_validation": "evidence_expired",
+    "historical_knowledge_reference_retained": true
+  },
+  "limits": [
+    "Local fixtures only; no external model, account, spend, cluster or semantic-quality qualification.",
+    "This script exercises primitives, not future #70 lifecycle/public API or #71 UI."
+  ],
+  "schema": "E06R2RuntimeChecks/v1",
+  "source_commit": "1c3282a215521df680517bb7387895f5dda95305",
+  "environment": {
+    "python": "3.13.11",
+    "postgresql": "17.11",
+    "node_for_contracts": "24.21.0",
+    "databases": [
+      "cloudops_pr74_test",
+      "cloudops_pr74_race_test"
+    ],
+    "external_network_for_model_calls": false
+  },
+  "checks": [
+    {
+      "command": "pytest -q services/backend/tests_unit services/backend/tests",
+      "result": "1603 passed; one upstream Starlette/httpx deprecation warning"
+    },
+    {
+      "command": "pytest -q services/backend/tests_unit/test_diagnosis_advice.py services/backend/tests_unit/test_diagnosis_context_build.py services/backend/tests_unit/test_diagnosis_egress.py",
+      "result": "107 passed"
+    },
+    {
+      "command": "pytest -q services/backend/tests/test_diagnosis_context_selection.py services/backend/tests/test_diagnosis_validation.py services/backend/tests/test_diagnosis_pins.py services/backend/tests/test_run_guidance.py",
+      "result": "61 passed"
+    },
+    {
+      "command": "ruff check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "result": "passed"
+    },
+    {
+      "command": "ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr",
+      "result": "246 files already formatted"
+    },
+    {
+      "command": "python scripts/contracts.py",
+      "result": "artifacts match; no exposed contract change"
+    },
+    {
+      "command": "python scripts/test-contract-drift.py",
+      "result": "deliberate drift rejected; synchronized artifacts accepted; working tree untouched"
+    }
+  ],
+  "concurrent_retention": {
+    "proof_class": "Two concurrent connections per ordering in owned PostgreSQL 17 _test database; real row-lock waits observed",
+    "cases": [
+      {
+        "ordering": "pin_wins",
+        "purge_observed_waiting_for_row_lock": true,
+        "purged": 0,
+        "content_retained": true
+      },
+      {
+        "ordering": "purge_wins",
+        "pin_observed_waiting_for_row_lock": true,
+        "pin_result": "contributing_content_unavailable",
+        "inserted_pins": 0,
+        "content_not_resurrected": true
+      }
+    ]
+  },
+  "concurrent_method": "Pin-first holds acquire locks across natural expiry; purge-first holds purge_expired(apply=False) locks before applying purge. In both cases another connection was observed waiting on a real PostgreSQL row lock before release.",
+  "boundary_checks": [
+    "Wrong workload UID and unsupported/duplicate catalog rows excluded before extraction.",
+    "Manual and other-analysis Knowledge selections rejected; matching snapshot reloaded from persistence.",
+    "Two metric series sharing a timestamp retain exact sample identities in message JSON; deny scans cover new identity content and exact serialized bytes include it.",
+    "Missing top-level advice fields or nested alternative citation lists fail parsing.",
+    "Unknown provider property names, including newlines and invalid Unicode, never enter feedback paths.",
+    "Ruled-out hypotheses rejected for sampled or ambiguous required content; supported partial assessment remains available.",
+    "Fixed probe contents obey deny patterns.",
+    "Deep JSON and invalid UTF-8 regex configuration return safe failures."
+  ],
+  "additional_boundary_check": {
+    "source_commit": "683505805216b10c85d80d59d1f4734eb91c2ad7",
+    "change": "Use the extraction ambiguity count for mixed clean/ambiguous entries in pure assembly.",
+    "checks": [
+      {
+        "command": "pytest -q services/backend/tests_unit/test_diagnosis_advice.py services/backend/tests_unit/test_diagnosis_context_build.py services/backend/tests_unit/test_diagnosis_egress.py",
+        "result": "108 passed"
+      },
+      {
+        "command": "ruff check and ruff format --check --config services/backend/pyproject.toml services/backend scripts services/krr",
+        "result": "passed; 246 files formatted"
+      }
+    ],
+    "runtime_observation": {
+      "ambiguous_omitted": 1,
+      "ruled_out_failure": "ruled_out_partial_coverage",
+      "supported_assessment": "allowed"
+    }
+  }
+}

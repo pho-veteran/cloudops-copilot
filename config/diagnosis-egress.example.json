@@ -1,0 +1,28 @@
+{
+  "schema": "EgressPolicy/v1",
+  "policy_id": "example-deny-all",
+  "policy_version": "1",
+  "destination": {
+    "config_id": "example-evaluation",
+    "config_version": "1",
+    "endpoint_label": "example-invalid"
+  },
+  "allowed_source_classes": [],
+  "max_message_bytes": 65536,
+  "max_target_bytes": 8192,
+  "redaction_policy_version": "redaction/v1",
+  "deny_patterns": [
+    {
+      "name": "authorization_header",
+      "regex": "(?i)\\bbearer\\s+[A-Za-z0-9._~+/-]{16,}"
+    },
+    {
+      "name": "private_key_block",
+      "regex": "-----BEGIN [A-Z ]*PRIVATE KEY-----"
+    },
+    {
+      "name": "assigned_secret",
+      "regex": "(?i)\\b(password|passwd|token|secret|api[_-]?key)\\s*[:=]\\s*\\S{8,}"
+    }
+  ]
+}

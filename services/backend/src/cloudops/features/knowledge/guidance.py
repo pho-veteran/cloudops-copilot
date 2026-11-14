@@ -83,6 +83,11 @@ def _scope(db, run, family, template) -> KnowledgeRunScope | None:
     )
 
 
+def run_scope(db: Session, incident_id: UUID, run_id: UUID) -> KnowledgeRunScope | None:
+    """Public read-only scope for trusted consumers; identical to internal resolution."""
+    return _scope(db, _run(db, incident_id, run_id), None, None)
+
+
 def _retrieve(db, scope, query, limit) -> KnowledgeRetrieval:
     if type(limit) is not int or not 1 <= limit <= 10:
         raise DomainError(422, "invalid_guidance_limit", "Guidance limit must be 1 to 10.")
@@ -235,6 +240,20 @@ def _view(row: KnowledgeSelection) -> KnowledgeSelectionView:
         origin="manual" if row.consumer == "manual" else "trusted",
         retrieval=row.payload,
     )
+
+
+def analysis_selection(
+    db: Session, run_id: UUID, selection_id: UUID, request_identity: str
+) -> KnowledgeSelectionView | None:
+    row = db.scalar(
+        select(KnowledgeSelection).where(
+            KnowledgeSelection.id == selection_id,
+            KnowledgeSelection.run_id == run_id,
+            KnowledgeSelection.consumer == "analysis",
+            KnowledgeSelection.request_identity == request_identity,
+        )
+    )
+    return _view(row) if row is not None else None
 
 
 def read_guidance(db: Session, incident_id: UUID, run_id: UUID) -> RunGuidance:
