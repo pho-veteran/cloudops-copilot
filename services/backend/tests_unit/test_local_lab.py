@@ -355,6 +355,31 @@ def test_credential_validation_checks_v2_policy_and_legacy_uid_lists(lab, mismat
         lab.credentials_valid()
 
 
+def test_node_bounds_are_reapplied_and_effectively_checked(lab, driver, monkeypatch):
+    node = {
+        "Id": "owned-node",
+        "HostConfig": {
+            "Memory": 4 * driver.GIB,
+            "MemorySwap": 4 * driver.GIB,
+            "NanoCpus": 4_000_000_000,
+        },
+        "State": {"Pid": 123},
+    }
+    calls = []
+    monkeypatch.setattr(lab, "ownership", lambda: None)
+    monkeypatch.setattr(lab, "service", lambda name: node)
+    monkeypatch.setattr(lab, "command", lambda args: calls.append(args))
+    monkeypatch.setattr(driver, "process_cgroup", lambda pid: Path("/owned-node/init"))
+    monkeypatch.setattr(
+        driver, "container_cgroup", lambda group, identity: calls.append((group, identity))
+    )
+    lab.bound_node()
+    assert calls == [
+        ["docker", "update", "--memory", "4g", "--memory-swap", "4g", "--cpus", "4", "owned-node"],
+        (Path("/owned-node/init"), "owned-node"),
+    ]
+
+
 def test_driver_uses_private_local_docker_configuration(driver, monkeypatch):
     monkeypatch.setenv("LAB_SAMPLE_IMAGE", "unrelated-image")
     for key in (
@@ -689,6 +714,7 @@ def test_initial_node_can_acquire_missing_pin_but_recreate_reuses_artifact(
         },
     )
     monkeypatch.setattr(lab, "wait_k3s", lambda *args: None)
+    monkeypatch.setattr(lab, "bound_node", lambda: None)
     lab.start_k3s(recreate=recreate)
     assert calls[0][calls[0].index("--pull") + 1] == ("never" if recreate else "missing")
 

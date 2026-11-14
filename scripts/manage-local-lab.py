@@ -1138,6 +1138,27 @@ class Lab:
             self.receipt(
                 "node-ip-restart", {"container_id": node["Id"], "change": change, "retries": 1}
             )
+        self.bound_node()
+
+    def bound_node(self):
+        self.ownership()
+        node = self.service("k3s")
+        config = node["HostConfig"]
+        require(
+            config["Memory"] == 4 * GIB
+            and config["MemorySwap"] == 4 * GIB
+            and config["NanoCpus"] == 4_000_000_000,
+            "K3s resource configuration changed; refusing to replace it.",
+        )
+        self.command(
+            ["docker", "update", "--memory", "4g", "--memory-swap", "4g", "--cpus", "4", node["Id"]]
+        )
+        current = self.service("k3s")
+        require(
+            current["Id"] == node["Id"] and current["State"]["Pid"] == node["State"]["Pid"],
+            "K3s changed while applying its resource bounds.",
+        )
+        container_cgroup(process_cgroup(current["State"]["Pid"]), current["Id"])
 
     def start(self):
         host = self.preflight()
