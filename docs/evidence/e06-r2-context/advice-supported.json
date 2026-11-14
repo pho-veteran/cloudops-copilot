@@ -1,0 +1,49 @@
+{
+  "schema": "RCAAdvice/v1",
+  "advice": {
+    "schema_version": "RCAAdvice/v1",
+    "status": "supported",
+    "cause_category": "crashloop_startup",
+    "summary": "The workload crash-loops after startup, then restarts.",
+    "supporting_evidence_ids": [
+      "E002",
+      "E001"
+    ],
+    "contradicting_evidence_ids": [
+      "E003"
+    ],
+    "alternatives": [
+      {
+        "hypothesis": "Image regression",
+        "reason": "A new image tag rolled out before the restarts.",
+        "evidence_ids": [
+          "E004"
+        ]
+      }
+    ],
+    "ruled_out_hypotheses": [
+      {
+        "family": "traffic_latency_errors",
+        "reason": "The stored traffic series show no error-ratio signal.",
+        "evidence_ids": [
+          "E005",
+          "E006",
+          "E007"
+        ]
+      }
+    ],
+    "unverified_checks": [
+      {
+        "check": "Rollout history",
+        "reason": "Not captured in this Run."
+      }
+    ],
+    "missing_evidence": [],
+    "limitations": [],
+    "next_steps": [
+      "Inspect the previous container logs."
+    ],
+    "runbook_citation_ids": [],
+    "candidate_template_id": "restore_deployment_template"
+  }
+}

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -582,3 +584,61 @@ def test_rebuild_is_byte_identical_and_digest_stable():
     third = _build(materials, scope=scope, policy_version="2")
     assert isinstance(third, PreparedContext)
     assert third.digest != first.digest
+
+
+FIXTURES = Path(__file__).resolve().parents[3] / "docs/evidence/e06-r2-context"
+
+
+def test_prepared_context_fixture_matches_the_model():
+    data = json.loads((FIXTURES / "prepared-context.json").read_text(encoding="utf-8"))
+    context = PreparedContext.model_validate(data)
+    assert context.digest == data["digest"]
+    payload = {
+        "versions": {
+            "context": context.context_version,
+            "targets": context.target_rules_version,
+            "prompt": context.prompt_version,
+            "validator": context.validator_version,
+        },
+        "policy_digest": context.policy_digest,
+        "scope": {
+            "incident_id": str(context.incident_id),
+            "run_id": str(context.run_id),
+            "workload_id": str(context.workload_id),
+            "workload_uid": context.workload_uid,
+            "cluster": context.cluster,
+            "namespace": context.namespace,
+            "name": context.name,
+            "kind": context.kind,
+            "window": {
+                "start": context.window.start.isoformat(),
+                "end": context.window.end.isoformat(),
+                "source": context.window.source,
+            },
+        },
+        "request": {"text": context.request.text, "source": context.request.source},
+        "manifest": {
+            "source_coverage": [item.model_dump(mode="json") for item in context.source_coverage],
+            "families": [item.model_dump(mode="json") for item in context.families],
+            "required_targets": [item.model_dump(mode="json") for item in context.required_targets],
+            "optional_targets": [item.model_dump(mode="json") for item in context.optional_targets],
+            "runbooks": [item.model_dump(mode="json") for item in context.runbooks],
+            "omissions": [item.model_dump(mode="json") for item in context.omissions],
+            "limitations": context.limitations,
+        },
+        "messages": [
+            {"role": message.role, "content": message.content} for message in context.messages
+        ],
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
+        "utf-8"
+    )
+    assert hashlib.sha256(encoded).hexdigest() == context.digest
+    assert context.message_bytes == len(serialize_payload(profile(), context.messages))
+    record = context.record()
+    assert "request" not in record
+    assert record["request_present"] is True
+    assert context.request.text not in json.dumps(record)
+    for target in record["required_targets"] + record["optional_targets"]:
+        assert "value" not in target
+    assert context.required_targets and context.optional_targets

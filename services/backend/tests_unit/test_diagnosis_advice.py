@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import get_args
 from uuid import uuid4
 
 import pytest
@@ -11,6 +13,7 @@ from cloudops.features.diagnosis.advice import (
     RCAAdvice,
     RCAResult,
     ResolvedEvidence,
+    ValidationCode,
     ValidationFailure,
     feedback_message,
     normalize,
@@ -524,3 +527,50 @@ def test_feedback_returns_none_when_it_cannot_fit():
         ValidationFailure(code="unknown_alias", path="supporting_evidence_ids[0]", repairable=True)
     ]
     assert feedback_message(profile(), tight, failures) is None
+
+
+FIXTURES = Path(__file__).resolve().parents[3] / "docs/evidence/e06-r2-context"
+
+
+def _fixture_context():
+    data = json.loads((FIXTURES / "prepared-context.json").read_text(encoding="utf-8"))
+    return PreparedContext.model_validate(data)
+
+
+def _fixture_advice(name):
+    data = json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+    assert data["schema"] == "RCAAdvice/v1"
+    parsed = parse(json.dumps(data["advice"]))
+    assert isinstance(parsed, RCAAdvice)
+    return parsed
+
+
+def test_advice_fixtures_normalize_against_the_prepared_context():
+    context = _fixture_context()
+    supported = _fixture_advice("advice-supported.json")
+    assert validate_structural(context, supported) == []
+    result = normalize(context, supported, _resolver(context))
+    assert [item.alias for item in result.supporting] == ["E002", "E001"]
+    assert result.candidate_template_id == "restore_deployment_template"
+    assert result.machine_validation == "structural_v1"
+    assert result.quality == "not_established"
+    insufficient = _fixture_advice("advice-insufficient.json")
+    assert validate_structural(context, insufficient) == []
+    other = normalize(context, insufficient, _resolver(context))
+    assert other.status == "insufficient_evidence"
+    assert other.cause_category == "unknown"
+    assert other.candidate_template_id is None
+    assert other.quality == "not_established"
+
+
+def test_invalid_case_matrix_matches_the_validator_codes():
+    matrix = json.loads((FIXTURES / "invalid-cases.json").read_text(encoding="utf-8"))
+    assert matrix["schema"] == "E06InvalidCaseMatrix/v1"
+    context = _fixture_context()
+    closed = set(get_args(ValidationCode))
+    for row in matrix["cases"]:
+        parsed = parse(json.dumps(row["advice"]))
+        assert isinstance(parsed, RCAAdvice), row["name"]
+        codes = _codes(validate_structural(context, parsed))
+        assert codes == row["expected_codes"], row["name"]
+        assert set(row["expected_codes"]) <= closed, row["name"]

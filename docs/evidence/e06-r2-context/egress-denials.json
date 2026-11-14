@@ -1,0 +1,60 @@
+{
+  "schema": "E06EgressDenialMatrix/v1",
+  "cases": [
+    {
+      "case": "policy_missing",
+      "expected_code": "policy_missing"
+    },
+    {
+      "case": "policy_changed",
+      "policy_version": "2",
+      "expected_code": "policy_changed"
+    },
+    {
+      "case": "destination_mismatch",
+      "endpoint_label": "remote",
+      "expected_code": "destination_mismatch"
+    },
+    {
+      "case": "source_class_denied",
+      "allowed": [
+        "operator_request",
+        "kubernetes_events"
+      ],
+      "expected_code": "source_class_denied"
+    },
+    {
+      "case": "content_denied",
+      "deny_patterns": [
+        {
+          "name": "assigned_secret",
+          "regex": "(?i)\\bpassword\\s*[:=]\\s*\\S{8,}"
+        }
+      ],
+      "request_text": "The operator pasted password=hunter2hunter2 into the question.",
+      "secret": "hunter2hunter2",
+      "expected_code": "content_denied"
+    },
+    {
+      "case": "budget_exceeded",
+      "bound": 64,
+      "expected_code": "budget_exceeded"
+    },
+    {
+      "case": "scan_deny_pattern",
+      "deny_patterns": [
+        {
+          "name": "authorization_header",
+          "regex": "(?i)\\bbearer\\s+[A-Za-z0-9._~+/-]{16,}"
+        }
+      ],
+      "text": "Authorization: Bearer synthetictokenvalue0123456789",
+      "secret": "synthetictokenvalue0123456789",
+      "expected_code": "authorization_header"
+    },
+    {
+      "case": "ok",
+      "expected_code": null
+    }
+  ]
+}

@@ -18,6 +18,8 @@ Optional [scoped Prometheus metric evidence](docs/prometheus-metrics.md) adds si
 
 The reviewed [versioned runbook corpus](docs/runbook-corpus.md) adds eight source-controlled guidance documents and an author-side manifest self-check. A trusted CLI builds the [immutable runbook index](docs/knowledge-index.md); [Run guidance APIs](docs/run-guidance.md) retain exact selections and references across updates. The persisted [Knowledge UI](docs/knowledge-ui.md) supports catalog search, exact readers/downloads and Operator-initiated Run guidance. Runbook search is methodology, not diagnosis or execution approval. The [E05 acceptance ledger](docs/evidence/knowledge62/README.md) records installed-stack history, frozen full-text relevance and remaining scope.
 
+The [scoped diagnosis context contract](docs/diagnosis-context.md) fixes the evidence allowlist, family matrix, alias/budget rules, send phases, temporary pins and evidence-bound advice validation for the E06 analysis path. It establishes structural reference integrity only; AI findings and semantic quality remain unavailable.
+
 ## Quick start
 
 Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.

@@ -490,3 +490,76 @@ def test_check_send_rejects_a_non_r1_message_shape():
     check = check_send(context, policy(), profile(), "initial")
     assert check.ok is False
     assert check.code == "message_shape_invalid"
+
+
+FIXTURES = Path(__file__).resolve().parents[3] / "docs/evidence/e06-r2-context"
+
+
+def _rebound(denied):
+    return _context().model_copy(
+        update={"policy_digest": denied.digest(), "policy_version": denied.policy_version}
+    )
+
+
+def test_egress_denial_matrix_matches_sendcheck_codes():
+    matrix = json.loads((FIXTURES / "egress-denials.json").read_text(encoding="utf-8"))
+    assert matrix["schema"] == "E06EgressDenialMatrix/v1"
+    for row in matrix["cases"]:
+        name = row["case"]
+        expected = row["expected_code"]
+        if name == "scan_deny_pattern":
+            loaded = policy(deny_patterns=row["deny_patterns"])
+            assert loaded.scan(row["text"]) == expected, name
+            assert row["secret"] not in repr(loaded.scan(row["text"]))
+            continue
+        if name == "policy_missing":
+            check = check_send(_context(), None, profile(), "initial")
+        elif name == "policy_changed":
+            check = check_send(
+                _context(), policy(policy_version=row["policy_version"]), profile(), "initial"
+            )
+        elif name == "destination_mismatch":
+            remote = policy(
+                destination={
+                    "config_id": "test-config",
+                    "config_version": "1",
+                    "endpoint_label": row["endpoint_label"],
+                }
+            )
+            check = check_send(_rebound(remote), remote, profile(), "initial")
+        elif name == "source_class_denied":
+            denied = policy(allowed_source_classes=row["allowed"])
+            check = check_send(_rebound(denied), denied, profile(), "initial")
+        elif name == "content_denied":
+            strict = policy(deny_patterns=row["deny_patterns"])
+            context = _rebound(strict).model_copy(
+                update={
+                    "request": _context().request.model_copy(update={"text": row["request_text"]})
+                }
+            )
+            check = check_send(context, strict, profile(), "initial")
+            assert row["secret"] not in repr(check)
+        elif name == "budget_exceeded":
+            context = _context()
+            assert context.message_bytes > row["bound"]
+            check = check_send(
+                context.model_copy(update={"effective_budget_bytes": row["bound"]}),
+                policy(),
+                profile(),
+                "initial",
+            )
+        elif name == "ok":
+            check = check_send(_context(), policy(), profile(), "initial")
+            assert check.ok is True
+            assert check.code is None
+            assert check.byte_size == len(serialize_payload(profile(), check.messages))
+            assert check.byte_size <= _context().effective_budget_bytes
+            continue
+        else:
+            raise AssertionError(f"unhandled egress fixture case: {name}")
+        assert check.ok is False, name
+        assert check.code == expected, name
+        assert check.code in CLOSED_CODES, name
+        assert check.messages is None, name
+        assert check.byte_size is None, name
+        assert check.digest is None, name
