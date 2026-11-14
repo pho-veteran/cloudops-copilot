@@ -22,7 +22,7 @@
     "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
     "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
     "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
-    "services/backend/src/cloudops/features/diagnosis/worker.py": "a830e7ff3d1df9e210fa7b117f03276de4c7233a2276337bd8ef29a5017cab1e",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "4c4d1ab519b23e6038c2ce14d0c14c3dec02a91b2c90badedec23718bf26df81",
     "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a"
   },
   "proof_classes": [
@@ -32,7 +32,7 @@
     "Actual PostgreSQL dump/restore and trusted Linux dispatch administration"
   ],
   "checks": {
-    "windows_lifecycle_process_migration": "34 passed",
+    "windows_lifecycle_process_migration": "38 passed on implementation commit 4670601",
     "linux_lifecycle_process_migration": "37 passed",
     "permission_cases_new_operations_and_health": "24 passed",
     "corrected_inventory_dispatch_migration_regressions": "36 passed",
@@ -44,14 +44,15 @@
     "linux_current_process_backlog": "4 passed",
     "fifo_and_ci_regression_corrections": "6 passed; includes real blocked-observer/approved-recovery dispatch and collection handoff byte checks.",
     "linux_fifo_process_regressions": "7 passed",
-    "terminal_working_context_and_evidence_purge": "3 focused regressions passed; manifests/results preserved, private payload cleared."
+    "terminal_working_context_and_evidence_purge": "3 focused regressions passed; manifests/results preserved, private payload cleared.",
+    "unindexed_knowledge_safe_context": "1 passed; no-index selection remains null, explicit runbook limitation persists, qualified loopback result completes in one Job attempt"
   },
   "regression_audit": {
     "initial_run": "1597 passed, 12 skipped, 19 failures",
     "disposition": "All 19 failure cases corrected and rechecked in the 36-case targeted batch; exact final full-suite status is reported by PR CI.",
     "first_full_ci": "1664 passed; 2 failures corrected: unordered snapshot assertion and model-first scheduling."
   },
-  "restore": "restore.json",
+  "restore": "restore.json; actual pg_dump/pg_restore rerun with trusted Linux cleanup on implementation commit 4670601",
   "limits": [
     "Only owned loopback fixtures; no external provider quality or paid inference.",
     "Findings UI/new compare/handoff integration remain #71; real provider cohorts remain #72.",
