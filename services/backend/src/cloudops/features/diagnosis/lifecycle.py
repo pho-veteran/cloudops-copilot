@@ -6,7 +6,7 @@ from uuid import uuid4
 from sqlalchemy import select
 
 from cloudops.features.diagnosis import pins
-from cloudops.features.diagnosis.models import Analysis, AnalysisCall
+from cloudops.features.diagnosis.models import Analysis, AnalysisCall, AnalysisContext
 from cloudops.features.diagnosis.settings import load
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.shared.database import database_now
@@ -72,6 +72,7 @@ def terminal(db, analysis, run, state, reason):
     analysis.state, analysis.reason = state, reason
     analysis.wait_mode, analysis.earliest_retry = None, None
     analysis.finished_at = database_now(db)
+    discard_working_context(db, analysis.id)
     if reason == "provider_outcome_unknown":
         for call in db.scalars(
             select(AnalysisCall).where(
@@ -103,6 +104,13 @@ def terminal(db, analysis, run, state, reason):
     pins.release(db, analysis.id)
 
 
+def discard_working_context(db, analysis_id):
+    """Only active work needs copied telemetry. Preserve immutable manifest/digest."""
+    stored = db.get(AnalysisContext, analysis_id)
+    if stored is not None:
+        stored.snapshot = None
+
+
 def cancel_unsent(db, run, reason):
     """Run lock precedes analysis; never wait for a Job locked by a claimer."""
     analyses = db.scalars(
@@ -121,6 +129,7 @@ def cancel_unsent(db, run, reason):
             continue
         analysis.state, analysis.reason = "cancelled", reason
         analysis.finished_at = database_now(db)
+        discard_working_context(db, analysis.id)
         pins.release(db, analysis.id)
         retire_queued(db, ANALYSIS_JOB, analysis.id, reason)
         held = db.scalar(

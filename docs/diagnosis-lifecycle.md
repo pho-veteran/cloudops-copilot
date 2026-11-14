@@ -46,6 +46,8 @@ Lock order is host dispatch admission → Job → Run → Analysis/call → orde
 
 An admitted reservation without a committed settlement becomes `provider_outcome_unknown`; it is counted and never replayed automatically. A timeout/ambiguous transport error is also unknown. A remote request may outlive local timeout/lease loss. This system does not promise exactly-once inference, known cost for a lost response, or cancellation of remote compute.
 
+The complete private context is a working copy for active attempts only. Completion, insufficiency, failure, cancellation, deadline expiry and trusted recovery clear it; immutable context manifests/digests, exact references and validated results remain. A terminal Analysis therefore does not retain a second telemetry payload after E04 purges the original. Temporary pins and original Evidence/Knowledge retention keep their existing ownership and policies.
+
 ## State, budgets and waits
 
 | Outcome | Persisted behavior |

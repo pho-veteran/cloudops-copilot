@@ -113,12 +113,35 @@ def test_supported_round_trip_private_context_and_result(db, context, deployment
         assert analysis.calls == 1
         assert db.get(AnalysisResult, identifier).payload["status"] == "supported"
         stored = db.get(AnalysisContext, identifier)
-        assert stored.snapshot["request"]["text"]
+        assert stored.snapshot is None
         assert "request" not in stored.summary
         assert db.scalar(select(func.count()).select_from(EvidencePin)) == 0
+        assert db.get(AnalysisContext, identifier).snapshot is None
         assert len(server.requests) == 1
         assert db.get(InvestigationRun, context[1]).state == "completed"
         capture(db, context, "supported")
+
+
+def test_terminal_context_does_not_keep_a_copy_after_telemetry_purge(db, context, deployment):
+    from cloudops.features.investigations.models import Evidence
+    from cloudops.features.investigations.retention import purge_expired
+
+    _crashloop(db, context)
+    with serve(lambda h: respond(h, text_payload(_raw()))) as server:
+        deployment(server.url)
+        identifier = admission(db, context)
+        run_once()
+        assert refresh(db, identifier).state == "completed"
+        manifest = db.get(AnalysisContext, identifier).summary
+        for row in db.scalars(select(Evidence).where(Evidence.run_id == context[1])):
+            row.expires_at = database_now(db) - timedelta(seconds=1)
+        db.commit()
+        assert purge_expired(db, apply=True) == 4
+        db.expire_all()
+        assert all(row.payload is None for row in db.scalars(select(Evidence)))
+        stored = db.get(AnalysisContext, identifier)
+        assert stored.snapshot is None and stored.summary == manifest
+        assert db.get(AnalysisResult, identifier).payload["context_digest"] == stored.digest
 
 
 @pytest.mark.parametrize("case", ["unqualified", "disabled", "unconfigured"])
@@ -289,6 +312,7 @@ def test_unresumed_hold_expires_and_releases_pins(db, context, deployment):
         with ModelSlot():
             run_once()
         assert refresh(db, identifier).reason == "deadline_expired"
+        assert db.get(AnalysisContext, identifier).snapshot is None
         assert db.scalar(select(func.count()).select_from(EvidencePin)) == 0
         assert len(server.requests) == 1
 
@@ -535,6 +559,7 @@ def test_cancel_wins_after_context_before_send(client, db, context, deployment):
             with pytest.raises(Interrupted):
                 _reserve(claim, GATE, slot, checked, threading.Event(), snapshot)
         assert refresh(db, identifier).state == "cancelled"
+        assert db.get(AnalysisContext, identifier).snapshot is None
         assert db.scalar(select(func.count()).select_from(EvidencePin)) == 0
         assert not server.requests
 

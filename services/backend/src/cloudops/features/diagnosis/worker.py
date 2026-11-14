@@ -188,6 +188,10 @@ def _prepare(claim, gate, slot):
                 _done(db, job, attempt)
                 return None
         else:
+            if stored.snapshot is None:
+                terminal(db, analysis, run, "failed", "working_context_unavailable")
+                _done(db, job, attempt)
+                return None
             prepared = context.PreparedContext.model_validate(stored.snapshot)
         checked = egress.check_send(
             prepared,

@@ -93,7 +93,7 @@ def upgrade():
         "diagnosis_contexts",
         sa.Column("analysis_id", sa.Uuid(), nullable=False),
         sa.Column("digest", sa.String(length=64), nullable=False),
-        sa.Column("snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("summary", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.ForeignKeyConstraint(
             ["analysis_id"],

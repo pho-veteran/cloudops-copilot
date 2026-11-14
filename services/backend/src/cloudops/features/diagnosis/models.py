@@ -39,7 +39,7 @@ class AnalysisContext(Base):
     __tablename__ = "diagnosis_contexts"
     analysis_id: Mapped[UUID] = mapped_column(ForeignKey("diagnosis_analyses.id"), primary_key=True)
     digest: Mapped[str] = mapped_column(String(64))
-    snapshot: Mapped[dict] = mapped_column(JSONB)
+    snapshot: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     summary: Mapped[dict] = mapped_column(JSONB)
 
 

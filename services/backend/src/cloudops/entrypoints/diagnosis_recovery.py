@@ -2,7 +2,7 @@
 
 import json
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from cloudops.entrypoints import metadata  # noqa: F401
 from cloudops.entrypoints.dispatch import GATE
@@ -10,6 +10,8 @@ from cloudops.entrypoints.dispatch_admin import trusted_actor
 from cloudops.features.access.service import revoke_all_sessions
 from cloudops.features.diagnosis.lifecycle import ANALYSIS_JOB, configure_dispatch
 from cloudops.features.diagnosis.worker import expire_waits
+from cloudops.features.diagnosis.models import Analysis, AnalysisContext
+from cloudops.features.diagnosis.lifecycle import ACTIVE
 from cloudops.shared.database import require_schema, sessions
 from cloudops.shared.dispatch_permit import dispatch_root, PermitError
 from cloudops.shared.jobs import Job
@@ -47,6 +49,18 @@ def main():
                 "Pending work remains: keep dispatch denied and inspect before resuming."
             )
         previous = len(active)
+    with sessions()() as db, db.begin():
+        # A restored terminal row never grants permanent retention of its working copy.
+        db.execute(
+            update(AnalysisContext)
+            .where(
+                AnalysisContext.analysis_id.in_(
+                    select(Analysis.id).where(Analysis.state.not_in(ACTIVE))
+                ),
+                AnalysisContext.snapshot.is_not(None),
+            )
+            .values(snapshot=None)
+        )
     print(
         json.dumps(
             {

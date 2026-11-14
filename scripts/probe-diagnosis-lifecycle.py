@@ -47,7 +47,7 @@ def run(stage, output):
     from cloudops.features.access.models import LoginSession, User
     from cloudops.features.access.service import provision
     from cloudops.features.diagnosis.lifecycle import ANALYSIS_JOB, admit
-    from cloudops.features.diagnosis.models import Analysis, AnalysisResult
+    from cloudops.features.diagnosis.models import Analysis, AnalysisResult, AnalysisContext
     from cloudops.features.diagnosis.settings import Deployment
     from cloudops.features.diagnosis.slot import ModelSlot
     from cloudops.features.diagnosis.worker import _prepare, _reserve
@@ -93,13 +93,29 @@ def run(stage, output):
             ]
             captured = {}
             for table in tables:
+                projection = (
+                    "(to_jsonb(t)-'snapshot')"
+                    if table == "diagnosis_contexts"
+                    else "row_to_json(t)"
+                )
                 rows = (
-                    db.execute(text("SELECT row_to_json(t)::text FROM " + table + " t"))
+                    db.execute(text("SELECT " + projection + "::text FROM " + table + " t"))
                     .scalars()
                     .all()
                 )
                 captured[table] = hashlib.sha256("\n".join(sorted(rows)).encode()).hexdigest()
             return captured
+
+    def working_contexts():
+        with sessions()() as db:
+            return {
+                str(c.analysis_id): hashlib.sha256(
+                    json.dumps(
+                        c.snapshot, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+                    ).encode()
+                ).hexdigest()
+                for c in db.scalars(select(AnalysisContext))
+            }
 
     state_path = output / "private-state.json"
     if stage == "seed":
@@ -228,6 +244,7 @@ def run(stage, output):
                 assert resolved.status_code == 200, resolved.status_code
             state["wire_calls"] = len(server.requests)
         state["snapshot"] = snapshot()
+        state["working_contexts"] = working_contexts()
         with sessions()() as db:
             state["jobs"] = {
                 str(j.id): {"subject": str(j.subject_id), "attempts": j.attempts}
@@ -251,6 +268,9 @@ def run(stage, output):
         os.environ[name] = state[name]
     assert snapshot() == state["snapshot"], (
         "Restored evidence/Knowledge/handoff/result bytes changed."
+    )
+    assert working_contexts() == state["working_contexts"], (
+        "Restored active working context changed."
     )
     with sessions()() as db:
         restored_jobs = {
@@ -276,6 +296,14 @@ def run(stage, output):
         assert all(outcomes[x] == "restore_quarantined" for x in state["analyses"][1:3])
         assert outcomes[state["analyses"][3]] == "provider_outcome_unknown"
         assert db.scalar(select(func.count()).select_from(AnalysisResult)) == 1
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(AnalysisContext)
+                .where(AnalysisContext.snapshot.is_not(None))
+            )
+            == 0
+        )
     after = snapshot()
     for table in state["snapshot"]:
         if table not in {"diagnosis_calls", "diagnosis_analyses"}:
@@ -289,6 +317,8 @@ def run(stage, output):
         "job_ids_attempts_preserved_before_cleanup": True,
         "cleanup": json.loads(cleanup.stdout),
         "post_resume_replay": False,
+        "private_working_contexts_cleared": True,
+        "context_manifests_preserved": True,
         "operational_provider_quality": "not_measured",
         "source": "Controlled fixture; actual pg_dump/pg_restore and Linux authority.",
     }

@@ -147,7 +147,11 @@ run_once()
         db.commit()
         finish(start())
         assert refresh(db, identifier).state == "completed"
-        assert db.get(AnalysisContext, identifier).snapshot == saved
+        assert db.get(AnalysisContext, identifier).snapshot is None
+        assert db.get(AnalysisContext, identifier).digest == saved["digest"]
+        import json
+
+        assert json.loads(server.requests[0]["body"])["messages"] == saved["messages"]
         assert len(server.requests) == 1
 
 
