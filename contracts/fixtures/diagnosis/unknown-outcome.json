@@ -3,7 +3,7 @@
   "analysis": {
     "schema_version": "AnalysisView/v1",
     "status": "failed",
-    "analysis_id": "9e6f3545-54d2-42b0-89f1-33046f12ce1a",
+    "analysis_id": "aae22d1c-60ce-4fa0-a202-3f601922a6ad",
     "phase": "initial",
     "reason": "provider_outcome_unknown",
     "identity": {
@@ -13,7 +13,7 @@
       "config_version": "1",
       "endpoint_label": "loopback",
       "prompt_version": "e06.rca_prompt/v1",
-      "behavior_digest": "e5d34483f07f664dc1023fa48636ffa9ea08f1159cd24b6c30e610cccb71109a",
+      "behavior_digest": "44f03c8270844657e591a4d6d30ad82259361d2b1ac2570ab0067a9a4969a2b5",
       "context_version": "e06.context/v1",
       "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
       "validator_version": "e06.validator/v1"
@@ -22,19 +22,19 @@
       "scope": {
         "kind": "Deployment",
         "name": "checkout",
-        "run_id": "b4bac4f1-ed1e-4f37-8f38-973f1ecc8619",
+        "run_id": "b4884296-d773-46a8-ba71-c6957dbc73dd",
         "window": {
-          "end": "2026-11-14T08:58:55.769899+00:00",
-          "start": "2026-11-14T08:28:55.769899+00:00",
+          "end": "2026-11-14T09:06:42.366194+00:00",
+          "start": "2026-11-14T08:36:42.366194+00:00",
           "source": "explicit"
         },
         "cluster": "development",
         "namespace": "demo",
-        "incident_id": "e2beb08d-c4aa-451b-b1b1-1319937f8840",
-        "workload_id": "b55668fc-aa98-40b1-989e-985463047153",
+        "incident_id": "006d3b80-bf36-446f-a0b6-0e54a7498801",
+        "workload_id": "d68ad5e2-543b-4cf8-9c35-acf021b4d269",
         "workload_uid": "development-checkout-v1"
       },
-      "digest": "f4b81579f3fde88909cd5d857e147e33275e690c4013e5f8973207ad7a88a1d8",
+      "digest": "9985f994d6ca5291bdd0158f1c84d5a1a974a303d9c73e99fdcb74c6946140bc",
       "outcome": "prepared",
       "runbook": {
         "status": "not_selected",
@@ -346,7 +346,7 @@
           "slot": "kubernetes.state",
           "status": "available",
           "reasons": [],
-          "evidence_id": "35bea106-936e-4888-984a-23d23f6bb0f1",
+          "evidence_id": "a288b9e4-b029-4d66-88fc-7a1ce9069752",
           "source_class": "kubernetes_state",
           "time_relation": "within_requested_window",
           "content_status": "available"
@@ -364,7 +364,7 @@
           "slot": "kubernetes.events",
           "status": "available",
           "reasons": [],
-          "evidence_id": "cbe25e01-3f9f-4756-a66f-0f8480f3b1fa",
+          "evidence_id": "0d2ea6a2-43c4-4164-be50-c2732137361d",
           "source_class": "kubernetes_events",
           "time_relation": "within_requested_window",
           "content_status": "available"
@@ -373,7 +373,7 @@
           "slot": "kubernetes.logs.current",
           "status": "available",
           "reasons": [],
-          "evidence_id": "e2fe36cd-e616-4c35-85e2-d2a680edd5af",
+          "evidence_id": "b9ad7f3e-c38e-405f-890a-7143280b065f",
           "source_class": "container_logs",
           "time_relation": "within_requested_window",
           "content_status": "available"
@@ -382,7 +382,7 @@
           "slot": "kubernetes.logs.previous",
           "status": "available",
           "reasons": [],
-          "evidence_id": "a67dcfa5-681e-480c-b5d2-2a273aec17b3",
+          "evidence_id": "5e53ae58-ec4c-4387-be5b-b4f36638d60f",
           "source_class": "container_logs",
           "time_relation": "within_requested_window",
           "content_status": "available"
@@ -456,7 +456,7 @@
         "config_id": "test-config",
         "config_version": "1",
         "endpoint_label": "loopback",
-        "behavior_digest": "e5d34483f07f664dc1023fa48636ffa9ea08f1159cd24b6c30e610cccb71109a",
+        "behavior_digest": "44f03c8270844657e591a4d6d30ad82259361d2b1ac2570ab0067a9a4969a2b5",
         "requested_model": "fixture-model",
         "authorization_id": "test-owner",
         "budget_policy_id": "one-call"
@@ -471,7 +471,7 @@
             "kind": "field"
           },
           "source_key": "kubernetes.state",
-          "evidence_id": "35bea106-936e-4888-984a-23d23f6bb0f1",
+          "evidence_id": "a288b9e4-b029-4d66-88fc-7a1ce9069752",
           "value_bytes": 7,
           "entry_digest": "64f1f6aa3b9efd7610877a6bcd5e7ace8d3bfe4c7f85710cf0ffa3d29794933b",
           "family_slots": [
@@ -493,7 +493,7 @@
             "kind": "field"
           },
           "source_key": "kubernetes.state",
-          "evidence_id": "35bea106-936e-4888-984a-23d23f6bb0f1",
+          "evidence_id": "a288b9e4-b029-4d66-88fc-7a1ce9069752",
           "value_bytes": 9,
           "entry_digest": "15ce6468cd8f7458f52541e6498a50165e519d5c3cc14abb274d337670d73417",
           "family_slots": [
@@ -515,7 +515,7 @@
             "kind": "event"
           },
           "source_key": "kubernetes.events",
-          "evidence_id": "cbe25e01-3f9f-4756-a66f-0f8480f3b1fa",
+          "evidence_id": "0d2ea6a2-43c4-4164-be50-c2732137361d",
           "value_bytes": 54,
           "entry_digest": "d7736fdf219828f46aea87ceae62ab722cb2299c1b5a5fb00e2e640c8dca84f0",
           "family_slots": [
@@ -537,7 +537,7 @@
             "kind": "log_segment"
           },
           "source_key": "kubernetes.logs.current",
-          "evidence_id": "e2fe36cd-e616-4c35-85e2-d2a680edd5af",
+          "evidence_id": "b9ad7f3e-c38e-405f-890a-7143280b065f",
           "value_bytes": 57,
           "entry_digest": "a3400051172016107e9d302310e4da450ded1b783d48f71de4e36ffb133fce33",
           "family_slots": [
@@ -557,7 +557,7 @@
             "kind": "log_segment"
           },
           "source_key": "kubernetes.logs.previous",
-          "evidence_id": "a67dcfa5-681e-480c-b5d2-2a273aec17b3",
+          "evidence_id": "5e53ae58-ec4c-4387-be5b-b4f36638d60f",
           "value_bytes": 57,
           "entry_digest": "a3400051172016107e9d302310e4da450ded1b783d48f71de4e36ffb133fce33",
           "family_slots": [
@@ -570,7 +570,7 @@
           "evidence_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         }
       ],
-      "analysis_identity": "9e6f3545-54d2-42b0-89f1-33046f12ce1a",
+      "analysis_identity": "aae22d1c-60ce-4fa0-a202-3f601922a6ad",
       "repair_reserve_bytes": 4096,
       "effective_budget_bytes": 65536
     },
@@ -581,7 +581,7 @@
     "max_calls": 3,
     "repairs": 0,
     "max_repairs": 1,
-    "deadline": "2026-11-14T09:13:55.815642Z",
+    "deadline": "2026-11-14T09:21:42.409505Z",
     "wait_mode": null,
     "earliest_retry": null,
     "resume_allowed": false,
@@ -591,8 +591,8 @@
       {
         "number": 1,
         "phase": "initial",
-        "admitted_at": "2026-11-14T08:58:55.916975+00:00",
-        "settled_at": "2026-11-14T08:58:55.960010+00:00",
+        "admitted_at": "2026-11-14T09:06:42.510192+00:00",
+        "settled_at": "2026-11-14T09:06:42.553913+00:00",
         "receipt": {
           "kind": "provider_outcome_unknown",
           "usage": null,
@@ -605,8 +605,8 @@
       {
         "number": 1,
         "state": "expired",
-        "started_at": "2026-11-14T08:58:55.836560Z",
-        "finished_at": "2026-11-14T08:58:55.951422Z",
+        "started_at": "2026-11-14T09:06:42.428156Z",
+        "finished_at": "2026-11-14T09:06:42.544852Z",
         "error": "Worker lease expired; collection may be retried."
       }
     ]
@@ -617,7 +617,7 @@
       "config_id": "test-config",
       "config_version": "1",
       "endpoint_label": "loopback",
-      "behavior_digest": "e5d34483f07f664dc1023fa48636ffa9ea08f1159cd24b6c30e610cccb71109a",
+      "behavior_digest": "44f03c8270844657e591a4d6d30ad82259361d2b1ac2570ab0067a9a4969a2b5",
       "model": "fixture-model",
       "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
       "prompt_version": "e06.rca_prompt/v1",
@@ -630,6 +630,9 @@
     "dispatch_allowed": true,
     "dispatch_reason": null,
     "cooldown_seconds": 60,
-    "last_check": null
+    "last_check": null,
+    "last_attempt_at": null,
+    "last_success_at": null,
+    "last_error": null
   }
 }

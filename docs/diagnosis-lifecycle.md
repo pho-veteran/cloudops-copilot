@@ -50,7 +50,8 @@ An admitted reservation without a committed settlement becomes `provider_outcome
 
 | Outcome | Persisted behavior |
 | --- | --- |
-| Valid exact-reference advice | Immutable `RCAResult/v1`, completed Analysis/Run; advisory only |
+| Valid supported exact-reference advice | Immutable `RCAResult/v1`, completed Analysis/Run; advisory only |
+| Valid model abstention | Immutable abstention result; Analysis/Run remain `insufficient_evidence` |
 | Required context gap | `insufficient_evidence`, no HTTP |
 | Repairable structural/JSON failure | At most one durable repair phase, bounded safe feedback; no raw rejected text resent |
 | Invalid exact reference, refusal, unsupported shape, auth/config rejection | Typed terminal failure, no fallback provider |
@@ -58,7 +59,7 @@ An admitted reservation without a committed settlement becomes `provider_outcome
 | 429 | `waiting_for_quota` / `resume_required`; explicit Operator resume after the earliest retry |
 | Timeout, lost response, unsettled reservation | Terminal `provider_outcome_unknown`; new investigation required |
 
-Each Analysis has an original 15-minute deadline, ≤3 admitted HTTP calls and ≤1 repair. Job attempts remain independently capped at 3; a context-stage crash can consume an attempt without a call. Each claim sends at most once. Repair itself is not repeatedly retried after a provider failure. Automatic delays start at 30 seconds and increase exponentially; a received Retry-After is a minimum, never shortened to fit the deadline. If another legal send cannot fit, the Analysis terminates.
+Each Analysis has an original 15-minute deadline, ≤3 admitted HTTP calls and ≤1 repair. Job attempts remain independently capped at 3; a context-stage crash can consume an attempt without a call. Each claim sends at most once. Repair itself is not repeatedly retried after a provider failure. Automatic delays use a 30-second base, exponential growth and bounded deterministic per-call jitter; a received Retry-After is a minimum, never shortened to fit the deadline. If another legal send cannot fit, the Analysis terminates.
 
 Quota holds are not made eligible by the passage of time alone. Resume keeps context, counters, selection and deadline; it cannot change endpoint, UID, model, budget or output. Replaying the same actor/Analysis idempotency key does not create another Job/call. Early, expired, exhausted, changed-config, resolved or restored work returns a typed conflict.
 

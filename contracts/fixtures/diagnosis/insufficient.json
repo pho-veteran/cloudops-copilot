@@ -3,7 +3,7 @@
   "analysis": {
     "schema_version": "AnalysisView/v1",
     "status": "insufficient_evidence",
-    "analysis_id": "e8239476-869a-43cc-a636-64d4dda22ae2",
+    "analysis_id": "cdcada3c-80e2-4229-9b77-4b2f0106db74",
     "phase": "initial",
     "reason": "no_evidence",
     "identity": {
@@ -13,7 +13,7 @@
       "config_version": "1",
       "endpoint_label": "loopback",
       "prompt_version": "e06.rca_prompt/v1",
-      "behavior_digest": "2562b2e4b750842c99e66d1a63385d49af430b25dffed7f51c5e5917c1439db1",
+      "behavior_digest": "65002dde64bf5c4a19e845dd3817d6cae1a8cf7756a78fc40567a96304b8f133",
       "context_version": "e06.context/v1",
       "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
       "validator_version": "e06.validator/v1"
@@ -22,18 +22,18 @@
       "scope": {
         "kind": "Deployment",
         "name": "checkout",
-        "run_id": "490e8708-4235-486c-a2b1-061e67d421fa",
+        "run_id": "c780c6cd-4a36-41bd-9081-d3051ec5f9e3",
         "cluster": "development",
         "namespace": "demo",
-        "window_end": "2026-11-14T08:58:50.628435Z",
-        "incident_id": "a37c41d3-dcbe-42c9-a5c7-af7f2f4c7d91",
-        "workload_id": "48d8118b-3f9d-4302-a0b9-86a45df941cc",
-        "window_start": "2026-11-14T08:28:50.628435Z",
+        "window_end": "2026-11-14T09:06:37.192352Z",
+        "incident_id": "ee547f36-8543-4807-8289-2ab010b05269",
+        "workload_id": "364a7787-057d-48f2-a219-3a00aa38bc73",
+        "window_start": "2026-11-14T08:36:37.192352Z",
         "workload_uid": "development-checkout-v1",
         "symptom_family": null,
         "recovery_template": null
       },
-      "digest": "ad6c764f9842a6268726c811a4e5d7788aed2e5be392fc62a495da3f9e54e468",
+      "digest": "5b8c2ffdd8ef1ab3680e79c5c17212af4118abe4449c2793efadbf049f323753",
       "reason": "no_evidence",
       "outcome": "insufficient",
       "families": [
@@ -334,7 +334,7 @@
     "max_calls": 3,
     "repairs": 0,
     "max_repairs": 1,
-    "deadline": "2026-11-14T09:13:50.655865Z",
+    "deadline": "2026-11-14T09:21:37.221148Z",
     "wait_mode": null,
     "earliest_retry": null,
     "resume_allowed": false,
@@ -345,8 +345,8 @@
       {
         "number": 1,
         "state": "succeeded",
-        "started_at": "2026-11-14T08:58:50.693495Z",
-        "finished_at": "2026-11-14T08:58:50.747144Z",
+        "started_at": "2026-11-14T09:06:37.258207Z",
+        "finished_at": "2026-11-14T09:06:37.315722Z",
         "error": null
       }
     ]
@@ -357,7 +357,7 @@
       "config_id": "test-config",
       "config_version": "1",
       "endpoint_label": "loopback",
-      "behavior_digest": "2562b2e4b750842c99e66d1a63385d49af430b25dffed7f51c5e5917c1439db1",
+      "behavior_digest": "65002dde64bf5c4a19e845dd3817d6cae1a8cf7756a78fc40567a96304b8f133",
       "model": "fixture-model",
       "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
       "prompt_version": "e06.rca_prompt/v1",
@@ -370,6 +370,9 @@
     "dispatch_allowed": true,
     "dispatch_reason": null,
     "cooldown_seconds": 60,
-    "last_check": null
+    "last_check": null,
+    "last_attempt_at": null,
+    "last_success_at": null,
+    "last_error": null
   }
 }

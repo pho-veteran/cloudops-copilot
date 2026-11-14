@@ -208,7 +208,18 @@ def model_status(db):
     deployment = load()
     denied = deployment.denied()
     allowed, reason = dispatch_status(ANALYSIS_JOB)
-    last = db.scalar(select(ModelCheck).order_by(ModelCheck.created_at.desc()).limit(1))
+    matching = select(ModelCheck).where(ModelCheck.identity == deployment.identity())
+    last = db.scalar(matching.order_by(ModelCheck.created_at.desc()).limit(1))
+    attempted = db.scalar(
+        matching.where(ModelCheck.admitted_at.is_not(None))
+        .order_by(ModelCheck.admitted_at.desc())
+        .limit(1)
+    )
+    success = db.scalar(
+        matching.where(ModelCheck.receipt["transport_success"].as_boolean().is_(True))
+        .order_by(ModelCheck.created_at.desc())
+        .limit(1)
+    )
     return ModelStatus(
         availability=denied or "available",
         identity=deployment.identity(),
@@ -217,4 +228,21 @@ def model_status(db):
         dispatch_allowed=allowed,
         dispatch_reason=reason,
         last_check=check_view(last) if last else None,
+        last_attempt_at=attempted.admitted_at if attempted else None,
+        last_success_at=success.receipt.get("observed_at") if success else None,
+        last_error=(
+            last.receipt.get("kind")
+            if last and last.receipt and not last.receipt.get("transport_success")
+            else last.state
+            if last
+            and last.state
+            in {
+                "provider_outcome_unknown",
+                "configuration_changed",
+                "restore_quarantined",
+                "expired",
+                "failed",
+            }
+            else None
+        ),
     )

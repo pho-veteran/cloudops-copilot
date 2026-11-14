@@ -3984,6 +3984,18 @@
             "title": "Identity",
             "type": "object"
           },
+          "last_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt At"
+          },
           "last_check": {
             "anyOf": [
               {
@@ -3993,6 +4005,29 @@
                 "type": "null"
               }
             ]
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
           },
           "qualification_cohort": {
             "anyOf": [
@@ -5799,6 +5834,7 @@
             "anyOf": [
               {
                 "enum": [
+                  "analysis_insufficient",
                   "analysis_completed",
                   "analysis_failed",
                   "operator_cancelled",

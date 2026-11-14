@@ -2377,7 +2377,13 @@ export interface components {
             identity: {
                 [key: string]: string;
             };
+            /** Last Attempt At */
+            last_attempt_at?: string | null;
             last_check?: components["schemas"]["cloudops__features__diagnosis__api_schemas__CheckView"] | null;
+            /** Last Error */
+            last_error?: string | null;
+            /** Last Success At */
+            last_success_at?: string | null;
             /** Qualification Cohort */
             qualification_cohort: string | null;
             /**
@@ -3041,7 +3047,7 @@ export interface components {
             incident_id: string;
             origin: components["schemas"]["OriginView"];
             /** Outcome Code */
-            outcome_code: ("analysis_completed" | "analysis_failed" | "operator_cancelled" | "incident_resolved" | "scope_retired" | "execution_blocking" | "analysis_unavailable" | "collection_failed") | null;
+            outcome_code: ("analysis_insufficient" | "analysis_completed" | "analysis_failed" | "operator_cancelled" | "incident_resolved" | "scope_retired" | "execution_blocking" | "analysis_unavailable" | "collection_failed") | null;
             /** Pack Coverage */
             pack_coverage: components["schemas"]["PackCoverage"][] | null;
             progress: components["schemas"]["RunProgress"] | null;

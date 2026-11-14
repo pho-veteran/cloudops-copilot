@@ -26,6 +26,7 @@ WindowSource = Literal[
     "automatic_default",
 ]
 OutcomeCode = Literal[
+    "analysis_insufficient",
     "analysis_completed",
     "analysis_failed",
     "operator_cancelled",

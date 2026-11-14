@@ -67,3 +67,6 @@ class ModelStatus(BaseModel):
     dispatch_reason: str | None
     cooldown_seconds: int = 60
     last_check: CheckView | None = None
+    last_attempt_at: datetime | None = None
+    last_success_at: datetime | None = None
+    last_error: str | None = None

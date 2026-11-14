@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import hashlib
+from dataclasses import replace
 import os
 import time
 from collections.abc import Callable, Mapping
@@ -273,21 +275,27 @@ class ModelClient:
         try:
             value = json.loads(body.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError):
-            return self._failure(
-                CallKind.INVALID_ENVELOPE,
-                identity,
-                started,
+            return replace(
+                self._failure(
+                    CallKind.INVALID_ENVELOPE,
+                    identity,
+                    started,
+                    status=status,
+                    retry=(retry_seconds, retry_raw),
+                    response_bytes=len(body),
+                ),
+                response_sha256=hashlib.sha256(body).hexdigest(),
+            )
+        return replace(
+            self._normalize(
+                value,
+                identity=identity,
                 status=status,
+                started=started,
                 retry=(retry_seconds, retry_raw),
                 response_bytes=len(body),
-            )
-        return self._normalize(
-            value,
-            identity=identity,
-            status=status,
-            started=started,
-            retry=(retry_seconds, retry_raw),
-            response_bytes=len(body),
+            ),
+            response_sha256=hashlib.sha256(body).hexdigest(),
         )
 
     def _normalize(

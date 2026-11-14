@@ -30,7 +30,7 @@
       "config_id": "test-config",
       "config_version": "1",
       "endpoint_label": "loopback",
-      "behavior_digest": "36adb9d26e99baeb89079d2ae47a692c8d4ee2e1421001380e32360d56fef9b8",
+      "behavior_digest": "f6ab68ff0e1f1dd79c9ffba4e8507626d6e218c8cc5081ea94af6733186befe5",
       "model": "fixture-model",
       "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
       "prompt_version": "e06.rca_prompt/v1",
@@ -43,6 +43,9 @@
     "dispatch_allowed": true,
     "dispatch_reason": null,
     "cooldown_seconds": 60,
-    "last_check": null
+    "last_check": null,
+    "last_attempt_at": null,
+    "last_success_at": null,
+    "last_error": null
   }
 }

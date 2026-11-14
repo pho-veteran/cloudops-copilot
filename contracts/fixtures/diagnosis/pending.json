@@ -3,7 +3,7 @@
   "analysis": {
     "schema_version": "AnalysisView/v1",
     "status": "pending",
-    "analysis_id": "871c3a98-6611-46a9-9179-e4c2d1523d1f",
+    "analysis_id": "aef49756-3de3-44dd-8105-b9e4cd846433",
     "phase": "initial",
     "reason": null,
     "identity": {
@@ -13,7 +13,7 @@
       "config_version": "1",
       "endpoint_label": "loopback",
       "prompt_version": "e06.rca_prompt/v1",
-      "behavior_digest": "5a5dd9f218565face5bd97fd68c2a97bf62e475e39339934bc0e080b26f53572",
+      "behavior_digest": "a1b2f6f79fdd80e8a9445b20ce2d7f7e8458a055439193cc37db029ba3d649c0",
       "context_version": "e06.context/v1",
       "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
       "validator_version": "e06.validator/v1"
@@ -26,7 +26,7 @@
     "max_calls": 3,
     "repairs": 0,
     "max_repairs": 1,
-    "deadline": "2026-11-14T09:13:46.387177Z",
+    "deadline": "2026-11-14T09:21:32.989061Z",
     "wait_mode": null,
     "earliest_retry": null,
     "resume_allowed": false,
@@ -41,7 +41,7 @@
       "config_id": "test-config",
       "config_version": "1",
       "endpoint_label": "loopback",
-      "behavior_digest": "5a5dd9f218565face5bd97fd68c2a97bf62e475e39339934bc0e080b26f53572",
+      "behavior_digest": "a1b2f6f79fdd80e8a9445b20ce2d7f7e8458a055439193cc37db029ba3d649c0",
       "model": "fixture-model",
       "policy_digest": "3685b8e4f4e0a42fc7c5dabac9c2f9a20d3e824c784c51fe4d10669bcd0bfec0",
       "prompt_version": "e06.rca_prompt/v1",
@@ -54,6 +54,9 @@
     "dispatch_allowed": true,
     "dispatch_reason": null,
     "cooldown_seconds": 60,
-    "last_check": null
+    "last_check": null,
+    "last_attempt_at": null,
+    "last_success_at": null,
+    "last_error": null
   }
 }

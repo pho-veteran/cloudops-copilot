@@ -3,6 +3,8 @@
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import timedelta
+import hashlib
+import os
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
@@ -239,10 +241,25 @@ def _reserve(claim, gate, slot, checked, lease_lost, snapshot):
             run.provider_call = "in_flight"
 
 
-def _receipt(call):
-    # Never expose provider bodies, request ids, served model strings or raw retry headers.
+def _receipt(call, deployment):
+    # Never expose provider bodies, request ids or raw retry headers. R1 already
+    # bounds model identifiers; apply policy and credential exclusion again here.
+    served = call.served_model
+    credential = deployment.profile.credential
+    secret = os.environ.get(credential.name) if credential else None
+    if served and (deployment.policy.scan(served) or (secret and secret in served)):
+        served = None
     return {
         "kind": call.kind.value,
+        "response_sha256": call.response_sha256,
+        "response_text_sha256": hashlib.sha256(call.text.encode()).hexdigest()
+        if call.text is not None
+        else None,
+        "finish_reason": call.finish_reason
+        if call.finish_reason in {"stop", "length", "content_filter", "tool_calls", "function_call"}
+        else None,
+        "requested_model": call.identity.requested_model if call.identity else None,
+        "served_model": served,
         "http_status": call.http_status,
         "usage": asdict(call.usage) if call.usage else None,
         "usage_status": call.usage_status,
@@ -286,7 +303,7 @@ def analyze(claim, gate, slot, lease_lost):
             terminal(db, analysis, run, "failed", call.kind.value)
             _done(db, job, attempt)
             return
-        ledger.receipt, ledger.settled_at = _receipt(call), database_now(db)
+        ledger.receipt, ledger.settled_at = _receipt(call, deployment), database_now(db)
         if analysis.deadline <= database_now(db):
             terminal(db, analysis, run, "failed", "deadline_expired")
         elif validated and validated.status == "valid":
@@ -295,7 +312,14 @@ def analyze(claim, gate, slot, lease_lost):
                     analysis_id=analysis.id, payload=validated.result.model_dump(mode="json")
                 )
             )
-            terminal(db, analysis, run, "completed", "validated_advice")
+            abstained = validated.result.status == "insufficient_evidence"
+            terminal(
+                db,
+                analysis,
+                run,
+                "insufficient_evidence" if abstained else "completed",
+                "validated_abstention" if abstained else "validated_advice",
+            )
         else:
             blocker = dispatch_blocker(db, run)
             if blocker:
@@ -320,7 +344,12 @@ def analyze(claim, gate, slot, lease_lost):
                 )
                 return
             if call.kind in {"rate_limited", "upstream_error"} and remaining:
-                delay = max(30 * 2 ** (analysis.calls - 1), call.retry_after_seconds or 0)
+                # Stable per-call jitter remains bounded and reproducible across workers.
+                base = 30 * 2 ** (analysis.calls - 1)
+                jitter = int(
+                    hashlib.sha256(f"{analysis.id}:{analysis.calls}".encode()).hexdigest()[:8], 16
+                ) % (base // 5 + 1)
+                delay = max(min(900, base + jitter), call.retry_after_seconds or 0)
                 due = database_now(db) + timedelta(seconds=delay)
                 if due < analysis.deadline:
                     if analysis.phase != "repair":
@@ -398,7 +427,8 @@ def probe(claim, gate, slot, lease_lost):
             else "completed"
         )
         check.receipt = {
-            **_receipt(call),
+            **_receipt(call, deployment),
+            "observed_at": database_now(db).isoformat(),
             "transport_success": call.kind == "text",
             "schema_success": call.kind == "text" and call.text.strip() == "OK",
             "quality": "not_established",

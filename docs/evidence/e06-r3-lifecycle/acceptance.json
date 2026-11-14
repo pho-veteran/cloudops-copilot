@@ -8,21 +8,21 @@
     "services/backend/src/cloudops/entrypoints/worker.py": "5a7a8bc9070d59e084d1be02ad63e8081696187633883faee646d25356dbbc35",
     "services/backend/src/cloudops/features/diagnosis/advice.py": "0ebc20289a17a53f128be1668e540f181d139356304ca6ad5e89644ce9c4fed7",
     "services/backend/src/cloudops/features/diagnosis/api.py": "4659efd37f9719ba7ceb4c890a40b7bdd87b2d72cd6c5ff9b752d59a1dbb46b2",
-    "services/backend/src/cloudops/features/diagnosis/api_schemas.py": "293b7937b3b10c498f01077e6c84fcfad7704463a5d8e34610ffda80521537a5",
+    "services/backend/src/cloudops/features/diagnosis/api_schemas.py": "93fd210bfc33846ddba53713374ba6517e86387256e6c04edc86f14e7b5ed614",
     "services/backend/src/cloudops/features/diagnosis/context.py": "585eb1ccfbd262dd193d509bb0f79b430f9554595666237d81ab24cd9470f739",
     "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
-    "services/backend/src/cloudops/features/diagnosis/lifecycle.py": "62234c36d05cc8a49575a0367a158868d63224e69164949aed24a3e0b65df24a",
+    "services/backend/src/cloudops/features/diagnosis/lifecycle.py": "6d60c2f8f638fe6d9622580d303fddc590bc0085f00f6a58af54d48556661566",
     "services/backend/src/cloudops/features/diagnosis/messages.py": "cc2c181f9c96809bed6a3d02a24b5805252d87ab40cd3bbd7d22f5c5d71541a4",
     "services/backend/src/cloudops/features/diagnosis/models.py": "d91b3287fc0714493f97c547bf3a9ed8998dccc9d9e84e674e488dbd001cd225",
     "services/backend/src/cloudops/features/diagnosis/pins.py": "f549d9de1d0c98404b3bbf49a13135327849dc6c44649a80493019f04ba94fbd",
     "services/backend/src/cloudops/features/diagnosis/profile.py": "5ca2865c1a05cc421a5a82c9dfd292cd3ce8dc5fa1b1ba086d1eedf6e80ef538",
-    "services/backend/src/cloudops/features/diagnosis/schemas.py": "54bca6a83bac5883c21efcead8f49f3bf11bb6c32612070c032f6a04f2fc03e1",
-    "services/backend/src/cloudops/features/diagnosis/service.py": "0aae156b0a90d909cb6bde54bdf9a7f6ca66f2f1cc4ddc6f93f5b3b56aafcc29",
+    "services/backend/src/cloudops/features/diagnosis/schemas.py": "537295c60d1e130295b55ad8a943642440aa29c11b6f37651f433460b8e553c5",
+    "services/backend/src/cloudops/features/diagnosis/service.py": "8ed6f51ee0cc39938f9742421673a454e22c7f1c1239ce8e80ea363faacf9769",
     "services/backend/src/cloudops/features/diagnosis/settings.py": "610f14bfb4e8acdfe78ae1b04bc0ea121849e2ec17b9c5cec164ee6fdb3a2819",
     "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
-    "services/backend/src/cloudops/features/diagnosis/transport.py": "d15fa3a52aadb961009b0261a7e6b174ba8a75e7733ca4adee6b4c12b50d0315",
+    "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
     "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
-    "services/backend/src/cloudops/features/diagnosis/worker.py": "a28483922ba33e24ca28e40ee4fbf0ea7d6564148bbdd381525a7fa31064f220",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "a2e330f68fccdbc0f18fbf17c05042a8efa02435a06463c8eab206371c780531",
     "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a"
   },
   "proof_classes": [
@@ -36,10 +36,11 @@
     "linux_lifecycle_process_migration": "34 passed",
     "permission_cases_new_operations_and_health": "24 passed",
     "corrected_inventory_dispatch_migration_regressions": "36 passed",
-    "generated_producer_fixtures": "28 passed",
+    "generated_producer_fixtures": "30 passed",
     "web": "223 tests passed; production build passed",
     "contracts": "generated artifacts matched; deliberate drift rejected",
-    "format_lint": "passed"
+    "format_lint": "passed",
+    "transport_metadata_regressions": "51 passed"
   },
   "regression_audit": {
     "initial_run": "1597 passed, 12 skipped, 19 failures",
@@ -52,5 +53,6 @@
     "No browser verification claimed for this backend/API slice.",
     "No exactly-once remote inference or known cost for an unknown response."
   ],
-  "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF."
+  "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF.",
+  "restore_tested_core_revision": "1999507d0e3bd893686f267cc928708f31a037d8"
 }

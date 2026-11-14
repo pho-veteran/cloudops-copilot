@@ -340,7 +340,24 @@ def test_protected_reads_empty_body_and_bounded_probe(client, db, context, deplo
         assert receipt["transport_success"] and receipt["schema_success"]
         assert receipt["usage"] is None
         assert receipt["quality"] == "not_established"
+        status = client.get("/api/diagnosis/status").json()
+        assert status["last_attempt_at"] and status["last_success_at"]
+        assert status["last_error"] is None
+        assert receipt["served_model"] == "fixture-served"
+        assert receipt["response_sha256"] and receipt["finish_reason"] == "stop"
         assert len(server.requests) == 1
+
+
+def test_probe_metadata_excludes_credential_and_error_body(client, deployment):
+    token = "owned-loopback-test-token"
+    with serve(lambda h: respond(h, text_payload("OK") | {"model": token})) as server:
+        deployment(server.url, qualified=False)
+        headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=headers, json={}).status_code == 201
+        assert run_once()
+        response = client.get("/api/diagnosis/checks")
+        assert token not in response.text
+        assert response.json()["items"][0]["receipt"]["served_model"] is None
 
 
 def test_legacy_no_backfill_and_operational_read_excludes_evaluation(db, context, deployment):
@@ -439,6 +456,38 @@ def test_invalid_and_refused_never_promote_findings(db, context, deployment, kin
         assert analysis.repairs <= 1
         assert db.get(AnalysisResult, identifier) is None
         capture(db, context, kind)
+
+
+def test_valid_model_abstention_is_insufficient_not_completed(db, context, deployment):
+    _crashloop(db, context)
+    payload = text_payload(
+        _raw(
+            status="insufficient_evidence",
+            cause_category="unknown",
+            candidate_template_id=None,
+            missing_evidence=["Causality is unproven."],
+        )
+    )
+    with serve(lambda h: respond(h, payload)) as server:
+        deployment(server.url)
+        identifier = admission(db, context)
+        assert run_once()
+        analysis = refresh(db, identifier)
+        assert (
+            analysis.state == "insufficient_evidence" and analysis.reason == "validated_abstention"
+        )
+        run = db.get(InvestigationRun, context[1])
+        assert run.state == "insufficient_evidence" and run.provider_call is None
+        result = db.get(AnalysisResult, identifier).payload
+        assert (
+            result["status"] == "insufficient_evidence" and result["candidate_template_id"] is None
+        )
+        receipt = db.scalar(
+            select(AnalysisCall).where(AnalysisCall.analysis_id == identifier)
+        ).receipt
+        assert receipt["response_text_sha256"] and receipt["finish_reason"] == "stop"
+        assert receipt["served_model"] == "fixture-served"
+        capture(db, context, "model-abstention")
 
 
 @pytest.mark.parametrize("wire_status, expected", [(401, "auth_denied"), (500, "upstream_error")])

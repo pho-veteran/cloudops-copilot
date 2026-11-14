@@ -92,7 +92,13 @@ def terminal(db, analysis, run, state, reason):
             else ("insufficient_evidence" if state == "insufficient_evidence" else "failed")
         )
         run.reason = "Analysis finished: " + reason + "."
-        run.outcome_code = "analysis_completed" if state == "completed" else "analysis_failed"
+        run.outcome_code = (
+            "analysis_completed"
+            if state == "completed"
+            else "analysis_insufficient"
+            if state == "insufficient_evidence"
+            else "analysis_failed"
+        )
         run.provider_call, run.finished_at = None, analysis.finished_at
     pins.release(db, analysis.id)
 
