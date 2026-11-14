@@ -627,6 +627,7 @@ def test_in_flight_cancel_conflict_and_resolve_preserves_historical_advice(
 
 
 def test_guard_connection_loss_during_wire_rejects_result(db, context, deployment):
+    import time
     from cloudops.shared.database import sessions
 
     _crashloop(db, context)
@@ -647,6 +648,22 @@ def test_guard_connection_loss_during_wire_rejects_result(db, context, deploymen
         identifier = admission(db, context)
         assert run_once()
         assert db.get(AnalysisResult, identifier) is None
+        deadline = time.monotonic() + 5
+        while True:
+            with sessions()() as observed:
+                held = observed.scalar(
+                    text(
+                        "SELECT EXISTS (SELECT 1 FROM pg_locks WHERE "
+                        "locktype='advisory' AND objid=742070 AND granted AND "
+                        "database=(SELECT oid FROM pg_database WHERE datname=current_database()))"
+                    )
+                )
+            if not held:
+                break
+            assert time.monotonic() < deadline, (
+                "Terminated session did not release its model guard."
+            )
+            threading.Event().wait(0.02)
         db.expire_all()
         db.scalar(select(Job).where(Job.subject_id == identifier)).lease_until = database_now(
             db
@@ -671,7 +688,9 @@ def test_atomic_collection_handoff_rolls_back_and_preserves_saved_source(db, con
         run.state, run.finished_at, run.pack_coverage = "queued", None, None
         db.add(Job(kind=COLLECTION_JOB, subject_id=run.id))
         db.commit()
-        original = [(e.id, e.sha256, e.payload) for e in db.scalars(select(Evidence))]
+        original = [
+            (e.id, e.sha256, e.payload) for e in db.scalars(select(Evidence).order_by(Evidence.id))
+        ]
         db.commit()
         handler = CollectionHandler(finalize=admit)
         claim = claim_next({COLLECTION_JOB: handler}, GATE)
@@ -701,7 +720,9 @@ def test_atomic_collection_handoff_rolls_back_and_preserves_saved_source(db, con
         assert [
             (e.id, e.sha256, e.payload)
             for e in db.scalars(
-                select(Evidence).where(Evidence.id.in_([row[0] for row in original]))
+                select(Evidence)
+                .where(Evidence.id.in_([row[0] for row in original]))
+                .order_by(Evidence.id)
             )
         ] == original
         db.commit()

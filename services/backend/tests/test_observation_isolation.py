@@ -11,6 +11,7 @@ from test_permissions import permission_context as _permission_context
 from test_workload_observation import live_workloads as _live_workloads
 
 from cloudops.entrypoints.worker import run_once
+from cloudops.features.diagnosis.lifecycle import ANALYSIS_JOB
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import Execution
@@ -100,10 +101,16 @@ def test_blocked_observer_leases_do_not_occupy_incident_or_approved_recovery_wor
                     db.scalar(
                         select(func.count())
                         .select_from(Job)
-                        .where(Job.state.in_(["queued", "running"]))
+                        .where(Job.state.in_(["queued", "running"]), Job.kind != ANALYSIS_JOB)
                     )
                     == 0
                 )
+                # Collection now admits a later analysis phase. It must stay behind
+                # the already approved recovery in the common FIFO, without a claim.
+                model_job = db.scalar(
+                    select(Job).where(Job.kind == ANALYSIS_JOB, Job.state == "queued")
+                )
+                assert model_job is not None and model_job.attempts == 0
         finally:
             release.set()
         assert all(result.outcome == "failed" for result in running.result(timeout=5))

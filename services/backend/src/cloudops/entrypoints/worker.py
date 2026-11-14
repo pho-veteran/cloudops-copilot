@@ -87,24 +87,26 @@ def run_once() -> bool:
     model_handlers = {
         key: value for key, value in HANDLERS.items() if key in {ANALYSIS_JOB, PROBE_JOB}
     }
-    claim = None
     try:
         slot.__enter__()
     except GuardBusy:
         slot = None
-    if slot is not None:
-        try:
-            claim = claim_next(model_handlers, GATE)
-        except BaseException:
-            slot.release()
-            raise
-        if claim is None:
-            slot.release()
-            slot = None
-    if claim is None:
-        claim = claim_next(
-            {key: value for key, value in HANDLERS.items() if key not in model_handlers}, GATE
+    try:
+        # Preserve the common FIFO queue. Owning model capacity does not give model
+        # jobs priority over an older collection/recommendation/recovery request.
+        eligible_handlers = (
+            HANDLERS
+            if slot is not None
+            else {key: value for key, value in HANDLERS.items() if key not in model_handlers}
         )
+        claim = claim_next(eligible_handlers, GATE)
+    except BaseException:
+        if slot is not None:
+            slot.release()
+        raise
+    if slot is not None and (claim is None or claim.kind not in model_handlers):
+        slot.release()
+        slot = None
     if not claim:
         return False
     stopped = threading.Event()

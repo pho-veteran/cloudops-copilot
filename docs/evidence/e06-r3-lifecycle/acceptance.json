@@ -5,7 +5,7 @@
     "scripts/probe-diagnosis-lifecycle.py": "c909ad990a17303030c2bc476dd09f1dd26c4da90530604a9066a56e03c426f2",
     "services/backend/migrations/versions/0012_diagnosis_lifecycle_durable_bounded_diagnosis.py": "e4b603dd43a9c4978c7281853c30280ff2fe7a0b1d887f4d62a59aa20077d9d2",
     "services/backend/src/cloudops/entrypoints/dispatch.py": "1cbd87c1439cf63d1649c3362d968799979dbb309f0f946683a2f70571ac14cd",
-    "services/backend/src/cloudops/entrypoints/worker.py": "5a7a8bc9070d59e084d1be02ad63e8081696187633883faee646d25356dbbc35",
+    "services/backend/src/cloudops/entrypoints/worker.py": "b9f341cdaa10e037e07ca1b58325e596aa225b14ead3d398fb555cc5073ef81c",
     "services/backend/src/cloudops/features/diagnosis/advice.py": "0ebc20289a17a53f128be1668e540f181d139356304ca6ad5e89644ce9c4fed7",
     "services/backend/src/cloudops/features/diagnosis/api.py": "4659efd37f9719ba7ceb4c890a40b7bdd87b2d72cd6c5ff9b752d59a1dbb46b2",
     "services/backend/src/cloudops/features/diagnosis/api_schemas.py": "93fd210bfc33846ddba53713374ba6517e86387256e6c04edc86f14e7b5ed614",
@@ -41,11 +41,14 @@
     "contracts": "generated artifacts matched; deliberate drift rejected",
     "format_lint": "passed",
     "transport_metadata_regressions": "51 passed",
-    "linux_current_process_backlog": "4 passed"
+    "linux_current_process_backlog": "4 passed",
+    "fifo_and_ci_regression_corrections": "6 passed; includes real blocked-observer/approved-recovery dispatch and collection handoff byte checks.",
+    "linux_fifo_process_regressions": "7 passed"
   },
   "regression_audit": {
     "initial_run": "1597 passed, 12 skipped, 19 failures",
-    "disposition": "All 19 failure cases corrected and rechecked in the 36-case targeted batch; exact final full-suite status is reported by PR CI."
+    "disposition": "All 19 failure cases corrected and rechecked in the 36-case targeted batch; exact final full-suite status is reported by PR CI.",
+    "first_full_ci": "1664 passed; 2 failures corrected: unordered snapshot assertion and model-first scheduling."
   },
   "restore": "restore.json",
   "limits": [
@@ -55,5 +58,5 @@
     "No exactly-once remote inference or known cost for an unknown response."
   ],
   "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF.",
-  "restore_tested_core_revision": "ef11530829051dfb8367b6d9486fdeb98beabc1b"
+  "restore_binding": "restore.json runtime_source_sha256"
 }

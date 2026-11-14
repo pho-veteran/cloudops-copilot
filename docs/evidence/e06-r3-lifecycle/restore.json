@@ -7,7 +7,7 @@
     "sessions_revoked": true,
     "restored_model_work_retired": true,
     "analysis_dispatch_denied": true,
-    "permit_generation": 2
+    "permit_generation": 5
   },
   "post_resume_replay": false,
   "operational_provider_quality": "not_measured",
@@ -15,7 +15,7 @@
   "driver_git_sha256": "c909ad990a17303030c2bc476dd09f1dd26c4da90530604a9066a56e03c426f2",
   "runtime_source_sha256": {
     "services/backend/src/cloudops/entrypoints/dispatch.py": "1cbd87c1439cf63d1649c3362d968799979dbb309f0f946683a2f70571ac14cd",
-    "services/backend/src/cloudops/entrypoints/worker.py": "5a7a8bc9070d59e084d1be02ad63e8081696187633883faee646d25356dbbc35",
+    "services/backend/src/cloudops/entrypoints/worker.py": "b9f341cdaa10e037e07ca1b58325e596aa225b14ead3d398fb555cc5073ef81c",
     "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a",
     "services/backend/src/cloudops/features/diagnosis/advice.py": "0ebc20289a17a53f128be1668e540f181d139356304ca6ad5e89644ce9c4fed7",
     "services/backend/src/cloudops/features/diagnosis/api.py": "4659efd37f9719ba7ceb4c890a40b7bdd87b2d72cd6c5ff9b752d59a1dbb46b2",
