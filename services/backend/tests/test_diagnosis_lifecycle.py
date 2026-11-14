@@ -144,6 +144,35 @@ def test_terminal_context_does_not_keep_a_copy_after_telemetry_purge(db, context
         assert db.get(AnalysisResult, identifier).payload["context_digest"] == stored.digest
 
 
+def test_unindexed_knowledge_uses_safe_context_without_retry_exhaustion(db, context, deployment):
+    from cloudops.features.knowledge.guidance import pin_guidance
+
+    _crashloop(db, context)
+    with serve(lambda h: respond(h, text_payload(_raw()))) as server:
+        deployment(server.url)
+        identifier = admission(db, context)
+        with db.begin():
+            guidance = pin_guidance(
+                db,
+                context[0],
+                context[1],
+                consumer="analysis",
+                request_identity=str(identifier),
+            )
+            assert guidance.state == "unavailable" and guidance.selection is None
+        assert run_once()
+        analysis = refresh(db, identifier)
+        stored = db.get(AnalysisContext, identifier)
+        job = db.scalar(select(Job).where(Job.kind == ANALYSIS_JOB, Job.subject_id == identifier))
+        assert analysis.state == "completed", analysis.reason
+        assert analysis.calls == 1 and job.attempts == 1
+        assert stored.summary["runbook"]["selection_id"] is None
+        assert stored.summary["runbook"]["status"] == "not_selected"
+        assert "runbook_not_selected" in stored.summary["limitations"]
+        assert stored.snapshot is None
+        assert len(server.requests) == 1
+
+
 @pytest.mark.parametrize("case", ["unqualified", "disabled", "unconfigured"])
 def test_unavailable_zero_network(db, context, deployment, monkeypatch, case):
     with serve(lambda h: pytest.fail("No HTTP expected")) as server:

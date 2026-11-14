@@ -160,14 +160,14 @@ def _prepare(claim, gate, slot):
             return None
         stored = db.get(AnalysisContext, analysis.id)
         if stored is None:
-            selection = pin_guidance(
+            guidance = pin_guidance(
                 db, run.incident_id, run.id, consumer="analysis", request_identity=str(analysis.id)
             )
             prepared = context.build(
                 db,
                 run.incident_id,
                 run.id,
-                selection=selection.selection,
+                selection=guidance.selection if guidance.state == "saved" else None,
                 policy=deployment.policy,
                 profile=deployment.profile,
                 analysis_identity=str(analysis.id),
