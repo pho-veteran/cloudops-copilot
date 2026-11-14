@@ -16,6 +16,8 @@ from test_diagnosis_lifecycle import admission, deployment as _deployment, refre
 from test_diagnosis_validation import _crashloop, _raw, context as _context
 
 from cloudops.features.diagnosis.models import AnalysisContext, AnalysisResult
+from cloudops.features.incidents.models import Incident
+from cloudops.features.investigations.models import InvestigationRun
 from cloudops.shared.database import database_now
 from cloudops.shared.jobs import Job
 
@@ -59,9 +61,34 @@ def test_two_process_slot_and_kill_unknown_no_replay(db, context, deployment):
         first = start()
         try:
             assert entered.wait(20), "First worker did not reach the real wire boundary."
+            # A real collection backlog must still progress while another process owns the slot.
+            original = db.get(InvestigationRun, context[1])
+            old_incident = db.get(Incident, context[0])
+            incident = Incident(
+                workload_id=old_incident.workload_id,
+                title="Collection backlog",
+                description="Owned process fixture",
+                created_by=original.requested_by,
+            )
+            db.add(incident)
+            db.flush()
+            collecting = InvestigationRun(
+                incident_id=incident.id,
+                requested_by=original.requested_by,
+                question=original.question,
+                question_source=original.question_source,
+                window_start=original.window_start,
+                window_end=original.window_end,
+                window_source=original.window_source,
+            )
+            db.add(collecting)
+            db.flush()
+            db.add(Job(kind="development_collection_v1", subject_id=collecting.id))
+            db.commit()
             second = start()
             finish(second)
             db.expire_all()
+            assert db.get(InvestigationRun, collecting.id).pack_coverage is not None
             assert db.scalar(select(Job).where(Job.subject_id == identifier)).attempts == 1
             assert len(server.requests) == 1
         finally:

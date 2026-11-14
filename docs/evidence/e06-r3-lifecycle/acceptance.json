@@ -40,7 +40,8 @@
     "web": "223 tests passed; production build passed",
     "contracts": "generated artifacts matched; deliberate drift rejected",
     "format_lint": "passed",
-    "transport_metadata_regressions": "51 passed"
+    "transport_metadata_regressions": "51 passed",
+    "linux_current_process_backlog": "4 passed"
   },
   "regression_audit": {
     "initial_run": "1597 passed, 12 skipped, 19 failures",
@@ -54,5 +55,5 @@
     "No exactly-once remote inference or known cost for an unknown response."
   ],
   "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF.",
-  "restore_tested_core_revision": "1999507d0e3bd893686f267cc928708f31a037d8"
+  "restore_tested_core_revision": "ef11530829051dfb8367b6d9486fdeb98beabc1b"
 }
