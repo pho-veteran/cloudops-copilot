@@ -76,7 +76,8 @@
         "next_steps": [
           "Inspect the previous container logs."
         ],
-        "runbook_citation_ids": []
+        "runbook_citation_ids": [],
+        "candidate_template_id": null
       },
       "expected_codes": []
     },
@@ -387,7 +388,8 @@
         "next_steps": [
           "Inspect the previous container logs."
         ],
-        "runbook_citation_ids": []
+        "runbook_citation_ids": [],
+        "candidate_template_id": null
       },
       "expected_codes": [
         "supported_requires_family_cause"
@@ -488,7 +490,8 @@
         ],
         "runbook_citation_ids": [
           "K999"
-        ]
+        ],
+        "candidate_template_id": null
       },
       "expected_codes": [
         "runbook_alias_unknown",

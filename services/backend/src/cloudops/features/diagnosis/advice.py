@@ -110,7 +110,7 @@ class Alternative(BaseModel):
 
     hypothesis: str = Field(min_length=1, max_length=200)
     reason: str = Field(min_length=1, max_length=2000)
-    evidence_ids: list[Alias] = Field(default_factory=list, max_length=20)
+    evidence_ids: list[Alias] = Field(max_length=20)
 
 
 class RuledOutHypothesis(BaseModel):
@@ -133,20 +133,20 @@ class RCAAdvice(BaseModel):
 
     model_config = _FROZEN
 
-    schema_version: Literal["RCAAdvice/v1"] = "RCAAdvice/v1"
+    schema_version: Literal["RCAAdvice/v1"]
     status: AdviceStatus
     cause_category: CauseCategory
     summary: str = Field(min_length=1, max_length=4000)
-    supporting_evidence_ids: list[Alias] = Field(default_factory=list, max_length=20)
-    contradicting_evidence_ids: list[Alias] = Field(default_factory=list, max_length=20)
-    alternatives: list[Alternative] = Field(default_factory=list, max_length=20)
-    ruled_out_hypotheses: list[RuledOutHypothesis] = Field(default_factory=list, max_length=20)
-    unverified_checks: list[UnverifiedCheck] = Field(default_factory=list, max_length=20)
-    missing_evidence: list[GeneralString] = Field(default_factory=list, max_length=20)
-    limitations: list[GeneralString] = Field(default_factory=list, max_length=20)
-    next_steps: list[GeneralString] = Field(default_factory=list, max_length=20)
-    runbook_citation_ids: list[Alias] = Field(default_factory=list, max_length=20)
-    candidate_template_id: CandidateTemplate | None = None
+    supporting_evidence_ids: list[Alias] = Field(max_length=20)
+    contradicting_evidence_ids: list[Alias] = Field(max_length=20)
+    alternatives: list[Alternative] = Field(max_length=20)
+    ruled_out_hypotheses: list[RuledOutHypothesis] = Field(max_length=20)
+    unverified_checks: list[UnverifiedCheck] = Field(max_length=20)
+    missing_evidence: list[GeneralString] = Field(max_length=20)
+    limitations: list[GeneralString] = Field(max_length=20)
+    next_steps: list[GeneralString] = Field(max_length=20)
+    runbook_citation_ids: list[Alias] = Field(max_length=20)
+    candidate_template_id: CandidateTemplate | None
 
 
 class ResolvedEvidence(BaseModel):
@@ -242,11 +242,19 @@ def _failure(code: ValidationCode, path: str, repairable: bool = True) -> Valida
 
 
 def _location(loc: tuple[object, ...]) -> str:
+    fields = (
+        RCAAdvice.model_fields.keys()
+        | Alternative.model_fields.keys()
+        | RuledOutHypothesis.model_fields.keys()
+        | UnverifiedCheck.model_fields.keys()
+    )
     rendered = ""
     for part in loc:
         if isinstance(part, int):
             rendered += f"[{part}]"
         else:
+            if part not in fields:
+                break
             rendered = f"{rendered}.{part}" if rendered else str(part)
     return rendered[:_MAX_PATH] or "$"
 
@@ -255,7 +263,7 @@ def parse(raw_text: str) -> RCAAdvice | list[ValidationFailure]:
     """Parse strict JSON and the D2 model; failures carry only a bounded path."""
     try:
         value = json.loads(raw_text)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, RecursionError):
         return [_failure("json_invalid", "$")]
     if not isinstance(value, dict):
         return [_failure("json_invalid", "$")]
@@ -394,6 +402,7 @@ def validate_structural(context: PreparedContext, advice: RCAAdvice) -> list[Val
             failures.append(_failure("candidate_mismatch", "candidate_template_id"))
 
     coverage = {item.slot: item for item in context.source_coverage}
+    sent_coverage = {item.slot: item for item in context.sent_coverage.slots}
     for position, ruled_out in enumerate(advice.ruled_out_hypotheses):
         path = f"ruled_out_hypotheses[{position}]"
         family = ruled_out.family
@@ -429,10 +438,15 @@ def validate_structural(context: PreparedContext, advice: RCAAdvice) -> list[Val
                 incomplete = True
                 break
             source = coverage.get(slot)
+            sent = sent_coverage.get(slot)
             if (
                 source is None
                 or source.status != "available"
                 or source.content_status != "available"
+                or sent is None
+                or sent.rule_omitted > 0
+                or sent.ambiguous_omitted > 0
+                or sent.budget_omitted > 0
             ):
                 partial = True
                 break
@@ -616,6 +630,8 @@ def _resolve_evidence(db, context: PreparedContext, alias: str, target: ContextT
     content = evidence_content(db, context.incident_id, context.run_id, target.evidence_id)
     entry = _exact_entry(content, target)
     if entry is None or entry.ambiguous:
+        return _failure("evidence_reference_mismatch", "$", repairable=False)
+    if entry.identity != target.identity:
         return _failure("evidence_reference_mismatch", "$", repairable=False)
     if entry_digest(entry.value) != target.entry_digest:
         return _failure("evidence_reference_mismatch", "$", repairable=False)

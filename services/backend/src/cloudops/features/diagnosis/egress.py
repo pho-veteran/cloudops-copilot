@@ -102,6 +102,10 @@ class DenyPattern(BaseModel):
         if any(ord(char) < 32 or ord(char) == 127 for char in value):
             raise ValueError("deny_patterns.regex contains control characters")
         try:
+            value.encode("utf-8")
+        except UnicodeEncodeError:
+            raise ValueError("deny_patterns.regex must be valid UTF-8") from None
+        try:
             re.compile(value)
         except re.error:
             raise ValueError("deny_patterns.regex is not a valid regular expression") from None
@@ -256,7 +260,11 @@ def _content_denied(context, policy: EgressPolicy, messages, feedback: str | Non
     if policy.scan(context.request.text):
         return True
     for target in (*context.required_targets, *context.optional_targets):
-        if policy.scan(canonical(target.value)) or policy.scan(target.label):
+        if (
+            policy.scan(canonical(target.value))
+            or policy.scan(target.label)
+            or policy.scan(target.identity)
+        ):
             return True
     for runbook in context.runbooks:
         if policy.scan(runbook.content) or policy.scan(runbook.title):
@@ -337,6 +345,8 @@ def prepare_probe(policy: EgressPolicy | None, profile) -> SendCheck:
         ensure_ascii=False,
     )
     messages = (Message("system", PROBE_SYSTEM), Message("user", user))
+    if any(policy.scan(message.content) for message in messages):
+        return _failure("content_denied")
     try:
         encoded = serialize_payload(profile, list(messages))
     except MessageError:

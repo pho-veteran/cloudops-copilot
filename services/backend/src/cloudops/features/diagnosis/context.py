@@ -32,6 +32,7 @@ from cloudops.features.diagnosis.versions import (
     VALIDATOR_VERSION,
 )
 from cloudops.features.investigations.citation_schemas import Locator
+from cloudops.features.investigations.catalog import CATALOG_VERSION
 from cloudops.features.investigations.locators import (
     Entry,
     UnsupportedProjection,
@@ -42,7 +43,7 @@ from cloudops.features.investigations.locators import project as project_payload
 from cloudops.features.investigations.locators import timestamp as normalize_timestamp
 from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.investigations.storage import evidence_views
-from cloudops.features.knowledge.guidance import run_scope
+from cloudops.features.knowledge.guidance import analysis_selection, run_scope
 from cloudops.features.knowledge.guidance_schemas import (
     KnowledgeRef,
     KnowledgeRunScope,
@@ -130,7 +131,15 @@ def _missing(slot: str) -> SlotMaterial:
 
 
 def load_materials(db, scope: ContextScope) -> list[SlotMaterial]:
-    rows = list(db.scalars(select(Evidence).where(Evidence.run_id == scope.knowledge.run_id)).all())
+    rows = list(
+        db.scalars(
+            select(Evidence).where(
+                Evidence.run_id == scope.knowledge.run_id,
+                Evidence.workload_uid == scope.knowledge.workload_uid,
+                Evidence.catalog_version == CATALOG_VERSION,
+            )
+        ).all()
+    )
     views = evidence_views(db, rows)
     by_key = {view.source_key: (row, view) for row, view in zip(rows, views, strict=True)}
     materials = []
@@ -283,6 +292,7 @@ class ContextTarget(BaseModel):
     source_key: str
     source_class: str
     locator: Locator
+    identity: str
     label: str = Field(min_length=1, max_length=120)
     value: Any
     entry_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -385,6 +395,7 @@ def _target(alias: str, material: SlotMaterial, entry: Entry, families: list[str
         source_key=material.slot,
         source_class=material.source_class,
         locator=Locator(kind=entry.kind, key=entry.key),
+        identity=entry.identity,
         label=label,
         value=entry.value,
         entry_digest=entry_digest(entry.value),
@@ -934,6 +945,18 @@ def assemble(
     limitations = _limitations(scope, materials)
     omissions: list[Omission] = []
 
+    if selection is not None and (
+        selection.run_id != scope.knowledge.run_id or selection.origin != "trusted"
+    ):
+        return _insufficient(
+            "analysis_selection_mismatch",
+            scope=scope,
+            policy=policy,
+            coverage=coverage,
+            families=families,
+            limitations=limitations,
+        )
+
     if not scope.request_text.strip():
         return _insufficient(
             "request_not_captured",
@@ -1021,7 +1044,11 @@ def assemble(
                 families=families,
                 limitations=limitations,
             )
-        if policy.scan(canonical(target.value)) or policy.scan(target.label):
+        if (
+            policy.scan(canonical(target.value))
+            or policy.scan(target.label)
+            or policy.scan(target.identity)
+        ):
             return _insufficient(
                 "required_content_denied",
                 scope=scope,
@@ -1058,7 +1085,11 @@ def assemble(
         material for material in materials if _optional_eligible(material, policy)
     ]
     for candidate in optional_targets(optional_materials, families, used):
-        if policy.scan(canonical(candidate.value)) or policy.scan(candidate.label):
+        if (
+            policy.scan(canonical(candidate.value))
+            or policy.scan(candidate.label)
+            or policy.scan(candidate.identity)
+        ):
             omissions.append(Omission(code="content_denied", slot=candidate.source_key))
             continue
         if candidate.value_bytes > policy.max_target_bytes:
@@ -1088,8 +1119,6 @@ def assemble(
     runbook_limitations: list[str] = []
     if selection is None:
         limitations.append("runbook_not_selected")
-    elif selection.run_id != scope.knowledge.run_id:
-        limitations.append("runbook_selection_mismatch")
     else:
         selection_id = selection.id
         retrieval = selection.retrieval
@@ -1256,4 +1285,15 @@ def build(
             coverage=[],
             families=[],
         )
-    return assemble(load_materials(db, scope), scope, selection, policy, profile, analysis_identity)
+    materials = load_materials(db, scope)
+    if selection is not None:
+        selection = analysis_selection(db, run_id, selection.id, analysis_identity)
+        if selection is None:
+            return _insufficient(
+                "analysis_selection_mismatch",
+                scope=scope,
+                policy=policy,
+                coverage=[_request_coverage(scope, policy), *_coverage(materials)],
+                families=family_matrix(materials, policy),
+            )
+    return assemble(materials, scope, selection, policy, profile, analysis_identity)

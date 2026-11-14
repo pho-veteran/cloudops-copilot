@@ -394,7 +394,19 @@ def test_analysis_selection_is_independent_of_manual_selection(db, context, tmp_
         )
         assert analysis.selection.retrieval.status == "matched"
         assert analysis.selection.id != manual.selection.id
+        other_analysis = pin_guidance(
+            session,
+            context[0],
+            context[1],
+            consumer="analysis",
+            request_identity="analysis-2",
+            query="memory",
+        )
     db.expire_all()
+    for mismatched in (manual.selection, other_analysis.selection):
+        rejected = _build(db, context, mismatched)
+        assert isinstance(rejected, InsufficientContext)
+        assert rejected.reason == "analysis_selection_mismatch"
     first = _build(db, context, analysis.selection)
     assert isinstance(first, PreparedContext)
     assert first.selection_id == analysis.selection.id
@@ -436,3 +448,32 @@ def test_analysis_selection_is_independent_of_manual_selection(db, context, tmp_
     second = _build(db, context, again.selection)
     assert isinstance(second, PreparedContext)
     assert second.digest == first.digest
+
+
+@pytest.mark.parametrize(
+    "field,value", [("workload_uid", "another-workload"), ("catalog_version", "unsupported/v999")]
+)
+def test_build_excludes_evidence_outside_the_resolved_identity(db, context, field, value):
+    _crashloop_evidence(db, context)
+    row = db.scalar(
+        select(Evidence).where(
+            Evidence.run_id == context[1], Evidence.source_key == "kubernetes.state"
+        )
+    )
+    setattr(row, field, value)
+    db.commit()
+    assert isinstance(_build(db, context), InsufficientContext)
+
+
+def test_supported_catalog_is_not_overwritten_by_another_catalog(db, context):
+    _crashloop_evidence(db, context)
+    row = add_evidence(
+        db, context, "kubernetes.configmap.metadata", {"metadata": {"name": "foreign-catalog"}}
+    )
+    row.source_key = "kubernetes.state"
+    row.catalog_version = "unsupported/v999"
+    db.commit()
+    result = _build(db, context)
+    assert isinstance(result, PreparedContext)
+    assert all(target.evidence_id != row.id for target in result.required_targets)
+    assert "foreign-catalog" not in result.messages[1].content

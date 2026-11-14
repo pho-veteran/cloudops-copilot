@@ -242,6 +242,47 @@ def test_metrics_include_series_and_samples_with_cap():
     ]
 
 
+def test_sent_samples_preserve_their_series_labels_and_timestamp():
+    from cloudops.features.investigations.locators import project
+
+    scope = _scope()
+    series = [
+        {"metric": "request_rate", "labels": {"pod": pod}, "samples": [[1, value]]}
+        for pod, value in (("pod-a", 2), ("pod-b", 9))
+    ]
+    materials = _minimal_materials()
+    materials.append(_material("prometheus.request_rate", project("series", 1, {"series": series})))
+    context = assemble(materials, scope, None, _policy(), profile(), "analysis-1")
+    assert isinstance(context, PreparedContext)
+    user = json.loads(context.messages[1].content)
+    samples = [
+        target for target in user["optional_targets"] if target["locator"]["kind"] == "sample"
+    ]
+    observed = {
+        (json.loads(target["identity"])[0]["labels"]["pod"], target["value"]) for target in samples
+    }
+    assert observed == {("pod-a", 2), ("pod-b", 9)}
+    assert context.message_bytes == len(serialize_payload(profile(), context.messages))
+
+
+def test_sample_identity_is_subject_to_content_policy():
+    from cloudops.features.investigations.locators import project
+
+    scope = _scope()
+    policy = _policy().model_copy(update={"deny_patterns": []})
+    raw = policy.model_dump(mode="json", by_alias=True)
+    raw["deny_patterns"] = [{"name": "private_label", "regex": "private-pod"}]
+    policy = EgressPolicy.model_validate(raw)
+    entries = project(
+        "series", 1, {"series": [{"labels": {"pod": "private-pod"}, "samples": [[1, 2]]}]}
+    )
+    materials = [*_minimal_materials(), _material("prometheus.request_rate", entries)]
+    context = assemble(materials, scope, None, policy, profile(), "analysis-1")
+    assert isinstance(context, PreparedContext)
+    assert "private-pod" not in context.messages[1].content
+    assert check_send(context, policy, profile(), "initial").ok
+
+
 def test_development_fixture_is_never_required_and_optional_capped():
     entries = [_entry("field", ["path", f"k-{index:02d}"], {"k": index}) for index in range(25)]
     material = _material("development_fixture", entries)
@@ -624,6 +665,14 @@ def _selection(scope):
         origin="trusted",
         retrieval=KnowledgeRetrieval(status="matched", chunks=[chunk], scope=scope.knowledge),
     )
+
+
+def test_pure_assembly_rejects_a_manual_runbook_selection():
+    scope = _scope()
+    selection = _selection(scope).model_copy(update={"origin": "manual"})
+    result = assemble(_minimal_materials(), scope, selection, _policy(), profile(), "analysis-1")
+    assert isinstance(result, InsufficientContext)
+    assert result.reason == "analysis_selection_mismatch"
 
 
 def test_optional_targets_skip_a_policy_denied_class():

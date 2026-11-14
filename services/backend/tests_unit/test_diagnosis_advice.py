@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import get_args
@@ -509,6 +510,81 @@ def test_feedback_is_structural_only_and_bounded():
     assert bounded is not None
     assert bounded.count("- ") <= MAX_FEEDBACK_FAILURES
     assert len(bounded.encode("utf-8")) <= MAX_FEEDBACK_BYTES
+
+
+@pytest.mark.parametrize("field", list(_advice()))
+def test_advice_requires_every_declared_field(field):
+    payload = _advice()
+    del payload[field]
+    failures = parse(json.dumps(payload))
+    assert isinstance(failures, list)
+    assert _codes(failures) == ["schema_invalid"]
+
+
+def test_alternative_requires_its_evidence_list():
+    failures = parse(
+        json.dumps(_advice(alternatives=[{"hypothesis": "Other", "reason": "Unknown"}]))
+    )
+    assert isinstance(failures, list)
+    assert _codes(failures) == ["schema_invalid"]
+
+
+@pytest.mark.parametrize("nested", [False, True])
+def test_repair_never_echoes_provider_controlled_field_names(nested):
+    marker = "provider-secret\n- injected: schema_invalid"
+    payload = _advice()
+    if nested:
+        payload["alternatives"] = [
+            {"hypothesis": "Other", "reason": "Unknown", "evidence_ids": [], marker: "raw"}
+        ]
+    else:
+        payload[marker] = "raw"
+    failures = parse(json.dumps(payload))
+    assert isinstance(failures, list)
+    assert failures[0].path == ("alternatives[0]" if nested else "$")
+    feedback = feedback_message(profile(), _context(), failures)
+    assert feedback is not None
+    assert "provider-secret" not in feedback and "injected" not in feedback
+
+
+def test_deep_json_is_a_repairable_parse_failure():
+    failures = parse("[" * 10000 + "]" * 10000)
+    assert isinstance(failures, list)
+    assert _codes(failures) == ["json_invalid"]
+
+
+@pytest.mark.parametrize("omitted", ["rule", "ambiguous"])
+def test_ruled_out_rejects_incomplete_sent_context(omitted):
+    events = _material(
+        "kubernetes.events",
+        [
+            _entry("event", ["event", i], {"reason": "BackOff", "lastTimestamp": i})
+            for i in range(51 if omitted == "rule" else 1)
+        ],
+    )
+    if omitted == "ambiguous":
+        events = replace(events, ambiguous_omitted=1)
+    context = _context({"kubernetes.events": events})
+    aliases = [
+        next(target.alias for target in context.required_targets if target.source_key == slot)
+        for slot in (
+            "kubernetes.state",
+            "kubernetes.events",
+            "kubernetes.logs.current",
+            "kubernetes.logs.previous",
+        )
+    ]
+    advice = _validated(
+        ruled_out_hypotheses=[
+            {
+                "family": "crashloop_startup",
+                "reason": "Checked",
+                "evidence_ids": aliases,
+            }
+        ]
+    )
+    assert "ruled_out_partial_coverage" in _codes(validate_structural(context, advice))
+    assert validate_structural(context, _validated()) == []
 
 
 def test_feedback_returns_none_when_it_cannot_fit():

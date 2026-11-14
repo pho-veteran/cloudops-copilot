@@ -12,6 +12,9 @@ adds pinned runbook chunks as `K###`, and measures the exact request body before
 model call. Advice validation then proves that every citation resolves to an item that
 was actually sent and still exists with the same identity.
 
+The database-backed builder selects only the resolved workload UID and the supported
+source catalog. Rows from another UID or catalog cannot enter messages or context pins.
+
 Explicit non-claims:
 
 - Structural validation is not semantic validation. It proves membership, scope, hash,
@@ -55,7 +58,9 @@ The five assessment families and their required slots, in fixed order:
 A family is eligible only when every required slot is usable. `not_applicable` log
 sources are waived and recorded as `not_applicable`/`waived`; missing, unavailable,
 expired, unsupported-projection or synthetic slots are not waived. Partial coverage
-still allows `supported` but blocks `ruled_out_hypotheses`.
+still allows `supported` but blocks `ruled_out_hypotheses`. Rule-based sampling,
+ambiguous-entry removal and budget omissions in a required sent slot also block a
+ruled-out conclusion, even when the original source reports complete availability.
 
 `source_coverage` always starts with the envelope-only `run.request` row
 (`source_class="operator_request"`, `status`/`reasons` reflecting capture, deny scan and
@@ -81,6 +86,17 @@ summary: it omits request text and target values. `InsufficientContext` is the p
 insufficiency record (`ContextInsufficiency/v1`): its digest covers versions,
 `policy_digest`, reason, scope, source coverage, families, omissions and limitations, and
 its `record()` keeps `request_source`/`request_present` without the request text.
+
+Each sent target preserves the exact projected entry `identity` alongside its value
+and locator. Metric samples therefore retain their series labels and timestamp rather
+than becoming unassociated numbers. Identities undergo the same deny scan as values
+and count toward the serialized whole-message budget. `value_bytes` counts the value;
+the whole-message measurement also includes identities and envelope metadata.
+
+`build` reloads the supplied Knowledge selection from its persisted analysis consumer
+and matching `analysis_identity`; a manual selection or another analysis's selection
+returns `analysis_selection_mismatch` without a send. Pure `assemble` rejects manual
+views; callers needing persisted identity verification use `build`.
 
 ## Aliases, budget and repair
 
@@ -114,12 +130,18 @@ content) and serialized byte budget. Any failure returns a closed code and no by
 the only authorizing success is `SendCheck(ok=True)` with digest and byte count.
 
 `prepare_probe` builds the fixed marker request. It reads no Run or evidence, requires
-`diagnostic_fixture` to be allowed, and can never create findings or grant quality.
+`diagnostic_fixture` to be allowed, scans both fixed messages against deny patterns,
+and can never create findings or grant quality. Invalid UTF-8 deny patterns are rejected
+when loading policy, before digesting or sending.
 
 ## Advice validation
 
-`advice.parse` rejects non-object or non-JSON text as `json_invalid` and model failures
-as `schema_invalid` with a bounded path only. `advice.validate_structural` runs, in
+`advice.parse` rejects non-object, non-JSON or excessively nested text as `json_invalid`
+and model failures as `schema_invalid` with a bounded path only. All D2 fields are
+required, including explicit empty lists, the schema version and a nullable candidate.
+Paths contain only known schema field names and numeric indices; unknown property
+names from rejected model output never enter repair feedback.
+`advice.validate_structural` runs, in
 order: alias membership, status rules, candidate mapping, ruled-out coverage and next
 steps. `advice.validate` then resolves every cited alias read-only against the stored
 evidence and the pinned Knowledge selection; any mismatch is terminal.
@@ -163,3 +185,7 @@ invalid-case matrix with expected validator codes, and an egress-denial matrix w
 expected send/scan codes. `tests_unit` contract tests validate every fixture through the
 same Pydantic models and the same validator/egress code paths; hashes are never
 hand-edited.
+
+`runtime-checks.json` records a separate owned PostgreSQL/loopback HTTP journey through
+context building, initial/repair admission, exact citation validation and pin expiry.
+It uses synthetic inputs and establishes no live model or cluster qualification.

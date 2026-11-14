@@ -442,6 +442,25 @@ def test_probe_requires_diagnostic_fixture_and_matching_identity():
     assert probe.digest
 
 
+@pytest.mark.parametrize("pattern", ["OK", "transport health probe"])
+def test_probe_obeys_content_deny_patterns(pattern):
+    check = prepare_probe(policy(deny_patterns=[{"name": "blocked", "regex": pattern}]), profile())
+    assert not check.ok
+    assert check.code == "content_denied"
+    assert check.messages is None
+
+
+def test_policy_rejects_unencodable_regex_before_digest(tmp_path):
+    raw = policy().model_dump(mode="json", by_alias=True)
+    raw["deny_patterns"] = [{"name": "bad", "regex": "\ud800"}]
+    with pytest.raises(ValidationError):
+        EgressPolicy.model_validate(raw)
+    path = tmp_path / "invalid-unicode-policy.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(EgressPolicyError):
+        EgressPolicy.load(path)
+
+
 def test_sendcheck_code_contains_no_payload_text():
     context = _context()
     changed = policy(allowed_source_classes=["operator_request"])

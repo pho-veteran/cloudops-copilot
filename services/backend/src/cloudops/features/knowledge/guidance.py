@@ -242,6 +242,20 @@ def _view(row: KnowledgeSelection) -> KnowledgeSelectionView:
     )
 
 
+def analysis_selection(
+    db: Session, run_id: UUID, selection_id: UUID, request_identity: str
+) -> KnowledgeSelectionView | None:
+    row = db.scalar(
+        select(KnowledgeSelection).where(
+            KnowledgeSelection.id == selection_id,
+            KnowledgeSelection.run_id == run_id,
+            KnowledgeSelection.consumer == "analysis",
+            KnowledgeSelection.request_identity == request_identity,
+        )
+    )
+    return _view(row) if row is not None else None
+
+
 def read_guidance(db: Session, incident_id: UUID, run_id: UUID) -> RunGuidance:
     run = _run(db, incident_id, run_id)
     row = db.scalar(
