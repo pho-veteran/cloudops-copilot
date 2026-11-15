@@ -57,7 +57,7 @@ function EvidenceLinks({
               incident,
               item.citation.run_id,
               incidentReturnHash(window.location.hash),
-              route.resolution,
+              route.id === incident ? route.resolution : "",
               item.citation.evidence_id,
               {
                 ...route.selection,

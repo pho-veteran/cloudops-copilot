@@ -9,26 +9,38 @@
     "Explicit comparison renders supported left Run and failed right Run independently alongside existing evidence differences",
     "Quota earliest retry and explicit resume followed by safe cancel; confirmation receives focus",
     "Connections fixed probe through worker shows transport succeeded, schema not validated, missing usage unavailable",
-    "Expired Operator session returns to sign-in; Viewer sign-in exposes read-only stored results and no mutation controls"
+    "Expired Operator session returns to sign-in; Viewer sign-in exposes read-only stored results and no mutation controls",
+    "Cross-incident comparison citation drops a foreign saved resolution and focuses exact target without handoff error",
+    "Resolve v3 with real stored result/runbook, reopen and restart API: selected saved Markdown text remains exact (15514 characters)"
   ],
   "automated": {
     "backend": "52 focused projection/handoff/comparison tests passed",
-    "web": "228 tests passed",
+    "web": "230 tests passed, including same/foreign resolution navigation regressions",
     "build": "TypeScript and production build passed",
     "contracts": "Regenerated via scripts/contracts.py; export and deliberate drift rejection passed"
   },
   "visual": {
     "reduced_motion": "Browser prefers-reduced-motion reduce observed true",
     "390_light": "No document horizontal overflow; keyboard Tab from resume reaches historical findings link with visible focus",
-    "320_dark": "No document horizontal overflow; model connection details and receipt inspected"
+    "320_dark": "No document horizontal overflow; model connection details and receipt inspected",
+    "matrix": "320/390/768/1280px, light and dark: no document horizontal overflow; reduced motion observed true"
   },
   "screenshots": [
     "quota-390-light.jpg",
-    "connections-320-dark.jpg"
+    "connections-320-dark.jpg",
+    "findings-desktop-dark.jpg"
   ],
   "limits": [
     "Live endpoint/model compatibility and semantic quality remain #72",
     "No production cluster or recovery execution is claimed",
     "Browser download event capture timed out; download bytes are covered by the real API producer tests."
-  ]
+  ],
+  "source_sha256": {
+    "apps/web/src/features/diagnosis/ModelConnection.tsx": "0923d22346f02f61d64b26e75d6d399d763ccb90ee2b1cac154a837fdec65c67",
+    "apps/web/src/features/diagnosis/Analysis.tsx": "0fb65aadc12109a9346ebf27171ce8723a980aac59ff23f30907ec4467413466",
+    "apps/web/src/features/diagnosis/Analysis.test.tsx": "e694ba637c314f9fb529bdde2cbe86e51764d7293dc2adb1a842c03f7c346adb",
+    "apps/web/src/features/investigations/InvestigationWorkspace.tsx": "3ec33a10a1b263fd098d30c1b915682f805031bafd1aae92ec0d66c9a589f65b",
+    "services/backend/src/cloudops/features/diagnosis/projections.py": "73a871db4c2e32429d1f1023ea074ca01d1a0c550a3912581b8534e5d221dbb5",
+    "services/backend/src/cloudops/features/incidents/handoff.py": "262d5dcd8b70f1dc7559af386f826e88b93604e67a61e68bfbf8e5f83b0b86bb"
+  }
 }

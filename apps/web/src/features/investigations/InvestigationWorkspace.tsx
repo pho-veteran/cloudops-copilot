@@ -340,7 +340,7 @@ export function InvestigationWorkspace({
                 </p>
               </article>
               <AnalysisPanel
-                key={current.data.id}
+                key={`analysis:${current.data.id}`}
                 incidentId={id}
                 runId={current.data.id}
                 canMutate={canMutate}
@@ -386,7 +386,7 @@ export function InvestigationWorkspace({
                 selectedResolution={selectedResolution}
               />
               <RunGuidance
-                key={current.data.id}
+                key={`guidance:${current.data.id}`}
                 incidentId={id}
                 runId={current.data.id}
                 canMutate={canMutate}

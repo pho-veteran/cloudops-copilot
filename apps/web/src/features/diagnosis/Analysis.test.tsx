@@ -13,7 +13,7 @@ import eligible from "../../../../../contracts/fixtures/diagnosis/quota-eligible
 import early from "../../../../../contracts/fixtures/diagnosis/quota-early.json";
 import { AnalysisPanel, AnalysisSummary, type Analysis } from "./Analysis";
 import { ModelConnection } from "./ModelConnection";
-import { safeRoute } from "@/app/routes";
+import { buildIncidentHash, safeRoute } from "@/app/routes";
 
 const http = vi.hoisted(() => ({ fetch: vi.fn<typeof fetch>() }));
 vi.mock("@/lib/api/client", async (original) => {
@@ -150,3 +150,24 @@ it("separates transport, schema and quality and preserves missing usage for View
   ).toBeNull();
   expect(posts()).toHaveLength(0);
 });
+
+it.each([false, true])(
+  "scopes saved resolution in comparison findings links (same incident: %s)",
+  (sameIncident) => {
+    const other = "00000000-0000-4000-8000-000000000001";
+    const resolution = "00000000-0000-4000-8000-000000000002";
+    window.location.hash = buildIncidentHash(
+      sameIncident ? incidentId : other,
+      runId,
+      "#/queue",
+      resolution,
+    );
+    mount(<AnalysisSummary analysis={analysis} />);
+    const link = screen.getAllByRole("link", { name: /exact evidence/ })[0];
+    expect(safeRoute(link.getAttribute("href")!)).toMatchObject({
+      id: incidentId,
+      run: runId,
+      resolution: sameIncident ? resolution : "",
+    });
+  },
+);
