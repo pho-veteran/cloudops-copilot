@@ -96,9 +96,12 @@ class Budget:
 
         record = redact(record)
         self.data["calls"][-1]["outcome"] = record
-        if call.usage and call.usage.total_tokens is not None:
-            self.data["observed_tokens"] += call.usage.total_tokens
-        else:
+        if call.usage:
+            self.data["observed_tokens"] += max(
+                call.usage.total_tokens or 0,
+                (call.usage.prompt_tokens or 0) + (call.usage.completion_tokens or 0),
+            )
+        if call.usage is None or call.usage.total_tokens is None:
             self.data["missing_usage_calls"] += 1
         save(self.path, self.data)
 
@@ -390,6 +393,8 @@ def main():
             raise ValueError("Initial campaign already started; no repeat cohort is authorized")
         if args.phase == "smoke" and (
             not budget.data.get("evaluation_finished")
+            or budget.data.get("smoke_started")
+            or any(call["case"] == "operational-smoke" for call in budget.data["calls"])
             or "operational-smoke" in budget.data["cases"]
         ):
             raise ValueError("Smoke requires completed initial evaluation and cannot repeat")
@@ -424,6 +429,8 @@ def main():
                 cases = json.loads((FIXTURES / "cases.json").read_text())
                 identity = configure(root, MODELS[0], operational=args.phase == "smoke")
                 if args.phase == "smoke":
+                    budget.data["smoke_started"] = True
+                    save(budget.path, budget.data)
                     case = dict(cases[0], id="operational-smoke")
                     execute_case(db, actor, case, budget, current, operational=True)
                     return

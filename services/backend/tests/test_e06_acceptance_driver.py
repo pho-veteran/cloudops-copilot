@@ -70,8 +70,8 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         if index == len(cases):
             respond(handler, text_payload("OK"))
             return
-        expected = oracle[cases[index]["id"]]
-        healthy = cases[index]["id"] == "n-healthy"
+        expected = oracle[cases[index if index < len(cases) else 0]["id"]]
+        healthy = index < len(cases) and cases[index]["id"] == "n-healthy"
         respond(
             handler,
             text_payload(
@@ -88,11 +88,15 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         original = campaign.configure
 
         def configured(root, model, **kwargs):
-            original(root, model, **kwargs)
+            original(root, model, operational=False)
             path = root / "profile.json"
             value = json.loads(path.read_text())
             value["base_url"] = server.url + "/v1"
+            value["mode"] = "operational" if kwargs.get("operational") else "evaluation_only"
             path.write_text(ModelProfile.model_validate(value).model_dump_json(by_alias=True))
+            if kwargs.get("operational"):
+                monkeypatch.setenv("DIAGNOSIS_QUALIFICATION_FILE", str(root / "qualification.json"))
+                assert load().denied() is None
             return load().identity()
 
         monkeypatch.setattr(campaign, "configure", configured)
@@ -114,6 +118,31 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         with pytest.raises(ValueError, match="already started"):
             campaign.main()
         assert len(sent) == 13
+        campaign.save(
+            tmp_path / "qualification.json",
+            {
+                "schema_version": "DiagnosisQualification/v1",
+                "cohort_id": "fixture-not-provider-quality",
+                "evidence_reference": "controlled test",
+                "identity": ledger["primary_identity"],
+            },
+        )
+        monkeypatch.setattr(sys, "argv", ["campaign", "smoke", "--state-dir", str(tmp_path)])
+
+        def failed_read(*_):
+            raise RuntimeError("Controlled result read failure after paid send")
+
+        monkeypatch.setattr(campaign, "case_result", failed_read)
+        with pytest.raises(RuntimeError, match="Controlled result read failure"):
+            campaign.main()
+        assert len(sent) == 14
+        ledger = json.loads((tmp_path / "ledger.json").read_text())
+        assert ledger["smoke_started"] is True and "operational-smoke" not in ledger["cases"]
+        assert ledger["calls"][-1]["case"] == "operational-smoke"
+        assert ledger["calls"][-1]["outcome"]["kind"] == "text"
+        with pytest.raises(ValueError, match="cannot repeat"):
+            campaign.main()
+        assert len(sent) == 14
 
 
 def test_driver_denies_other_database_or_missing_owner_before_any_send(tmp_path, monkeypatch):
@@ -123,3 +152,35 @@ def test_driver_denies_other_database_or_missing_owner_before_any_send(tmp_path,
     with pytest.raises(ValueError, match="explicitly owned"):
         campaign.main()
     assert not (tmp_path / "campaign.lock").exists()
+
+
+@pytest.mark.parametrize("reported_total", [None, 1])
+def test_partial_or_inconsistent_usage_stops_before_another_http_send(tmp_path, reported_total):
+    from diagnosis_fake import mock
+    from diagnosis_fixtures import profile
+    from cloudops.features.diagnosis.schemas import Usage
+    import httpx
+
+    campaign.freeze(tmp_path)
+    budget = campaign.Budget(tmp_path / "ledger.json")
+    client = ModelClient(
+        profile(),
+        transport=mock(lambda _: httpx.Response(200, json=text_payload())),
+        environ={"DIAGNOSIS_TEST_TOKEN": "fixture"},
+    )
+    messages = [{"role": "user", "content": "Controlled probe"}]
+    call = client.send(messages, before_send=lambda: None)
+    budget.reserve(campaign.MODELS[0], "first", False)
+    budget.settle(replace(call, usage=Usage(60000, 10, reported_total)), "fixture")
+    assert budget.data["observed_tokens"] == 60010
+    assert budget.data["calls"][0]["outcome"]["usage"]["total_tokens"] == reported_total
+    client = ModelClient(
+        profile(),
+        transport=mock(
+            lambda _: pytest.fail("The known usage stop must prevent another HTTP send")
+        ),
+        environ={"DIAGNOSIS_TEST_TOKEN": "fixture"},
+    )
+    with pytest.raises(ValueError, match="token stop"):
+        client.send(messages, before_send=lambda: budget.reserve(campaign.MODELS[0], "next", False))
+    assert len(budget.data["calls"]) == 1
