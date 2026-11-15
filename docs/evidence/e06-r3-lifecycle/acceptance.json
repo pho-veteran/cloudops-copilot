@@ -22,8 +22,9 @@
     "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
     "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
     "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
-    "services/backend/src/cloudops/features/diagnosis/worker.py": "4c4d1ab519b23e6038c2ce14d0c14c3dec02a91b2c90badedec23718bf26df81",
-    "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a"
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607",
+    "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a",
+    "services/backend/tests/test_diagnosis_lifecycle.py": "4c417b8e1a3375f5072670b537f1ce1179ca2369c3cd55e92357aa72ece16fb2"
   },
   "proof_classes": [
     "PostgreSQL state/race tests",
@@ -60,5 +61,17 @@
     "No exactly-once remote inference or known cost for an unknown response."
   ],
   "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF.",
-  "restore_binding": "restore.json runtime_source_sha256"
+  "restore_binding": "restore.json runtime_source_sha256",
+  "credential_boundary_validation": {
+    "baseline_head": "0da151490c59019a5b188913f1ffbac620114fff",
+    "baseline_reproduction": "3 failed: direct summary, nested next_steps and JSON-unicode-escaped configured fixture credential reached Viewer API",
+    "corrected_behavior": "credential_in_output; no result persistence or repair; working snapshot and temporary pins cleared",
+    "focused_wire_api_cases": "5 passed (3 credential cases, normal supported result, probe metadata)",
+    "linux_full_backend": "1671 passed in 445.04s, Python3.13.11/PostgreSQL17.11; owned cloudops_e06_review_test",
+    "web": "223 tests and production build passed",
+    "contracts": "export matches; deliberate drift rejected",
+    "lint_format": "passed",
+    "restore": "fresh actual Linux pg_dump/pg_restore plus trusted cleanup passed; restore.json binds runtime sources",
+    "limits": "Synthetic keys and loopback model only; no external inference or UI qualification."
+  }
 }

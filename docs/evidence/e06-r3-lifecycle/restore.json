@@ -1,6 +1,6 @@
 {
   "schema": "E06ActualRestore/v1",
-  "driver_sha256": "951d399da82912e6178dfd0056363fb0c2c0c37124761695a35effc6ce0289aa",
+  "driver_sha256": "76308021d7352cd4bec80d270d93842d03459809d05e0687761972310777da4d",
   "restored_bytes_unchanged": true,
   "job_ids_attempts_preserved_before_cleanup": true,
   "cleanup": {
@@ -14,7 +14,6 @@
   "context_manifests_preserved": true,
   "operational_provider_quality": "not_measured",
   "source": "Controlled fixture; actual pg_dump/pg_restore and Linux authority.",
-  "driver_git_sha256": "76308021d7352cd4bec80d270d93842d03459809d05e0687761972310777da4d",
   "runtime_source_sha256": {
     "services/backend/src/cloudops/entrypoints/dispatch.py": "1cbd87c1439cf63d1649c3362d968799979dbb309f0f946683a2f70571ac14cd",
     "services/backend/src/cloudops/entrypoints/worker.py": "b9f341cdaa10e037e07ca1b58325e596aa225b14ead3d398fb555cc5073ef81c",
@@ -35,7 +34,7 @@
     "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
     "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
     "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
-    "services/backend/src/cloudops/features/diagnosis/worker.py": "4c4d1ab519b23e6038c2ce14d0c14c3dec02a91b2c90badedec23718bf26df81"
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607"
   },
-  "runtime_source_stable_across_drill": true
+  "runtime_source_binding": "Worktree bytes captured after the owned drill; runtime source was unchanged during seed/restore/verify."
 }

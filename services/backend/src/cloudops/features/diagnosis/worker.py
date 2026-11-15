@@ -273,6 +273,16 @@ def _receipt(call, deployment):
     }
 
 
+def _contains_credential(value, credential):
+    if isinstance(value, str):
+        return credential in value
+    if isinstance(value, dict):
+        return any(_contains_credential(item, credential) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_credential(item, credential) for item in value)
+    return False
+
+
 def _wait(db, claim, analysis, run, mode, due, reason):
     analysis.wait_mode, analysis.earliest_retry = mode, due
     analysis.reason = reason
@@ -288,6 +298,8 @@ def analyze(claim, gate, slot, lease_lost):
     if prepared is None:
         return
     context_snapshot, deployment, checked = prepared
+    credential = deployment.profile.credential
+    secret = os.environ.get(credential.name) if credential else None
     call = ModelClient(deployment.profile).send(
         list(checked.messages),
         before_send=lambda: _reserve(claim, gate, slot, checked, lease_lost, context_snapshot),
@@ -311,6 +323,10 @@ def analyze(claim, gate, slot, lease_lost):
         if analysis.deadline <= database_now(db):
             terminal(db, analysis, run, "failed", "deadline_expired")
         elif validated and validated.status == "valid":
+            if secret and _contains_credential(validated.result.model_dump(mode="json"), secret):
+                terminal(db, analysis, run, "failed", "credential_in_output")
+                _done(db, job, attempt)
+                return
             db.add(
                 AnalysisResult(
                     analysis_id=analysis.id, payload=validated.result.model_dump(mode="json")

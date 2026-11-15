@@ -57,6 +57,7 @@ The complete private context is a working copy for active attempts only. Complet
 | Required context gap | `insufficient_evidence`, no HTTP |
 | Repairable structural/JSON failure | At most one durable repair phase, bounded safe feedback; no raw rejected text resent |
 | Invalid exact reference, refusal, unsupported shape, auth/config rejection | Typed terminal failure, no fallback provider |
+| Configured worker credential echoed in validated advice | `credential_in_output`; no stored result or repair, including nested or JSON-escaped text |
 | Received retryable 5xx | Bounded exponential due wait, no sleeping worker/held lease |
 | 429 | `waiting_for_quota` / `resume_required`; explicit Operator resume after the earliest retry |
 | Timeout, lost response, unsettled reservation | Terminal `provider_outcome_unknown`; new investigation required |

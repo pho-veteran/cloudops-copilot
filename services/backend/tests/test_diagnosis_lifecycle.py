@@ -38,6 +38,35 @@ from cloudops.shared.jobs import Job, claim_next
 context = _context
 
 
+@pytest.mark.parametrize("field", ["summary", "next_steps", "encoded_summary"])
+def test_analysis_rejects_worker_credential_in_advice(client, db, context, deployment, field):
+    token = "owned-loopback-test-token"
+    _crashloop(db, context)
+    payload = _raw(
+        **{
+            "next_steps" if field == "next_steps" else "summary": (
+                ["Inspect " + token] if field == "next_steps" else "Provider echoed " + token
+            )
+        }
+    )
+    if field == "encoded_summary":
+        payload = payload.replace(token, "".join(f"\\u{ord(char):04x}" for char in token))
+    with serve(lambda h: respond(h, text_payload(payload))) as server:
+        deployment(server.url)
+        identifier = admission(db, context)
+        assert run_once()
+        sign_in(client, "viewer")
+        response = client.get(f"/api/incidents/{context[0]}/runs/{context[1]}/analysis")
+        assert response.status_code == 200
+        assert token not in response.text
+        assert response.json()["result"] is None
+        assert refresh(db, identifier).reason == "credential_in_output"
+        assert db.get(AnalysisResult, identifier) is None
+        assert db.get(AnalysisContext, identifier).snapshot is None
+        assert db.scalar(select(func.count()).select_from(EvidencePin)) == 0
+        assert len(server.requests) == 1
+
+
 @pytest.fixture
 def deployment(tmp_path, monkeypatch):
     def install(url, *, qualified=True, mode="operational"):
