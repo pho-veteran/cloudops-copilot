@@ -1,0 +1,23 @@
+{
+  "proof_class": "Controlled PostgreSQL and loopback HTTP; zero live provider requests",
+  "environment": "Linux, Python 3.13.11, PostgreSQL 17.11, owned cloudops_e06_review_test",
+  "checks": {
+    "driver": "Entire 12-case evaluation and secondary probe over actual worker/client with loopback responses; 13 fixture HTTP calls, no paid inference; evaluation excluded from operational API",
+    "budget": "Durable 15-call bound, one shared repair, exact model allowlist, observed token stop and decoded credential redaction; initial cohort cannot repeat",
+    "ownership": "Other database or missing owned-lab authority denied before any send",
+    "negative_scope": "Actual public Run POST rejects foreign workload with target_mismatch and zero model calls",
+    "negative_missing": "Actual context/worker insufficiency and zero model calls",
+    "negative_provider": "Actual controlled 429 hold/explicit resume/deadline preservation and 401/500 bounded classification without recollection"
+  },
+  "result": "6 passed, 32 deselected; source hashes below; Starlette/httpx deprecation warning inherited",
+  "source_sha256": {
+    "services/backend/tests/e06_live_acceptance.py": "a0c4aef89d28e7b5e2ade072f6bf48cf4609c69b2036140a556d9e807a47d379",
+    "services/backend/tests/test_e06_acceptance_driver.py": "92f5a529217249735e0da8e9cb0de12c0e15f4702abcd69d1c5b8ac33cc2275d",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "585eb1ccfbd262dd193d509bb0f79b430f9554595666237d81ab24cd9470f739",
+    "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
+    "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
+    "services/backend/tests/fixtures/e06/cases.json": "1c1bce8bbc83d4a2f9e02897902b3a41802477ffab940b00581f9b7aecf5278c",
+    "services/backend/tests/fixtures/e06/oracle.json": "2e85af63b06c82978be966eefa809802c04c7c9494b6d6d4d663c1fbe7464123"
+  }
+}
