@@ -27,7 +27,6 @@ from cloudops.features.diagnosis.versions import (
     PROMPT_VERSION,
     VALIDATOR_VERSION,
 )
-from cloudops.features.investigations import comparison_service
 from cloudops.features.investigations.citation_schemas import CitationRef
 from cloudops.features.investigations.locators import (
     UnsupportedProjection,
@@ -612,6 +611,8 @@ def _exact_entry(content, target: ContextTarget):
 
 
 def _resolve_evidence(db, context: PreparedContext, alias: str, target: ContextTarget):
+    from cloudops.features.investigations import comparison_service
+
     resolution = comparison_service.citation(
         db,
         context.incident_id,

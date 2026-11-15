@@ -1294,6 +1294,16 @@
       },
       "ComparisonSide": {
         "properties": {
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "cluster": {
             "title": "Cluster",
             "type": "string"

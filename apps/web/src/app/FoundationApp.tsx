@@ -276,8 +276,7 @@ export function Workspace() {
         <main className="foundation-main" id="main-content">
           <div className="foundation-notice">
             <span>
-              Source-aware evidence collection · AI diagnosis unavailable · Live
-              manual plans require an enabled scoped target
+              Stored evidence and diagnosis · External sources depend on trusted configuration · Live manual plans require an enabled scoped target
             </span>
             {canMutate && (
               <Button size="sm" onClick={() => setCreating({})}>

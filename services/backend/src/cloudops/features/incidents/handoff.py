@@ -11,6 +11,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import defer
 
 from cloudops.features.access.models import User
+from cloudops.features.diagnosis.projections import handoff_sections
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.incidents.schemas import IncidentView
 from cloudops.features.investigations.models import Evidence, InvestigationRun
@@ -26,7 +27,7 @@ from cloudops.features.workloads.models import Workload
 from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job
 
-SCHEMA_VERSION = "HandoffSnapshot/v2"
+SCHEMA_VERSION = "HandoffSnapshot/v3"
 LEGACY_VERSION = "legacy"
 
 
@@ -227,27 +228,12 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
         },
         "target_locks": {"status": "complete", "count": len(locks), "items": locks},
         "activity": {"status": "complete", "count": len(events), "items": events},
-        "findings": {
-            "status": "unavailable",
-            "detail": "Production RCA and findings are unavailable.",
-        },
-        "citations": {
-            "status": "unavailable",
-            "detail": "Production finding-to-evidence citations are unavailable.",
-        },
-        "ruled_out_checks": {
-            "status": "unavailable",
-            "detail": "No structured ruled-out checks are recorded.",
-        },
-        "unverified_checks": {
-            "status": "unavailable",
-            "detail": "No structured unverified checks are recorded.",
-        },
-        "open_questions": {
-            "status": "unavailable",
-            "detail": "No structured open questions are recorded; Run requests are listed above.",
-        },
-        "limitations": "Stored records and human notes only; no new diagnosis was generated. Unknown outcomes and target locks remain independent of incident resolution.",
+        **handoff_sections(db, [run.id for run in runs]),
+        "limitations": (
+            "Stored records and human notes; handoff generates no new analysis. "
+            "Unknown outcomes and target locks remain independent of incident resolution. "
+            "Telemetry may expire under its recorded retention policy; runbooks are methodology."
+        ),
     }
     if findings_fixture is not None:
         fixture = FixtureFindings.model_validate(findings_fixture)
@@ -474,12 +460,16 @@ def _render_v3(snapshot):
     sections.append("\n")
     citations = snapshot["citations"]
     sections.append("## Citations\n\n")
-    if citations["status"] == "contract_fixture":
-        sections.append(f"{_inline(citations['label'])}; {citations['count']} recorded.\n\n")
+    if citations["status"] in {"contract_fixture", "complete"}:
+        sections.append(
+            f"{_inline(citations.get('label', 'Stored references'))}; {citations['count']} recorded.\n\n"
+        )
         for citation in citations["items"]:
             sections.append(
                 f"- Run: {_inline(citation['run_id'])}; Evidence: {_inline(citation['evidence_id'])}\n"
             )
+            if citation.get("locator"):
+                sections.append(f"  Exact target: {_inline(citation['locator'])}\n")
         sections.append("\n")
     else:
         sections.append(f"{_inline(citations['detail'])}\n\n")
@@ -491,8 +481,10 @@ def _render_v3(snapshot):
     ):
         section = snapshot[key]
         sections.append(f"## {title}\n\n")
-        if section["status"] == "contract_fixture":
-            sections.append(f"{_inline(section['label'])}; {section['count']} recorded.\n\n")
+        if section["status"] in {"contract_fixture", "complete"}:
+            sections.append(
+                f"{_inline(section.get('label', 'Stored records'))}; {section['count']} recorded.\n\n"
+            )
             for item in section["items"]:
                 sections.extend(
                     [
@@ -501,8 +493,28 @@ def _render_v3(snapshot):
                         _text_block(item["summary"]),
                     ]
                 )
+                if item.get("result"):
+                    sections.extend(
+                        [
+                            "**Recorded result and provenance**\n\n",
+                            _fenced(
+                                {
+                                    "identity": item["identity"],
+                                    "analysis_id": item["analysis_id"],
+                                    "result": item["result"],
+                                }
+                            ),
+                            "\n",
+                        ]
+                    )
         else:
             sections.append(f"{_inline(section['detail'])}\n\n")
+    runbooks = snapshot.get("runbook_citations", {"items": []})
+    sections.append("## Runbook methodology references\n\n")
+    for item in runbooks["items"]:
+        sections.append(_fenced(item) + "\n")
+    if not runbooks["items"]:
+        sections.append("No runbook references recorded.\n\n")
     sections.append(f"## Activity and notes ({snapshot['activity']['count']})\n\n")
     if not snapshot["activity"]["items"]:
         sections.append("No activity recorded.\n\n")

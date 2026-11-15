@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { download } from "@/lib/download";
 import type { components } from "@/lib/api/generated/schema";
 import { coverageLabel } from "./EvidenceCatalog";
+import { AnalysisSummary } from "@/features/diagnosis/Analysis";
 
 type Side = components["schemas"]["ComparisonSide"];
 type Citation = components["schemas"]["CitationRef"];
@@ -38,6 +39,11 @@ function SideSummary({ label, side }: { label: string; side: Side }) {
           ? `${side.window.start} → ${side.window.end}`
           : "Not captured"}
       </p>
+      {side.analysis ? (
+        <AnalysisSummary analysis={side.analysis} />
+      ) : (
+        <p>No analysis was recorded for this selection.</p>
+      )}
     </section>
   );
 }
