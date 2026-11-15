@@ -7,9 +7,7 @@ import { Failure } from "@/app/Feedback";
 import { runKeys } from "./queries";
 
 type Run = components["schemas"]["RunView"];
-type DispatchReason = NonNullable<
-  NonNullable<Run["dispatch"]>["reason"]
->;
+type DispatchReason = NonNullable<NonNullable<Run["dispatch"]>["reason"]>;
 type CancelReason = Run["cancel"]["reason"];
 
 const DISPATCH_REASONS: Record<DispatchReason, string> = {
@@ -78,7 +76,7 @@ export function CollectionProgress({
             : "This request stays queued and starts only after a trusted host operator resumes collection."}
         </p>
       )}
-      {run.state === "failed" && (
+      {run.state === "failed" && !run.outcome_code?.startsWith("analysis_") && (
         <div className="foundation-stack">
           <p>
             Collection stopped after {run.attempts.length}{" "}
@@ -94,12 +92,12 @@ export function CollectionProgress({
           )}
         </div>
       )}
-      {(run.state === "analyzing" || run.state === "waiting_for_quota") && (
-        <p className="muted">
-          AI analysis is unavailable in this release; this state comes from a
-          declared contract.
-        </p>
-      )}
+      {(run.state === "analyzing" || run.state === "waiting_for_quota") &&
+        !run.analysis && (
+          <p className="muted">
+            Analysis progress was not captured for this earlier Run.
+          </p>
+        )}
     </section>
   );
 }

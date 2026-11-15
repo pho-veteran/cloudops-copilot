@@ -30,6 +30,7 @@ import { EvidenceCatalog } from "./EvidenceCatalog";
 import { RunComparison } from "./RunComparison";
 import { CancelRun, CollectionProgress } from "./RunProgress";
 import { RunGuidance } from "@/features/knowledge/RunGuidance";
+import { AnalysisPanel } from "@/features/diagnosis/Analysis";
 
 function RequestInvestigation({
   incidentId,
@@ -326,8 +327,8 @@ export function InvestigationWorkspace({
                   }
                 />
                 <p className="muted">
-                  AI diagnosis unavailable. Live manual recovery, when
-                  configured, is reviewed separately below.
+                  Stored diagnosis and live manual recovery are reviewed
+                  separately.
                 </p>
                 <p className="muted">
                   Created: {new Date(current.data.created_at).toLocaleString()}
@@ -338,14 +339,63 @@ export function InvestigationWorkspace({
                     : "Not finished"}
                 </p>
               </article>
+              <AnalysisPanel
+                key={current.data.id}
+                incidentId={id}
+                runId={current.data.id}
+                canMutate={canMutate}
+              />
+              {current.data.state !== "completed" &&
+                latest.data.items.some(
+                  (item) =>
+                    item.id !== current.data.id && item.state === "completed",
+                ) && (
+                  <aside className="foundation-panel">
+                    <h3>Earlier findings remain available</h3>
+                    <p>
+                      A newer waiting or failed investigation does not replace
+                      an earlier result.
+                    </p>
+                    <ul>
+                      {latest.data.items
+                        .filter(
+                          (item) =>
+                            item.id !== current.data.id &&
+                            item.state === "completed",
+                        )
+                        .map((item) => (
+                          <li key={item.id}>
+                            <a
+                              href={buildIncidentHash(
+                                id,
+                                item.id,
+                                incidentReturnHash(window.location.hash),
+                              )}
+                            >
+                              Open historical findings · {item.id}
+                            </a>
+                          </li>
+                        ))}
+                    </ul>
+                  </aside>
+                )}
               <EvidenceCatalog
                 incidentId={id}
                 run={current.data}
                 selectedEvidence={selectedEvidence}
                 selectedResolution={selectedResolution}
               />
-              <RunGuidance key={current.data.id} incidentId={id} runId={current.data.id} canMutate={canMutate} />
-              <RunComparison key={`${runId}:${JSON.stringify(safeRoute(window.location.hash).selection)}`} incidentId={id} runId={current.data.id} />
+              <RunGuidance
+                key={current.data.id}
+                incidentId={id}
+                runId={current.data.id}
+                canMutate={canMutate}
+              />
+              <RunComparison
+                key={`${runId}:${JSON.stringify(safeRoute(window.location.hash).selection)}`}
+                incidentId={id}
+                runId={current.data.id}
+              />
               <article className="foundation-panel">
                 <h2>Collection attempts</h2>
                 <p className="muted">

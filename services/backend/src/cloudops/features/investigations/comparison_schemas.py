@@ -8,6 +8,7 @@ from pydantic import BaseModel, JsonValue
 
 from cloudops.features.investigations.citation_schemas import CitationRef
 from cloudops.features.investigations.schemas import EvidenceView, RequestWindow
+from cloudops.features.diagnosis.api_schemas import AnalysisView
 
 DifferenceStatus = Literal[
     "added", "removed", "changed", "unchanged", "unavailable", "not_comparable"
@@ -29,6 +30,7 @@ class ComparisonSide(BaseModel):
     outcome_code: str | None = None
     created_at: datetime | None = None
     finished_at: datetime | None = None
+    analysis: AnalysisView | None = None
 
 
 class SourceDifference(BaseModel):

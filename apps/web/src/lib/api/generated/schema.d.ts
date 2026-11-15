@@ -1391,6 +1391,7 @@ export interface components {
         };
         /** ComparisonSide */
         ComparisonSide: {
+            analysis?: components["schemas"]["AnalysisView"] | null;
             /** Cluster */
             cluster: string;
             /** Created At */

@@ -1,0 +1,34 @@
+{
+  "proof_class": "Actual API/PostgreSQL/worker and connected Microsoft Edge; controlled loopback provider and synthetic telemetry, no live model quality claim",
+  "browser": "Microsoft Edge, Profile 1, separate owned lab tab",
+  "environment": "Linux, PostgreSQL 17.11, Python 3.13.11, localhost API 8015 and Vite 5175, dedicated cloudops_e06_ui_test",
+  "journeys": [
+    "Operator reads stored supported result and inert hostile text",
+    "Exact telemetry locator opens the stored target and focuses Exact citation target",
+    "Analysis runbook link opens exact saved selection/version/chunk and focuses Exact stored chunk; back retains selected Run",
+    "Explicit comparison renders supported left Run and failed right Run independently alongside existing evidence differences",
+    "Quota earliest retry and explicit resume followed by safe cancel; confirmation receives focus",
+    "Connections fixed probe through worker shows transport succeeded, schema not validated, missing usage unavailable",
+    "Expired Operator session returns to sign-in; Viewer sign-in exposes read-only stored results and no mutation controls"
+  ],
+  "automated": {
+    "backend": "52 focused projection/handoff/comparison tests passed",
+    "web": "228 tests passed",
+    "build": "TypeScript and production build passed",
+    "contracts": "Regenerated via scripts/contracts.py; export and deliberate drift rejection passed"
+  },
+  "visual": {
+    "reduced_motion": "Browser prefers-reduced-motion reduce observed true",
+    "390_light": "No document horizontal overflow; keyboard Tab from resume reaches historical findings link with visible focus",
+    "320_dark": "No document horizontal overflow; model connection details and receipt inspected"
+  },
+  "screenshots": [
+    "quota-390-light.jpg",
+    "connections-320-dark.jpg"
+  ],
+  "limits": [
+    "Live endpoint/model compatibility and semantic quality remain #72",
+    "No production cluster or recovery execution is claimed",
+    "Browser download event capture timed out; download bytes are covered by the real API producer tests."
+  ]
+}

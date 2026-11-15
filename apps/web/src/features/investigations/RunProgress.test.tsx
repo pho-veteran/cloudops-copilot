@@ -125,7 +125,7 @@ describe("collection progress", () => {
 
   it("labels declared analysis states honestly", () => {
     mount(<CollectionProgress run={run({ state: "waiting_for_quota" })} />);
-    expect(screen.getByText(/AI analysis is unavailable in this release/)).toBeTruthy();
+    expect(screen.getByText(/Analysis progress was not captured for this earlier Run/)).toBeTruthy();
   });
 
   it("says when an earlier run did not capture progress", () => {
