@@ -14,6 +14,15 @@ class Operation:
 
 
 OPERATIONS = {
+    "get_analysis": Operation(
+        "GET", "/api/incidents/{incident_id}/runs/{run_id}/analysis", "protected_read"
+    ),
+    "resume_analysis": Operation(
+        "POST", "/api/incidents/{incident_id}/runs/{run_id}/analysis/resume", "operator_mutation"
+    ),
+    "get_model_status": Operation("GET", "/api/diagnosis/status", "protected_read"),
+    "list_model_checks": Operation("GET", "/api/diagnosis/checks", "protected_read"),
+    "create_model_check": Operation("POST", "/api/diagnosis/checks", "operator_mutation"),
     "compare_runs": Operation(
         "GET", "/api/incidents/{incident_id}/runs/{run_id}/compare", "protected_read"
     ),

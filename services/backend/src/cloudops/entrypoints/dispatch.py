@@ -6,6 +6,8 @@ Concrete kinds keep their historical spellings; a kind absent here can never be 
 from cloudops.shared.dispatch_permit import DispatchGate
 
 PERMIT_CLASSES = {
+    "diagnosis_analysis_v1": "analysis",
+    "diagnosis_probe_v1": "analysis",
     "development_collection_v1": "collection",
     "recommendation_report_v1": "recommendation",
     "recovery_execution_v1": "recovery_execution",

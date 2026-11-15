@@ -1,0 +1,77 @@
+{
+  "schema": "E06LifecycleAcceptance/v1",
+  "base_commit": "78d0e9788670a641bbf05158749511aa94131ae6",
+  "source_sha256": {
+    "scripts/probe-diagnosis-lifecycle.py": "76308021d7352cd4bec80d270d93842d03459809d05e0687761972310777da4d",
+    "services/backend/migrations/versions/0012_diagnosis_lifecycle_durable_bounded_diagnosis.py": "581bd0724eedc3aec364c341ade6389b83de9ea071c91e7003a71047d25792bf",
+    "services/backend/src/cloudops/entrypoints/dispatch.py": "1cbd87c1439cf63d1649c3362d968799979dbb309f0f946683a2f70571ac14cd",
+    "services/backend/src/cloudops/entrypoints/worker.py": "b9f341cdaa10e037e07ca1b58325e596aa225b14ead3d398fb555cc5073ef81c",
+    "services/backend/src/cloudops/features/diagnosis/advice.py": "0ebc20289a17a53f128be1668e540f181d139356304ca6ad5e89644ce9c4fed7",
+    "services/backend/src/cloudops/features/diagnosis/api.py": "4659efd37f9719ba7ceb4c890a40b7bdd87b2d72cd6c5ff9b752d59a1dbb46b2",
+    "services/backend/src/cloudops/features/diagnosis/api_schemas.py": "93fd210bfc33846ddba53713374ba6517e86387256e6c04edc86f14e7b5ed614",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "585eb1ccfbd262dd193d509bb0f79b430f9554595666237d81ab24cd9470f739",
+    "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
+    "services/backend/src/cloudops/features/diagnosis/lifecycle.py": "cd3f02b7e4ce7859a53680c24feadfa9098913961ad484e46fc1618146051bb4",
+    "services/backend/src/cloudops/features/diagnosis/messages.py": "cc2c181f9c96809bed6a3d02a24b5805252d87ab40cd3bbd7d22f5c5d71541a4",
+    "services/backend/src/cloudops/features/diagnosis/models.py": "095db3fc206e37239ff504f71df88622183bec6567234c51f7ee4b85ca19dd46",
+    "services/backend/src/cloudops/features/diagnosis/pins.py": "f549d9de1d0c98404b3bbf49a13135327849dc6c44649a80493019f04ba94fbd",
+    "services/backend/src/cloudops/features/diagnosis/profile.py": "5ca2865c1a05cc421a5a82c9dfd292cd3ce8dc5fa1b1ba086d1eedf6e80ef538",
+    "services/backend/src/cloudops/features/diagnosis/schemas.py": "537295c60d1e130295b55ad8a943642440aa29c11b6f37651f433460b8e553c5",
+    "services/backend/src/cloudops/features/diagnosis/service.py": "8ed6f51ee0cc39938f9742421673a454e22c7f1c1239ce8e80ea363faacf9769",
+    "services/backend/src/cloudops/features/diagnosis/settings.py": "610f14bfb4e8acdfe78ae1b04bc0ea121849e2ec17b9c5cec164ee6fdb3a2819",
+    "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
+    "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
+    "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607",
+    "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a",
+    "services/backend/tests/test_diagnosis_lifecycle.py": "4c417b8e1a3375f5072670b537f1ce1179ca2369c3cd55e92357aa72ece16fb2"
+  },
+  "proof_classes": [
+    "PostgreSQL state/race tests",
+    "Compatible loopback HTTP wire",
+    "Separate worker processes on Windows and Linux",
+    "Actual PostgreSQL dump/restore and trusted Linux dispatch administration"
+  ],
+  "checks": {
+    "windows_lifecycle_process_migration": "38 passed on implementation commit 4670601",
+    "linux_lifecycle_process_migration": "37 passed",
+    "permission_cases_new_operations_and_health": "24 passed",
+    "corrected_inventory_dispatch_migration_regressions": "36 passed",
+    "generated_producer_fixtures": "30 passed",
+    "web": "223 tests passed; production build passed",
+    "contracts": "generated artifacts matched; deliberate drift rejected",
+    "format_lint": "passed",
+    "transport_metadata_regressions": "51 passed",
+    "linux_current_process_backlog": "4 passed",
+    "fifo_and_ci_regression_corrections": "6 passed; includes real blocked-observer/approved-recovery dispatch and collection handoff byte checks.",
+    "linux_fifo_process_regressions": "7 passed",
+    "terminal_working_context_and_evidence_purge": "3 focused regressions passed; manifests/results preserved, private payload cleared.",
+    "unindexed_knowledge_safe_context": "1 passed; no-index selection remains null, explicit runbook limitation persists, qualified loopback result completes in one Job attempt"
+  },
+  "regression_audit": {
+    "initial_run": "1597 passed, 12 skipped, 19 failures",
+    "disposition": "All 19 failure cases corrected and rechecked in the 36-case targeted batch; exact final full-suite status is reported by PR CI.",
+    "first_full_ci": "1664 passed; 2 failures corrected: unordered snapshot assertion and model-first scheduling."
+  },
+  "restore": "restore.json; actual pg_dump/pg_restore rerun with trusted Linux cleanup on implementation commit 4670601",
+  "limits": [
+    "Only owned loopback fixtures; no external provider quality or paid inference.",
+    "Findings UI/new compare/handoff integration remain #71; real provider cohorts remain #72.",
+    "No browser verification claimed for this backend/API slice.",
+    "No exactly-once remote inference or known cost for an unknown response."
+  ],
+  "source_encoding": "Git staged blobs (LF); runtime host inputs can use CRLF.",
+  "restore_binding": "restore.json runtime_source_sha256",
+  "credential_boundary_validation": {
+    "baseline_head": "0da151490c59019a5b188913f1ffbac620114fff",
+    "baseline_reproduction": "3 failed: direct summary, nested next_steps and JSON-unicode-escaped configured fixture credential reached Viewer API",
+    "corrected_behavior": "credential_in_output; no result persistence or repair; working snapshot and temporary pins cleared",
+    "focused_wire_api_cases": "5 passed (3 credential cases, normal supported result, probe metadata)",
+    "linux_full_backend": "1671 passed in 445.04s, Python3.13.11/PostgreSQL17.11; owned cloudops_e06_review_test",
+    "web": "223 tests and production build passed",
+    "contracts": "export matches; deliberate drift rejected",
+    "lint_format": "passed",
+    "restore": "fresh actual Linux pg_dump/pg_restore plus trusted cleanup passed; restore.json binds runtime sources",
+    "limits": "Synthetic keys and loopback model only; no external inference or UI qualification."
+  }
+}

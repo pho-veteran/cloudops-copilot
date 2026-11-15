@@ -22,7 +22,6 @@ from cloudops.features.investigations.schemas import (
 )
 from cloudops.features.investigations.states import (
     COLLECTION_JOB,
-    NONTERMINAL_RUN,
     nonterminal_run,
 )
 from cloudops.features.investigations.storage import evidence_views
@@ -125,6 +124,9 @@ def admit_run(
 
 def terminalize(db: Session, run: InvestigationRun, code: str) -> None:
     """Cancel pending work; the caller holds the Run row lock."""
+    from cloudops.features.diagnosis.lifecycle import cancel_unsent
+
+    cancel_unsent(db, run, code)
     run.state, run.queue_reason, run.outcome_code = "cancelled", None, code
     run.provider_call = None
     run.reason = OUTCOME_REASONS[code]
@@ -177,7 +179,9 @@ def cancel_state(row: InvestigationRun) -> CancelState:
     if row.state == "collecting":
         return CancelState(allowed=False, reason="collection_started")
     if row.state == "analyzing":
-        return CancelState(allowed=False, reason="analysis_started")
+        if row.provider_call == "none":
+            return CancelState(allowed=True, reason="waiting_without_provider_call")
+        return CancelState(allowed=False, reason="provider_call_in_flight")
     return CancelState(allowed=False, reason="finished")
 
 
@@ -226,10 +230,13 @@ def run_view(db: Session, row: InvestigationRun) -> RunView:
         if item.stage != FINAL_STAGE:
             per_attempt[item.attempt_number] = per_attempt.get(item.attempt_number, 0) + 1
     dispatch = None
-    if row.state in NONTERMINAL_RUN and _dispatch_status is not None:
+    if row.state in {"queued", "collecting"} and _dispatch_status is not None:
         allowed, reason = _dispatch_status()
         dispatch = DispatchStatus(status="allowed" if allowed else "paused", reason=reason)
+    from cloudops.features.diagnosis.service import analysis_view
+
     return RunView(
+        analysis=analysis_view(db, row.id).model_dump(),
         **{
             field: getattr(row, field)
             for field in [

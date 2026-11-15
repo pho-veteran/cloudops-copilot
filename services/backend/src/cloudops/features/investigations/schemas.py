@@ -26,6 +26,9 @@ WindowSource = Literal[
     "automatic_default",
 ]
 OutcomeCode = Literal[
+    "analysis_insufficient",
+    "analysis_completed",
+    "analysis_failed",
     "operator_cancelled",
     "incident_resolved",
     "scope_retired",
@@ -196,7 +199,16 @@ class CancelState(BaseModel):
     reason: CancelReason
 
 
+class AnalysisProjection(BaseModel):
+    status: str
+    analysis_id: UUID | None = None
+    reason: str | None = None
+    calls: int = 0
+    attempts: int = 0
+
+
 class RunView(View):
+    analysis: AnalysisProjection | None = None
     id: UUID
     incident_id: UUID
     state: RunState

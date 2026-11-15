@@ -70,6 +70,8 @@ class ModelCall:
     retry_after_raw: str | None
     elapsed_ms: int
     response_bytes: int
+    # Present only after a complete bounded envelope read; no raw body is retained.
+    response_sha256: str | None = None
 
     def __post_init__(self):
         # Guard against accidentally putting provider text in a public code field.

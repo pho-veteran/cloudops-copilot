@@ -1,0 +1,24 @@
+# Explicit opt-in. This overlay does not select, qualify or enable a model by itself.
+services:
+  api:
+    environment:
+      DIAGNOSIS_PROFILE_FILE: /run/cloudops-diagnosis/profile.json
+      DIAGNOSIS_EGRESS_FILE: /run/cloudops-diagnosis/egress.json
+      DIAGNOSIS_QUALIFICATION_FILE: ${DIAGNOSIS_QUALIFICATION_PATH:-}
+    volumes:
+      - type: bind
+        source: ${DIAGNOSIS_CONFIG_DIR:?Choose the trusted diagnosis config directory}
+        target: /run/cloudops-diagnosis
+        read_only: true
+  worker:
+    environment:
+      DIAGNOSIS_PROFILE_FILE: /run/cloudops-diagnosis/profile.json
+      DIAGNOSIS_EGRESS_FILE: /run/cloudops-diagnosis/egress.json
+      DIAGNOSIS_QUALIFICATION_FILE: ${DIAGNOSIS_QUALIFICATION_PATH:-}
+    env_file:
+      - ${DIAGNOSIS_SECRET_ENV_FILE:?Choose the private worker-only credential env file}
+    volumes:
+      - type: bind
+        source: ${DIAGNOSIS_CONFIG_DIR:?Choose the trusted diagnosis config directory}
+        target: /run/cloudops-diagnosis
+        read_only: true

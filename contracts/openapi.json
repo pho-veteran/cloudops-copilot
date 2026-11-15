@@ -354,6 +354,299 @@
         "title": "AlertReceiptView",
         "type": "object"
       },
+      "AnalysisAttempt": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "expired",
+              "succeeded",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "state",
+          "started_at",
+          "finished_at",
+          "error"
+        ],
+        "title": "AnalysisAttempt",
+        "type": "object"
+      },
+      "AnalysisProjection": {
+        "properties": {
+          "analysis_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "attempts": {
+            "default": 0,
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "calls": {
+            "default": 0,
+            "title": "Calls",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "AnalysisProjection",
+        "type": "object"
+      },
+      "AnalysisView": {
+        "properties": {
+          "analysis_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "attempt_history": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AnalysisAttempt"
+            },
+            "title": "Attempt History",
+            "type": "array"
+          },
+          "attempts": {
+            "default": 0,
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "calls": {
+            "default": 0,
+            "title": "Calls",
+            "type": "integer"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "earliest_retry": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Retry"
+          },
+          "history": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "identity": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identity"
+          },
+          "max_attempts": {
+            "default": 3,
+            "title": "Max Attempts",
+            "type": "integer"
+          },
+          "max_calls": {
+            "default": 3,
+            "title": "Max Calls",
+            "type": "integer"
+          },
+          "max_repairs": {
+            "default": 1,
+            "title": "Max Repairs",
+            "type": "integer"
+          },
+          "model_slot_busy": {
+            "default": false,
+            "title": "Model Slot Busy",
+            "type": "boolean"
+          },
+          "phase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "repairs": {
+            "default": 0,
+            "title": "Repairs",
+            "type": "integer"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RCAResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resume_allowed": {
+            "default": false,
+            "title": "Resume Allowed",
+            "type": "boolean"
+          },
+          "resume_denial": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Denial"
+          },
+          "schema_version": {
+            "const": "AnalysisView/v1",
+            "default": "AnalysisView/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "wait_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wait Mode"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "AnalysisView",
+        "type": "object"
+      },
       "AttemptView": {
         "properties": {
           "error": {
@@ -715,55 +1008,32 @@
         "title": "CheckBody",
         "type": "object"
       },
-      "CheckView": {
+      "CheckPage": {
         "properties": {
-          "component": {
-            "title": "Component",
-            "type": "string"
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/cloudops__features__diagnosis__api_schemas__CheckView"
+            },
+            "title": "Items",
+            "type": "array"
           },
-          "created_by": {
-            "format": "uuid",
-            "title": "Created By",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "observed_at": {
-            "format": "date-time",
-            "title": "Observed At",
-            "type": "string"
-          },
-          "reason": {
-            "title": "Reason",
-            "type": "string"
-          },
-          "source": {
-            "title": "Source",
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "available",
-              "unavailable",
-              "stale"
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Status",
-            "type": "string"
+            "title": "Next Offset"
           }
         },
         "required": [
-          "id",
-          "component",
-          "status",
-          "reason",
-          "source",
-          "created_by",
-          "observed_at"
+          "items",
+          "next_offset"
         ],
-        "title": "CheckView",
+        "title": "CheckPage",
         "type": "object"
       },
       "CitationRef": {
@@ -1614,11 +1884,11 @@
             "anyOf": [
               {
                 "enum": [
-                  "permit_missing",
-                  "permit_invalid",
-                  "permit_stale",
                   "recovery_mode",
-                  "class_denied"
+                  "class_denied",
+                  "permit_missing",
+                  "permit_stale",
+                  "permit_invalid"
                 ],
                 "type": "string"
               },
@@ -1642,6 +1912,12 @@
           "reason"
         ],
         "title": "DispatchStatus",
+        "type": "object"
+      },
+      "EmptyRequest": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "EmptyRequest",
         "type": "object"
       },
       "ErrorDetail": {
@@ -3675,6 +3951,115 @@
         "title": "ManualIncidentRequest",
         "type": "object"
       },
+      "ModelStatus": {
+        "properties": {
+          "availability": {
+            "title": "Availability",
+            "type": "string"
+          },
+          "cooldown_seconds": {
+            "default": 60,
+            "title": "Cooldown Seconds",
+            "type": "integer"
+          },
+          "dispatch_allowed": {
+            "title": "Dispatch Allowed",
+            "type": "boolean"
+          },
+          "dispatch_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dispatch Reason"
+          },
+          "identity": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Identity",
+            "type": "object"
+          },
+          "last_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt At"
+          },
+          "last_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/cloudops__features__diagnosis__api_schemas__CheckView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "qualification_cohort": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualification Cohort"
+          },
+          "quality": {
+            "enum": [
+              "qualified",
+              "not_established"
+            ],
+            "title": "Quality",
+            "type": "string"
+          }
+        },
+        "required": [
+          "availability",
+          "identity",
+          "quality",
+          "qualification_cohort",
+          "dispatch_allowed",
+          "dispatch_reason"
+        ],
+        "title": "ModelStatus",
+        "type": "object"
+      },
       "NoteBody": {
         "additionalProperties": false,
         "properties": {
@@ -4480,6 +4865,187 @@
         "title": "PublicObservation",
         "type": "object"
       },
+      "RCAResult": {
+        "additionalProperties": false,
+        "description": "Normalized, evidence-bound result. It never claims semantic quality.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedAlternative"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "candidate_template_id": {
+            "anyOf": [
+              {
+                "enum": [
+                  "restore_deployment_template",
+                  "set_memory_profile",
+                  "scale_deployment"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Template Id"
+          },
+          "cause_category": {
+            "enum": [
+              "crashloop_startup",
+              "oom_restarts",
+              "traffic_latency_errors",
+              "pending_unschedulable",
+              "image_pull",
+              "unknown"
+            ],
+            "title": "Cause Category",
+            "type": "string"
+          },
+          "context_digest": {
+            "title": "Context Digest",
+            "type": "string"
+          },
+          "context_version": {
+            "title": "Context Version",
+            "type": "string"
+          },
+          "contradicting": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedEvidence"
+            },
+            "title": "Contradicting",
+            "type": "array"
+          },
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "machine_validation": {
+            "const": "structural_v1",
+            "default": "structural_v1",
+            "title": "Machine Validation",
+            "type": "string"
+          },
+          "missing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Evidence",
+            "type": "array"
+          },
+          "next_steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Next Steps",
+            "type": "array"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "prompt_version": {
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "quality": {
+            "const": "not_established",
+            "default": "not_established",
+            "title": "Quality",
+            "type": "string"
+          },
+          "ruled_out": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedRuledOut"
+            },
+            "title": "Ruled Out",
+            "type": "array"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "runbook_citations": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedRunbook"
+            },
+            "title": "Runbook Citations",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "RCAResult/v1",
+            "default": "RCAResult/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "supported",
+              "insufficient_evidence"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "supporting": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedEvidence"
+            },
+            "title": "Supporting",
+            "type": "array"
+          },
+          "unverified_checks": {
+            "items": {
+              "$ref": "#/components/schemas/UnverifiedCheck"
+            },
+            "title": "Unverified Checks",
+            "type": "array"
+          },
+          "validator_version": {
+            "title": "Validator Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "incident_id",
+          "context_digest",
+          "validator_version",
+          "prompt_version",
+          "context_version",
+          "policy_version",
+          "status",
+          "cause_category",
+          "summary",
+          "supporting",
+          "contradicting",
+          "alternatives",
+          "ruled_out",
+          "unverified_checks",
+          "missing_evidence",
+          "limitations",
+          "next_steps",
+          "runbook_citations",
+          "candidate_template_id"
+        ],
+        "title": "RCAResult",
+        "type": "object"
+      },
       "ReportBody": {
         "additionalProperties": false,
         "properties": {
@@ -4611,6 +5177,134 @@
           "source"
         ],
         "title": "RequestWindow",
+        "type": "object"
+      },
+      "ResolvedAlternative": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "hypothesis": {
+            "title": "Hypothesis",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hypothesis",
+          "reason",
+          "evidence"
+        ],
+        "title": "ResolvedAlternative",
+        "type": "object"
+      },
+      "ResolvedEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "alias": {
+            "pattern": "^E[0-9]{3}$",
+            "title": "Alias",
+            "type": "string"
+          },
+          "citation": {
+            "$ref": "#/components/schemas/CitationRef"
+          },
+          "coverage_status": {
+            "title": "Coverage Status",
+            "type": "string"
+          },
+          "entry_digest": {
+            "title": "Entry Digest",
+            "type": "string"
+          },
+          "evidence_sha256": {
+            "title": "Evidence Sha256",
+            "type": "string"
+          },
+          "source_class": {
+            "title": "Source Class",
+            "type": "string"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "time_relation": {
+            "title": "Time Relation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "citation",
+          "source_key",
+          "source_class",
+          "evidence_sha256",
+          "entry_digest",
+          "time_relation",
+          "coverage_status"
+        ],
+        "title": "ResolvedEvidence",
+        "type": "object"
+      },
+      "ResolvedRuledOut": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ResolvedEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "reason",
+          "evidence"
+        ],
+        "title": "ResolvedRuledOut",
+        "type": "object"
+      },
+      "ResolvedRunbook": {
+        "additionalProperties": false,
+        "properties": {
+          "alias": {
+            "pattern": "^K[0-9]{3}$",
+            "title": "Alias",
+            "type": "string"
+          },
+          "reference": {
+            "$ref": "#/components/schemas/KnowledgeRef"
+          },
+          "selection_id": {
+            "format": "uuid",
+            "title": "Selection Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "selection_id",
+          "reference"
+        ],
+        "title": "ResolvedRunbook",
         "type": "object"
       },
       "Resources": {
@@ -5063,6 +5757,16 @@
       },
       "RunView": {
         "properties": {
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisProjection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "attempts": {
             "items": {
               "$ref": "#/components/schemas/AttemptView"
@@ -5130,6 +5834,9 @@
             "anyOf": [
               {
                 "enum": [
+                  "analysis_insufficient",
+                  "analysis_completed",
+                  "analysis_failed",
                   "operator_cancelled",
                   "incident_resolved",
                   "scope_retired",
@@ -5696,6 +6403,29 @@
         "title": "TransitionBody",
         "type": "object"
       },
+      "UnverifiedCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "check": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Check",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "check",
+          "reason"
+        ],
+        "title": "UnverifiedCheck",
+        "type": "object"
+      },
       "WindowInterval": {
         "additionalProperties": false,
         "description": "An explicit interval: 1 to 60 minutes and not ending in the future.",
@@ -6172,6 +6902,109 @@
         ],
         "title": "WorkloadView",
         "type": "object"
+      },
+      "cloudops__features__connections__api__CheckView": {
+        "properties": {
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unavailable",
+              "stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "component",
+          "status",
+          "reason",
+          "source",
+          "created_by",
+          "observed_at"
+        ],
+        "title": "CheckView",
+        "type": "object"
+      },
+      "cloudops__features__diagnosis__api_schemas__CheckView": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deadline": {
+            "format": "date-time",
+            "title": "Deadline",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "identity": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Identity",
+            "type": "object"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "created_at",
+          "deadline",
+          "identity",
+          "receipt"
+        ],
+        "title": "CheckView",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -6316,7 +7149,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/CheckView"
+                    "$ref": "#/components/schemas/cloudops__features__connections__api__CheckView"
                   },
                   "title": "Response List Connection Checks",
                   "type": "array"
@@ -6431,7 +7264,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckView"
+                  "$ref": "#/components/schemas/cloudops__features__connections__api__CheckView"
                 }
               }
             },
@@ -6506,6 +7339,333 @@
         "summary": "Check",
         "tags": [
           "connections"
+        ]
+      }
+    },
+    "/api/diagnosis/checks": {
+      "get": {
+        "operationId": "list_model_checks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read Checks",
+        "tags": [
+          "diagnosis"
+        ]
+      },
+      "post": {
+        "operationId": "create_model_check",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EmptyRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cloudops__features__diagnosis__api_schemas__CheckView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Create Check",
+        "tags": [
+          "diagnosis"
+        ]
+      }
+    },
+    "/api/diagnosis/status": {
+      "get": {
+        "operationId": "get_model_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read Status",
+        "tags": [
+          "diagnosis"
         ]
       }
     },
@@ -8581,6 +9741,265 @@
         "summary": "Run",
         "tags": [
           "investigations"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/analysis": {
+      "get": {
+        "operationId": "get_analysis",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read Analysis",
+        "tags": [
+          "diagnosis"
+        ]
+      }
+    },
+    "/api/incidents/{incident_id}/runs/{run_id}/analysis/resume": {
+      "post": {
+        "operationId": "resume_analysis",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EmptyRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Resume Analysis",
+        "tags": [
+          "diagnosis"
         ]
       }
     },

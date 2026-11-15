@@ -6,7 +6,7 @@ import hashlib
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import String, and_, func, or_, select
 from sqlalchemy.orm import Session, defer
 
 from cloudops.features.incidents.models import Incident
@@ -369,6 +369,8 @@ def resolve_selection_chunk(
     selection_id: UUID,
     chunk_id: UUID,
     document_version_id: UUID,
+    *,
+    allow_evaluation: bool = False,
 ) -> KnowledgeReferenceTarget:
     _run(db, incident_id, run_id)
     row = db.scalar(
@@ -377,6 +379,22 @@ def resolve_selection_chunk(
             KnowledgeSelection.run_id == run_id,
         )
     )
+    if row and row.consumer == "analysis" and not allow_evaluation:
+        from cloudops.features.diagnosis.models import Analysis
+
+        evaluation = db.scalar(
+            select(Analysis.id).where(
+                Analysis.run_id == run_id,
+                Analysis.purpose == "evaluation",
+                Analysis.id.cast(String) == row.request_identity,
+            )
+        )
+        if evaluation:
+            raise DomainError(
+                404,
+                "knowledge_reference_not_found",
+                "Runbook reference is not an operational selection.",
+            )
     member = (
         db.scalar(
             select(KnowledgeSelectionChunk).where(
