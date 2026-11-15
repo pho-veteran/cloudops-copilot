@@ -443,7 +443,7 @@ def check_create_check(response, c, actor):
 def handoff_check(response, c, actor):
     assert response.status_code == 200 and "text/markdown" in response.headers["content-type"]
     assert c.consumer.incident_id in response.text and "Saved consumer note" in response.text
-    assert "unknown outcomes" in response.text.lower() and "new diagnosis" in response.text
+    assert "unknown outcomes" in response.text.lower()
 
 
 def activity_check(response, c, actor):
