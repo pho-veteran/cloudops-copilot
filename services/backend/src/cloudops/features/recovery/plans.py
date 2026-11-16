@@ -16,6 +16,7 @@ from cloudops.features.recovery import policy, service
 from cloudops.features.recovery.fields import Ineligible, selected, safe_resources
 from cloudops.features.recovery.baseline_context import supported_diff
 from cloudops.features.recovery.models import ActionPlan
+from cloudops.features.recovery.verification_policy import CAPABILITY, load_for
 from cloudops.features.workloads.baseline_schemas import BaselineEnvelope
 from cloudops.features.workloads.baseline_service import digest as baseline_digest, payload
 from cloudops.features.workloads.kubernetes import Kubernetes, quantity
@@ -32,6 +33,62 @@ def manual(reason):
         "reason": reason,
         "next_step": "Inspect fresh scoped evidence and qualified server policy; use a deployment operator for unsupported changes.",
     }
+
+
+def qualify(content, rules):
+    profile = load_for(content["workload"]["uid"], content["template"], content["desired"])
+    content["direction"] = "forward"
+    if profile is not None and rules.verification_policy == profile.id:
+        content.update(
+            execution_capability=CAPABILITY,
+            verification_profile=profile.model_dump(mode="json"),
+            verification_profile_digest=profile.digest(),
+        )
+    return content
+
+
+def manual_content(workload, deployment, replicas, rules, authority, rationale, now):
+    if rules is None or workload.uid not in rules.workload_uids:
+        return None
+    try:
+        containers, refs = selected(deployment)
+    except Ineligible:
+        return None
+    before = {
+        "uid": workload.uid,
+        "replicas": deployment["spec"].get("replicas", 1),
+        "containers": containers,
+    }
+    desired = {**before, "replicas": replicas}
+    content = qualify(
+        {
+            "schema_version": "RecoveryPlan/v2",
+            "origin": "operator_manual",
+            "provenance": {
+                "origin": "operator_manual",
+                "quality": "Explicit manual scale; no RCA attribution.",
+            },
+            "workload": {
+                key: getattr(workload, key) for key in ("cluster", "namespace", "name", "uid")
+            },
+            "template": "scale_deployment",
+            "selector": {"replicas": replicas},
+            "policy": {"id": rules.id, "version": rules.version, "digest": rules.digest()},
+            "before": before,
+            "desired": desired,
+            "config_references": refs,
+            "diff": [{"field": "replicas", "before": before["replicas"], "desired": replicas}],
+            "target_epoch": authority["epoch"],
+            "observed_resource_version": deployment["metadata"]["resourceVersion"],
+            "expires_at": (now + timedelta(seconds=300)).isoformat(),
+            "rationale": rationale,
+            "verification_policy": rules.verification_policy,
+            "inverse_policy": rules.inverse_policy,
+            "execution_capability": "unavailable",
+        },
+        rules,
+    )
+    return content if content["execution_capability"] == CAPABILITY else None
 
 
 def advice_source(db, incident, workload, body):
@@ -241,36 +298,39 @@ def propose(db, incident_id, actor_id, body):
             )
         now = database_now(db)
         expires = now + timedelta(seconds=rules.plan_ttl_seconds)
-        content = {
-            "schema_version": "RecoveryPlan/v2",
-            "origin": "analysis_advice",
-            "provenance": provenance,
-            "workload": {
-                key: getattr(workload, key) for key in ("cluster", "namespace", "name", "uid")
+        content = qualify(
+            {
+                "schema_version": "RecoveryPlan/v2",
+                "origin": "analysis_advice",
+                "provenance": provenance,
+                "workload": {
+                    key: getattr(workload, key) for key in ("cluster", "namespace", "name", "uid")
+                },
+                "template": body.template,
+                "selector": selector,
+                "policy": {"id": rules.id, "version": rules.version, "digest": rules.digest()},
+                "before": before,
+                "desired": desired,
+                "config_references": refs,
+                "diff": [
+                    {"field": key, "before": before[key], "desired": desired[key]}
+                    for key in before
+                    if before[key] != desired[key]
+                ],
+                "target_epoch": authority["epoch"],
+                "observed_resource_version": deployment["metadata"]["resourceVersion"],
+                "expires_at": expires.isoformat(),
+                "rationale": body.rationale,
+                "prerequisites": [
+                    "Original UID and relevant fields unchanged",
+                    "Fresh controller and candidate/rollout capacity proof at dispatch",
+                ],
+                "verification_policy": rules.verification_policy,
+                "inverse_policy": rules.inverse_policy,
+                "execution_capability": "unavailable: matching gateway, lifecycle and qualified verification are required",
             },
-            "template": body.template,
-            "selector": selector,
-            "policy": {"id": rules.id, "version": rules.version, "digest": rules.digest()},
-            "before": before,
-            "desired": desired,
-            "config_references": refs,
-            "diff": [
-                {"field": key, "before": before[key], "desired": desired[key]}
-                for key in before
-                if before[key] != desired[key]
-            ],
-            "target_epoch": authority["epoch"],
-            "observed_resource_version": deployment["metadata"]["resourceVersion"],
-            "expires_at": expires.isoformat(),
-            "rationale": body.rationale,
-            "prerequisites": [
-                "Original UID and relevant fields unchanged",
-                "Fresh controller and candidate/rollout capacity proof at dispatch",
-            ],
-            "verification_policy": rules.verification_policy,
-            "inverse_policy": rules.inverse_policy,
-            "execution_capability": "unavailable: matching gateway, lifecycle and qualified verification are required",
-        }
+            rules,
+        )
         service.invalidate(db, incident_id)
         row = ActionPlan(
             incident_id=incident_id,

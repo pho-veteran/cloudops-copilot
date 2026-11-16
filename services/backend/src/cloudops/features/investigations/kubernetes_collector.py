@@ -567,6 +567,19 @@ def _pod_summary(pod: dict) -> dict:
 def _event_summary(event: dict) -> dict:
     metadata = _metadata(event)
     involved = event.get("involvedObject") if isinstance(event.get("involvedObject"), dict) else {}
+    series = event.get("series")
+    count = (
+        _integer(series.get("count")) if isinstance(series, dict) else _integer(event.get("count"))
+    )
+    if (
+        count is None
+        and event.get("count") is None
+        and series is None
+        and _text(event.get("eventTime"))
+    ):
+        # Modern singleton Events omit the deprecated count; a series has its own count and clock.
+        count = 1
+    last_seen = _text(series.get("lastObservedTime")) if isinstance(series, dict) else None
     summary = {
         "uid": _text(metadata.get("uid")),
         "name": _text(metadata.get("name")),
@@ -574,9 +587,11 @@ def _event_summary(event: dict) -> dict:
         "type": _text(event.get("type")),
         "reason": _text(event.get("reason")),
         "message": _text(event.get("message")),
-        "count": _integer(event.get("count")),
+        "count": count,
         "first_seen": _text(event.get("firstTimestamp")) or _text(event.get("eventTime")),
-        "last_seen": _text(event.get("lastTimestamp")) or _text(event.get("eventTime")),
+        "last_seen": last_seen
+        or _text(event.get("lastTimestamp"))
+        or _text(event.get("eventTime")),
         "involved_uid": _text(involved.get("uid")) or _text(event.get("involved_uid")),
     }
     return {key: value for key, value in summary.items() if value not in (None, "")}

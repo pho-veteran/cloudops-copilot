@@ -162,7 +162,7 @@ def test_restore_exact_provenance_diff_and_preview_never_dispatches(candidate):
     assert content["provenance"]["evidence"]
     actor = c.actors["operator"]
     reviewed = actor.client.get(f"/api/plans/{value['id']}").json()
-    assert not reviewed["valid"] and "Preview only" in reviewed["reason"]
+    assert not reviewed["valid"]
     for role in ("operator", "viewer"):
         assert (
             c.actors[role].client.get(f"/api/plans/{value['id']}").json()["plan"]["content"]

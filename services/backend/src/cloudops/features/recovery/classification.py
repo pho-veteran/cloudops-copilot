@@ -21,7 +21,6 @@ ExecutionClass = Literal[
     "unrecognized",
 ]
 
-# Current producers emit queued/executing; the others are declared E07 states.
 ACTIVE = frozenset({"queued", "executing", "verifying", "reconciling", "rolling_back"})
 TERMINAL = frozenset({"manual_intervention", "succeeded", "failed", "no_op", "rolled_back"})
 BLOCKING = frozenset({"active", "unrecognized"})

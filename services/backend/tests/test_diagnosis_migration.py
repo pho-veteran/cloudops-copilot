@@ -29,7 +29,7 @@ def fingerprint():
                 "AND tablename NOT LIKE 'diagnosis_%' AND tablename<>'alembic_version' ORDER BY tablename"
             )
         ).scalars()
-        return {
+        values = {
             table: sorted(
                 connection.execute(
                     text(
@@ -43,6 +43,7 @@ def fingerprint():
             )
             for table in tables
         }
+        return {table: rows for table, rows in values.items() if rows}
 
 
 def test_populated_upgrade_preserves_all_existing_rows_and_bytes(client, tmp_path):
@@ -79,7 +80,10 @@ def test_populated_upgrade_preserves_all_existing_rows_and_bytes(client, tmp_pat
     config = Config(str(BACKEND_ROOT / "alembic.ini"))
     before = fingerprint()
     command.downgrade(config, "0011_knowledge_selections")
-    assert fingerprint() == before
+    try:
+        assert fingerprint() == before
+    finally:
+        command.upgrade(config, "head")
     for _ in range(2):
         command.upgrade(config, "head")
     assert fingerprint() == before

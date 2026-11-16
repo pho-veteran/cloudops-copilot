@@ -111,12 +111,21 @@ def propose(db, incident_id, actor_id, replicas, rationale):
             "verification": "Kubernetes acknowledgement only; observe rollout and application metrics manually. No remediation-success claim.",
             "rollback": "unavailable; no automatic inverse change",
         }
+        from cloudops.features.recovery import plans, policy
+
+        qualified = plans.manual_content(
+            workload, deployment, replicas, policy.load(), authority, rationale, now
+        )
+        if qualified is not None:
+            content = qualified
         plan = ActionPlan(
             origin="operator_manual",
             incident_id=incident_id,
             workload_id=workload.id,
             content=content,
-            digest=hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest(),
+            digest=plans.digest(content)
+            if qualified is not None
+            else hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest(),
             target_epoch=authority["epoch"],
             rationale=rationale,
             created_by=actor_id,
@@ -176,11 +185,9 @@ def read(db, plan_id, session):
         if plan.state == "proposed" and plan.expires_at > now:
             try:
                 if plan.content.get("schema_version") == "RecoveryPlan/v2":
-                    raise DomainError(
-                        409,
-                        "execution_unavailable",
-                        "Preview only: matching gateway, lifecycle and qualified verification capability are unavailable. Prepare a new plan when enabled.",
-                    )
+                    from cloudops.features.recovery.verification_policy import require_plan
+
+                    require_plan(plan.content)
                 workload = db.get(Workload, plan.workload_id)
                 if not workload or not workload.active:
                     raise DomainError(
@@ -194,8 +201,8 @@ def read(db, plan_id, session):
                 kube = Kubernetes()
                 current = kube.deployment(workload)
                 kube.controllers(workload)
-                kube.capacity(current, plan.content["replicas"])
-                if snapshot(current) != plan.content["before"]:
+                live = preflight(kube, current, plan.content)
+                if live != plan.content["before"]:
                     raise DomainError(
                         409,
                         "plan_changed",
@@ -268,11 +275,9 @@ def _decision_rows(db, plan_id, session, body, *, locked):
             "Wait for the pending investigation to finish, or cancel it, before approving.",
         )
     if body.decision == "approve" and plan.content.get("schema_version") == "RecoveryPlan/v2":
-        raise DomainError(
-            409,
-            "execution_unavailable",
-            "This immutable preview cannot dispatch until matching recovery capabilities are available. Prepare a new plan when enabled.",
-        )
+        from cloudops.features.recovery.verification_policy import require_plan
+
+        require_plan(plan.content)
     workload = query(select(Workload).where(Workload.id == plan.workload_id))
     if not workload or not workload.active:
         raise DomainError(
@@ -300,6 +305,33 @@ def _require_decision_session(db, session, binding):
         raise DomainError(401, "session_expired", "Sign in again and review the current plan.")
 
 
+def preflight(kube, current, content):
+    if content.get("schema_version") != "RecoveryPlan/v2":
+        kube.capacity(current, content["replicas"])
+        return snapshot(current)
+    from types import SimpleNamespace
+    from cloudops.features.recovery.capacity import candidate_capacity
+    from cloudops.features.recovery.dispatch import SelectedState
+    from cloudops.features.recovery.fields import selected
+
+    containers, references = selected(current)
+    if references != content["config_references"]:
+        raise DomainError(409, "plan_changed", "Configuration references changed after preview.")
+    candidate_capacity(
+        kube,
+        current,
+        SimpleNamespace(
+            desired=SelectedState.model_validate(content["desired"]),
+            template=content["template"],
+        ),
+    )
+    return {
+        "uid": current["metadata"]["uid"],
+        "replicas": current["spec"].get("replicas", 1),
+        "containers": containers,
+    }
+
+
 def decide(db, plan_id, session, body, *, binding):
     # Preflight grants no authority; account locks end before live I/O.
     with db.begin():
@@ -313,7 +345,7 @@ def decide(db, plan_id, session, body, *, binding):
             workload.uid,
         )
         plan_identity = (plan.version, plan.digest, plan.target_epoch, plan.workload_id)
-        replicas = plan.content.get("replicas")
+        content = plan.content
     authority = client.target(workload.uid)
     _require_authority(authority)
     current = None
@@ -321,7 +353,7 @@ def decide(db, plan_id, session, body, *, binding):
         kube = Kubernetes()
         current = kube.deployment(workload)
         kube.controllers(workload)
-        kube.capacity(current, replicas)
+        live = preflight(kube, current, content)
     # Expire preflight ORM objects: expire_on_commit=False must not conceal a
     # concurrent resolve, receipt consumption, scope retirement or plan change.
     db.expire_all()
@@ -350,7 +382,7 @@ def decide(db, plan_id, session, body, *, binding):
                 "Maintenance changed target authority. Start a new investigation and prepare a new plan.",
             )
         if body.decision == "approve":
-            if snapshot(current) != plan.content["before"]:
+            if live != plan.content["before"]:
                 raise DomainError(
                     409,
                     "plan_changed",
@@ -520,6 +552,11 @@ def execute(execution_id, *, before_call):
     before_call()
     if already_started:
         return lookup(execution_id, request)
+    from cloudops.features.recovery.verification import prepare
+
+    preparation = prepare(execution_id, before_call=before_call)
+    if preparation is not None:
+        return preparation
     with sessions()() as db, db.begin():
         original = db.get(Execution, execution_id)
         workload = db.scalar(
@@ -541,6 +578,18 @@ def execute(execution_id, *, before_call):
         if not already_started:
             now = database_now(db)
             plan = db.get(ActionPlan, execution.plan_id)
+            if plan.content.get("schema_version") == "RecoveryPlan/v2":
+                from cloudops.features.recovery.verification_policy import require_plan
+
+                try:
+                    require_plan(plan.content)
+                except DomainError as error:
+                    return {
+                        "outcome": "denied",
+                        "attribution": "not_sent",
+                        "verification": "not_performed",
+                        "reason": error.message,
+                    }
             if (
                 execution.state not in {"executing", "rolling_back"}
                 or not execution.holds_lock
@@ -645,6 +694,14 @@ class ExecutionHandler:
         if row.maintenance_released:
             return
         record_outcome(row, result)
+        if result.get("code") == "no_op" and row.dispatch_started_at is None:
+            row.state, row.holds_lock, row.finished_at = "no_op", False, database_now(db)
+            return
+        if result.get("outcome") == "acknowledged":
+            from cloudops.features.recovery.verification import begin
+
+            if begin(db, row, row.result):
+                return
         row.state = (
             "outcome_unknown" if result["outcome"] == "outcome_unknown" else "manual_intervention"
         )

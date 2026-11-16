@@ -1,0 +1,7 @@
+FROM python:3.13.11-slim-bookworm
+WORKDIR /app
+COPY config/lab/sample_app.py config/lab/recovery_app.py config/lab/load.py config/lab/recovery_load.py ./
+ARG SAMPLE_VARIANT=healthy
+ENV E07_SAMPLE_VARIANT=${SAMPLE_VARIANT} PYTHONUNBUFFERED=1
+USER 10001:10001
+CMD ["python", "recovery_app.py"]

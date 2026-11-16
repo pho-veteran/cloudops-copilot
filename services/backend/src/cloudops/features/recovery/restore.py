@@ -12,6 +12,8 @@ from cloudops.features.access.models import LoginSession
 from cloudops.features.recovery.classification import ACTIVE
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.recovery.outcomes import RECONCILE_JOB
+from cloudops.features.recovery.verification import retire as retire_verification
+from cloudops.features.recovery.verification_policy import VERIFICATION_JOB
 from cloudops.shared.database import database_now
 from cloudops.shared.jobs import Job, JobAttempt
 
@@ -52,7 +54,7 @@ def retire(db):
     jobs = db.scalars(
         select(Job)
         .where(
-            Job.kind.in_(["recovery_execution_v1", RECONCILE_JOB]),
+            Job.kind.in_(["recovery_execution_v1", RECONCILE_JOB, VERIFICATION_JOB]),
             Job.state.in_(["queued", "held", "running"]),
         )
         .with_for_update()
@@ -99,6 +101,7 @@ def retire(db):
             or "Restored execution authority was retired; write outcome remains unknown.",
             "restore_reason": "Restored sessions, approvals and jobs retired. Snapshot absence of call admission cannot establish no write; external authority remains quarantined until root proof.",
         }
+        retire_verification(db, row, "restored_verification_authority_retired")
     plans = db.scalars(
         select(ActionPlan)
         .where(

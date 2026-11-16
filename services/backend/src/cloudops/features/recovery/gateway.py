@@ -650,6 +650,13 @@ class Gateway:
                                     execution.finished_at = execution.finished_at or datetime.now(
                                         timezone.utc
                                     )
+                                    from cloudops.features.recovery.verification import retire
+
+                                    retire(
+                                        app_db,
+                                        execution,
+                                        "trusted_maintenance_retired_verification",
+                                    )
                     if body.operation == "exit_recovery_mode":
                         db.execute(
                             "INSERT OR REPLACE INTO control VALUES ('recovery_mode', 'false')"

@@ -17,7 +17,7 @@ from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.recovery.api import PolicyView
 from cloudops.features.recovery import client as gateway_client
-from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
+from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview, Verification
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
 from cloudops.features.workloads.models import (
     Baseline,
@@ -76,6 +76,7 @@ CONSUMER_MODELS = (
     ActionPlan,
     Execution,
     PlanReview,
+    Verification,
 )
 
 
@@ -556,4 +557,13 @@ CASES = {
     "list_executions": RequestCase(
         incident_path, lambda r, c, a: saved_list(r, c, a, "id", c.consumer.execution_id)
     ),
+    "read_recovery_verification": RequestCase(
+        lambda c: {"path_params": {"execution_id": c.consumer.execution_id}},
+        lambda r, c, a: missing_legacy_verification(r),
+    ),
 }
+
+
+def missing_legacy_verification(response):
+    assert response.status_code == 404, response.text
+    assert response.json()["error"]["code"] == "verification_not_found"
