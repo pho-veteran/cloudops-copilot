@@ -2792,6 +2792,39 @@
         "title": "IntakeResult",
         "type": "object"
       },
+      "InverseQualification": {
+        "additionalProperties": false,
+        "properties": {
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/RestorableContainer"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Containers",
+            "type": "array"
+          },
+          "qualification_reference": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Qualification Reference",
+            "type": "string"
+          },
+          "workload_uid": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Workload Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_uid",
+          "containers",
+          "qualification_reference"
+        ],
+        "title": "InverseQualification",
+        "type": "object"
+      },
       "JsonValue": {},
       "KnowledgeApplicability": {
         "additionalProperties": false,
@@ -5322,6 +5355,14 @@
             "minLength": 1,
             "title": "Inverse Policy",
             "type": "string"
+          },
+          "inverse_qualified_states": {
+            "items": {
+              "$ref": "#/components/schemas/InverseQualification"
+            },
+            "maxItems": 128,
+            "title": "Inverse Qualified States",
+            "type": "array"
           },
           "max_cpu": {
             "title": "Max Cpu",

@@ -79,6 +79,21 @@ read -rs -p "Existing Operator password: " OPERATOR_PASSWORD
 printf '%s\n' "$OPERATOR_PASSWORD" | "${LAB[@]}" collect --password-stdin
 ```
 
+Fresh setup initializes the executor journal and a separate owned `executor_identity`
+volume before starting application services. Preserve both authority volumes.
+When upgrading an original unpinned v1 lab, stop its executor first and retain its
+recorded deployment UUID. After building the current backend, use the same `DC`
+array for explicit adoption, then retry `start`:
+
+```sh
+"${DC[@]}" run --rm -T --no-deps executor-init python -m cloudops.features.recovery.authority \
+  --root /var/lib/cloudops-executor --identity-file /run/cloudops-executor-identity/identity.json \
+  --adopt-legacy-id <ORIGINAL-DEPLOYMENT-UUID>
+```
+
+Startup refuses an existing journal without that confirmation. It never replaces
+the journal, adopts an already pinned authority with a missing pin, or enables writes.
+
 `collect` reads the existing Operator password as one stdin line; the example reads
 it without terminal echo and keeps it out of arguments and generated files. It uses the normal
 HTTPS API, admission and worker, checks content digests and compares raw logs using
@@ -216,7 +231,7 @@ The bootstrap applies `config/lab/workload.yaml` only to its own K3s service, wa
 
 The API mounts the read-only observation connection. The worker additionally mounts private dispatch/KRR request keys. Only the isolated executor mounts the Kubernetes writer connection and maintenance socket; neither application container mounts them or a Docker socket. Kubernetes RBAC permits that writer to patch only the named Deployment in `demo`; reader/writer accounts cannot read Secrets. Capacity checks conservatively support the lab's single schedulable node. Other placement/controller cases are denied for manual review.
 
-The executor starts in independent recovery mode with every target disabled, including after a container restart. Read the UID from `tmp/e01-integration/writer/workloads.json`, then use the real deployment-root channel:
+The fresh-install bootstrap explicitly runs `executor-init` once before starting the executor. Its external identity pin resides in `executor_identity`, separately from `executor_authority` and PostgreSQL. The pin records the deployment ID and actual journal/lock file identities. Preserve both volumes; missing or replaced authority is never initialized automatically by the serving gateway. The executor starts in independent recovery mode with every target disabled, including after a container restart. Read the UID from `tmp/e01-integration/writer/workloads.json`, then use the real deployment-root channel:
 
 ```sh
 docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml exec executor python -m cloudops.features.recovery.maintenance status
@@ -245,7 +260,23 @@ Viewers read/export these records and log out their own session. All nine Operat
 
 ## Writer and maintenance protocol
 
-The private executor serializes admission with a Linux file lock and journals the exact attempt before sending a conditional patch. Exact retries retrieve a durable outcome instead of writing again; changed content under an old execution ID is rejected. All functional patches test both UID and resourceVersion and replace an absolute replica count. A lost acknowledgement keeps `outcome_unknown` and quarantine.
+The private executor serializes admission with a Linux file lock and journals the exact attempt before sending a conditional patch. Exact retries retrieve a durable outcome instead of writing again; changed content under an old execution ID is rejected. All functional patches test both UID and the captured resourceVersion. The existing v1 worker still replaces an absolute replica count and retains its original wire/receipt format. A lost acknowledgement keeps `outcome_unknown` and quarantine.
+
+The gateway also accepts the closed `RecoveryDispatch/v2` forward/inverse union for selected image/resource or scale changes. It requires the exact approved plan/digest, policy identity and claimed active Execution, then independently checks original UID, selected fields, controllers, baseline/profile or captured inverse qualification and candidate capacity. It builds the patch itself. New R1 preview records have an unavailable execution capability and cannot gain authority retroactively; the product path remains gated until the matching lifecycle/qualified verification is installed. Protocol fixtures do not enable this product path.
+
+V2 capacity is conservative: retain current allocations, including terminating Pods, and reserve the full desired candidate template plus rollout surge. Memory/restore do not use the legacy replica-delta shortcut. Supported placement remains one ready schedulable node. This proves bounded declared requests at observation time; it does not promise that a competing writer, later scheduling change or application load cannot invalidate recovery. The supported deployment requires the one pinned journal/lock and isolated credential topology; invisible out-of-protocol writers are outside that proof.
+
+An inverse names the exact durable acknowledged forward operation/plan and swaps its captured selected values. It never takes arbitrary old values or requires a new forward baseline/profile selector. Template/memory inverses additionally match a separately qualified original-UID/container state in the trusted policy's `inverse_qualified_states` (`containers` plus `qualification_reference`); unsafe or missing old-state qualification denies. One inverse may be admitted per forward operation. Read-only authenticated `GET /operations/{operation_id}` returns the durable receipt; missing receipt or matching current desired fields does not establish no write or authorize a resend.
+
+For an original **unpinned v1 journal only**, stop the serving executor and run the initialization helper with its recorded original deployment ID using the same authority/identity mounts:
+
+```sh
+docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml run --rm --no-deps executor-init python -m cloudops.features.recovery.authority --root /var/lib/cloudops-executor --identity-file /run/cloudops-executor-identity/identity.json --adopt-legacy-id <ORIGINAL-DEPLOYMENT-UUID>
+```
+
+Use the unmodified original journal, not an application dump or copied replacement. An already pinned authority with a lost pin cannot be adopted as legacy: recover its original identity/journal or keep admission closed. Initialization grants no target enablement and is never old-writer exclusion proof; the actual fence/readback and explicit enable/exit steps remain required.
+
+The serving gateway alone receives its Kubernetes writer credential. Its RBAC needs `get`/`patch` on explicitly named Deployments (including the nonfunctional fence), cluster read/list for Nodes/Pods to prove capacity, and namespaced read/list for HPA/VPA discovery. It needs no Secret-content, namespace, Node or arbitrary workload write. Kubernetes RBAC does not restrict individual JSON Patch fields; the closed gateway validator enforces that boundary. App/observer processes receive scoped reader credentials, and only the worker receives the private gateway dispatch key. Neither app roles nor a dispatch key grant access to the deployment-root maintenance socket.
 
 Maintenance closes admission and retires the target epoch first. Already queued old epochs are rejected. Its acknowledged annotation fence changes the resourceVersion; read-back and explicit inequality with captured unresolved versions exclude already admitted late patches through the Kubernetes atomic precondition. ResourceVersions are compared for equality only, never numerically ordered. A five-second health observation bound is only a readiness check, not old-writer proof; neither elapsed time nor an expired worker lease proves exclusion.
 

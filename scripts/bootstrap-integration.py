@@ -85,10 +85,15 @@ def main():
         encoding="utf-8",
     )
     subprocess.run(
-        [*COMPOSE, "up", "-d", "--wait", "--wait-timeout", "240", "k3s"], check=True, cwd=ROOT
+        [*COMPOSE, "up", "-d", "--wait", "--wait-timeout", "240", "k3s"],
+        check=True,
+        cwd=ROOT,
     )
     kubectl(
-        "apply", "-f", "-", body=(ROOT / "config/lab/workload.yaml").read_text(encoding="utf-8")
+        "apply",
+        "-f",
+        "-",
+        body=(ROOT / "config/lab/workload.yaml").read_text(encoding="utf-8"),
     )
     kubectl(
         "apply",
@@ -165,20 +170,33 @@ def main():
             "clusters": [
                 {
                     "name": "local-k3s",
-                    "cluster": {"server": client["server"], "certificate-authority-data": ca},
+                    "cluster": {
+                        "server": client["server"],
+                        "certificate-authority-data": ca,
+                    },
                 }
             ],
             "users": [{"name": kind, "user": {"token": token}}],
             "contexts": [
                 {
                     "name": "local-k3s",
-                    "context": {"cluster": "local-k3s", "user": kind, "namespace": "demo"},
+                    "context": {
+                        "cluster": "local-k3s",
+                        "user": kind,
+                        "namespace": "demo",
+                    },
                 }
             ],
             "current-context": "local-k3s",
         }
         (folder / kind / "kubeconfig.json").write_text(json.dumps(config), encoding="utf-8")
     dispatch_permit()
+    subprocess.run(
+        [*COMPOSE, "run", "--rm", "-T", "--no-deps", "--build", "executor-init"],
+        check=True,
+        cwd=ROOT,
+        capture_output=True,
+    )
     print(
         "Local K3s Deployment is ready. Separate reader/writer credentials written under ignored tmp/e01-integration; tokens expire after eight hours. No credential values were printed."
     )

@@ -780,6 +780,8 @@ def test_rendered_compose_is_bounded_and_does_not_mount_truth_or_cluster_into_pr
         "observation",
         "--profile",
         "checks",
+        "--profile",
+        "maintenance",
     ]
     for file in (
         "compose.yaml",
@@ -793,7 +795,22 @@ def test_rendered_compose_is_bounded_and_does_not_mount_truth_or_cluster_into_pr
         [*command, "config", "--format", "json"], cwd=ROOT, capture_output=True, text=True
     )
     assert result.returncode == 0, result.stderr
-    services = json.loads(result.stdout)["services"]
+    config = json.loads(result.stdout)
+    services = config["services"]
+    initializer = services["executor-init"]
+    assert initializer["image"] == services["executor"]["image"]
+    assert initializer["labels"]["io.cloudops.lab.owner"]
+    assert config["volumes"]["executor_identity"]["labels"]["io.cloudops.lab.owner"]
+    assert {mount["target"] for mount in initializer["volumes"]} == {
+        "/var/lib/cloudops-executor",
+        "/run/cloudops-executor-identity",
+    }
+    pin = next(
+        mount
+        for mount in services["executor"]["volumes"]
+        if mount["target"] == "/run/cloudops-executor-identity"
+    )
+    assert pin["read_only"]
     steady = [
         services[name]
         for name in (
@@ -1049,6 +1066,36 @@ def test_start_quarantines_existing_runtime_before_build(lab, driver, monkeypatc
         < calls.index(("maintenance", "enter_recovery"))
         < calls.index(("build", "api"))
     )
+
+
+def test_start_refuses_to_serve_when_authority_initialization_fails(lab, driver, monkeypatch):
+    lab.marker["sample_image"] = driver.SAMPLE_IMAGE
+    for name in ("preflight", "images"):
+        monkeypatch.setattr(lab, name, lambda: {})
+    monkeypatch.setattr(lab, "initialize", lambda host: None)
+    monkeypatch.setattr(lab, "ownership", lambda: {"container": []})
+    monkeypatch.setattr(lab, "volume_guard", lambda **kwargs: None)
+    for name in ("start_k3s", "seed", "credentials_valid", "tls_config"):
+        monkeypatch.setattr(lab, name, lambda: None)
+    monkeypatch.setattr(lab, "credential", lambda kind: None)
+    monkeypatch.setattr(lab, "kube", lambda *args, **kwargs: "")
+    monkeypatch.setattr(lab, "command", lambda *args, **kwargs: "")
+    monkeypatch.setattr(
+        driver.subprocess, "run", lambda *args, **kwargs: subprocess.CompletedProcess([], 0)
+    )
+    calls = []
+
+    def dc(*args, **kwargs):
+        calls.append(args)
+        if "executor-init" in args:
+            raise RuntimeError("Pinned authority unavailable")
+        return ""
+
+    monkeypatch.setattr(lab, "dc", dc)
+    with pytest.raises(RuntimeError, match="Pinned authority unavailable"):
+        lab.start()
+    assert ("run", "--rm", "-T", "--no-deps", "migrate") in calls
+    assert not any(args[0] == "up" and set(driver.APP_SERVICES) & set(args) for args in calls)
 
 
 @pytest.mark.parametrize("volumes", [[], [{"Name": "authority", "CreatedAt": "new-time"}]])

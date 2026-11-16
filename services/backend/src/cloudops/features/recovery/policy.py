@@ -10,6 +10,15 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from cloudops.features.investigations.locators import digest
 from cloudops.features.workloads.kubernetes import quantity
 from cloudops.shared.errors import DomainError
+from cloudops.features.recovery.fields import safe_resources
+from cloudops.features.workloads.baseline_schemas import RestorableContainer
+
+
+class InverseQualification(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    workload_uid: str = Field(min_length=1, max_length=253)
+    containers: list[RestorableContainer] = Field(min_length=1, max_length=32)
+    qualification_reference: str = Field(min_length=1, max_length=512)
 
 
 class MemoryProfile(BaseModel):
@@ -42,6 +51,9 @@ class RecoveryPolicy(BaseModel):
     absence_policy: Literal["require-present-positive/v1"] = "require-present-positive/v1"
     verification_policy: str = Field(min_length=1, max_length=128)
     inverse_policy: str = Field(min_length=1, max_length=128)
+    inverse_qualified_states: list[InverseQualification] = Field(
+        default_factory=list, max_length=128
+    )
 
     @model_validator(mode="after")
     def safe_values(self):
@@ -60,6 +72,16 @@ class RecoveryPolicy(BaseModel):
                 <= quantity(self.max_memory)
             ):
                 raise ValueError("Memory profile exceeds its qualified scope or bounds.")
+        for state in self.inverse_qualified_states:
+            if state.workload_uid not in self.workload_uids or len(
+                {c.name for c in state.containers}
+            ) != len(state.containers):
+                raise ValueError(
+                    "Inverse qualification must name a unique configured container set and original UID."
+                )
+            safe_resources(
+                [c.model_dump(mode="json", exclude_none=True) for c in state.containers], self
+            )
         return self
 
     def digest(self):
@@ -76,5 +98,5 @@ def load():
         if len(value) > 65536:
             return None
         return RecoveryPolicy.model_validate(json.loads(value))
-    except (OSError, ValueError, DomainError):
+    except (OSError, ValueError, ArithmeticError, DomainError):
         return None

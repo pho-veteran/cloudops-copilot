@@ -13,6 +13,7 @@ import pytest
 from test_permissions import permission_context as _permission_context
 
 from cloudops.features.recovery.gateway import Dispatch, Gateway
+from cloudops.features.recovery.authority import initialize
 from cloudops.features.workloads.kubernetes import snapshot
 from cloudops.shared.errors import DomainError
 
@@ -70,6 +71,7 @@ def executor(permission_context, tmp_path):
             return copy.deepcopy(self.value)
 
     provider = Provider()
+    initialize(tmp_path)
     gate = Gateway(
         tmp_path,
         kube=provider,

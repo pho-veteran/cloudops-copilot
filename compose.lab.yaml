@@ -86,6 +86,12 @@ services:
     mem_limit: 256m
     memswap_limit: 256m
     cpus: 0.25
+  executor-init:
+    <<: *lab
+    image: cloudops-local-testing-lab-backend
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.25
   dispatch-admin:
     <<: *lab
     image: cloudops-local-testing-lab-backend
@@ -167,6 +173,7 @@ volumes:
   k3s_cni: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
   k3s_kubelet: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
   executor_authority: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
+  executor_identity: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
   job_dispatch: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
   local_https_data: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}
   local_https_config: {labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use driver}'}}

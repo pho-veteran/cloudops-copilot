@@ -24,12 +24,33 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationErro
 from sqlalchemy import select
 
 from cloudops.features.recovery.models import Execution
+from cloudops.features.recovery.authority import identity_path, read_identity
+from cloudops.features.recovery.capacity import candidate_capacity
+from cloudops.features.recovery.dispatch import RecoveryDispatch, RecoveryReceipt, conditional_patch
+from cloudops.features.recovery.dispatch_validation import validate_intent
 from cloudops.features.workloads.kubernetes import Kubernetes, healthy, snapshot
 from cloudops.features.workloads.models import Workload
+from cloudops.features.workloads.observation_evaluator import ObservationError
 from cloudops.shared.database import sessions
 from cloudops.shared.errors import DomainError, domain_error_handler
 
 FENCE = "cloudops-copilot.local/writer-fence"
+
+
+def receipt(body, result):
+    if not isinstance(body, RecoveryDispatch):
+        return result
+    acknowledged = result["outcome"] == "acknowledged"
+    return RecoveryReceipt(
+        operation_id=body.operation_id,
+        plan_id=body.plan_id,
+        plan_digest=body.plan_digest,
+        attribution="not_sent" if result.get("code") == "no_op" else result["outcome"],
+        code=result.get("code", result["outcome"]),
+        reason=result["reason"],
+        acknowledged_resource_version=result.get("resource_version") if acknowledged else None,
+        acknowledged_at=datetime.now(timezone.utc) if acknowledged else None,
+    ).model_dump(mode="json")
 
 
 class Dispatch(BaseModel):
@@ -60,9 +81,10 @@ class Maintenance(BaseModel):
 
 
 class Gateway:
-    def __init__(self, root=None, *, kube=None, allowlist=None):
+    def __init__(self, root=None, *, kube=None, allowlist=None, identity_file=None):
         self.root = Path(root or os.environ.get("EXECUTOR_ROOT", "/var/lib/cloudops-executor"))
-        self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        self.identity_file = identity_path(self.root, identity_file)
+        self.identity = read_identity(self.root, self.identity_file)
         self.path = self.root / "authority.sqlite"
         self.kube = kube or Kubernetes(os.environ.get("EXECUTOR_KUBE_CONFIG"))
         entries = allowlist or json.loads(Path(os.environ["EXECUTOR_ALLOWLIST"]).read_text())
@@ -77,25 +99,36 @@ class Gateway:
                 CREATE TABLE IF NOT EXISTS attempts (id TEXT PRIMARY KEY, uid TEXT NOT NULL, request TEXT NOT NULL, digest TEXT NOT NULL, state TEXT NOT NULL, result TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS audit (id TEXT PRIMARY KEY, digest TEXT NOT NULL, actor TEXT NOT NULL, request TEXT NOT NULL, result TEXT NOT NULL, observed_at TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS exclusions (attempt_id TEXT PRIMARY KEY, request_id TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS inverse_links (forward_id TEXT PRIMARY KEY, operation_id TEXT NOT NULL UNIQUE);
             """)
-            db.execute("INSERT OR IGNORE INTO control VALUES ('deployment_id', ?)", (str(uuid4()),))
+            db.execute("INSERT OR REPLACE INTO control VALUES ('schema_version', '2')")
             db.execute("INSERT OR REPLACE INTO control VALUES ('recovery_mode', 'true')")
             db.execute(
                 "UPDATE targets SET enabled=0, epoch=?, reason='Executor startup requires trusted reconciliation.'",
                 (str(uuid4()),),
             )
-            db.execute(
-                "UPDATE attempts SET state='outcome_unknown', result=? WHERE state='dispatching'",
-                (
-                    json.dumps(
-                        {
-                            "outcome": "outcome_unknown",
-                            "verification": "inconclusive",
-                            "reason": "Executor interrupted after durable dispatch admission; old-writer proof is required.",
-                        }
-                    ),
-                ),
-            )
+            db.commit()
+            for interrupted in db.execute(
+                "SELECT id,request FROM attempts WHERE state='dispatching'"
+            ).fetchall():
+                saved = json.loads(interrupted["request"])
+                body = (
+                    RecoveryDispatch.model_validate(saved)
+                    if "schema_version" in saved
+                    else Dispatch.model_validate(saved)
+                )
+                result = receipt(
+                    body,
+                    {
+                        "outcome": "outcome_unknown",
+                        "verification": "inconclusive",
+                        "reason": "Executor interrupted after durable dispatch admission; old-writer proof is required.",
+                    },
+                )
+                db.execute(
+                    "UPDATE attempts SET state='outcome_unknown', result=? WHERE id=?",
+                    (json.dumps(result), interrupted["id"]),
+                )
             for uid in self.workloads:
                 db.execute(
                     "INSERT OR IGNORE INTO targets VALUES (?, ?, 0, '{}', 'Initial target quarantine.')",
@@ -104,7 +137,22 @@ class Gateway:
 
     @contextmanager
     def connection(self):
-        db = sqlite3.connect(self.path, timeout=15)
+        db = None
+        try:
+            pinned = read_identity(self.root, self.identity_file)
+            db = sqlite3.connect(f"file:{self.path}?mode=rw", uri=True, timeout=15)
+            actual = db.execute("SELECT value FROM control WHERE key='deployment_id'").fetchone()
+            if pinned != self.identity or not actual or actual[0] != pinned["deployment_id"]:
+                db.close()
+                raise RuntimeError("Authority deployment changed.")
+        except (RuntimeError, sqlite3.Error):
+            if db is not None:
+                db.close()
+            raise DomainError(
+                503,
+                "authority_unavailable",
+                "Pinned executor authority is unavailable; no admission or replacement initialization is permitted.",
+            ) from None
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA journal_mode=WAL")
         db.execute("PRAGMA synchronous=FULL")
@@ -118,7 +166,8 @@ class Gateway:
     def locked(self):
         import fcntl
 
-        with (self.root / "admission.lock").open("a") as lock:
+        read_identity(self.root, self.identity_file)
+        with (self.root / "admission.lock").open("r+") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             try:
                 yield
@@ -135,6 +184,7 @@ class Gateway:
                     404, "target_unavailable", "Target is outside the executor allowlist."
                 )
             return {
+                "deployment_id": self.identity["deployment_id"],
                 "uid": uid,
                 "epoch": row["epoch"],
                 "enabled": bool(row["enabled"]),
@@ -148,10 +198,11 @@ class Gateway:
                 ).fetchone()[0],
             }
 
-    def dispatch(self, body: Dispatch):
+    def dispatch(self, body: Dispatch | RecoveryDispatch):
         request = body.model_dump(mode="json")
         digest = hashlib.sha256(json.dumps(request, sort_keys=True).encode()).hexdigest()
         identity = str(body.execution_id)
+        version_two = isinstance(body, RecoveryDispatch)
         with self.locked(), self.connection() as db:
             prior = db.execute("SELECT * FROM attempts WHERE id=?", (identity,)).fetchone()
             if prior:
@@ -181,31 +232,76 @@ class Gateway:
                     )
                 current = self.kube.deployment(workload)
                 self.kube.controllers(workload)
-                self.kube.capacity(current, body.replicas)
-                if (
-                    current["metadata"]["resourceVersion"] != body.resource_version
-                    or snapshot(current) != body.before
-                ):
+                if version_two:
+                    validate_intent(body, workload, current, db)
+                    candidate_capacity(self.kube, current, body)
+                    patch = conditional_patch(body, current)
+                else:
+                    self.kube.capacity(current, body.replicas)
+                    if (
+                        current["metadata"]["resourceVersion"] != body.resource_version
+                        or snapshot(current) != body.before
+                    ):
+                        raise DomainError(
+                            409, "target_changed", "Live fields changed since the approved plan."
+                        )
+                    patch = [
+                        {"op": "test", "path": "/metadata/uid", "value": body.uid},
+                        {
+                            "op": "test",
+                            "path": "/metadata/resourceVersion",
+                            "value": body.resource_version,
+                        },
+                        {"op": "replace", "path": "/spec/replicas", "value": body.replicas},
+                    ]
+                if body.expires_at <= datetime.now(timezone.utc):
                     raise DomainError(
-                        409, "target_changed", "Live fields changed since the approved plan."
+                        409, "plan_expired", "The plan expired during gateway eligibility checks."
                     )
-            except DomainError as error:
-                result = {
-                    "outcome": "denied",
-                    "verification": "not_performed",
-                    "reason": error.message,
-                    "code": error.code,
-                }
+            except (
+                ValueError,
+                TypeError,
+                KeyError,
+                AttributeError,
+                ArithmeticError,
+                ObservationError,
+            ):
+                result = receipt(
+                    body,
+                    {
+                        "outcome": "denied",
+                        "reason": "Retained intent or selected fields are unavailable or unsupported.",
+                        "code": "intent_ineligible",
+                    },
+                )
                 db.execute(
                     "INSERT INTO attempts VALUES (?, ?, ?, ?, 'denied', ?)",
                     (identity, body.uid, json.dumps(request), digest, json.dumps(result)),
                 )
                 return result
-            pending = {
-                "outcome": "outcome_unknown",
-                "verification": "inconclusive",
-                "reason": "The admitted write has no durable acknowledgement yet.",
-            }
+            except DomainError as error:
+                result = receipt(
+                    body,
+                    {
+                        "outcome": "denied",
+                        "verification": "not_performed",
+                        "reason": error.message,
+                        "code": error.code,
+                    },
+                )
+                db.execute(
+                    "INSERT INTO attempts VALUES (?, ?, ?, ?, 'denied', ?)",
+                    (identity, body.uid, json.dumps(request), digest, json.dumps(result)),
+                )
+                return result
+            pending = receipt(
+                body,
+                {
+                    "outcome": "outcome_unknown",
+                    "verification": "inconclusive",
+                    "reason": "The admitted write has no durable acknowledgement yet.",
+                },
+            )
             db.execute(
                 "UPDATE targets SET enabled=0, reason='Write admitted; awaiting durable acknowledgement.' WHERE uid=?",
                 (body.uid,),
@@ -214,12 +310,12 @@ class Gateway:
                 "INSERT INTO attempts VALUES (?, ?, ?, ?, 'dispatching', ?)",
                 (identity, body.uid, json.dumps(request), digest, json.dumps(pending)),
             )
+            if version_two and body.direction == "inverse":
+                db.execute(
+                    "INSERT INTO inverse_links VALUES (?, ?)",
+                    (str(body.selector.forward_operation_id), identity),
+                )
             db.commit()  # Must reach durable storage before the network write.
-            patch = [
-                {"op": "test", "path": "/metadata/uid", "value": body.uid},
-                {"op": "test", "path": "/metadata/resourceVersion", "value": body.resource_version},
-                {"op": "replace", "path": "/spec/replicas", "value": body.replicas},
-            ]
             try:
                 changed = self.kube.request(
                     self.kube.path(workload.namespace, workload.name), patch=patch
@@ -227,9 +323,11 @@ class Gateway:
                 result = {
                     "outcome": "acknowledged",
                     "verification": "inconclusive",
-                    "reason": "Kubernetes acknowledged the conditional replica change. Application traffic/metric coverage is unavailable; verify manually.",
+                    "reason": "Kubernetes acknowledged the conditional selected-field change; application verification is separate."
+                    if version_two
+                    else "Kubernetes acknowledged the conditional replica change. Application traffic/metric coverage is unavailable; verify manually.",
                     "resource_version": changed["metadata"]["resourceVersion"],
-                    "replicas": body.replicas,
+                    "replicas": body.desired.replicas if version_two else body.replicas,
                 }
                 db.execute(
                     "UPDATE targets SET enabled=1, reason='Conditional write acknowledged; application verification remains manual.' WHERE uid=?",
@@ -247,16 +345,35 @@ class Gateway:
                         (body.uid,),
                     )
                 else:
-                    result = pending
+                    result = {
+                        "outcome": "outcome_unknown",
+                        "verification": "inconclusive",
+                        "reason": "The admitted write has no durable acknowledgement yet.",
+                    }
                     db.execute(
                         "UPDATE targets SET reason='Write acknowledgement unknown; retain quarantine.' WHERE uid=?",
                         (body.uid,),
                     )
+            state = result["outcome"]
+            result = receipt(body, result)
             db.execute(
                 "UPDATE attempts SET state=?, result=? WHERE id=?",
-                (result["outcome"], json.dumps(result), identity),
+                (state, json.dumps(result), identity),
             )
             return result
+
+    def operation(self, operation_id):
+        with self.connection() as db:
+            row = db.execute(
+                "SELECT result FROM attempts WHERE id=?", (str(operation_id),)
+            ).fetchone()
+            if row is None:
+                raise DomainError(
+                    404,
+                    "operation_not_found",
+                    "No durable operation receipt is available; absence does not prove no write.",
+                )
+            return json.loads(row["result"])
 
     def prove(self, uid, db):
         workload = self.workloads[uid]
@@ -274,7 +391,19 @@ class Gateway:
         ).fetchall()
         for item in unresolved:
             captured = json.loads(item["request"])
-            if captured.get("uid") != uid or not captured.get("resource_version"):
+            try:
+                retained = (
+                    RecoveryDispatch.model_validate(captured)
+                    if "schema_version" in captured
+                    else Dispatch.model_validate(captured)
+                )
+            except ValueError:
+                raise DomainError(
+                    409,
+                    "maintenance_proof_required",
+                    "An unresolved writer has an unsupported or incomplete captured protocol.",
+                ) from None
+            if retained.uid != uid or not retained.resource_version:
                 raise DomainError(
                     409,
                     "maintenance_proof_required",
@@ -535,6 +664,29 @@ class Gateway:
             return result
 
 
+def create_gateway_app(gate, dispatch_key):
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    app.add_exception_handler(DomainError, domain_error_handler)
+
+    @app.get("/targets/{uid}")
+    def target(uid: str):
+        return gate.target(uid)
+
+    @app.post("/dispatch")
+    def dispatch(body: Dispatch | RecoveryDispatch, authorization: str = Header(default="")):
+        if not hmac.compare_digest(authorization.encode(), ("Bearer " + dispatch_key).encode()):
+            raise DomainError(403, "dispatch_denied", "Executor dispatch credential required.")
+        return gate.dispatch(body)
+
+    @app.get("/operations/{operation_id}")
+    def operation(operation_id: UUID, authorization: str = Header(default="")):
+        if not hmac.compare_digest(authorization.encode(), ("Bearer " + dispatch_key).encode()):
+            raise DomainError(403, "dispatch_denied", "Executor dispatch credential required.")
+        return gate.operation(operation_id)
+
+    return app
+
+
 def main():
     if os.getuid() != 0:
         raise RuntimeError("Executor authority must run in its isolated deployment-root container.")
@@ -545,18 +697,7 @@ def main():
         key_path.write_text(secrets.token_urlsafe(32))
         key_path.chmod(0o600)
     dispatch_key = key_path.read_text().strip()
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
-    app.add_exception_handler(DomainError, domain_error_handler)
-
-    @app.get("/targets/{uid}")
-    def target(uid: str):
-        return gate.target(uid)
-
-    @app.post("/dispatch")
-    def dispatch(body: Dispatch, authorization: str = Header(default="")):
-        if not hmac.compare_digest(authorization.encode(), ("Bearer " + dispatch_key).encode()):
-            raise DomainError(403, "dispatch_denied", "Executor dispatch credential required.")
-        return gate.dispatch(body)
+    app = create_gateway_app(gate, dispatch_key)
 
     class Handler(socketserver.StreamRequestHandler):
         def handle(self):

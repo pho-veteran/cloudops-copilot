@@ -108,6 +108,13 @@ class Kubernetes:
         delta = replicas - deployment["spec"].get("replicas", 1)
         if delta <= 0:
             return
+        self.capacity_budget(deployment, delta)
+
+    def capacity_budget(self, deployment, additional_pods):
+        if type(additional_pods) is not int or additional_pods < 0:
+            raise DomainError(
+                409, "capacity_unproven", "A bounded additional Pod count is required."
+            )
         nodes = self.request("/api/v1/nodes")["items"]
         pods = self.request("/api/v1/pods")["items"]
         template = pod_requests(deployment["spec"]["template"]["spec"])
@@ -172,8 +179,11 @@ class Kubernetes:
                 allocated_pods += 1
                 for resource, value in pod_requests(pod["spec"]).items():
                     allocated[resource] += value
-        if allocated_pods + delta > quantity(node["status"]["allocatable"].get("pods", 0)) or any(
-            allocated[k] + delta * template[k] > quantity(node["status"]["allocatable"][k])
+        if allocated_pods + additional_pods > quantity(
+            node["status"]["allocatable"].get("pods", 0)
+        ) or any(
+            allocated[k] + additional_pods * template[k]
+            > quantity(node["status"]["allocatable"][k])
             for k in allocated
         ):
             raise DomainError(

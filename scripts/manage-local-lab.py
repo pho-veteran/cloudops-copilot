@@ -1243,6 +1243,8 @@ class Lab:
         self.tls_config()
         self.dc(*namespace_recreate_arguments())
         self.dc("run", "--rm", "-T", "--no-deps", "migrate", timeout=120)
+        self.dc("run", "--rm", "-T", "--no-deps", "executor-init", timeout=120)
+        self.volume_guard(remember=True)
         self.dc(
             "up",
             "-d",

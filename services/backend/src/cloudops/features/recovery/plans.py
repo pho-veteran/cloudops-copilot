@@ -13,20 +13,17 @@ from cloudops.features.investigations.locators import digest, project
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.investigations.service import evidence_content
 from cloudops.features.recovery import policy, service
+from cloudops.features.recovery.fields import Ineligible, selected, safe_resources
 from cloudops.features.recovery.baseline_context import supported_diff
 from cloudops.features.recovery.models import ActionPlan
 from cloudops.features.workloads.baseline_schemas import BaselineEnvelope
 from cloudops.features.workloads.baseline_service import digest as baseline_digest, payload
 from cloudops.features.workloads.kubernetes import Kubernetes, quantity
 from cloudops.features.workloads.models import Baseline
-from cloudops.features.workloads.observation_evaluator import ObservationError, extract
+from cloudops.features.workloads.observation_evaluator import ObservationError
 from cloudops.features.workloads.service import require_active
 from cloudops.shared.database import database_now
 from cloudops.shared.errors import DomainError
-
-
-class Ineligible(ValueError):
-    pass
 
 
 def manual(reason):
@@ -121,42 +118,6 @@ def advice_source(db, incident, workload, body):
         "evidence": [ref.model_dump(mode="json") for ref in references],
         "quality": "Stored structural validation; advice does not authorize parameters or prove recovery.",
     }
-
-
-def selected(deployment):
-    fields, refs, reasons = extract(deployment)
-    if reasons:
-        raise Ineligible("Unsupported configuration references.")
-    return sorted(
-        [
-            {
-                "name": c.name,
-                "image": c.image,
-                "resources": {
-                    "requests": c.requests.model_dump(exclude_none=True),
-                    "limits": c.limits.model_dump(exclude_none=True),
-                },
-            }
-            for c in fields
-        ],
-        key=lambda c: c["name"],
-    ), sorted(
-        [ref.model_dump(mode="json", exclude_none=True) for ref in refs],
-        key=lambda r: (r["path"], digest(r)),
-    )
-
-
-def safe_resources(containers, rules):
-    for container in containers:
-        resources = container["resources"]
-        for key, maximum in (("cpu", rules.max_cpu), ("memory", rules.max_memory)):
-            request, limit = (
-                quantity(resources[group].get(key, 0)) for group in ("requests", "limits")
-            )
-            if not 0 < request <= limit <= quantity(maximum):
-                raise Ineligible(
-                    "Required resource fields are absent or outside safe policy bounds."
-                )
 
 
 def desired_fields(db, workload, body, rules, before, refs):

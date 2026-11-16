@@ -57,12 +57,14 @@ services:
       WEB_ORIGIN: https://localhost:8443
       COOKIE_SECURE: "true"
       EXECUTOR_ROOT: /var/lib/cloudops-executor
+      EXECUTOR_AUTHORITY_PIN: /run/cloudops-executor-identity/identity.json
       EXECUTOR_KUBE_CONFIG: /run/cloudops-writer/client.json
       EXECUTOR_ALLOWLIST: /run/cloudops-writer/workloads.json
       EXECUTOR_DISPATCH_KEY: /run/cloudops-dispatch/key
       EXECUTOR_PROOF_PROVIDER: ${EXECUTOR_PROOF_PROVIDER:-resource_version_fence_v1}
     volumes:
       - executor_authority:/var/lib/cloudops-executor
+      - executor_identity:/run/cloudops-executor-identity:ro
       - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/writer:/run/cloudops-writer:ro
       - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/dispatcher:/run/cloudops-dispatch
     depends_on:
@@ -70,6 +72,16 @@ services:
         condition: service_completed_successfully
       k3s:
         condition: service_healthy
+  executor-init:
+    image: cloudops-local-backend
+    build:
+      context: .
+      dockerfile: services/backend/Dockerfile
+    profiles: [maintenance]
+    command: [python, -m, cloudops.features.recovery.authority, --root, /var/lib/cloudops-executor, --identity-file, /run/cloudops-executor-identity/identity.json]
+    volumes:
+      - executor_authority:/var/lib/cloudops-executor
+      - executor_identity:/run/cloudops-executor-identity
   prometheus:
     image: prom/prometheus:v3.5.0
     volumes:
@@ -85,3 +97,4 @@ services:
 volumes:
   k3s_data:
   executor_authority:
+  executor_identity:

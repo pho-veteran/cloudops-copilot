@@ -8,12 +8,12 @@ from urllib.request import ProxyHandler, Request, build_opener
 from cloudops.shared.errors import DomainError
 
 
-def gateway(path, body=None):
+def gateway(path, body=None, *, authenticated=False):
     server = os.environ.get("EXECUTOR_URL")
     if not server:
         raise DomainError(503, "executor_unavailable", "The isolated executor is not configured.")
     headers = {"Content-Type": "application/json"}
-    if body is not None:
+    if body is not None or authenticated:
         try:
             headers["Authorization"] = (
                 "Bearer " + Path(os.environ["EXECUTOR_DISPATCH_KEY"]).read_text().strip()
@@ -31,6 +31,12 @@ def gateway(path, body=None):
         with build_opener(ProxyHandler({})).open(request, timeout=20) as response:
             return json.load(response)
     except HTTPError as error:
+        if error.code == 404 and path.startswith("/operations/"):
+            raise DomainError(
+                404,
+                "operation_not_found",
+                "No durable receipt is available; absence does not prove no write.",
+            ) from None
         raise DomainError(
             409 if error.code == 409 else 503,
             "target_quarantined",
@@ -46,3 +52,7 @@ def gateway(path, body=None):
 
 def target(uid):
     return gateway("/targets/" + quote(uid, safe=""))
+
+
+def operation(operation_id):
+    return gateway("/operations/" + quote(str(operation_id), safe=""), authenticated=True)

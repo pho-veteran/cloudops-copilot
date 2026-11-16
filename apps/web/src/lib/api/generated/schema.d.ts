@@ -1928,6 +1928,15 @@ export interface components {
              */
             delivery_id: string;
         };
+        /** InverseQualification */
+        InverseQualification: {
+            /** Containers */
+            containers: components["schemas"]["RestorableContainer"][];
+            /** Qualification Reference */
+            qualification_reference: string;
+            /** Workload Uid */
+            workload_uid: string;
+        };
         JsonValue: unknown;
         /** KnowledgeApplicability */
         KnowledgeApplicability: {
@@ -2852,6 +2861,8 @@ export interface components {
             id: string;
             /** Inverse Policy */
             inverse_policy: string;
+            /** Inverse Qualified States */
+            inverse_qualified_states?: components["schemas"]["InverseQualification"][];
             /** Max Cpu */
             max_cpu: string;
             /** Max Memory */
