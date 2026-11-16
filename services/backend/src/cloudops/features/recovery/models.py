@@ -15,6 +15,8 @@ class ActionPlan(Base):
     workload_id: Mapped[UUID] = mapped_column(ForeignKey("workloads.id"), index=True)
     version: Mapped[int] = mapped_column(default=1)
     template: Mapped[str] = mapped_column(String(64), default="scale_deployment")
+    origin: Mapped[str | None] = mapped_column(String(32))
+    source_analysis_id: Mapped[UUID | None] = mapped_column(ForeignKey("diagnosis_analyses.id"))
     content: Mapped[dict] = mapped_column(JSONB)
     digest: Mapped[str] = mapped_column(String(64))
     target_epoch: Mapped[str] = mapped_column(String(64))

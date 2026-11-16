@@ -714,6 +714,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/recovery-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recovery Policy */
+        get: operations["get_recovery_policy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session": {
         parameters: {
             query?: never;
@@ -946,6 +963,37 @@ export interface components {
              */
             state: "queued" | "collecting" | "analyzing" | "waiting_for_quota" | "insufficient_evidence" | "completed" | "failed" | "cancelled";
             window: components["schemas"]["RequestWindow"] | null;
+        };
+        /** AdvicePlanRequest */
+        AdvicePlanRequest: {
+            /**
+             * Analysis Id
+             * Format: uuid
+             */
+            analysis_id: string;
+            /** Baseline Id */
+            baseline_id?: string | null;
+            /**
+             * Origin
+             * @constant
+             */
+            origin: "analysis_advice";
+            /** Profile Id */
+            profile_id?: string | null;
+            /** Rationale */
+            rationale: string;
+            /** Replicas */
+            replicas?: number | null;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Template
+             * @enum {string}
+             */
+            template: "restore_deployment_template" | "set_memory_profile" | "scale_deployment";
         };
         /** AlertReceiptPage */
         AlertReceiptPage: {
@@ -2361,6 +2409,35 @@ export interface components {
              */
             workload_id: string;
         };
+        /** ManualOnly */
+        ManualOnly: {
+            /** Next Step */
+            next_step: string;
+            /** Reason */
+            reason: string;
+            /**
+             * State
+             * @constant
+             */
+            state: "manual_only";
+        };
+        /** MemoryProfile */
+        MemoryProfile: {
+            /** Containers */
+            containers: string[];
+            /** Id */
+            id: string;
+            /** Limit */
+            limit: string;
+            /** Qualification Reference */
+            qualification_reference: string;
+            /** Request */
+            request: string;
+            /** Version */
+            version: string;
+            /** Workload Uid */
+            workload_uid: string;
+        };
         /** ModelStatus */
         ModelStatus: {
             /** Availability */
@@ -2497,6 +2574,12 @@ export interface components {
         };
         /** PlanRequest */
         PlanRequest: {
+            /**
+             * Origin
+             * @default operator_manual
+             * @constant
+             */
+            origin: "operator_manual";
             /** Rationale */
             rationale: string;
             /** Replicas */
@@ -2539,8 +2622,12 @@ export interface components {
              * Format: uuid
              */
             incident_id: string;
+            /** Origin */
+            origin: ("operator_manual" | "analysis_advice") | null;
             /** Rationale */
             rationale: string;
+            /** Source Analysis Id */
+            source_analysis_id: string | null;
             /**
              * State
              * @enum {string}
@@ -2550,9 +2637,9 @@ export interface components {
             target_epoch: string;
             /**
              * Template
-             * @constant
+             * @enum {string}
              */
-            template: "scale_deployment";
+            template: "scale_deployment" | "restore_deployment_template" | "set_memory_profile";
             /** Version */
             version: number;
             /**
@@ -2584,6 +2671,18 @@ export interface components {
             terminating: boolean;
             /** Uid */
             uid: string;
+        };
+        /** PolicyView */
+        PolicyView: {
+            /** Digest */
+            digest: string | null;
+            /**
+             * Execution Capability
+             * @default manual_scale_only
+             * @constant
+             */
+            execution_capability: "manual_scale_only";
+            policy: components["schemas"]["RecoveryPolicy"] | null;
         };
         /** Principal */
         Principal: {
@@ -2734,6 +2833,62 @@ export interface components {
             unverified_checks: components["schemas"]["UnverifiedCheck"][];
             /** Validator Version */
             validator_version: string;
+        };
+        /** RecoveryPolicy */
+        RecoveryPolicy: {
+            /**
+             * Absence Policy
+             * @default require-present-positive/v1
+             * @constant
+             */
+            absence_policy: "require-present-positive/v1";
+            /**
+             * Field Policy
+             * @default regular-container-image-cpu-memory/v1
+             * @constant
+             */
+            field_policy: "regular-container-image-cpu-memory/v1";
+            /** Id */
+            id: string;
+            /** Inverse Policy */
+            inverse_policy: string;
+            /** Max Cpu */
+            max_cpu: string;
+            /** Max Memory */
+            max_memory: string;
+            /** Memory Profiles */
+            memory_profiles: components["schemas"]["MemoryProfile"][];
+            /**
+             * Plan Ttl Seconds
+             * @default 300
+             * @constant
+             */
+            plan_ttl_seconds: 300;
+            /** Qualified Images */
+            qualified_images: string[];
+            /**
+             * Review Ttl Seconds
+             * @default 60
+             * @constant
+             */
+            review_ttl_seconds: 60;
+            /**
+             * Scale Bounds
+             * @default replicas-1-3/v1
+             * @constant
+             */
+            scale_bounds: "replicas-1-3/v1";
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "RecoveryPolicy/v1";
+            /** Verification Policy */
+            verification_policy: string;
+            /** Version */
+            version: string;
+            /** Workload Uids */
+            workload_uids: string[];
         };
         /** ReportBody */
         ReportBody: {
@@ -4919,7 +5074,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PlanRequest"];
+                "application/json": components["schemas"]["PlanRequest"] | components["schemas"]["AdvicePlanRequest"];
             };
         };
         responses: {
@@ -4929,7 +5084,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlanView"];
+                    "application/json": components["schemas"]["PlanView"] | components["schemas"]["ManualOnly"];
                 };
             };
             /** @description Unauthorized */
@@ -7214,6 +7369,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_recovery_policy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyView"];
                 };
             };
             /** @description Unauthorized */

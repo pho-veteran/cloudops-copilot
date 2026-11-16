@@ -105,6 +105,7 @@ def propose(db, incident_id, actor_id, replicas, rationale):
             "rollback": "unavailable; no automatic inverse change",
         }
         plan = ActionPlan(
+            origin="operator_manual",
             incident_id=incident_id,
             workload_id=workload.id,
             content=content,
@@ -136,6 +137,12 @@ def read(db, plan_id, session):
         valid, reason = False, "This plan is decided or expired. Prepare and read a new exact plan."
         if plan.state == "proposed" and plan.expires_at > now:
             try:
+                if plan.content.get("schema_version") == "RecoveryPlan/v2":
+                    raise DomainError(
+                        409,
+                        "execution_unavailable",
+                        "Preview only: matching gateway, lifecycle and qualified verification capability are unavailable. Prepare a new plan when enabled.",
+                    )
                 workload = db.get(Workload, plan.workload_id)
                 if not workload or not workload.active:
                     raise DomainError(
@@ -150,10 +157,7 @@ def read(db, plan_id, session):
                 current = kube.deployment(workload)
                 kube.controllers(workload)
                 kube.capacity(current, plan.content["replicas"])
-                if (
-                    current["metadata"]["resourceVersion"] != plan.content["resource_version"]
-                    or snapshot(current) != plan.content["before"]
-                ):
+                if snapshot(current) != plan.content["before"]:
                     raise DomainError(
                         409,
                         "plan_changed",
@@ -225,6 +229,12 @@ def _decision_rows(db, plan_id, session, body, *, locked):
             "run_active",
             "Wait for the pending investigation to finish, or cancel it, before approving.",
         )
+    if body.decision == "approve" and plan.content.get("schema_version") == "RecoveryPlan/v2":
+        raise DomainError(
+            409,
+            "execution_unavailable",
+            "This immutable preview cannot dispatch until matching recovery capabilities are available. Prepare a new plan when enabled.",
+        )
     workload = query(select(Workload).where(Workload.id == plan.workload_id))
     if not workload or not workload.active:
         raise DomainError(
@@ -283,10 +293,7 @@ def decide(db, plan_id, session, body):
                 "Maintenance changed target authority. Start a new investigation and prepare a new plan.",
             )
         if body.decision == "approve":
-            if (
-                current["metadata"]["resourceVersion"] != plan.content["resource_version"]
-                or snapshot(current) != plan.content["before"]
-            ):
+            if snapshot(current) != plan.content["before"]:
                 raise DomainError(
                     409,
                     "plan_changed",
@@ -294,7 +301,11 @@ def decide(db, plan_id, session, body):
                 )
             # The executor independently rechecks epoch/UID/resourceVersion at
             # dispatch; these unlocked observations never authorize a stale write.
-            execution = Execution(plan_id=plan.id, workload_id=workload.id)
+            execution = Execution(
+                plan_id=plan.id,
+                workload_id=workload.id,
+                result={"dispatch_resource_version": current["metadata"]["resourceVersion"]},
+            )
             db.add(execution)
             db.flush()
             db.add(Job(kind="recovery_execution_v1", subject_id=execution.id))
@@ -325,7 +336,9 @@ def execute(execution_id, *, before_call):
             "execution_id": str(execution.id),
             "uid": plan.content["workload"]["uid"],
             "epoch": plan.target_epoch,
-            "resource_version": plan.content["resource_version"],
+            "resource_version": execution.result.get(
+                "dispatch_resource_version", plan.content["resource_version"]
+            ),
             "replicas": plan.content["replicas"],
             "before": plan.content["before"],
             "plan_digest": plan.digest,

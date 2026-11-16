@@ -15,6 +15,7 @@ from cloudops.features.connections.models import ConnectionCheck
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recommendations.models import RecommendationReport
+from cloudops.features.recovery.api import PolicyView
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
@@ -525,6 +526,10 @@ CASES = {
     ),
     "get_recommendation_report": RequestCase(report_path, report_check),
     "export_recommendation_report": RequestCase(report_path, report_check),
+    "get_recovery_policy": RequestCase(
+        lambda c: {},
+        lambda r, c, a: PolicyView.model_validate(r.json()),
+    ),
     "propose_plan": RequestCase(
         lambda c: {
             **incident_path(c),
