@@ -254,6 +254,10 @@ class Gateway:
                         },
                         {"op": "replace", "path": "/spec/replicas", "value": body.replicas},
                     ]
+                if body.expires_at <= datetime.now(timezone.utc):
+                    raise DomainError(
+                        409, "plan_expired", "The plan expired during gateway eligibility checks."
+                    )
             except (
                 ValueError,
                 TypeError,

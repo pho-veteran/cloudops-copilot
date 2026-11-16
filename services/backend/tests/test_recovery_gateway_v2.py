@@ -66,6 +66,51 @@ def test_closed_forward_and_captured_inverse_patch_durable_retry(gateway_case, t
 
 
 @pytest.mark.parametrize(
+    "template",
+    ["restore_deployment_template", "set_memory_profile", "scale_deployment", "legacy_scale"],
+)
+def test_expiry_during_capacity_reads_cannot_admit_a_write(gateway_case, monkeypatch, template):
+    from cloudops.features.recovery import gateway
+    from test_executor import request
+
+    c = gateway_case
+    ready(c.gate, c.uid)
+    body = (
+        request(c.gate, c.provider, c.uid)
+        if template == "legacy_scale"
+        else approve(c, intent(c, template))
+    )
+
+    class Clock:
+        value = datetime.now(timezone.utc)
+
+        @classmethod
+        def now(cls, timezone):
+            return cls.value
+
+    original = c.provider.capacity_budget
+
+    def capacity_then_expire(deployment, extra):
+        original(deployment, extra)
+        Clock.value = body.expires_at + timedelta(microseconds=1)
+
+    monkeypatch.setattr(gateway, "datetime", Clock)
+    monkeypatch.setattr(c.provider, "capacity_budget", capacity_then_expire)
+    with TestClient(create_gateway_app(c.gate, "fixture-key")) as client:
+        response = client.post(
+            "/dispatch",
+            json=body.model_dump(mode="json"),
+            headers={"Authorization": "Bearer fixture-key"},
+        )
+    assert response.status_code == 200
+    result = response.json()
+    assert c.provider.writes == 0
+    assert result["code"] == "plan_expired"
+    assert c.gate.operation(body.execution_id) == result
+    assert c.gate.target(c.uid)["enabled"]
+
+
+@pytest.mark.parametrize(
     "change",
     [
         "resource_version",
