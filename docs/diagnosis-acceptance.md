@@ -15,7 +15,7 @@ The owner selected `gpt-6.1-sol` as primary and `codex/gpt-6.1-terra` as compati
 After committing and checking the driver/input/oracle, freeze once:
 
 ```sh
-uv run --project services/backend python services/backend/tests/e06_live_acceptance.py freeze --state-dir /path/to/private-campaign --carryover-probe /path/to/sanitized-gpt-probes.json
+uv run --project services/backend python services/backend/tests/e06_live_acceptance.py freeze --state-dir /path/to/private-campaign --carryover-campaign /path/to/latest/ledger.json
 uv run --project services/backend python services/backend/tests/e06_live_acceptance.py run --state-dir /path/to/private-campaign
 ```
 
@@ -42,3 +42,7 @@ Prompt `e06.rca_prompt/v2` supplies the JSON Schema from the existing validator,
 The v2 initial evaluation reached an observed 63,118-token lower bound after ten positive calls, activating its original 60,000 stop before the two live negatives. Nine positives passed structural validation; c05 failed a ruled-out citation requirement and remains failed. `--continue-cases --carryover-campaign /path/to/v2/ledger.json` retains all sent cases, including failures, and sends only previously uncalled cases under the unchanged deployment/input/oracle identity. The continuation raises the global observed-token stop to 170,000, preserves the 50-request ceiling and spent repair, and reserves one fresh operational smoke. The initial phase remains in `gpt-v2-initial.json`; no positive case is rerun.
 
 The v2 continuation sent exactly two previously uncalled negatives (17 engagement requests, observed lower bound 76,189). Injection passed; healthy abstained semantically but failed strict ruled-out citation coverage. Therefore v2 remains unqualified. Prompt `e06.rca_prompt/v3` now states the existing ruled-out coverage/source rules, citation classes and candidate mapping. A new complete frozen cohort, with no reused v2 quality results, is bounded to 12 primary cases and one operational smoke; the shared repair remains spent. The global observed-token stop is 170,000 to cover this explicitly bounded correction, still within 50 requests. The validator, case inputs and independent oracle remain unchanged.
+
+## Qualified outcome
+
+The [acceptance ledger](evidence/e06-r5/README.md) records the complete v3 cohort and installed API/Edge proof:10/10 positives,2/2 each family,4/4 Pending/ImagePull manual-only,5/5 safe negatives/controls, zero invalid scope/citation/template promotions and a completed fresh operational smoke. The exact Sol tuple is qualified; Terra remains compatibility-only. The engagement is complete at30/50 model requests and151,036 observed tokens as a lower bound, with one original unavailable-usage request. Do not send further calls automatically. Any later cohort must carry the latest ledger, preserve all original outcomes and record a new bounded allowance before execution.
