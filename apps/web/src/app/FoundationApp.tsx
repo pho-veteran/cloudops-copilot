@@ -276,7 +276,7 @@ export function Workspace() {
         <main className="foundation-main" id="main-content">
           <div className="foundation-notice">
             <span>
-              Stored evidence and diagnosis · External sources depend on trusted configuration · Live manual plans require an enabled scoped target
+              Stored evidence and diagnosis · Trusted source configuration · Recovery requires exact live checks and explicit approval; qualified post-checks remain separate from acknowledgement
             </span>
             {canMutate && (
               <Button size="sm" onClick={() => setCreating({})}>

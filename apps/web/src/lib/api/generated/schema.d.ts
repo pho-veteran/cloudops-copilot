@@ -77,6 +77,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/executions/{execution_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Execution */
+        get: operations["read_recovery_execution"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/executions/{execution_id}/inverse-plans": {
         parameters: {
             query?: never;
@@ -935,6 +952,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workloads/{workload_id}/recovery-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recovery Availability */
+        get: operations["read_recovery_availability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workloads/{workload_id}/recovery-context": {
         parameters: {
             query?: never;
@@ -1249,6 +1283,24 @@ export interface components {
              * @enum {string}
              */
             state: "running" | "expired" | "succeeded" | "failed";
+        };
+        /** AvailabilityExecution */
+        AvailabilityExecution: {
+            /** Holds Lock */
+            holds_lock: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Incident Id
+             * Format: uuid
+             */
+            incident_id: string;
+            outcome: components["schemas"]["Outcome"];
+            /** State */
+            state: string;
         };
         /** BaselineIdentity */
         BaselineIdentity: {
@@ -2955,6 +3007,43 @@ export interface components {
              */
             maximum_attempts: number;
         };
+        /** RecoveryAvailability */
+        RecoveryAvailability: {
+            /**
+             * Application State
+             * @enum {string}
+             */
+            application_state: "ready_for_preflight" | "blocked" | "unavailable";
+            /** Blocking Executions */
+            blocking_executions: components["schemas"]["AvailabilityExecution"][];
+            /** Blocking Executions Truncated */
+            blocking_executions_truncated: boolean;
+            /** Epoch */
+            epoch: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Qualified Templates */
+            qualified_templates: ("scale_deployment" | "restore_deployment_template" | "set_memory_profile")[];
+            /** Reason */
+            reason: string;
+            /** Recent Executions */
+            recent_executions: components["schemas"]["AvailabilityExecution"][];
+            /**
+             * Target Authority
+             * @enum {string}
+             */
+            target_authority: "enabled" | "quarantined" | "unavailable";
+            /** Uid */
+            uid: string;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
         /** RecoveryPolicy */
         RecoveryPolicy: {
             /**
@@ -3168,7 +3257,7 @@ export interface components {
              * Reason
              * @enum {string}
              */
-            reason: "missing" | "legacy" | "mismatch" | "unavailable" | "unsupported" | "config_unverified" | "no_supported_diff" | "restore_not_implemented";
+            reason: "missing" | "legacy" | "mismatch" | "unavailable" | "unsupported" | "config_unverified" | "no_supported_diff" | "restore_not_implemented" | "exact_plan_required";
             /**
              * State
              * @enum {string}
@@ -3184,8 +3273,18 @@ export interface components {
             plan: components["schemas"]["PlanView"];
             /** Reason */
             reason: string;
+            /**
+             * Review Expires At
+             * Format: date-time
+             */
+            review_expires_at: string;
             /** Review Token */
             review_token: string;
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
             /** Valid */
             valid: boolean;
         };
@@ -3731,6 +3830,8 @@ export interface components {
             last_seen_at: string | null;
             latest_run: components["schemas"]["WorkQueueRun"] | null;
             origin: components["schemas"]["OriginView"];
+            /** Recent Executions */
+            recent_executions?: components["schemas"]["WorkQueueExecution"][];
             /** Relevant Executions */
             relevant_executions: components["schemas"]["WorkQueueExecution"][];
             /** Run Blockers */
@@ -4290,6 +4391,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_recovery_execution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execution_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutionView"];
                 };
             };
             /** @description Unauthorized */
@@ -5085,7 +5262,9 @@ export interface operations {
     };
     list_executions: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+            };
             header?: never;
             path: {
                 incident_id: string;
@@ -5481,7 +5660,9 @@ export interface operations {
     };
     list_plans: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+            };
             header?: never;
             path: {
                 incident_id: string;
@@ -8634,6 +8815,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ObservationPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_recovery_availability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryAvailability"];
                 };
             };
             /** @description Unauthorized */

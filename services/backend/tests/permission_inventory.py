@@ -132,6 +132,10 @@ OPERATIONS = {
         "GET", "/api/recommendation-reports/{report_id}/export", "protected_read"
     ),
     "get_recovery_policy": Operation("GET", "/api/recovery-policy", "protected_read"),
+    "read_recovery_availability": Operation(
+        "GET", "/api/workloads/{workload_id}/recovery-availability", "protected_read"
+    ),
+    "read_recovery_execution": Operation("GET", "/api/executions/{execution_id}", "protected_read"),
     "read_recovery_verification": Operation(
         "GET", "/api/executions/{execution_id}/verification", "protected_read"
     ),

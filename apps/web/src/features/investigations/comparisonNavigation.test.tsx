@@ -78,6 +78,8 @@ it.each([
 });
 
 it("takes saved references only from structured snapshot IDs, never Markdown", () => {
+  const recoverySelection = { plan: left, execution: right };
+  window.history.replaceState(null, "", `/${buildIncidentHash(incident, left, "#/queue", right, "", recoverySelection)}`);
   const snapshot = {
     evidence: { items: [{ id: evidence, run_id: left }] },
     citations: {
@@ -112,6 +114,7 @@ it("takes saved references only from structured snapshot IDs, never Markdown", (
   expect(links[1].getAttribute("href")).toContain(`run=${left}`);
   expect(links[1].getAttribute("href")).toContain(`resolution=${right}`);
   expect(links[1].getAttribute("href")).toContain(`locator_key=${key}`);
+  expect(safeRoute(links[1].getAttribute("href")!).selection).toMatchObject(recoverySelection);
 });
 
 it("does not backfill a legacy handoff from current evidence", () => {

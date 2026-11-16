@@ -221,15 +221,16 @@ def read(db, plan_id, session):
             delete(PlanReview).where(PlanReview.plan_id == plan.id, PlanReview.expires_at <= now)
         )
         token = secrets.token_urlsafe(32)
+        review_expires_at = min(plan.expires_at, now + timedelta(seconds=60))
         db.add(
             PlanReview(
                 plan_id=plan.id,
                 token_hash=token_hash(token),
                 session_binding=token_hash(session.csrf_token),
-                expires_at=min(plan.expires_at, now + timedelta(seconds=60)),
+                expires_at=review_expires_at,
             )
         )
-        return plan, token, valid, reason
+        return plan, token, valid, reason, database_now(db), review_expires_at
 
 
 def _decision_rows(db, plan_id, session, body, *, locked):

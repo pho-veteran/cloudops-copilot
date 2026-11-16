@@ -22,7 +22,7 @@ from cloudops.features.recovery.classification import (
     classify,
     terminal_unknown_eligible,
 )
-from cloudops.features.recovery.models import ActionPlan, Execution
+from cloudops.features.recovery.models import ActionPlan, Execution, Verification, RollbackWindow
 from cloudops.features.workloads.models import Workload
 from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job
@@ -49,6 +49,29 @@ class FixtureFindings(BaseModel):
 
 def _fields(row, names):
     return jsonable_encoder({name: getattr(row, name) for name in names})
+
+
+def _verification(row):
+    if row is None:
+        return None
+    return {
+        **_fields(
+            row, ("acknowledged_at", "deadline", "next_slot", "finalized_at", "profile_digest")
+        ),
+        "profile_id": row.profile.get("id"),
+        "profile_version": row.profile.get("version"),
+        **{
+            key: row.result.get(key)
+            for key in (
+                "state",
+                "rollout_coverage",
+                "valid_rollout_samples",
+                "expected_rollout_samples",
+                "application",
+                "reason_codes",
+            )
+        },
+    }
 
 
 def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None):
@@ -154,6 +177,9 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
                 "workload_id",
                 "version",
                 "template",
+                "origin",
+                "source_analysis_id",
+                "forward_execution_id",
                 "content",
                 "digest",
                 "state",
@@ -167,6 +193,19 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
         )
         for row in plans
     ]
+    execution_ids = [row.id for row, _, _ in executions]
+    verification_rows = {
+        row.execution_id: row
+        for row in db.scalars(
+            select(Verification).where(Verification.execution_id.in_(execution_ids))
+        )
+    }
+    inverse_windows = {
+        row.forward_execution_id: row
+        for row in db.scalars(
+            select(RollbackWindow).where(RollbackWindow.forward_execution_id.in_(execution_ids))
+        )
+    }
     execution_rows = [
         {
             **_fields(
@@ -185,6 +224,12 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
             ),
             "incident_id": str(owner),
             "outcome": row.outcome.model_dump(mode="json"),
+            "verification_evidence": _verification(verification_rows.get(row.id)),
+            "recorded_inverse_window": _fields(
+                inverse_windows[row.id], ("eligible_from", "deadline", "inverse_execution_id")
+            )
+            if row.id in inverse_windows
+            else None,
             "classification": classify(
                 row.state, row.holds_lock, row.maintenance_released, row.result
             ),
@@ -436,6 +481,10 @@ def _render_v3(snapshot):
                 _text_block(plan["rationale"]),
             ]
         )
+        if plan.get("origin"):
+            sections.append(
+                f"- Origin: {_inline(plan['origin'])}; source analysis: {_inline(plan.get('source_analysis_id'))}; forward execution: {_inline(plan.get('forward_execution_id'))}\n\n"
+            )
     if not actions["executions"]:
         sections.append("No executions recorded.\n\n")
     for execution in actions["executions"]:
@@ -458,6 +507,20 @@ def _render_v3(snapshot):
         )
         if isinstance(result.get("reason"), str):
             sections.extend(["**Recorded outcome reason**\n\n", _text_block(result["reason"])])
+        evidence = execution.get("verification_evidence")
+        if isinstance(evidence, dict):
+            sections.extend(
+                [
+                    f"- Verification profile: {_inline(evidence.get('profile_id'))} / {_inline(evidence.get('profile_version'))}; digest: {_inline(evidence.get('profile_digest'))}\n",
+                    f"- ACK window: {_inline(evidence.get('acknowledged_at'))} → {_inline(evidence.get('deadline'))}; reserved slots: {_inline(evidence.get('next_slot'))}; first finalized: {_inline(evidence.get('finalized_at'))}\n",
+                    f"- Qualified rollout samples: {_inline(evidence.get('valid_rollout_samples'))} / {_inline(evidence.get('expected_rollout_samples'))}; application: {_inline((evidence.get('application') or {}).get('state'))}\n\n",
+                ]
+            )
+        window = execution.get("recorded_inverse_window")
+        if isinstance(window, dict):
+            sections.append(
+                f"- Recorded inverse window: {_inline(window.get('eligible_from'))} → {_inline(window.get('deadline'))}; child execution: {_inline(window.get('inverse_execution_id'))}. This snapshot grants no authority; fresh safety checks and a separate explicit approval are required.\n\n"
+            )
     locks = snapshot["target_locks"]
     sections.append(f"## Retained target locks and blockers ({locks['count']})\n\n")
     if not locks["items"]:

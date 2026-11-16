@@ -5,6 +5,7 @@ import { useAgedObservation, WorkloadHealth } from "./WorkloadHealth";
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import type { components } from "@/lib/api/generated/schema";
+import { RecoveryAuthority } from "@/features/recovery/RecoveryEvidence";
 
 function RelatedIncidents({ id }: { id: string }) {
   const [offset, setOffset] = useState(0);
@@ -85,6 +86,7 @@ export function WorkloadContext({ id }: { id: string }) {
         </div>
       </>}
     </section>
+    <RecoveryAuthority workloadId={id} />
     <RelatedIncidents id={id} />
   </div>;
 }

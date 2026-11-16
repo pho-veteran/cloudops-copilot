@@ -71,7 +71,7 @@ afterEach(() => {
 });
 
 it("requires explicit selection and performs no background comparison before it", () => {
-  window.location.hash = buildIncidentHash(incident, left);
+  window.location.hash = buildIncidentHash(incident, left, "#/queue", "", "", { plan: evidence, execution: right });
   mount(<RunComparison incidentId={incident} runId={left} />);
   expect(http.fetch).not.toHaveBeenCalled();
   expect(
@@ -88,18 +88,24 @@ it("requires explicit selection and performs no background comparison before it"
     screen.getByRole("button", { name: "Compare selected runs" }),
   );
   expect(safeRoute(window.location.hash).selection?.rightRun).toBe(right);
+  expect(safeRoute(window.location.hash).selection).toMatchObject({ plan: evidence, execution: right });
 });
 
 it("loads exact pair IDs outside history pagination and swaps them without creating work", async () => {
   window.location.hash = buildIncidentHash(incident, left, "#/queue", "", "", {
     rightIncident: incident,
     rightRun: right,
+    plan: evidence,
+    execution: right,
   });
   http.fetch.mockResolvedValue(
     new Response(JSON.stringify(result), { status: 200 }),
   );
   mount(<RunComparison incidentId={incident} runId={left} />);
   await screen.findByRole("heading", { name: "Left Run" });
+  const returned = safeRoute(screen.getByRole("link", { name: "Return to Run evidence" }).getAttribute("href")!);
+  expect(returned.selection).toEqual({ plan: evidence, execution: right });
+  expect(returned.run).toBe(left);
   expect(
     new URL((http.fetch.mock.calls[0][0] as Request).url).searchParams.get(
       "right_run_id",

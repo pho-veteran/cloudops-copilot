@@ -96,7 +96,7 @@ def observations(db: Session = Depends(get_db)):
                 if authority["enabled"] and not authority["recovery_mode"]:
                     executor_status, executor_reason = (
                         "available",
-                        "The scoped target is enabled. Each manual plan still requires live prerequisites and explicit approval; application-metric verification remains manual.",
+                        "A scoped target is enabled. Every exact workload still requires current authority, live prerequisites and explicit approval. Qualified post-checks are separate from acknowledgement; inspect its recovery availability and execution evidence.",
                     )
             except DomainError:
                 pass

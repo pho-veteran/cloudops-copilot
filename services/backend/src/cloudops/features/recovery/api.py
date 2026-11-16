@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Query
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -86,6 +86,8 @@ class ReviewedPlan(BaseModel):
     review_token: str
     valid: bool
     reason: str
+    server_time: datetime
+    review_expires_at: datetime
 
 
 class Decision(BaseModel):
@@ -119,6 +121,42 @@ class VerificationView(View):
     samples: dict
     result: dict
     finalized_at: datetime | None
+
+
+class AvailabilityExecution(BaseModel):
+    id: UUID
+    incident_id: UUID
+    state: str
+    holds_lock: bool
+    outcome: Outcome
+
+
+class RecoveryAvailability(BaseModel):
+    workload_id: UUID
+    uid: str
+    observed_at: datetime
+    target_authority: Literal["enabled", "quarantined", "unavailable"]
+    application_state: Literal["ready_for_preflight", "blocked", "unavailable"]
+    epoch: str | None
+    reason: str
+    qualified_templates: list[
+        Literal["scale_deployment", "restore_deployment_template", "set_memory_profile"]
+    ]
+    blocking_executions: list[AvailabilityExecution]
+    blocking_executions_truncated: bool
+    recent_executions: list[AvailabilityExecution]
+
+
+@router.get(
+    "/workloads/{workload_id}/recovery-availability",
+    operation_id="read_recovery_availability",
+    response_model=RecoveryAvailability,
+    dependencies=[Depends(current_session)],
+)
+def recovery_availability(workload_id: UUID, db: Session = Depends(get_db)):
+    from cloudops.features.recovery.availability import read
+
+    return read(db, workload_id)
 
 
 class InversePlanRequest(BaseModel):
@@ -249,11 +287,16 @@ def recovery_policy():
     response_model=list[PlanView],
     dependencies=[Depends(current_session)],
 )
-def plans(incident_id: UUID, db: Session = Depends(get_db)):
+def plans(
+    incident_id: UUID,
+    offset: int = Query(default=0, ge=0, le=100000),
+    db: Session = Depends(get_db),
+):
     return db.scalars(
         select(ActionPlan)
         .where(ActionPlan.incident_id == incident_id)
-        .order_by(ActionPlan.created_at.desc())
+        .order_by(ActionPlan.created_at.desc(), ActionPlan.id.desc())
+        .offset(offset)
         .limit(25)
     ).all()
 
@@ -262,9 +305,14 @@ def plans(incident_id: UUID, db: Session = Depends(get_db)):
 def read_plan(
     plan_id: UUID, session: SessionView = Depends(current_session), db: Session = Depends(get_db)
 ):
-    plan, token, valid, reason = service.read(db, plan_id, session)
+    plan, token, valid, reason, server_time, review_expires_at = service.read(db, plan_id, session)
     return ReviewedPlan(
-        plan=PlanView.model_validate(plan), review_token=token, valid=valid, reason=reason
+        plan=PlanView.model_validate(plan),
+        review_token=token,
+        valid=valid,
+        reason=reason,
+        server_time=server_time,
+        review_expires_at=review_expires_at,
     )
 
 
@@ -286,14 +334,32 @@ def decide_plan(
     response_model=list[ExecutionView],
     dependencies=[Depends(current_session)],
 )
-def executions(incident_id: UUID, db: Session = Depends(get_db)):
+def executions(
+    incident_id: UUID,
+    offset: int = Query(default=0, ge=0, le=100000),
+    db: Session = Depends(get_db),
+):
     return db.scalars(
         select(Execution)
         .join(ActionPlan, Execution.plan_id == ActionPlan.id)
         .where(ActionPlan.incident_id == incident_id)
-        .order_by(Execution.created_at.desc())
+        .order_by(Execution.created_at.desc(), Execution.id.desc())
+        .offset(offset)
         .limit(25)
     ).all()
+
+
+@router.get(
+    "/executions/{execution_id}",
+    operation_id="read_recovery_execution",
+    response_model=ExecutionView,
+    dependencies=[Depends(current_session)],
+)
+def read_execution(execution_id: UUID, db: Session = Depends(get_db)):
+    row = db.get(Execution, execution_id)
+    if row is None:
+        raise DomainError(404, "execution_not_found", "Execution not found.")
+    return row
 
 
 @router.get(

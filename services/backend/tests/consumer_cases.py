@@ -15,7 +15,7 @@ from cloudops.features.connections.models import ConnectionCheck
 from cloudops.features.incidents.models import Incident, IncidentActivity
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recommendations.models import RecommendationReport
-from cloudops.features.recovery.api import PolicyView
+from cloudops.features.recovery.api import PolicyView, RecoveryAvailability, ExecutionView
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import (
     ActionPlan,
@@ -538,6 +538,13 @@ CASES = {
         lambda c: {},
         lambda r, c, a: PolicyView.model_validate(r.json()),
     ),
+    "read_recovery_availability": RequestCase(
+        workload_path, lambda r, c, a: recovery_availability_check(r, c)
+    ),
+    "read_recovery_execution": RequestCase(
+        lambda c: {"path_params": {"execution_id": c.consumer.execution_id}},
+        lambda r, c, a: ExecutionView.model_validate(r.json()),
+    ),
     "propose_plan": RequestCase(
         lambda c: {
             **incident_path(c),
@@ -586,6 +593,13 @@ def legacy_rollback_check(response):
     assert response.status_code == 200, response.text
     assert not response.json()["can_propose"]
     assert response.json()["eligible_from"] is None and response.json()["deadline"] is None
+
+
+def recovery_availability_check(response, context):
+    assert response.status_code == 200, response.text
+    value = RecoveryAvailability.model_validate(response.json())
+    assert str(value.workload_id) == context.consumer.workload_id
+    assert value.uid == context.consumer.uid
 
 
 def unavailable_inverse_check(response):

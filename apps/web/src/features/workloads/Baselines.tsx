@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 import type { components } from "@/lib/api/generated/schema";
 import { Failure } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
+import { useBaselines } from "./queries";
 
 type Candidate = components["schemas"]["CandidateView"];
 
@@ -24,13 +25,7 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => { intent.current += 1; setDraft(undefined); }, [selectedBaseline, canMutate]);
-  const saved = useInfiniteQuery({
-    queryKey: ["baselines", id], initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) => unwrap(await api.GET("/api/workloads/{workload_id}/baselines", {
-      params: { path: { workload_id: id }, query: { cursor: pageParam } },
-    })),
-    getNextPageParam: page => page.next_cursor || undefined,
-  });
+  const saved = useBaselines(id);
   const context = useQuery({
     queryKey: ["recovery-context", id, selectedBaseline],
     queryFn: async () => unwrap(await api.GET("/api/workloads/{workload_id}/recovery-context", {
@@ -85,7 +80,7 @@ export function Baselines({ id, canMutate, selectedBaseline }: {
     {selectedBaseline && <><p className="mono">Selected: {selectedBaseline}</p><Button variant="outline" onClick={() => select()}>Clear selection</Button></>}
     {context.isPending && <p role="status">Checking recovery context…</p>}
     {context.isError && <Failure error={context.error} />}
-    {context.data && !context.isError && <><p role="status">{context.data.state}: {context.data.reason.replaceAll("_", " ")}. Execution unavailable.</p><p className="muted">Context response received {new Date(context.dataUpdatedAt).toLocaleString()}. Refresh to check current live identity again.</p><p>{context.data.limitations}</p><p>Inspect owned health and related incidents above. Investigate or repair manually when this revision is broken or cannot be verified; inspect a fresh healthy candidate after recovery.</p>
+    {context.data && !context.isError && <><p role="status">{context.data.state}: {context.data.reason.replaceAll("_", " ")}. This inspection grants no execution authority.</p><p className="muted">Context response received {new Date(context.dataUpdatedAt).toLocaleString()}. Refresh to check current live identity again.</p><p>{context.data.limitations}</p><p>Use an exact supported operational finding in a related incident to prepare and separately approve a qualified restore. Unsupported changes require manual guidance. Inspect a fresh healthy candidate after recovery.</p>
       {context.data.baseline && <details><summary>Selected saved record and provenance</summary><pre>{JSON.stringify(context.data.baseline, null, 2)}</pre></details>}
       {!!context.data.supported_diff?.length && <details open><summary>Declared supported field differences</summary><pre>{JSON.stringify(context.data.supported_diff, null, 2)}</pre></details>}
     </>}

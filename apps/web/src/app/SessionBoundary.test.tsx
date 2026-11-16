@@ -6,6 +6,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Workspace } from "./FoundationApp";
 import { transport } from "@/lib/api/client";
 import { buildKnowledgeHash } from "./routes";
+import { recoveryAvailabilityFixture, reviewClockFixture } from "@/features/recovery/fixtures";
+import { workloadFixture } from "@/features/workloads/fixtures";
 import {
   documentFixture,
   ids,
@@ -316,6 +318,9 @@ it("discards an expired approval intent and requires a fresh plan read and expli
   let decisions = 0;
   const plan = {
     id: planId,
+    incident_id: id,
+    workload_id: workloadFixture.items[0].id,
+    rationale: "Controlled approval session test",
     template: "scale_deployment",
     origin: "operator_manual",
     source_analysis_id: null,
@@ -329,6 +334,9 @@ it("discards an expired approval intent and requires a fresh plan read and expli
   network.fetch.mockImplementation(async (r) => {
     const request = r as Request;
     const url = path(r);
+    if (url.endsWith("/recovery-availability")) return Response.json(recoveryAvailabilityFixture(workloadFixture.items[0].id));
+    if (url === "/api/recovery-policy") return Response.json({ policy: null, digest: null, execution_capability: "manual_scale_only", verification_profiles: [] });
+    if (url.endsWith("/baselines")) return Response.json({ items: [], next_cursor: null });
     if (url === "/api/login") signedInAgain = true;
     if (url === "/api/session" || url === "/api/login")
       return Response.json(
@@ -346,6 +354,7 @@ it("discards an expired approval intent and requires a fresh plan read and expli
         valid: true,
         reason: "Controlled live-provider fixture",
         review_token: signedInAgain ? "fresh-plan-receipt" : "old-plan-receipt",
+        ...reviewClockFixture(),
       });
     if (url.endsWith("/plans")) return Response.json([plan]);
     if (url.endsWith("/activity")) return Response.json({ items: [], total: 0, next_cursor: null });
@@ -359,6 +368,7 @@ it("discards an expired approval intent and requires a fresh plan read and expli
       state: "open",
       origin: { kind: "operator", source_id: null },
       workload: {
+        ...workloadFixture.items[0],
         active: true,
         namespace: "demo",
         name: "checkout",

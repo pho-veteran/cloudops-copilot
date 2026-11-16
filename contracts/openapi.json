@@ -797,6 +797,40 @@
         "title": "AttemptView",
         "type": "object"
       },
+      "AvailabilityExecution": {
+        "properties": {
+          "holds_lock": {
+            "title": "Holds Lock",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/Outcome"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "incident_id",
+          "state",
+          "holds_lock",
+          "outcome"
+        ],
+        "title": "AvailabilityExecution",
+        "type": "object"
+      },
       "BaselineIdentity": {
         "additionalProperties": false,
         "properties": {
@@ -5497,6 +5531,102 @@
         "title": "Reconciliation",
         "type": "object"
       },
+      "RecoveryAvailability": {
+        "properties": {
+          "application_state": {
+            "enum": [
+              "ready_for_preflight",
+              "blocked",
+              "unavailable"
+            ],
+            "title": "Application State",
+            "type": "string"
+          },
+          "blocking_executions": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityExecution"
+            },
+            "title": "Blocking Executions",
+            "type": "array"
+          },
+          "blocking_executions_truncated": {
+            "title": "Blocking Executions Truncated",
+            "type": "boolean"
+          },
+          "epoch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Epoch"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "qualified_templates": {
+            "items": {
+              "enum": [
+                "scale_deployment",
+                "restore_deployment_template",
+                "set_memory_profile"
+              ],
+              "type": "string"
+            },
+            "title": "Qualified Templates",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recent_executions": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityExecution"
+            },
+            "title": "Recent Executions",
+            "type": "array"
+          },
+          "target_authority": {
+            "enum": [
+              "enabled",
+              "quarantined",
+              "unavailable"
+            ],
+            "title": "Target Authority",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id",
+          "uid",
+          "observed_at",
+          "target_authority",
+          "application_state",
+          "epoch",
+          "reason",
+          "qualified_templates",
+          "blocking_executions",
+          "blocking_executions_truncated",
+          "recent_executions"
+        ],
+        "title": "RecoveryAvailability",
+        "type": "object"
+      },
       "RecoveryPolicy": {
         "additionalProperties": false,
         "properties": {
@@ -5992,7 +6122,8 @@
               "unsupported",
               "config_unverified",
               "no_supported_diff",
-              "restore_not_implemented"
+              "restore_not_implemented",
+              "exact_plan_required"
             ],
             "title": "Reason",
             "type": "string"
@@ -6037,8 +6168,18 @@
             "title": "Reason",
             "type": "string"
           },
+          "review_expires_at": {
+            "format": "date-time",
+            "title": "Review Expires At",
+            "type": "string"
+          },
           "review_token": {
             "title": "Review Token",
+            "type": "string"
+          },
+          "server_time": {
+            "format": "date-time",
+            "title": "Server Time",
             "type": "string"
           },
           "valid": {
@@ -6050,7 +6191,9 @@
           "plan",
           "review_token",
           "valid",
-          "reason"
+          "reason",
+          "server_time",
+          "review_expires_at"
         ],
         "title": "ReviewedPlan",
         "type": "object"
@@ -7555,6 +7698,13 @@
           "origin": {
             "$ref": "#/components/schemas/OriginView"
           },
+          "recent_executions": {
+            "items": {
+              "$ref": "#/components/schemas/WorkQueueExecution"
+            },
+            "title": "Recent Executions",
+            "type": "array"
+          },
           "relevant_executions": {
             "items": {
               "$ref": "#/components/schemas/WorkQueueExecution"
@@ -8587,6 +8737,104 @@
         "summary": "Read Status",
         "tags": [
           "diagnosis"
+        ]
+      }
+    },
+    "/api/executions/{execution_id}": {
+      "get": {
+        "operationId": "read_recovery_execution",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Execution Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Read Execution",
+        "tags": [
+          "recovery"
         ]
       }
     },
@@ -9824,6 +10072,18 @@
               "title": "Incident Id",
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -10403,6 +10663,18 @@
               "format": "uuid",
               "title": "Incident Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
             }
           }
         ],
@@ -15186,6 +15458,104 @@
         "summary": "List Workload Observations",
         "tags": [
           "workloads"
+        ]
+      }
+    },
+    "/api/workloads/{workload_id}/recovery-availability": {
+      "get": {
+        "operationId": "read_recovery_availability",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryAvailability"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Recovery Availability",
+        "tags": [
+          "recovery"
         ]
       }
     },

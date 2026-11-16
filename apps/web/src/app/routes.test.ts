@@ -57,6 +57,19 @@ describe("safe return navigation", () => {
     });
     expect(window.location.hash).toBe(hash);
   });
+  it("keeps exact recovery records with historical Run and comparison selection", () => {
+    const plan = "44483c3e-adc2-4d05-93a6-c218afc6ebe7";
+    const execution = "54483c3e-adc2-4d05-93a6-c218afc6ebe7";
+    const selection = { plan, execution, rightIncident: id, rightRun: id };
+    const hash = buildIncidentHash(id, id, "#/queue?search=memory", id, id, selection);
+    window.history.replaceState(null, "", `/${hash}`);
+    expect(readRoute()).toMatchObject({ page: "incidents", run: id, selection });
+    expect(window.location.hash).toBe(hash);
+    expect(incidentReturnHash(hash)).toBe("#/queue?search=memory");
+  });
+  it.each(["plan=raw", "execution=raw", `plan=${id}&plan=${id}`, `execution=${id}&execution=${id}`])("rejects invalid recovery selection: %s", (query) => {
+    expect(safeRoute(`#/incidents/${id}?${query}`).page).toBe("queue");
+  });
   it("retains an exact workload identity for read-only navigation", () => {
     expect(safeRoute(`#/workloads?workload=${id}`)).toEqual({ page: "workloads", id, run: "", evidence: "", resolution: "", baseline: "" });
     expect(safeRoute(`#/workloads?workload=${id}&baseline=${id}`).baseline).toBe(id);

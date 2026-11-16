@@ -62,6 +62,19 @@ function respond(items: WorkQueueItem[], next: number | null = null) {
   });
 }
 
+it.each(["failed", "no_op"])("retains released %s outcomes in the queue", async (state) => {
+  const row: NonNullable<WorkQueueItem["recent_executions"]>[number] = {
+    id: "44444444-4444-4444-8444-444444444444", state, classification: "terminal", holds_lock: false,
+    workload_id: incident().workload_id, created_at: "2026-11-01T00:00:00Z",
+    outcome: { schema_version: "RecoveryOutcome/v1", operation_id: "44444444-4444-4444-8444-444444444444", attribution: state === "no_op" ? "not_sent" : "acknowledged", verification: state === "no_op" ? "not_performed" : "failed", future_authority: "fresh_preflight_required", reason: `Controlled ${state} outcome.` },
+  };
+  respond([incident({ recent_executions: [row] })]);
+  mount();
+  expect(await screen.findByText(`Controlled ${state} outcome.`)).toBeTruthy();
+  expect(screen.getByText("Write attribution")).toBeTruthy();
+  expect(screen.getByText("Future write authority")).toBeTruthy();
+});
+
 beforeEach(() => {
   mocks.get.mockReset();
   queue("#/queue");

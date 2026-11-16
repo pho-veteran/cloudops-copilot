@@ -124,7 +124,7 @@ export function RunComparison({
       incidentReturnHash(window.location.hash),
       targetIncident === incidentId ? route.resolution : "",
       evidence,
-      selection,
+      { plan: selected.plan, execution: selected.execution, ...selection },
     );
   };
   const cite = (ref: Citation, side: Side) =>
@@ -273,6 +273,8 @@ export function RunComparison({
                 leftRun,
                 incidentReturnHash(window.location.hash),
                 leftIncident === incidentId ? route.resolution : "",
+                "",
+                { plan: selected.plan, execution: selected.execution },
               )}
             >
               Return to Run evidence

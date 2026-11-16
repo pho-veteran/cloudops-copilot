@@ -1,7 +1,15 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 
 export const workloadKeys = { all: ["workloads"] as const };
+export function useBaselines(id?: string) {
+  return useInfiniteQuery({
+    queryKey: ["baselines", id], enabled: !!id, initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }) => unwrap(await api.GET("/api/workloads/{workload_id}/baselines", {
+      params: { path: { workload_id: id! }, query: { cursor: pageParam } },
+    })), getNextPageParam: page => page.next_cursor || undefined,
+  });
+}
 export function workloadsQueryOptions(offset = 0, client = api) {
   return queryOptions({
     queryKey: [...workloadKeys.all, offset],

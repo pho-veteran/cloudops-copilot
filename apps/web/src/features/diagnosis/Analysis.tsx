@@ -269,10 +269,12 @@ export function AnalysisPanel({
   incidentId,
   runId,
   canMutate,
+  onRecovery,
 }: {
   incidentId: string;
   runId: string;
   canMutate: boolean;
+  onRecovery?: () => void;
 }) {
   const cache = useQueryClient();
   const key = analysisKey(incidentId, runId);
@@ -325,6 +327,7 @@ export function AnalysisPanel({
       ) : (
         <>
           <AnalysisSummary analysis={query.data} />
+          {onRecovery && <Button variant="outline" onClick={onRecovery}>{canMutate ? "Inspect this Run's recovery applicability" : "Inspect recovery history"}</Button>}
           {query.data.status === "waiting_for_quota" && (
             <section>
               <h3>Waiting for provider quota</h3>
