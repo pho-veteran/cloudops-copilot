@@ -1,0 +1,933 @@
+{
+  "schema_version": "E07IntegratedAcceptance/v1",
+  "acceptance_state": "incomplete; live model all-template gate and final delivery remain open",
+  "recorded_at": "2026-11-16T20:51:36.032842+00:00",
+  "implementation_base": "40b058c91f6ddbe8dea852d17a4dd741d6dd5fa5",
+  "tested_source_fingerprint": "d0242677dc3a2d2d3e601da5c10b0675150549598803b01160d6bc1124a0d7e8",
+  "topology": {
+    "owned_disposable_local_only": true,
+    "project": "cloudops-e07-acceptance",
+    "cluster": "e07-owned",
+    "namespace": "demo",
+    "deployment": "checkout",
+    "original_uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+    "original_node_uid": "88cfc091-9b39-428f-8c7f-1bd24ab035f1",
+    "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+    "independent_gateway_authority": "dbf8c91d-a0be-4f36-8645-7029596b2af2",
+    "independent_host_authority": "0453b909-dcb3-48ed-99fe-50390ae5566a",
+    "application_database": "cloudops_e07_integrated_test",
+    "retained_R1_R6_database_untouched": "cloudops_e07_gateway_test",
+    "strategy": "supported Recreate for one-Pod image/memory scenarios; original strategy must be restored at cleanup",
+    "node_cgroup_cpu": "400000 100000",
+    "node_memory_bytes": 4294967296,
+    "node_swap_bytes": 0,
+    "allocatable_cpu": "3",
+    "allocatable_memory": "3145732Ki",
+    "healthy_pod_cpu": "10000 100000",
+    "healthy_pod_memory_bytes": 268435456,
+    "finite_load_max_seconds": 900
+  },
+  "sample_artifact": {
+    "source_version": "b5ea56c203d0770c75d2fc795cb786018e2cb5c411d8b01ae0bc0ed824663bd0",
+    "files": {
+      "recovery_app.py": "d463b506bbe63afefbe11d3dae32d439e7029c83178d0e7a2cc2cec77a30bab6",
+      "sample_app.py": "c1ea4bb6bde192f272667f1ce03a04e300683fbfcab92676a73901ed72c2b11f",
+      "recovery_load.py": "89385ce97a841171ecf985bf85275449c09fa0588059a26d4ed41f0c3f6aed75",
+      "load.py": "6218579d02734ce30af7c314f944ada618d55b055080a846669c3425b0dcf3bc",
+      "Dockerfile.recovery": "4c1e6102615289fafe95441eb5978a0827522a40ba960b2373297597eac55c2b"
+    },
+    "reason": "startup log before resident allocation keeps real OOM telemetry observable; all prior diagnostics retained"
+  },
+  "calibration": [
+    {
+      "case": "one-low",
+      "responses": {
+        "200": 480
+      },
+      "seconds": 60,
+      "rate": 8
+    },
+    {
+      "case": "one-hot",
+      "responses": {
+        "200": 1800,
+        "503": 900
+      },
+      "seconds": 90,
+      "rate": 30
+    },
+    {
+      "case": "two-hot",
+      "responses": {
+        "200": 2696,
+        "503": 4
+      },
+      "seconds": 90,
+      "rate": 30
+    }
+  ],
+  "model": {
+    "requested_model": "gpt-6.1-sol",
+    "endpoint": "http://localhost:20128/v1",
+    "requests_used": 1,
+    "request_ceiling": 50,
+    "observed_tokens": 72,
+    "observed_token_stop": 60000,
+    "new_inference_in_this_slice": 0,
+    "current_live_gate": "Three actual context preflights abstained before HTTP at the qualified32KiB bound. No model positive is claimed. A changed identity requires qualification; proposed64KiB hard-cap candidate is not installed or qualified. Owner token-stop answer pending.",
+    "controlled_provider_positive_substitution": false
+  },
+  "application_restore_cuts": [
+    {
+      "cut": "before-approval",
+      "snapshot": {
+        "bytes": 166890,
+        "sha256": "94e6e481dec6e56d2064aa71421777203eb59d0822adf1906a5762647fdf1a35",
+        "created_at": "2026-11-16T19:43:12.446195+00:00"
+      },
+      "pg_restore": {
+        "returncode": 0,
+        "finished_at": "2026-11-16T19:43:14.806220+00:00"
+      },
+      "configured_gateway_targets": 2,
+      "all_classes_denied": true,
+      "restored_cookie_status": 401,
+      "old_decision_status": 409,
+      "cleanup": {
+        "recovery_restore": {
+          "cleanup_id": "e8f23892-b5eb-45ee-9dd5-80029aa36616",
+          "sessions_revoked": 8,
+          "reviews_retired": 4,
+          "jobs_retired": 0,
+          "executions_retired": 0,
+          "plans_invalidated": 1,
+          "configured_gateway_targets_closed": 2,
+          "permit_generation": 15,
+          "actor": {
+            "uid": 0,
+            "pid": 1,
+            "channel": "local_os_account"
+          }
+        },
+        "diagnosis_recovery": {
+          "sessions_revoked": true,
+          "restored_model_work_retired": true,
+          "analysis_dispatch_denied": true,
+          "permit_generation": 15
+        }
+      },
+      "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+      "absent_uid_rows": 0,
+      "retained_review_rows": 0,
+      "active_recovery_jobs": 0,
+      "explicit_proof_backed_resumption_at": "2026-11-16T19:43:34.283866+00:00"
+    },
+    {
+      "cut": "after-approval-before-call",
+      "snapshot": {
+        "bytes": 166516,
+        "sha256": "8d14d906892668d7291c53dfa6c416c885c693fa5c4a8ee707b894180830b2fa",
+        "created_at": "2026-11-16T19:43:34.813715+00:00"
+      },
+      "pg_restore": {
+        "returncode": 0,
+        "finished_at": "2026-11-16T19:43:37.020937+00:00"
+      },
+      "configured_gateway_targets": 2,
+      "all_classes_denied": true,
+      "restored_cookie_status": 401,
+      "old_decision_status": 409,
+      "cleanup": {
+        "recovery_restore": {
+          "cleanup_id": "b10b57f0-e97b-469f-b882-77a3707e4af0",
+          "sessions_revoked": 2,
+          "reviews_retired": 1,
+          "jobs_retired": 1,
+          "executions_retired": 1,
+          "plans_invalidated": 1,
+          "configured_gateway_targets_closed": 2,
+          "permit_generation": 17,
+          "actor": {
+            "uid": 0,
+            "pid": 1,
+            "channel": "local_os_account"
+          }
+        },
+        "diagnosis_recovery": {
+          "sessions_revoked": true,
+          "restored_model_work_retired": true,
+          "analysis_dispatch_denied": true,
+          "permit_generation": 17
+        }
+      },
+      "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+      "absent_uid_rows": 0,
+      "retained_review_rows": 0,
+      "active_recovery_jobs": 0,
+      "explicit_proof_backed_resumption_at": "2026-11-16T19:44:00.838489+00:00"
+    },
+    {
+      "cut": "after-dispatch",
+      "snapshot": {
+        "bytes": 169626,
+        "sha256": "0a2a6ec7e8503092f4ba3a4b1fbbcbd92dbdc268edf4052b7fce0f6af2fbd227",
+        "created_at": "2026-11-16T19:47:13.631678+00:00"
+      },
+      "pg_restore": {
+        "returncode": 0,
+        "finished_at": "2026-11-16T19:47:15.839738+00:00"
+      },
+      "configured_gateway_targets": 2,
+      "all_classes_denied": true,
+      "restored_cookie_status": 401,
+      "old_decision_status": 409,
+      "cleanup": {
+        "recovery_restore": {
+          "cleanup_id": "95441a82-bc27-4d70-96e3-fbd4828a6509",
+          "sessions_revoked": 3,
+          "reviews_retired": 1,
+          "jobs_retired": 1,
+          "executions_retired": 1,
+          "plans_invalidated": 1,
+          "configured_gateway_targets_closed": 2,
+          "permit_generation": 19,
+          "actor": {
+            "uid": 0,
+            "pid": 1,
+            "channel": "local_os_account"
+          }
+        },
+        "diagnosis_recovery": {
+          "sessions_revoked": true,
+          "restored_model_work_retired": true,
+          "analysis_dispatch_denied": true,
+          "permit_generation": 19
+        }
+      },
+      "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+      "absent_uid_rows": 0,
+      "retained_review_rows": 0,
+      "active_recovery_jobs": 0,
+      "explicit_proof_backed_resumption_at": "2026-11-16T19:47:35.157719+00:00"
+    }
+  ],
+  "fresh_post_restore_verified_scale": {
+    "plan_id": "d8e72ef0-a50f-410b-957e-49cddf2c6710",
+    "plan_digest": "05c41bc098d716a9a144ce1f18b26366b8ce31b871e801f06dad224b7b1757fb",
+    "template": "scale_deployment",
+    "origin": "operator_manual",
+    "execution_id": "488c5884-1373-4e68-bc8d-e3edb801e6f9",
+    "state": "succeeded",
+    "outcome": {
+      "schema_version": "RecoveryOutcome/v1",
+      "operation_id": "488c5884-1373-4e68-bc8d-e3edb801e6f9",
+      "attribution": "acknowledged",
+      "verification": "passed",
+      "future_authority": "fresh_preflight_required",
+      "reason": "Qualified post-change checks passed; inspect the independent observations.",
+      "reconciliation": {
+        "attempts": 0,
+        "maximum_attempts": 6,
+        "deadline": "2026-11-16T20:06:44.783418Z"
+      }
+    },
+    "before": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 1,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "desired": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 2,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "id": "e07-local-recovery",
+      "version": "r7-integrated-1",
+      "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+    },
+    "verification_profile_digest": "d012187afac9194107071ca4ed3ef7d3b08752a6ca0ea219763e9749d6b08e8c",
+    "acknowledged_at": "2026-11-16T20:04:44.899794Z",
+    "fixed_deadline": "2026-11-16T20:07:44.899794Z",
+    "finalized_at": "2026-11-16T20:07:45.884888Z",
+    "qualified_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "2c38e296-66d0-44ca-93b2-dc3e3f26b559",
+        "97db9b34-d4a1-4b38-aa5d-5040454ee2c3"
+      ],
+      "offered_rps": 30.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "reason_codes": []
+  },
+  "verified_after_inverse_exclusion": {
+    "plan_id": "f47630d2-0835-48ee-aa28-872e4151f9e8",
+    "plan_digest": "f376360e53be36e9f2d314fe94f1ce921eae7509f5674643f2cad1e8cc1c4d4a",
+    "template": "scale_deployment",
+    "origin": "operator_manual",
+    "execution_id": "79badc88-e46f-49a8-afaf-2c65ba0fb1aa",
+    "state": "succeeded",
+    "outcome": {
+      "schema_version": "RecoveryOutcome/v1",
+      "operation_id": "79badc88-e46f-49a8-afaf-2c65ba0fb1aa",
+      "attribution": "acknowledged",
+      "verification": "passed",
+      "future_authority": "fresh_preflight_required",
+      "reason": "Qualified post-change checks passed; inspect the independent observations.",
+      "reconciliation": {
+        "attempts": 0,
+        "maximum_attempts": 6,
+        "deadline": "2026-11-16T20:16:16.968150Z"
+      }
+    },
+    "before": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 1,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "desired": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 2,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "id": "e07-local-recovery",
+      "version": "r7-integrated-1",
+      "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+    },
+    "verification_profile_digest": "d012187afac9194107071ca4ed3ef7d3b08752a6ca0ea219763e9749d6b08e8c",
+    "acknowledged_at": "2026-11-16T20:14:17.084240Z",
+    "fixed_deadline": "2026-11-16T20:17:17.084240Z",
+    "finalized_at": "2026-11-16T20:17:17.876998Z",
+    "qualified_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "55cb95bc-a079-4a3f-b355-9ebc2b8c3d68",
+        "fd073097-d39a-45de-abef-dbe5f7e79739"
+      ],
+      "offered_rps": 30.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "reason_codes": []
+  },
+  "fresh_safe_inverse": {
+    "plan_id": "2634f4fc-14d8-4127-aebe-168b45ee55ea",
+    "plan_digest": "09e1667ecc2197b21182255abdd63e3899eb063fcc00c5d3fce08a4035be110a",
+    "template": "scale_deployment",
+    "origin": "inverse_rollback",
+    "execution_id": "0a53841d-3288-4472-84e0-a6ee0bb4951f",
+    "state": "rolled_back",
+    "outcome": {
+      "schema_version": "RecoveryOutcome/v1",
+      "operation_id": "0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "attribution": "acknowledged",
+      "verification": "passed",
+      "future_authority": "fresh_preflight_required",
+      "reason": "Qualified post-change checks passed; inspect the independent observations.",
+      "reconciliation": {
+        "attempts": 0,
+        "maximum_attempts": 6,
+        "deadline": "2026-11-16T20:21:57.829198Z"
+      }
+    },
+    "before": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 2,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "desired": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 1,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "id": "e07-local-recovery",
+      "version": "r7-integrated-1",
+      "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+    },
+    "verification_profile_digest": "94ba3c38c35ca1f02c3cae0a64f254f721faa3f743ea3f6fbd8ea4dc914e3993",
+    "acknowledged_at": "2026-11-16T20:19:57.968529Z",
+    "fixed_deadline": "2026-11-16T20:22:57.968529Z",
+    "finalized_at": "2026-11-16T20:22:59.126551Z",
+    "qualified_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "fd073097-d39a-45de-abef-dbe5f7e79739"
+      ],
+      "offered_rps": 8.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "reason_codes": []
+  },
+  "lost_acknowledgement": {
+    "kind": "Controlled acknowledgement interruption after actual Kubernetes conditional write; real product approval/job/gateway",
+    "execution_id": "7af96edd-e07e-436e-886c-1c582e928e63",
+    "plan_id": "78a98eba-44e7-4617-ad69-26a50c8b60a7",
+    "functional_generation_delta_before_maintenance": 1,
+    "terminal_state": "outcome_unknown",
+    "reconciliation": {
+      "attempts": 6,
+      "maximum_attempts": 6,
+      "deadline": "2026-11-16T19:26:12.065224Z"
+    },
+    "matching_desired_fields_did_not_relabel_unknown": true,
+    "cross_incident_denial": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "target_locked",
+          "message": "An active, locked or unclassified execution blocks this target. Inspect its evidence and maintenance state."
+        }
+      }
+    },
+    "after_proof_state": "outcome_unknown",
+    "after_proof_attribution": "outcome_unknown",
+    "after_proof_holds_lock": false,
+    "real_Edge_resolution": {
+      "incident_id": "8a1e1c7b-d69d-4b89-8237-5daf2602bc66",
+      "resolution_id": "d80a714f-6cec-481f-b1cd-582f1e65ce02",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "activity": {
+        "id": "d80a714f-6cec-481f-b1cd-582f1e65ce02",
+        "incident_id": "8a1e1c7b-d69d-4b89-8237-5daf2602bc66",
+        "kind": "resolve",
+        "text": "Controlled lost-response acceptance: write attribution remains unknown. Hand off investigation and keep the original target quarantined until trusted current-state and old-writer-exclusion proof. Incident resolution grants no execution authority.",
+        "actor_id": "74733ec9-e076-4f65-9521-bac55c296525",
+        "actor_name": "e07-r7-operator",
+        "created_at": "2026-11-16T19:25:17.421869Z"
+      }
+    }
+  },
+  "late_forward": {
+    "kind": "Controlled paused functional transport, real old conditional Kubernetes PATCH released after real root fences",
+    "execution_id": "f7884e42-18e8-40bc-a742-66bcc09ef5b7",
+    "captured_patch": [
+      {
+        "op": "test",
+        "path": "/metadata/uid",
+        "value": "a8c64be4-4fb0-4066-9485-0673bf0b99aa"
+      },
+      {
+        "op": "test",
+        "path": "/metadata/resourceVersion",
+        "value": "13962"
+      },
+      {
+        "op": "replace",
+        "path": "/spec/replicas",
+        "value": 2
+      }
+    ],
+    "late_result": "target_changed",
+    "released_at": 1794857921.973307,
+    "release_before_plan_expiry": true,
+    "selected_spec_unchanged": true,
+    "historical_attribution": "outcome_unknown"
+  },
+  "late_inverse": {
+    "kind": "Actual separately approved inverse with controlled delayed conditional transport",
+    "plan_id": "1cc49081-b974-44e5-a008-d22499ce853e",
+    "execution_id": "f24624af-a146-4395-a937-7575392c74c4",
+    "initial_attribution": "outcome_unknown",
+    "captured_patch": [
+      {
+        "op": "test",
+        "path": "/metadata/uid",
+        "value": "a8c64be4-4fb0-4066-9485-0673bf0b99aa"
+      },
+      {
+        "op": "test",
+        "path": "/metadata/resourceVersion",
+        "value": "15068"
+      },
+      {
+        "op": "replace",
+        "path": "/spec/replicas",
+        "value": 1
+      }
+    ],
+    "late_result": "target_changed",
+    "selected_spec_unchanged": true,
+    "released_before_plan_expiry": true,
+    "maintenance_generation_delta": 2
+  },
+  "initial_outcomes_retained": {
+    "context_required_targets_exceed_budget": {
+      "attempts": 3,
+      "HTTP_model_requests": 0,
+      "no_positive_claim": true
+    },
+    "insufficient_prechange_coverage": {
+      "execution_id": "b89aa245-9b1d-4b5b-adcd-d47a0a16676c",
+      "attribution": "not_sent",
+      "verification": "not_performed",
+      "valid_samples": 2,
+      "expected_samples": 3,
+      "reason": "insufficient_traffic; original fault arm never received a functional request"
+    },
+    "wrong_immutable_image_binding": {
+      "plan_id": "621873d2-d4fe-4a79-a51a-3dbdb6b0a9b8",
+      "plan_digest": "ecb27c26165377d252bcda8328be1dc143ed1967f1886a1fbd687dcf3348fca8",
+      "template": "scale_deployment",
+      "origin": "operator_manual",
+      "execution_id": "0de9541f-bfc7-45e7-8dcd-60b0077b8b22",
+      "state": "manual_intervention",
+      "outcome": {
+        "schema_version": "RecoveryOutcome/v1",
+        "operation_id": "0de9541f-bfc7-45e7-8dcd-60b0077b8b22",
+        "attribution": "acknowledged",
+        "verification": "inconclusive",
+        "future_authority": "fresh_preflight_required",
+        "reason": "Verification evidence is inconclusive; investigate or hand off before a fresh change.",
+        "reconciliation": {
+          "attempts": 0,
+          "maximum_attempts": 6,
+          "deadline": "2026-11-16T19:52:08.819933Z"
+        }
+      },
+      "before": {
+        "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+        "replicas": 1,
+        "containers": [
+          {
+            "name": "app",
+            "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "192Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              }
+            }
+          }
+        ]
+      },
+      "desired": {
+        "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+        "replicas": 2,
+        "containers": [
+          {
+            "name": "app",
+            "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "192Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              }
+            }
+          }
+        ]
+      },
+      "policy": {
+        "id": "e07-local-recovery",
+        "version": "r7-integrated-1",
+        "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+      },
+      "verification_profile_digest": "c890fed10d8ad3e11cd46abaa69bf655037b76b1b35206534edaf20fb16b35e0",
+      "acknowledged_at": "2026-11-16T19:50:08.930876Z",
+      "fixed_deadline": "2026-11-16T19:53:08.930876Z",
+      "finalized_at": "2026-11-16T19:53:10.495468Z",
+      "qualified_rollout_samples": 0,
+      "expected_rollout_samples": 5,
+      "application": {
+        "state": "passed",
+        "coverage": 1.0,
+        "pod_uids": [
+          "638f44a6-d795-4488-b8d9-3e596f06f144",
+          "6cf88b86-bc52-4f00-a1f2-784bddfa8fe0"
+        ],
+        "offered_rps": 30.0,
+        "reason_codes": [],
+        "valid_samples": 5,
+        "failed_samples": [],
+        "expected_samples": 5
+      },
+      "reason_codes": [
+        "insufficient_qualified_observations",
+        "rollout_failure_or_window_coverage_incomplete"
+      ]
+    },
+    "runtime_image_correction": {
+      "old_docker_config_digest": {
+        "app": "sha256:b213a46dc386770a6d0cae4323da81f5767a174626f5676cee6abfcccf0f7cf1"
+      },
+      "actual_Kubernetes_runtime_digest": {
+        "app": "sha256:490ed5ccf70b99400e1aef592bfff395975ea23ac268ea2a0b84031c3104a8be"
+      },
+      "read_only_diagnostic_not_fresh_success": true,
+      "historical_inconclusive_result_unchanged": true
+    },
+    "harness_limits": "Initial readiness and finite-worker wait checks were corrected. Existing acknowledged/unknown executions and root exclusion receipts were retained without repeating functional operations; maintenance annotation generation changes are counted separately from selected-spec writes."
+  },
+  "UI": {
+    "source_layout_fix": "Explicit minmax(0,1fr) on vertical foundation-stack; actual long verification version overflow measured and fixed",
+    "before_320": {
+      "at": "2026-11-16T19:39:39.574Z",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "measurements": {
+        "clientWidth": 305,
+        "scrollWidth": 356
+      },
+      "source": "accepted R6 CSS; selected actual lost-ACK execution with R7 long verification profile version"
+    },
+    "after_320": {
+      "at": "2026-11-16T19:41:16.876Z",
+      "measurements": {
+        "clientWidth": 305,
+        "height": 844,
+        "scrollWidth": 305,
+        "width": 320
+      },
+      "source": "R7 foundation-stack minmax(0,1fr)",
+      "data": "same actual lost-ACK execution and long profile version"
+    },
+    "frozen_export_before_restores": {
+      "incident_id": "8a1e1c7b-d69d-4b89-8237-5daf2602bc66",
+      "resolution_id": "d80a714f-6cec-481f-b1cd-582f1e65ce02",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "actual_UI_copy_matches_API_bytes": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "at": "2026-11-16T19:28:29.662Z"
+    },
+    "frozen_export_after3real_restores": {
+      "phase": "after all3 real pg_dump/pg_restore cuts and new approval",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "exact_UI_copy_matches_original_API_bytes": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "theme": "dark",
+      "at": "2026-11-16T20:05:14.979Z"
+    },
+    "browser": "Actual connected Microsoft Edge Profile1, separate owned tab; no trust/permission changes",
+    "native_file_download_event": "Earlier R6 event capture timed out; not counted as a native file-download pass. Exact actual UI-copy/API bytes are proven.",
+    "frozen_export_after_all_operations": {
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd"
+    },
+    "viewer_inverse_390_light": {
+      "role": "viewer",
+      "selected_execution": "0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "expected_state": "rolled_back",
+      "expected_verification": "passed",
+      "mutation_controls": 0,
+      "layout": {
+        "clientWidth": 375,
+        "height": 844,
+        "scrollWidth": 375,
+        "width": 390
+      },
+      "at": "2026-11-16T20:39:29.684Z"
+    },
+    "viewer_inverse_390_dark": {
+      "client": 375,
+      "height": 844,
+      "scroll": 375,
+      "selection": "#/incidents/ac062142-a7e8-4cf5-89fc-56c2a1fa377d?plan=2634f4fc-14d8-4127-aebe-168b45ee55ea&execution=0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "width": 390
+    },
+    "viewer_verification_320_dark": {
+      "client": 305,
+      "height": 844,
+      "scroll": 305,
+      "selection": "#/incidents/ac062142-a7e8-4cf5-89fc-56c2a1fa377d?plan=2634f4fc-14d8-4127-aebe-168b45ee55ea&execution=0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "width": 320
+    },
+    "shared_stack_consumers_320_dark": {
+      "workload_context_dialog": {
+        "client_width": 277,
+        "scroll_width": 277
+      },
+      "connections": {
+        "document_client_width": 305,
+        "document_scroll_width": 305
+      },
+      "only_read_UI_actions": true
+    },
+    "screenshots": [
+      "../images/e07-r7-frozen-copy-320-dark.jpg",
+      "../images/e07-r7-viewer-inverse-320-light.jpg",
+      "../images/e07-r7-viewer-inverse-390-dark.jpg",
+      "../images/e07-r7-viewer-verification-320-dark.jpg"
+    ]
+  },
+  "local_checks": {
+    "backend_integration": 1124,
+    "backend_unit": 885,
+    "backend_combined": 2009,
+    "web": 259,
+    "web_files": 26,
+    "build": "passed; existing >500KB chunk advisory",
+    "contracts": "match",
+    "drift": "pass",
+    "ruff": "pass",
+    "format_files": 305,
+    "final_head_CI": "not run; no R7 PR yet"
+  },
+  "release_limits": [
+    "No cloud or production qualification",
+    "No SLO/rules-comparator/15-run E10 release claim",
+    "Configured verification thresholds do not establish a repaired memory leak",
+    "Epic10 and issue85 remain open until every required gate is actually demonstrated"
+  ],
+  "negative_controls": {
+    "already_current_no_op": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "no_op",
+          "message": "The target already has that replica count; no executable change is needed."
+        }
+      }
+    },
+    "controller_conflict": {
+      "hpa_uid": "53e98da2-fd16-4961-9ae1-f04ad4aed443",
+      "denial": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "controller_conflict",
+            "message": "A workload controller owns this target. Manual review is required."
+          }
+        }
+      }
+    },
+    "capacity_conflict": {
+      "pod_uid": "0570baa6-14cf-49a8-b053-ef34bfaa95f5",
+      "node_uid": "88cfc091-9b39-428f-8c7f-1bd24ab035f1",
+      "assigned_node": "cloudops-e07",
+      "previous_allocated_cpu": "0.295",
+      "reservation_millicores": 2680,
+      "remaining_millicores": 25,
+      "denial": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "capacity_unproven",
+            "message": "Requested replicas exceed proven allocatable requests."
+          }
+        }
+      }
+    },
+    "viewer": {
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "permission_denied",
+          "message": "Viewer access is read-only. An Operator must perform this action."
+        }
+      }
+    },
+    "real401_no_replay": {
+      "status": 401,
+      "body": {
+        "error": {
+          "code": "session_expired",
+          "message": "Sign in to continue. Your saved work is still available."
+        }
+      }
+    },
+    "old_session_receipt": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "plan_refetch_required",
+          "message": "Read the current plan after signing in and make a fresh explicit decision."
+        }
+      }
+    },
+    "unknown_forward_inverse": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "inverse_unavailable",
+          "message": "Reopen the saved incident before proposing a separately approved inverse."
+        }
+      }
+    },
+    "empty_restore_diff": {
+      "state": "manual_only",
+      "reason": "no_supported_diff",
+      "execution_eligible": false
+    },
+    "configuration_only": {
+      "state": "manual_only",
+      "reason": "config_unverified",
+      "execution_eligible": false
+    },
+    "initial_unassigned_capacity_preview": {
+      "HTTP_status": 201,
+      "plan_id": "ab35ae18-a01b-47ad-9f9e-01d62b2f210e",
+      "no_approval_or_dispatch": true,
+      "reason": "Reservation was not yet assigned to the Node when inspected; preserve preview, require actual allocation before capacity control."
+    },
+    "terminating_reservation_still_denied": {
+      "HTTP_status": 409,
+      "code": "capacity_unproven",
+      "no_approval_or_dispatch": true
+    },
+    "owned_controls_cleaned_up": true
+  },
+  "tested_runtime": {
+    "recorded_at": "2026-11-16T20:50:37.011278+00:00",
+    "backend_modules": 135,
+    "API_runtime_matches_source": true,
+    "source_fingerprint": "7af8455bb6c3831454aea0f11060f582ba5e640b2424bad262bb277e3adf7876",
+    "containers": [
+      {
+        "name": "cloudops-e07-acceptance-api-1",
+        "image_id": "sha256:3912eb001804a56d5eacdf249b321f5cb91cabf78adf789078969b4de223d6a7",
+        "running": true,
+        "owner": "2f567fcc-6fc1-4746-8ac9-1a02c191d6bd"
+      },
+      {
+        "name": "cloudops-e07-acceptance-gateway-1",
+        "image_id": "sha256:3912eb001804a56d5eacdf249b321f5cb91cabf78adf789078969b4de223d6a7",
+        "running": true,
+        "owner": "2f567fcc-6fc1-4746-8ac9-1a02c191d6bd"
+      }
+    ]
+  },
+  "controlled_gateway_transport": {
+    "serving_command_instrumented": true,
+    "only_forward_inverse_functional_PATCH_interruption": "Real original Kubernetes client and conditional patch; original policy, journal, flock, identity pin and host authority retained",
+    "final_uninstrumented_restart_and_cleanup": "pending; no final acceptance claim"
+  },
+  "source_counts": {
+    "backend_py": 135,
+    "web_sources": 99
+  },
+  "changed_source_sha256": {
+    "apps/web/src/app/foundation.css": "5359a717aa1e441c2d1e746265645b8016373ae9cadcaa75e113725c445edb26",
+    "config/lab/recovery_app.py": "d463b506bbe63afefbe11d3dae32d439e7029c83178d0e7a2cc2cec77a30bab6",
+    "services/backend/tests/e07_live_worker.py": "0dad197cb66601964ba4b6499ece435fa541cf5978a2c8525eecbe178443aabf",
+    "services/backend/tests/test_e07_live_budget.py": "7b45f94efa75a89d90d39a35ebe629f85e252e849a8f5b00342fcf6fcbb69212"
+  },
+  "fingerprint_algorithm": "SHA256 of json.dumps(relative path to file SHA256,sort_keys=True); backend/src .py,web/src .ts/.tsx/.css plus the named sample and acceptance driver/tests"
+}

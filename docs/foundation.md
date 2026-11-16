@@ -495,4 +495,8 @@ The [R6 journey record](evidence/e07-r6-journeys.json) separates actual Edge/API
 
 For a supported application restore, stop API/worker/observer processes, enter host dispatch recovery with **every class denied**, and enter gateway recovery for **all configured UIDs** before restoring PostgreSQL. Preserve both independent authority stores and their identity pins. In a trusted maintenance context that owns the original host permit and can access the isolated gateway Unix socket and restored database, run `python -m cloudops.entrypoints.recovery_restore`. It requires a valid closed host permit and root-peer `target_status` showing every gateway target quarantined, including targets absent from restored application rows. It revokes restored browser sessions/reviews, invalidates pending approval authority and retires restored recovery jobs. An unmarked restored snapshot cannot prove no write. Cleanup neither enables the gateway nor supplies old-writer exclusion proof; use the existing root fence/readback and explicit enable/exit procedure afterward, then sign in and make a fresh explicit approval. Other trusted root maintenance must remain idle during this stopped-app procedure.
 
+The [owned E07 acceptance protocol](e07-local-acceptance.md) records the finite
+lab, real restore/resumption checks and consumer handoff. Its integrated ledger
+keeps the remaining live-model qualification and final cleanup gates explicit.
+
 Fresh package audits are recorded with the tested PR commit. Existing web development-tool advisories remain an E10 release-tooling gate; a zero production-package audit is not a container/OS vulnerability scan or a complete security assessment. Only one maintainer has reviewed producer/consumer integration so far.
