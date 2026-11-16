@@ -287,3 +287,13 @@ def test_changed_prompt_cohort_preserves_used_requests_tokens_and_repair(tmp_pat
     campaign.save(budget.path, budget.data)
     with pytest.raises(ValueError, match="unsettled"):
         campaign.freeze(tmp_path / "unsafe", previous=budget.path)
+
+
+def test_usage_stop_prevents_analysis_admission(tmp_path, monkeypatch):
+    campaign.freeze(tmp_path)
+    budget = campaign.Budget(tmp_path / "ledger.json")
+    budget.data["observed_tokens"] = campaign.TOKEN_STOP
+    monkeypatch.setattr(campaign, "seed_case", lambda *_: pytest.fail("No Run may be admitted"))
+    with pytest.raises(ValueError, match="token stop"):
+        campaign.execute_case(None, None, {"id": "uncalled"}, budget, {})
+    assert budget.data["calls"] == [] and budget.data["cases"] == {}

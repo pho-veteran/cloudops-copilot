@@ -254,6 +254,8 @@ def case_result(db, analysis_id):
 def execute_case(db, actor, case, budget, current, *, operational=False):
     from cloudops.entrypoints.worker import run_once
 
+    if case["id"] != "n-required-gap":
+        budget.check(MODELS[0], False)
     run_id = seed_case(db, actor, case)
     analysis = admit(
         db, db.get(InvestigationRun, run_id), purpose="operational" if operational else "evaluation"
