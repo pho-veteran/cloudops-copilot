@@ -98,6 +98,7 @@ function RequestInvestigation({
                     result.run_id,
                     incidentReturnHash(window.location.hash),
                     safeRoute(window.location.hash).resolution,
+                    "", safeRoute(window.location.hash).selection,
                   );
                 },
               })
@@ -253,6 +254,7 @@ export function InvestigationWorkspace({
                         r.id,
                         incidentReturnHash(window.location.hash),
                         selectedResolution,
+                        "", safeRoute(window.location.hash).selection,
                       )}
                     >
                       <span>{runStateLabel(r)}</span>
@@ -344,6 +346,7 @@ export function InvestigationWorkspace({
                 incidentId={id}
                 runId={current.data.id}
                 canMutate={canMutate}
+                onRecovery={() => document.getElementById("recovery-review")?.focus()}
               />
               {current.data.state !== "completed" &&
                 latest.data.items.some(
@@ -370,6 +373,7 @@ export function InvestigationWorkspace({
                                 id,
                                 item.id,
                                 incidentReturnHash(window.location.hash),
+                                selectedResolution, "", safeRoute(window.location.hash).selection,
                               )}
                             >
                               Open historical findings · {item.id}
@@ -444,6 +448,7 @@ export function InvestigationWorkspace({
             incidentReturnHash(window.location.hash),
             resolution,
             selectedEvidence,
+            safeRoute(window.location.hash).selection,
           );
         }}
       />
@@ -451,6 +456,12 @@ export function InvestigationWorkspace({
         id={id}
         canMutate={canMutate}
         live={incident.data.workload.source === "live_kubernetes"}
+        workloadId={incident.data.workload.id}
+        runId={runId}
+        latestRunId={latest.data.items[0]?.id}
+        resolved={resolved}
+        runBusy={busy}
+        canInvestigate={canRequest}
       />
     </section>
   );

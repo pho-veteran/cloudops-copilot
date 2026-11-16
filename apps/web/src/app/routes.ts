@@ -135,6 +135,8 @@ export function incidentReturnHash(hash: string): string {
 }
 
 export interface EvidenceSelection {
+  plan?: string;
+  execution?: string;
   leftIncident?: string;
   leftRun?: string;
   rightIncident?: string;
@@ -148,6 +150,7 @@ export interface EvidenceSelection {
 }
 
 const extraParams = {
+  plan: "plan", execution: "execution",
   leftIncident: "compare_left_incident", leftRun: "compare_left_run",
   rightIncident: "compare_incident", rightRun: "compare_run",
   source: "compare_source", catalog: "compare_catalog",
@@ -265,6 +268,7 @@ export function safeRoute(hash: string): SafeRoute {
   const validLocator = !selection.locatorKind && !selection.locatorKey || Boolean(evidence && selection.locatorKey && /^v1_[a-f0-9]{64}$/.test(selection.locatorKey) && ["field", "event", "log_segment", "series", "sample"].includes(selection.locatorKind || ""));
   const filter = incidentParams.get("compare_filter");
   const validStatus = !selection.differenceStatus || hasCompare && ["added", "removed", "changed", "unchanged", "unavailable", "not_comparable"].includes(selection.differenceStatus);
+  const validRecovery = (!selection.plan || uuid.test(selection.plan)) && (!selection.execution || uuid.test(selection.execution));
   if (filter === "changed") selection.changedOnly = true;
   const allowed = ["run", "evidence", "resolution", "return_to", "compare_filter", ...Object.values(extraParams)];
   if (
@@ -273,7 +277,7 @@ export function safeRoute(hash: string): SafeRoute {
     (!run || uuid.test(run)) &&
     (!evidence || (uuid.test(evidence) && Boolean(run))) &&
     (!resolution || uuid.test(resolution)) &&
-    validCompare && validSource && validLocator && validStatus && (!filter || hasCompare && filter === "changed") &&
+    validCompare && validSource && validLocator && validStatus && validRecovery && (!filter || hasCompare && filter === "changed") &&
     [...incidentParams.keys()].every((key) => allowed.includes(key) && incidentParams.getAll(key).length <= 1) &&
     incidentParams.getAll("run").length <= 1 &&
     incidentParams.getAll("evidence").length <= 1 &&

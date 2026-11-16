@@ -29,6 +29,8 @@ afterEach(() => {
   window.location.hash = "";
 });
 
+import { recoveryAvailabilityFixture } from "@/features/recovery/fixtures";
+
 const incidentId = "00000000-0000-4000-8000-000000000010";
 const workload = { ...workloadFixture.items[0], observation: undefined };
 function run(overrides: Partial<components["schemas"]["RunView"]> = {}) {
@@ -75,6 +77,10 @@ function mount(
     const overridden = override?.(request);
     if (overridden) return overridden;
     const path = new URL(request.url).pathname;
+    if (path.endsWith("/recovery-availability")) return Response.json({ ...recoveryAvailabilityFixture(workload.id), target_authority: "unavailable", application_state: "unavailable" });
+    if (path === "/api/recovery-policy") return Response.json({ policy: null, digest: null, execution_capability: "manual_scale_only", verification_profiles: [] });
+    if (path.endsWith("/baselines")) return Response.json({ items: [], next_cursor: null });
+    if (path.endsWith("/analysis")) return Response.json({ schema_version: "AnalysisView/v1", status: "unconfigured", attempts: 0, calls: 0, repairs: 0, max_attempts: 3, max_calls: 3, max_repairs: 1, history: [], attempt_history: [], model_slot_busy: false, resume_allowed: false });
     if (path === "/api/session") return Response.json({
       principal: { id: "00000000-0000-4000-8000-000000000030", username: "operator", role: "operator" },
       csrf_token: "test-csrf",

@@ -2,6 +2,7 @@ import {
   buildIncidentHash,
   buildKnowledgeHash,
   incidentReturnHash,
+  safeRoute,
 } from "@/app/routes";
 
 const uuid = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
@@ -142,7 +143,7 @@ export function HandoffReferences({
                   incidentReturnHash(window.location.hash),
                   resolutionId,
                   ref.evidence,
-                  { locatorKind: ref.kind, locatorKey: ref.key },
+                  { plan: safeRoute(window.location.hash).selection?.plan, execution: safeRoute(window.location.hash).selection?.execution, locatorKind: ref.kind, locatorKey: ref.key },
                 )}
               >
                 Open stored {ref.kind ? `${ref.kind} citation` : "evidence"} ·{" "}

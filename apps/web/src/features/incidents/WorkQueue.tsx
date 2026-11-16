@@ -9,6 +9,7 @@ import {
 import { Failure, Loading } from "@/app/Feedback";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ExecutionOutcome } from "@/features/recovery/RecoveryEvidence";
 
 const uuid =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -404,10 +405,11 @@ export function WorkQueue() {
                       </p>
                     )}
                     {(incident.relevant_executions ?? []).map((execution) => (
-                      <p className="text-xs" role="status" key={execution.id}>
+                      <div className="text-xs" role="status" key={execution.id}>
                         Execution: {execution.state} · {execution.classification.replaceAll("_", " ")}
                         {execution.holds_lock ? " · target locked" : " · target lock released"}
-                      </p>
+                        <ExecutionOutcome state={execution.state} outcome={execution.outcome} />
+                      </div>
                     ))}
                     {(incident.relevant_executions ?? []).length === 0 && (
                       <p className="muted text-xs">Active or unknown execution: none recorded</p>
