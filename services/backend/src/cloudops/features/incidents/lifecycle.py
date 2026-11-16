@@ -185,6 +185,9 @@ def transition(
                 raise DomainError(
                     409, "incident_state_changed", "This incident is already resolved."
                 )
+            from cloudops.features.recovery.service import retire_unsent
+
+            retire_unsent(db, incident_id)
             if blocking_execution(db, incident_id):
                 raise DomainError(
                     409,

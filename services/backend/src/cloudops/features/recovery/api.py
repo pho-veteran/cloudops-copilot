@@ -11,6 +11,7 @@ from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal, SessionView
 from cloudops.features.recovery import plans as builders, policy, service
 from cloudops.features.recovery.models import ActionPlan, Execution
+from cloudops.features.recovery.outcomes import Outcome
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES
 from cloudops.shared.schemas import View
@@ -99,6 +100,7 @@ class ExecutionView(View):
     state: str
     holds_lock: bool
     result: dict
+    outcome: Outcome
     created_at: datetime
     finished_at: datetime | None
 

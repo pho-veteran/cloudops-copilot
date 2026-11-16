@@ -14,6 +14,7 @@ from test_diagnosis_validation import _crashloop, _raw, policy
 from test_permissions import permission_context as _permission_context
 
 from cloudops.features.diagnosis.advice import validate
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.diagnosis.context import build
 from cloudops.features.diagnosis.models import Analysis, AnalysisContext, AnalysisResult
 from cloudops.features.incidents.models import Incident
@@ -22,7 +23,7 @@ from cloudops.features.investigations.models import Evidence, InvestigationRun
 from cloudops.features.recovery import service
 from cloudops.features.recovery.models import ActionPlan, Execution
 from cloudops.features.workloads.models import Workload
-from cloudops.shared.jobs import Job
+from cloudops.shared.jobs import Job, claim_next
 from cloudops.shared.database import BACKEND_ROOT, database_now, engine, sessions
 
 permission_context = _permission_context
@@ -398,11 +399,21 @@ def test_status_rv_movement_keeps_exact_diff_and_freezes_dispatch_preconditions(
         )
         identifier = execution.id
     requests = []
+    lookups = []
+
+    def gateway(path, value=None, **kwargs):
+        if path == "/dispatch":
+            requests.append(value)
+        else:
+            lookups.append(path)
+        return {"outcome": "acknowledged"}
+
     monkeypatch.setattr(
         service.client,
         "gateway",
-        lambda path, value: requests.append(value) or {"outcome": "acknowledged"},
+        gateway,
     )
+    assert claim_next({"recovery_execution_v1": service.ExecutionHandler()}, GATE) is not None
     service.execute(identifier, before_call=lambda: None)
     with sessions()() as db, db.begin():
         service.ExecutionHandler().failed(db, identifier, "Controlled lost worker", False)
@@ -419,7 +430,7 @@ def test_status_rv_movement_keeps_exact_diff_and_freezes_dispatch_preconditions(
     service.execute(identifier, before_call=lambda: None)
     c.consumer.deployment["metadata"]["resourceVersion"] = "later-status-rv"
     service.execute(identifier, before_call=lambda: None)
-    assert all(request == requests[0] for request in requests)
+    assert len(requests) == 1 and lookups == [f"/operations/{identifier}"]
     assert requests[0]["resource_version"] == "new-status-only-rv"
 
 

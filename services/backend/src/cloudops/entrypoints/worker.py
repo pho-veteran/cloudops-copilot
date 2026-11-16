@@ -19,6 +19,8 @@ from cloudops.features.investigations.collector import (
 from cloudops.features.investigations.promotion import promote_deferred
 from cloudops.features.recommendations.worker import ReportHandler, generate
 from cloudops.features.recovery.service import ExecutionHandler, execute
+from cloudops.features.recovery.outcomes import RECONCILE_JOB
+from cloudops.features.recovery.reconciliation import ReconciliationHandler, reconcile
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, require_schema, sessions
 from cloudops.shared.jobs import Claim, claim_next, finish, renew, start_call
@@ -41,6 +43,7 @@ HANDLERS = {
     "development_collection_v1": CollectionHandler(finalize=admit),
     "recommendation_report_v1": ReportHandler(),
     "recovery_execution_v1": ExecutionHandler(),
+    RECONCILE_JOB: ReconciliationHandler(),
 }
 if HANDLERS.keys() != PERMIT_CLASSES.keys():
     raise RuntimeError("Every worker job kind needs exactly one dispatch permit class.")
@@ -129,6 +132,9 @@ def run_once() -> bool:
     try:
         if claim.kind in {ANALYSIS_JOB, PROBE_JOB}:
             (analyze if claim.kind == ANALYSIS_JOB else probe)(claim, GATE, slot, lease_lost)
+            return True
+        if claim.kind == RECONCILE_JOB:
+            reconcile(claim, GATE, lease_lost)
             return True
         if claim.kind == "development_collection_v1":
             adapters = configured_adapters(os.environ.get("COLLECTION_SOURCE_MODE", "none"))

@@ -14,6 +14,7 @@ def main():
         "operation",
         choices=[
             "status",
+            "target_status",
             "enter_recovery",
             "enable_target",
             "release_uncertain_target",

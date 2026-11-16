@@ -143,6 +143,7 @@ def test_recovery_during_execution_preparation_denies_gateway(
     execution_id = UUID(permission_context.consumer.execution_id)
     with sessions()() as db, db.begin():
         row = db.get(Execution, execution_id)
+        row.state, row.holds_lock = "executing", True
         db.get(ActionPlan, row.plan_id).expires_at = database_now(db) + timedelta(minutes=5)
     claim = claim_for("recovery_execution_v1", execution_id)
     original_now = recovery.database_now

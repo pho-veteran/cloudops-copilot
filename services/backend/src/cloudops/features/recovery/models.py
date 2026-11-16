@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func, text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -42,6 +42,7 @@ class PlanReview(Base):
 class Execution(Base):
     __tablename__ = "recovery_executions"
     __table_args__ = (
+        CheckConstraint("reconcile_attempts >= 0", name="reconcile_attempts_nonnegative"),
         Index(
             "one_recovery_per_target",
             "workload_id",
@@ -56,5 +57,15 @@ class Execution(Base):
     holds_lock: Mapped[bool] = mapped_column(default=True)
     maintenance_released: Mapped[bool] = mapped_column(default=False)
     result: Mapped[dict] = mapped_column(JSONB, default=dict)
+    dispatch_request: Mapped[dict | None] = mapped_column(JSONB)
+    dispatch_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reconcile_deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reconcile_attempts: Mapped[int] = mapped_column(default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    @property
+    def outcome(self):
+        from cloudops.features.recovery.outcomes import project
+
+        return project(self)

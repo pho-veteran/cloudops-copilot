@@ -12,13 +12,18 @@ from cloudops.features.investigations.states import nonterminal_run
 from cloudops.features.recovery import client
 from cloudops.features.recovery.classification import BLOCKING, classify
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
+from cloudops.features.recovery.outcomes import (
+    RECONCILE_ATTEMPTS,
+    RECONCILE_JOB,
+    RECONCILE_SECONDS,
+)
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
 from cloudops.features.workloads.models import Workload
 from cloudops.features.workloads.service import require_active
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.config import settings
 from cloudops.shared.errors import DomainError
-from cloudops.shared.jobs import Job
+from cloudops.shared.jobs import Job, retire_queued
 
 
 def _available_locally(db, workload):
@@ -27,12 +32,13 @@ def _available_locally(db, workload):
             409, "live_target_required", "A synthetic workload cannot produce an executable plan."
         )
     executions = db.execute(
-        select(Execution.state, Execution.holds_lock, Execution.maintenance_released).where(
-            Execution.workload_id == workload.id
-        )
+        select(
+            Execution.state, Execution.holds_lock, Execution.maintenance_released, Execution.result
+        ).where(Execution.workload_id == workload.id)
     )
     if any(
-        row.holds_lock or classify(row.state, row.holds_lock, row.maintenance_released) in BLOCKING
+        row.holds_lock
+        or classify(row.state, row.holds_lock, row.maintenance_released, row.result) in BLOCKING
         for row in executions
     ):
         raise DomainError(
@@ -126,6 +132,37 @@ def invalidate(db, incident_id):
         .where(ActionPlan.incident_id == incident_id, ActionPlan.state == "proposed")
         .values(state="invalidated")
     )
+
+
+def retire_unsent(db, incident_id):
+    executions = db.scalars(
+        select(Execution)
+        .join(ActionPlan, ActionPlan.id == Execution.plan_id)
+        .where(ActionPlan.incident_id == incident_id, Execution.state == "queued")
+        .order_by(Execution.id)
+    ).all()
+    for execution in executions:
+        if execution.dispatch_started_at is not None or not retire_queued(
+            db, "recovery_execution_v1", execution.id, "Invalidated before dispatch claim."
+        ):
+            continue
+        db.refresh(execution, with_for_update=True)
+        if execution.state != "queued" or execution.dispatch_started_at is not None:
+            raise DomainError(409, "execution_active", "Dispatch claim won; inspect its outcome.")
+        execution.state, execution.holds_lock = "manual_intervention", False
+        record_outcome(
+            execution,
+            {
+                "outcome": "denied",
+                "attribution": "not_sent",
+                "verification": "not_performed",
+                "code": "invalidated_before_claim",
+                "reason": "The unclaimed execution was retired before any gateway call.",
+            },
+        )
+        execution.finished_at = database_now(db)
+        db.get(ActionPlan, execution.plan_id).state = "invalidated"
+    db.flush()
 
 
 def read(db, plan_id, session):
@@ -308,6 +345,7 @@ def decide(db, plan_id, session, body):
             )
             db.add(execution)
             db.flush()
+            execution.dispatch_request = dispatch_request(plan, execution, current)
             db.add(Job(kind="recovery_execution_v1", subject_id=execution.id))
         review.consumed = True
         plan.state = "approved" if body.decision == "approve" else "rejected"
@@ -316,43 +354,198 @@ def decide(db, plan_id, session, body):
         return plan
 
 
+def dispatch_request(plan, execution, current=None):
+    captured = execution.result.get("dispatch_resource_version")
+    if captured is None:
+        captured = plan.content.get("resource_version")
+    if current is not None:
+        captured = current["metadata"]["resourceVersion"]
+    if plan.content.get("schema_version") == "RecoveryPlan/v2":
+        from cloudops.features.recovery.dispatch import RecoveryDispatch
+
+        return RecoveryDispatch(
+            schema_version="RecoveryDispatch/v2",
+            operation_id=execution.id,
+            execution_id=execution.id,
+            direction=plan.content["direction"],
+            template=plan.template,
+            plan_id=plan.id,
+            plan_version=plan.version,
+            plan_digest=plan.digest,
+            uid=plan.content["workload"]["uid"],
+            epoch=plan.target_epoch,
+            resource_version=captured,
+            expires_at=plan.expires_at,
+            policy=plan.content["policy"],
+            before=plan.content["before"],
+            desired=plan.content["desired"],
+            selector=plan.content["selector"],
+        ).model_dump(mode="json")
+    return {
+        "execution_id": str(execution.id),
+        "uid": plan.content["workload"]["uid"],
+        "epoch": plan.target_epoch,
+        "resource_version": captured,
+        "replicas": plan.content["replicas"],
+        "before": plan.content["before"],
+        "plan_digest": plan.digest,
+        "expires_at": plan.expires_at.isoformat(),
+    }
+
+
+def unknown(reason):
+    return {
+        "outcome": "outcome_unknown",
+        "attribution": "outcome_unknown",
+        "verification": "inconclusive",
+        "reason": reason,
+    }
+
+
+def receipt_result(receipt, execution_id, request=None):
+    if not isinstance(receipt, dict):
+        raise ValueError("Unsupported gateway receipt.")
+    version_two = request is not None and request.get("schema_version") == "RecoveryDispatch/v2"
+    if version_two and receipt.get("schema_version") != "RecoveryReceipt/v2":
+        raise ValueError("A v2 operation requires its exact typed receipt.")
+    if (
+        request is not None
+        and not version_two
+        and receipt.get("schema_version") == "RecoveryReceipt/v2"
+    ):
+        raise ValueError("A legacy operation cannot change receipt protocol.")
+    if receipt.get("schema_version") == "RecoveryReceipt/v2":
+        from cloudops.features.recovery.dispatch import RecoveryReceipt
+
+        value = RecoveryReceipt.model_validate(receipt)
+        if value.operation_id != execution_id:
+            raise ValueError("Receipt operation identity changed.")
+        if value.attribution == "acknowledged" and (
+            not value.acknowledged_resource_version or value.acknowledged_at is None
+        ):
+            raise ValueError("Acknowledged operation metadata is unavailable.")
+        if version_two and (
+            str(value.plan_id) != request["plan_id"] or value.plan_digest != request["plan_digest"]
+        ):
+            raise ValueError("Receipt plan identity changed.")
+        return {
+            **receipt,
+            "outcome": value.attribution,
+            "verification": "not_performed"
+            if value.attribution in {"denied", "not_sent"}
+            else "inconclusive",
+            "gateway_receipt": receipt,
+        }
+    if receipt.get("outcome") not in {"acknowledged", "denied", "outcome_unknown"}:
+        raise ValueError("Unsupported gateway receipt.")
+    return receipt
+
+
+def lookup(execution_id, request=None):
+    try:
+        return receipt_result(client.operation(execution_id), execution_id, request)
+    except (DomainError, ValueError, TypeError, KeyError):
+        return unknown(
+            "No exact durable gateway receipt is available. Missing receipt does not establish no write; reconciliation is read-only."
+        )
+
+
+def admit_receipt_read(db, row):
+    if (
+        row.reconcile_deadline is None
+        or row.reconcile_deadline <= database_now(db)
+        or row.reconcile_attempts >= RECONCILE_ATTEMPTS
+    ):
+        return False
+    row.reconcile_attempts += 1
+    return True
+
+
 def execute(execution_id, *, before_call):
-    with sessions()() as db:
-        execution = db.get(Execution, execution_id)
+    with sessions()() as db, db.begin():
+        original = db.get(Execution, execution_id)
+        db.scalar(select(Workload).where(Workload.id == original.workload_id).with_for_update())
+        execution = db.scalar(
+            select(Execution)
+            .where(Execution.id == execution_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
         plan = db.get(ActionPlan, execution.plan_id)
         if execution.maintenance_released:
-            return {
-                "outcome": "outcome_unknown",
-                "verification": "inconclusive",
-                "reason": "Trusted maintenance retired this authority; historical attribution remains unknown.",
-            }
-        if plan.expires_at <= database_now(db):
+            return execution.result or unknown("Trusted maintenance retired this authority.")
+        if execution.state in {
+            "manual_intervention",
+            "succeeded",
+            "failed",
+            "no_op",
+            "rolled_back",
+        }:
+            return execution.result
+        already_started = execution.dispatch_started_at is not None
+        if already_started and not admit_receipt_read(db, execution):
+            return unknown(
+                "Persisted receipt-read budget exhausted; keep target quarantine without another external request."
+            )
+        if not already_started and plan.expires_at <= database_now(db):
             return {
                 "outcome": "denied",
+                "attribution": "not_sent",
                 "verification": "not_performed",
                 "reason": "Plan expired before execution; prepare a new investigation and plan.",
             }
-        request = {
-            "execution_id": str(execution.id),
-            "uid": plan.content["workload"]["uid"],
-            "epoch": plan.target_epoch,
-            "resource_version": execution.result.get(
-                "dispatch_resource_version", plan.content["resource_version"]
-            ),
-            "replicas": plan.content["replicas"],
-            "before": plan.content["before"],
-            "plan_digest": plan.digest,
-            "expires_at": plan.expires_at.isoformat(),
-        }
+        request = execution.dispatch_request or dispatch_request(plan, execution)
+        if not already_started:
+            execution.dispatch_request = request
+    before_call()
+    if already_started:
+        return lookup(execution_id, request)
+    with sessions()() as db, db.begin():
+        original = db.get(Execution, execution_id)
+        workload = db.scalar(
+            select(Workload).where(Workload.id == original.workload_id).with_for_update()
+        )
+        execution = db.scalar(
+            select(Execution)
+            .where(Execution.id == execution_id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        if execution.maintenance_released:
+            return execution.result or unknown("Trusted maintenance retired this authority.")
+        already_started = execution.dispatch_started_at is not None
+        if already_started and not admit_receipt_read(db, execution):
+            return unknown(
+                "Persisted receipt-read budget exhausted; keep target quarantine without another external request."
+            )
+        if not already_started:
+            now = database_now(db)
+            plan = db.get(ActionPlan, execution.plan_id)
+            if (
+                execution.state not in {"executing", "rolling_back"}
+                or not execution.holds_lock
+                or plan.state != "approved"
+                or plan.expires_at <= now
+                or execution.dispatch_request != request
+                or not workload.active
+            ):
+                return {
+                    "outcome": "denied",
+                    "attribution": "not_sent",
+                    "verification": "not_performed",
+                    "reason": "The exact claimed approval is no longer available before call admission.",
+                }
+            execution.dispatch_started_at = now
+            execution.reconcile_deadline = now + timedelta(seconds=RECONCILE_SECONDS)
+    if already_started:
+        return lookup(execution_id, request)
+    before_call()
     try:
-        before_call()
-        return client.gateway("/dispatch", request)
-    except DomainError:
-        return {
-            "outcome": "outcome_unknown",
-            "verification": "inconclusive",
-            "reason": "Executor response unavailable. Keep the target lock and use trusted maintenance proof; no blind repeat write is permitted.",
-        }
+        return receipt_result(client.gateway("/dispatch", request), execution_id, request)
+    except (DomainError, ValueError, TypeError, KeyError):
+        return unknown(
+            "Gateway response unavailable after call admission; no mutation retry is permitted."
+        )
 
 
 def record_outcome(row, result):
@@ -361,24 +554,71 @@ def record_outcome(row, result):
 
 
 class ExecutionHandler:
+    def eligible(self, db, subject_id):
+        execution = db.get(Execution, subject_id)
+        if execution is None:
+            return False
+        plan = db.get(ActionPlan, execution.plan_id)
+        incident = db.scalar(
+            select(Incident).where(Incident.id == plan.incident_id).with_for_update()
+        )
+        db.refresh(plan, with_for_update=True)
+        workload = db.scalar(
+            select(Workload).where(Workload.id == execution.workload_id).with_for_update()
+        )
+        db.refresh(execution, with_for_update=True)
+        if execution.maintenance_released or execution.state not in {
+            "queued",
+            "executing",
+            "reconciling",
+            "outcome_unknown",
+        }:
+            return False
+        if execution.dispatch_started_at is not None:
+            return True
+        if (
+            plan.state != "approved"
+            or incident.state == "resolved"
+            or not workload.active
+            or plan.expires_at <= database_now(db)
+        ):
+            execution.state, execution.holds_lock = "manual_intervention", False
+            execution.finished_at = database_now(db)
+            record_outcome(
+                execution,
+                {
+                    "outcome": "denied",
+                    "attribution": "not_sent",
+                    "verification": "not_performed",
+                    "reason": "The exact approval, original active target or expiry is unavailable before claim.",
+                },
+            )
+            return False
+        return True
+
     def started(self, db, subject_id):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())
         if not row.maintenance_released:
-            row.state = "executing"
+            row.state = "reconciling" if row.dispatch_started_at is not None else "executing"
 
     def failed(self, db, subject_id, reason, terminal):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())
         if row.maintenance_released:
             return
-        row.state, row.holds_lock = "outcome_unknown", True
+        started = row.dispatch_started_at is not None
+        row.state = "outcome_unknown" if started else "manual_intervention"
+        row.holds_lock = started
         record_outcome(
             row,
             {
-                "outcome": "outcome_unknown",
-                "verification": "inconclusive",
-                "reason": "The worker could not publish its execution receipt; trusted reconciliation is required.",
+                "outcome": "outcome_unknown" if started else "denied",
+                "attribution": "outcome_unknown" if started else "not_sent",
+                "verification": "inconclusive" if started else "not_performed",
+                "reason": "The worker could not publish its execution receipt; no functional replay is permitted.",
             },
         )
+        if terminal or not started:
+            row.finished_at = database_now(db)
 
     def publish(self, db, subject_id, result):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())
@@ -390,3 +630,14 @@ class ExecutionHandler:
         )
         row.holds_lock = row.state == "outcome_unknown"
         row.finished_at = database_now(db)
+        if (
+            row.state == "outcome_unknown"
+            and row.reconcile_deadline is not None
+            and row.reconcile_deadline > database_now(db)
+            and row.reconcile_attempts < RECONCILE_ATTEMPTS
+        ):
+            row.state, row.finished_at = "reconciling", None
+            if not db.scalar(
+                select(Job.id).where(Job.kind == RECONCILE_JOB, Job.subject_id == row.id)
+            ):
+                db.add(Job(kind=RECONCILE_JOB, subject_id=row.id, max_attempts=RECONCILE_ATTEMPTS))
