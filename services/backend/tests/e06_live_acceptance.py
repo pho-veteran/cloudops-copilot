@@ -32,7 +32,7 @@ FIXTURES = Path(__file__).parent / "fixtures/e06"
 MODELS = ("gpt-6.1-sol", "codex/gpt-6.1-terra")
 OWNED_DATABASE = "cloudops_e06_gpt_test"
 MAX_REQUESTS = 50
-TOKEN_STOP = 90000
+TOKEN_STOP = 170000
 
 
 def sha(path):
@@ -449,7 +449,7 @@ def freeze(root, carryover=None, previous=None, continue_cases=False):
     if (root / "ledger.json").exists():
         raise ValueError("Campaign already exists; never overwrite an initial cohort")
     plan = {
-        "cohort": "e06-gpt-schema-v2-owned-fixtures",
+        "cohort": "e06-gpt-structural-v3-owned-fixtures",
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "driver_sha256": sha(Path(__file__)),
         "cases_sha256": sha(FIXTURES / "cases.json"),

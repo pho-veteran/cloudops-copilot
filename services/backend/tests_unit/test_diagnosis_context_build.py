@@ -41,20 +41,20 @@ def test_versions_are_unique_and_pinned():
     values = {
         versions.CONTEXT_VERSION: "e06.context/v1",
         versions.TARGET_RULES_VERSION: "e06.targets/v1",
-        versions.PROMPT_VERSION: "e06.rca_prompt/v2",
+        versions.PROMPT_VERSION: "e06.rca_prompt/v3",
         versions.VALIDATOR_VERSION: "e06.validator/v1",
         versions.PROBE_PROMPT_VERSION: "e06.probe_prompt/v1",
     }
     assert list(values.values()) == [
         "e06.context/v1",
         "e06.targets/v1",
-        "e06.rca_prompt/v2",
+        "e06.rca_prompt/v3",
         "e06.validator/v1",
         "e06.probe_prompt/v1",
     ]
     for value in values:
         assert value.startswith("e06.")
-        assert value.endswith("/v2" if value == versions.PROMPT_VERSION else "/v1")
+        assert value.endswith("/v3" if value == versions.PROMPT_VERSION else "/v1")
     assert len(values) == 5
 
 
@@ -481,9 +481,11 @@ def test_optional_is_omitted_greedily_under_the_repair_reserve():
         [_entry("field", ["uid", "cm-1"], {"uid": "cm-1", "blob": "y" * 7000})],
     )
     fixture = _material("development_fixture", [_entry("field", ["path", "k"], {"k": "small"})])
-    context = _build([state, events, configmap, fixture], budget=16000)
+    complete = _build([state, events, configmap, fixture])
+    budget = complete.message_bytes - 6000 + versions.REPAIR_RESERVE_BYTES
+    context = _build([state, events, configmap, fixture], budget=budget)
     assert isinstance(context, PreparedContext)
-    assert context.message_bytes <= 16000 - 4096
+    assert context.message_bytes <= budget - versions.REPAIR_RESERVE_BYTES
     assert context.repair_available is True
     assert [target.source_key for target in context.optional_targets] == ["development_fixture"]
     assert any(
@@ -818,4 +820,6 @@ def test_model_messages_include_the_validator_schema_in_trusted_instructions():
     assert json.loads(schema) == RCAAdvice.model_json_schema()
     assert "insufficient_evidence with cause_category unknown" in instructions
     assert "at least one safe manual next_steps" in instructions
+    assert "citations covering every non-waived required slot" in instructions
+    assert "cite no source outside that family required-slot list" in instructions
     assert messages[1].role == "user" and messages[1].content == hostile_input

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 CONTEXT_VERSION = "e06.context/v1"
 TARGET_RULES_VERSION = "e06.targets/v1"
-PROMPT_VERSION = "e06.rca_prompt/v2"
+PROMPT_VERSION = "e06.rca_prompt/v3"
 VALIDATOR_VERSION = "e06.validator/v1"
 PROBE_PROMPT_VERSION = "e06.probe_prompt/v1"
 

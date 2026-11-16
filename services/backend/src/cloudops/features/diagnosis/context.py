@@ -472,7 +472,15 @@ SYSTEM_PROMPT = (
     "for other families or absent runbooks do not negate those observations. Otherwise use "
     "insufficient_evidence with cause_category unknown. Always include at least one safe manual "
     "next_steps entry. Pending and image-pull findings are manual-only with candidate_template_id "
-    "null; other candidates must match the observed family and remain advisory. Never invent "
+    "null; other candidates must match the observed family and remain advisory. "
+    "A ruled_out_hypotheses entry requires an eligible family, fully available sent coverage "
+    "with no omitted required targets, and citations covering every non-waived required slot "
+    "of that family; cite no source outside that family required-slot list. Otherwise put the "
+    "hypothesis in unverified_checks, not ruled_out_hypotheses. Prefer an empty ruled-out list "
+    "when these conditions are uncertain. Deduplicate each citation list; use E aliases for "
+    "observations and K aliases only for runbook_citation_ids. Candidate mapping is "
+    "crashloop_startup=restore_deployment_template, oom_restarts=set_memory_profile, "
+    "traffic_latency_errors=scale_deployment; null is always permitted. Never invent "
     "evidence, parameters, scope, recovery templates, or actions."
 )
 
