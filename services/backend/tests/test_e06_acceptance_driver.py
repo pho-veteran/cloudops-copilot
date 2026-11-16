@@ -45,18 +45,48 @@ def test_budget_is_durable_bounded_and_redacts_decoded_credential(tmp_path):
     assert "secret" not in (tmp_path / "ledger.json").read_text()
     reloaded = campaign.Budget(tmp_path / "ledger.json")
     assert len(reloaded.data["calls"]) == 1 and reloaded.data["repairs"] == 1
-    for _ in range(14):
-        reloaded.reserve(campaign.MODELS[0] if _ < 13 else campaign.MODELS[1], "remaining", False)
+    reloaded.data["prior_requests"] = campaign.MAX_REQUESTS - 2
+    reloaded.reserve(campaign.MODELS[1], "last", False)
     with pytest.raises(ValueError, match="budget exhausted"):
-        reloaded.reserve(campaign.MODELS[0], "sixteenth", False)
+        reloaded.reserve(campaign.MODELS[0], "over global limit", False)
     reloaded.data["calls"] = []
+    reloaded.data["prior_requests"] = 0
     reloaded.data["observed_tokens"] = campaign.TOKEN_STOP
     with pytest.raises(ValueError, match="token stop"):
         reloaded.reserve(campaign.MODELS[0], "over token stop", False)
 
 
+def passing_probe_receipt():
+    outcome = {
+        "kind": "text",
+        "http_status": 200,
+        "text": "OK",
+        "identity": {"requested_model": campaign.MODELS[1]},
+        "usage": {"prompt_tokens": 67, "completion_tokens": 5, "total_tokens": 72},
+    }
+    receipt = {
+        "endpoint": "http://localhost:20128/v1",
+        "output_limit": {"param": "max_completion_tokens", "value": 64},
+        "prior_model_requests": 1,
+        "model_requests_total": 3,
+        "results": [
+            {"admitted": True, "configured_model": campaign.MODELS[0], "outcome": outcome},
+            {
+                "admitted": True,
+                "configured_model": campaign.MODELS[1],
+                "schema_success": True,
+                "profile_identity": {},
+                "policy_digest": "fixture",
+                "outcome": outcome,
+            },
+        ],
+    }
+    return receipt
+
+
+@pytest.mark.parametrize("reuse_secondary", [False, True])
 def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
-    db, seeded, tmp_path, monkeypatch
+    db, seeded, tmp_path, monkeypatch, reuse_secondary
 ):
     for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
         monkeypatch.setenv(key, "owned-test-placeholder")
@@ -65,9 +95,10 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
     sent = []
 
     def answer(handler):
-        index = len(sent)
-        sent.append(index)
-        if index == len(cases):
+        model = json.loads(handler.server.requests[-1]["body"])["model"]
+        index = sent.count(campaign.MODELS[0])
+        sent.append(model)
+        if model == campaign.MODELS[1]:
             respond(handler, text_payload("OK"))
             return
         expected = oracle[cases[index if index < len(cases) else 0]["id"]]
@@ -105,11 +136,14 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         )
         monkeypatch.setenv("E06_OWNED_LAB", "e06-r5")
         monkeypatch.setenv("DIAGNOSIS_LIVE_TOKEN", "owned-fixture-token")
-        campaign.freeze(tmp_path)
+        proof = tmp_path / "prior-probe.json"
+        proof.write_text(json.dumps(passing_probe_receipt()))
+        campaign.freeze(tmp_path, proof if reuse_secondary else None)
+        expected_calls = 12 if reuse_secondary else 13
         monkeypatch.setattr(sys, "argv", ["campaign", "run", "--state-dir", str(tmp_path)])
         campaign.main()
         ledger = json.loads((tmp_path / "ledger.json").read_text())
-        assert len(sent) == len(ledger["calls"]) == 13
+        assert len(sent) == len(ledger["calls"]) == expected_calls
         assert ledger["cases"]["n-required-gap"]["calls"] == 0
         assert all(case["excluded_from_operational_api"] for case in ledger["cases"].values())
         assert ledger["secondary_probe"]["receipt"]["schema_success"] is True
@@ -117,7 +151,7 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         assert ledger["evaluation_finished"] is True
         with pytest.raises(ValueError, match="already started"):
             campaign.main()
-        assert len(sent) == 13
+        assert len(sent) == expected_calls
         campaign.save(
             tmp_path / "qualification.json",
             {
@@ -135,14 +169,14 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         monkeypatch.setattr(campaign, "case_result", failed_read)
         with pytest.raises(RuntimeError, match="Controlled result read failure"):
             campaign.main()
-        assert len(sent) == 14
+        assert len(sent) == expected_calls + 1
         ledger = json.loads((tmp_path / "ledger.json").read_text())
         assert ledger["smoke_started"] is True and "operational-smoke" not in ledger["cases"]
         assert ledger["calls"][-1]["case"] == "operational-smoke"
         assert ledger["calls"][-1]["outcome"]["kind"] == "text"
         with pytest.raises(ValueError, match="cannot repeat"):
             campaign.main()
-        assert len(sent) == 14
+        assert len(sent) == expected_calls + 1
 
 
 def test_driver_denies_other_database_or_missing_owner_before_any_send(tmp_path, monkeypatch):
@@ -184,3 +218,30 @@ def test_partial_or_inconsistent_usage_stops_before_another_http_send(tmp_path, 
     with pytest.raises(ValueError, match="token stop"):
         client.send(messages, before_send=lambda: budget.reserve(campaign.MODELS[0], "next", False))
     assert len(budget.data["calls"]) == 1
+
+
+def test_carryover_keeps_prior_spend_and_reuses_only_exact_secondary_proof(tmp_path):
+    from copy import deepcopy
+
+    receipt = passing_probe_receipt()
+    source = tmp_path / "probes.json"
+    source.write_text(json.dumps(receipt))
+    campaign.freeze(tmp_path / "next", source)
+    ledger = json.loads((tmp_path / "next/ledger.json").read_text())
+    assert ledger["prior_requests"] == ledger["total_requests"] == 3
+    assert ledger["observed_tokens"] == 144 and ledger["missing_usage_calls"] == 1
+    assert ledger["secondary_probe"]["quality"] == "not_established"
+    assert ledger["calls"] == []
+    for invalid in ["count", "marker", "model", "destination"]:
+        bad = deepcopy(receipt)
+        if invalid == "count":
+            bad["model_requests_total"] = 0
+        if invalid == "marker":
+            bad["results"][1]["outcome"]["text"] = "not OK"
+        if invalid == "model":
+            bad["results"][1]["outcome"]["identity"]["requested_model"] = "unselected"
+        if invalid == "destination":
+            bad["endpoint"] = "http://unselected.invalid/v1"
+        source.write_text(json.dumps(bad))
+        with pytest.raises(ValueError):
+            campaign.carried_probe(source)

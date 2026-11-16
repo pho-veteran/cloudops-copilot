@@ -20,6 +20,7 @@ from cloudops.features.diagnosis.egress import EgressPolicy
 from cloudops.features.diagnosis.service import analysis_view, enqueue_check
 from cloudops.features.diagnosis.settings import Deployment, load
 from cloudops.features.diagnosis.transport import ModelClient
+from cloudops.features.diagnosis.schemas import parse_usage
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.investigations.comparison_service import citation
@@ -28,9 +29,9 @@ from cloudops.shared.database import database_now, sessions
 from cloudops.shared.jobs import Job, retire_queued
 
 FIXTURES = Path(__file__).parent / "fixtures/e06"
-MODELS = ("kr/claude-sonnet-5.5", "kr/claude-opus-5.5")
-OWNED_DATABASE = "cloudops_e06_live_test"
-MAX_REQUESTS = 15
+MODELS = ("gpt-6.1-sol", "codex/gpt-6.1-terra")
+OWNED_DATABASE = "cloudops_e06_gpt_test"
+MAX_REQUESTS = 50
 TOKEN_STOP = 60000
 
 
@@ -55,7 +56,7 @@ class Budget:
     def check(self, model, repair):
         if model not in MODELS:
             raise ValueError("Unapproved model")
-        if len(self.data["calls"]) >= MAX_REQUESTS:
+        if self.data.get("prior_requests", 0) + len(self.data["calls"]) >= MAX_REQUESTS:
             raise ValueError("Request budget exhausted")
         if self.data["observed_tokens"] >= TOKEN_STOP:
             raise ValueError("Observed token stop reached")
@@ -71,6 +72,7 @@ class Budget:
             {"model": model, "case": case, "repair": repair, "outcome": "unsettled"}
         )
         self.data["repairs"] += int(repair)
+        self.data["total_requests"] = self.data.get("prior_requests", 0) + len(self.data["calls"])
         save(self.path, self.data)
 
     def settle(self, call, secret):
@@ -112,21 +114,21 @@ def configure(root, model, *, operational=False):
         {
             "schema": "DiagnosisModelProfile/v1",
             "config_id": "e06-primary" if primary else "e06-secondary",
-            "config_version": "1",
+            "config_version": "2",
             "mode": "operational" if operational else "evaluation_only",
             "endpoint_label": "owned-local-gateway",
             "base_url": "http://localhost:20128/v1",
             "allow_insecure_loopback": True,
             "model": model,
             "credential": {"kind": "env", "name": "DIAGNOSIS_LIVE_TOKEN"},
-            "output_limit": {"param": "max_tokens", "value": 1024 if primary else 64},
+            "output_limit": {"param": "max_completion_tokens", "value": 1024 if primary else 64},
             "limits": {
                 "read_timeout_seconds": 30,
                 "deadline_seconds": 30,
                 "max_input_bytes": 32768,
             },
             "authorization_id": "owner-authorized-e06-local-gateway",
-            "budget_policy_id": "e06-finite-15-requests",
+            "budget_policy_id": "e06-finite-50-requests",
         }
     )
     policy = EgressPolicy.model_validate(
@@ -293,7 +295,7 @@ def execute_case(db, actor, case, budget, current, *, operational=False):
                 "case": case["id"],
                 "state": result["state"],
                 "reason": result["reason"],
-                "requests": len(budget.data["calls"]),
+                "requests": budget.data.get("prior_requests", 0) + len(budget.data["calls"]),
                 "observed_tokens": budget.data["observed_tokens"],
             }
         ),
@@ -334,12 +336,80 @@ def scope_negative(db, budget):
     save(budget.path, budget.data)
 
 
-def freeze(root):
+def carried_probe(path):
+    raw = path.read_bytes()
+    if len(raw) > 65536:
+        raise ValueError("Prior probe receipt exceeds bound")
+    evidence = json.loads(raw)
+    if evidence.get("endpoint") != "http://localhost:20128/v1" or evidence.get("output_limit") != {
+        "param": "max_completion_tokens",
+        "value": 64,
+    }:
+        raise ValueError("Prior probe destination or output contract changed")
+    count = evidence.get("prior_model_requests")
+    if type(count) is not int or not 0 <= count < MAX_REQUESTS:
+        raise ValueError("Invalid prior request count")
+    unknown, observed, secondary = count, 0, None
+    for row in evidence["results"]:
+        if not row["admitted"]:
+            continue
+        count += 1
+        outcome = row["outcome"]
+        if not isinstance(outcome, dict):
+            raise ValueError("Prior call is unsettled")
+        usage, _ = parse_usage(outcome.get("usage"))
+        if usage:
+            observed += max(
+                usage.total_tokens or 0, (usage.prompt_tokens or 0) + (usage.completion_tokens or 0)
+            )
+        unknown += int(usage is None or usage.total_tokens is None)
+        if row["configured_model"] == MODELS[1]:
+            if not (
+                row["schema_success"]
+                and outcome.get("kind") == "text"
+                and outcome.get("http_status") == 200
+                and outcome.get("text", "").strip() == "OK"
+                and outcome.get("identity", {}).get("requested_model") == MODELS[1]
+            ):
+                raise ValueError("Prior secondary probe did not pass its exact contract")
+            secondary = {
+                "identity": row["profile_identity"],
+                "policy_digest": row["policy_digest"],
+                "state": "completed",
+                "receipt": {
+                    key: outcome.get(key)
+                    for key in [
+                        "kind",
+                        "served_model",
+                        "finish_reason",
+                        "usage",
+                        "usage_status",
+                        "elapsed_ms",
+                        "response_sha256",
+                    ]
+                },
+                "quality": "not_established",
+                "source": "Reused owner-authorized fixed probe; no repeat HTTP request",
+            }
+            secondary["receipt"].update(transport_success=True, schema_success=True)
+    if count != evidence.get("model_requests_total") or count >= MAX_REQUESTS or secondary is None:
+        raise ValueError("Prior request history or secondary proof is incomplete")
+    return {
+        "prior_requests": count,
+        "total_requests": count,
+        "observed_tokens": observed,
+        "missing_usage_calls": unknown,
+        "secondary_probe": secondary,
+        "carryover_sha256": hashlib.sha256(raw).hexdigest(),
+    }
+
+
+def freeze(root, carryover=None):
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     if (root / "ledger.json").exists():
         raise ValueError("Campaign already exists; never overwrite an initial cohort")
     plan = {
-        "cohort": "e06-initial-owned-fixtures-v1",
+        "cohort": "e06-gpt-owned-fixtures-v1",
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "driver_sha256": sha(Path(__file__)),
         "cases_sha256": sha(FIXTURES / "cases.json"),
@@ -348,7 +418,7 @@ def freeze(root):
         "endpoint": "http://localhost:20128/v1",
         "request_limit": MAX_REQUESTS,
         "observed_token_stop": TOKEN_STOP,
-        "allowance": "12 primary evaluation cases + 1 operational smoke + 1 secondary fixed probe + at most 1 shared repair; no implicit retry",
+        "allowance": "Owner authorized 50 requests across all attempts; this cohort uses at most 14 primary calls, one shared repair, and reuses a passing secondary fixed probe when supplied; no implicit retry",
         "source_authority": "Owner-authorized synthetic owned-lab fixtures only; no private real telemetry",
         "calls": [],
         "cases": {},
@@ -356,6 +426,8 @@ def freeze(root):
         "observed_tokens": 0,
         "missing_usage_calls": 0,
     }
+    if carryover is not None:
+        plan.update(carried_probe(carryover))
     save(root / "ledger.json", plan)
 
 
@@ -363,16 +435,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("phase", choices=["freeze", "run", "smoke"])
     parser.add_argument("--state-dir", type=Path, required=True)
+    parser.add_argument("--carryover-probe", type=Path)
     args = parser.parse_args()
     root = args.state_dir.resolve()
     if args.phase == "freeze":
-        freeze(root)
+        freeze(root, args.carryover_probe)
         return
     if (
         make_url(os.environ.get("DATABASE_URL", "")).database != OWNED_DATABASE
         or os.environ.get("E06_OWNED_LAB") != "e06-r5"
     ):
-        raise ValueError("Only the explicitly owned cloudops_e06_live_test lab is allowed")
+        raise ValueError("Only the explicitly owned cloudops_e06_gpt_test lab is allowed")
     if not os.environ.get("DIAGNOSIS_LIVE_TOKEN"):
         raise ValueError("Worker credential reference is unavailable")
     lock = root / "campaign.lock"
@@ -465,23 +538,24 @@ def main():
                         raise ValueError(
                             "Initial schema failure persists: stop rather than spend remaining cohort"
                         )
-                configure(root, MODELS[1])
-                db.rollback()
-                current.update(case="secondary-compatibility", repair=False)
-                check = enqueue_check(db, actor, uuid4())
-                from cloudops.entrypoints.worker import run_once
+                if "secondary_probe" not in budget.data:
+                    configure(root, MODELS[1])
+                    db.rollback()
+                    current.update(case="secondary-compatibility", repair=False)
+                    check = enqueue_check(db, actor, uuid4())
+                    from cloudops.entrypoints.worker import run_once
 
-                assert run_once()
-                from cloudops.features.diagnosis.models import ModelCheck
+                    assert run_once()
+                    from cloudops.features.diagnosis.models import ModelCheck
 
-                db.expire_all()
-                checked = db.get(ModelCheck, check.id)
-                budget.data["secondary_probe"] = {
-                    "identity": checked.identity,
-                    "state": checked.state,
-                    "receipt": checked.receipt,
-                    "quality": "not_established",
-                }
+                    db.expire_all()
+                    checked = db.get(ModelCheck, check.id)
+                    budget.data["secondary_probe"] = {
+                        "identity": checked.identity,
+                        "state": checked.state,
+                        "receipt": checked.receipt,
+                        "quality": "not_established",
+                    }
                 budget.data["evaluation_finished"] = True
                 save(budget.path, budget.data)
         finally:

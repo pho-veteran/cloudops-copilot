@@ -3,16 +3,17 @@
   "environment": "Linux, Python 3.13.11, PostgreSQL 17.11, owned cloudops_e06_review_test",
   "checks": {
     "driver": "Entire 12-case evaluation, secondary probe and one operational smoke over actual worker/client with loopback responses; 14 fixture HTTP calls, zero paid inference; post-send result-read failure cannot permit repeated smoke; evaluation excluded from operational API",
-    "budget": "Durable 15-call bound, one shared repair, exact model allowlist, observed lower-bound token stop with nullable/inconsistent usage preserved, and decoded credential redaction; initial cohort cannot repeat",
+    "budget": "Global request accounting carries prior attempts toward owner-approved total50; primary stage remains bounded to14 calls and one repair; partial observed usage prevents further sends",
     "ownership": "Other database or missing owned-lab authority denied before any send",
     "negative_scope": "Actual public Run POST rejects foreign workload with target_mismatch and zero model calls",
     "negative_missing": "Actual context/worker insufficiency and zero model calls",
-    "negative_provider": "Actual controlled 429 hold/explicit resume/deadline preservation and 401/500 bounded classification without recollection"
+    "negative_provider": "Actual controlled 429 hold/explicit resume/deadline preservation and 401/500 bounded classification without recollection",
+    "carryover": "Passing exact secondary probe reused with no new HTTP request; wrong destination/model/marker/history rejected"
   },
-  "result": "8 passed, 32 deselected; source hashes below; Starlette/httpx deprecation warning inherited",
+  "result": "10 passed, 32 deselected; controlled PostgreSQL/loopback only; inherited Starlette/httpx deprecation warning",
   "source_sha256": {
-    "services/backend/tests/e06_live_acceptance.py": "7e8c278fce3a010faf7c0a9b774d885609135e8e8e90d26ceee5617b78a1e4eb",
-    "services/backend/tests/test_e06_acceptance_driver.py": "3d923e89f308f6d8b8f8c8095ca6b75a2f77fe11ffd3a006d50ff96cdbd42934",
+    "services/backend/tests/e06_live_acceptance.py": "2fbbe226c982bd4e16063874997c0927fe2a602e79c0ee888a35a15a52af6aa6",
+    "services/backend/tests/test_e06_acceptance_driver.py": "cdabf46758c16f6d528cd6ca7c647f80a1ae5b0a182c1b8167dcf11abe9adc2b",
     "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607",
     "services/backend/src/cloudops/features/diagnosis/context.py": "585eb1ccfbd262dd193d509bb0f79b430f9554595666237d81ab24cd9470f739",
     "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",

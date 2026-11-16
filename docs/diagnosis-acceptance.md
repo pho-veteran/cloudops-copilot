@@ -8,18 +8,22 @@ The campaign uses the exact owner-selected local gateway and two model IDs. The 
 
 ## Owned campaign lab
 
-Use a separately provisioned `cloudops_e06_live_test` PostgreSQL database, disposable operator/viewer accounts and trusted dispatch permit. Set `E06_OWNED_LAB=e06-r5`, `DATABASE_URL`, normal foundation configuration and `JOB_DISPATCH_ROOT`. Keep the credential only in the worker process as `DIAGNOSIS_LIVE_TOKEN`. The API may read secret-free profile/egress/qualification files without this environment variable. Do not start a separate background worker in this finite campaign lab.
+Use a separately provisioned `cloudops_e06_gpt_test` PostgreSQL database, disposable operator/viewer accounts and trusted dispatch permit. Set `E06_OWNED_LAB=e06-r5`, `DATABASE_URL`, normal foundation configuration and `JOB_DISPATCH_ROOT`. Keep the credential only in the worker process as `DIAGNOSIS_LIVE_TOKEN`. The API may read secret-free profile/egress/qualification files without this environment variable. Do not start a separate background worker in this finite campaign lab.
+
+The owner selected `gpt-6.1-sol` as primary and `codex/gpt-6.1-terra` as compatibility-only after the retained Kiro failure. The GPT probes passed with `max_completion_tokens=64`; diagnosis uses the same parameter at 1,024. The first Kiro request and both GPT probes count toward the new total of 50.
 
 After committing and checking the driver/input/oracle, freeze once:
 
 ```sh
-uv run --project services/backend python services/backend/tests/e06_live_acceptance.py freeze --state-dir /path/to/private-campaign
+uv run --project services/backend python services/backend/tests/e06_live_acceptance.py freeze --state-dir /path/to/private-campaign --carryover-probe /path/to/sanitized-gpt-probes.json
 uv run --project services/backend python services/backend/tests/e06_live_acceptance.py run --state-dir /path/to/private-campaign
 ```
 
+Carryover validates the fixed probe endpoint, exact secondary model, output contract and `OK` marker, retains prior request/usage counts and hashes the original receipt. It does not qualify the secondary for diagnosis.
+
 The private ledger binds source/input/oracle hashes, requested/configured identity, every attempted call, normalized initial outcome, response digest, nullable usage, timing, final case result and exact resolved support targets. Invalid non-JSON text is retained by outcome/digest, not copied into public artifacts. The driver refuses a repeated initial cohort, other database/owner, concurrent invocation or changed frozen inputs. Interrupted/unsettled work is not automatically replayed.
 
-The global limit is **15 requests**, including failed/unknown outcomes and at most **one repair across the whole campaign**: 12 primary evaluation cases, one primary operational smoke and one secondary probe, plus that reserve. The primary output cap is 1,024 tokens; inputs are bounded to 32 KiB. It stops before another call once the observed token lower bound reaches 60,000: the larger of reported total or known prompt plus completion counts. Nullable original fields remain unchanged. Missing usage stays unavailable: this is a request/output bound and observed-usage stop, not an exact billing guarantee. A transport/configuration failure or persistent initial schema failure stops the campaign before repeating it across all cases.
+The global limit is **50 requests across the engagement**, including failed/unknown outcomes and at most **one repair across the whole campaign**: 12 primary evaluation cases, one primary operational smoke and that reserve. A passing exact secondary probe may be carried forward without another send. The primary output cap is 1,024 tokens; inputs are bounded to 32 KiB. It stops before another call once the observed token lower bound reaches 60,000: the larger of reported total or known prompt plus completion counts. Nullable original fields remain unchanged. Missing usage stays unavailable: this is a request/output bound and observed-usage stop, not an exact billing guarantee. A transport/configuration failure or persistent initial schema failure stops the campaign before repeating it across all cases.
 
 ## Score, qualify and inspect
 
