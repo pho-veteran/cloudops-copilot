@@ -32,7 +32,7 @@ FIXTURES = Path(__file__).parent / "fixtures/e06"
 MODELS = ("gpt-6.1-sol", "codex/gpt-6.1-terra")
 OWNED_DATABASE = "cloudops_e06_gpt_test"
 MAX_REQUESTS = 50
-TOKEN_STOP = 60000
+TOKEN_STOP = 90000
 
 
 def sha(path):
@@ -404,7 +404,7 @@ def carried_probe(path):
     }
 
 
-def carried_campaign(path):
+def carried_campaign(path, continue_cases=False):
     previous = json.loads(path.read_text())
     count = previous.get("prior_requests", 0) + len(previous["calls"])
     if count != previous["total_requests"] or not 0 < count < MAX_REQUESTS:
@@ -413,7 +413,24 @@ def carried_campaign(path):
         raise ValueError("Prior campaign has an unsettled call; no automatic replay")
     if previous["models"] != list(MODELS) or previous["endpoint"] != "http://localhost:20128/v1":
         raise ValueError("Prior campaign destination changed")
+    carried = {}
+    if continue_cases:
+        if previous["cases_sha256"] != sha(FIXTURES / "cases.json") or previous[
+            "oracle_sha256"
+        ] != sha(FIXTURES / "oracle.json"):
+            raise ValueError("Continued cases require unchanged inputs and oracle")
+        carried = {
+            "continued_identity": previous["primary_identity"],
+            "cases": {
+                key: case
+                for key, case in previous["cases"].items()
+                if case["purpose"] == "evaluation"
+                and (case["calls"] > 0 or case["state"] == "insufficient_evidence")
+            },
+            "scope_negative": previous["scope_negative"],
+        }
     return {
+        **carried,
         "prior_requests": count,
         "total_requests": count,
         "observed_tokens": previous["observed_tokens"],
@@ -425,7 +442,7 @@ def carried_campaign(path):
     }
 
 
-def freeze(root, carryover=None, previous=None):
+def freeze(root, carryover=None, previous=None, continue_cases=False):
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     if (root / "ledger.json").exists():
         raise ValueError("Campaign already exists; never overwrite an initial cohort")
@@ -452,7 +469,7 @@ def freeze(root, carryover=None, previous=None):
     if carryover is not None:
         plan.update(carried_probe(carryover))
     if previous is not None:
-        plan.update(carried_campaign(previous))
+        plan.update(carried_campaign(previous, continue_cases))
     save(root / "ledger.json", plan)
 
 
@@ -462,10 +479,11 @@ def main():
     parser.add_argument("--state-dir", type=Path, required=True)
     parser.add_argument("--carryover-probe", type=Path)
     parser.add_argument("--carryover-campaign", type=Path)
+    parser.add_argument("--continue-cases", action="store_true")
     args = parser.parse_args()
     root = args.state_dir.resolve()
     if args.phase == "freeze":
-        freeze(root, args.carryover_probe, args.carryover_campaign)
+        freeze(root, args.carryover_probe, args.carryover_campaign, args.continue_cases)
         return
     if (
         make_url(os.environ.get("DATABASE_URL", "")).database != OWNED_DATABASE
@@ -527,6 +545,10 @@ def main():
                     raise ValueError("Dedicated campaign lab has other active work")
                 cases = json.loads((FIXTURES / "cases.json").read_text())
                 identity = configure(root, MODELS[0], operational=args.phase == "smoke")
+                if budget.data.get("continued_identity", identity) != identity:
+                    raise ValueError(
+                        "Continued cases require the exact unchanged deployment identity"
+                    )
                 if args.phase == "smoke":
                     budget.data["smoke_started"] = True
                     save(budget.path, budget.data)
@@ -535,22 +557,26 @@ def main():
                     return
                 budget.data.update(started=True, primary_identity=identity)
                 save(budget.path, budget.data)
-                execute_case(
-                    db,
-                    actor,
-                    {
-                        "id": "n-required-gap",
-                        "question": "What does this evidence support?",
-                        "source_label": "No telemetry captured; controlled negative.",
-                        "evidence": {},
-                    },
-                    budget,
-                    current,
-                )
+                if "n-required-gap" not in budget.data["cases"]:
+                    execute_case(
+                        db,
+                        actor,
+                        {
+                            "id": "n-required-gap",
+                            "question": "What does this evidence support?",
+                            "source_label": "No telemetry captured; controlled negative.",
+                            "evidence": {},
+                        },
+                        budget,
+                        current,
+                    )
                 if budget.data["calls"]:
                     raise ValueError("Required-gap case unexpectedly used network")
-                scope_negative(db, budget)
+                if "scope_negative" not in budget.data:
+                    scope_negative(db, budget)
                 for case in cases:
+                    if case["id"] in budget.data["cases"]:
+                        continue
                     result = execute_case(db, actor, case, budget, current)
                     last = budget.data["calls"][-1]["outcome"] if budget.data["calls"] else {}
                     if isinstance(last, dict) and last.get("kind") not in {"text", "truncated"}:

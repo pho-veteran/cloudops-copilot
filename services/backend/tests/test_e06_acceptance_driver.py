@@ -152,6 +152,23 @@ def test_entire_initial_driver_uses_existing_lifecycle_and_excludes_evaluation(
         with pytest.raises(ValueError, match="already started"):
             campaign.main()
         assert len(sent) == expected_calls
+        continued = tmp_path / "continued"
+        campaign.freeze(continued, previous=tmp_path / "ledger.json", continue_cases=True)
+        monkeypatch.setattr(sys, "argv", ["campaign", "run", "--state-dir", str(continued)])
+        campaign.main()
+        continuation = json.loads((continued / "ledger.json").read_text())
+        assert len(sent) == expected_calls and continuation["calls"] == []
+        assert continuation["cases"] == ledger["cases"]
+        assert continuation["total_requests"] == ledger.get("prior_requests", 0) + expected_calls
+        wrong = tmp_path / "changed-identity"
+        campaign.freeze(wrong, previous=tmp_path / "ledger.json", continue_cases=True)
+        wrong_ledger = json.loads((wrong / "ledger.json").read_text())
+        wrong_ledger["continued_identity"]["prompt_version"] = "different"
+        campaign.save(wrong / "ledger.json", wrong_ledger)
+        monkeypatch.setattr(sys, "argv", ["campaign", "run", "--state-dir", str(wrong)])
+        with pytest.raises(ValueError, match="unchanged deployment identity"):
+            campaign.main()
+        assert len(sent) == expected_calls
         campaign.save(
             tmp_path / "qualification.json",
             {
@@ -205,8 +222,8 @@ def test_partial_or_inconsistent_usage_stops_before_another_http_send(tmp_path, 
     messages = [{"role": "user", "content": "Controlled probe"}]
     call = client.send(messages, before_send=lambda: None)
     budget.reserve(campaign.MODELS[0], "first", False)
-    budget.settle(replace(call, usage=Usage(60000, 10, reported_total)), "fixture")
-    assert budget.data["observed_tokens"] == 60010
+    budget.settle(replace(call, usage=Usage(campaign.TOKEN_STOP, 10, reported_total)), "fixture")
+    assert budget.data["observed_tokens"] == campaign.TOKEN_STOP + 10
     assert budget.data["calls"][0]["outcome"]["usage"]["total_tokens"] == reported_total
     client = ModelClient(
         profile(),

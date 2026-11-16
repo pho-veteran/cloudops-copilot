@@ -25,10 +25,11 @@
     "prompt_version": "e06.rca_prompt/v2",
     "controlled_checks": 11,
     "unit_context_and_advice_checks": 81,
-    "review_limit": "No third independent review; post-confirmation adjustment verified locally"
+    "review_limit": "No third independent review; post-confirmation adjustment verified locally",
+    "schema_lifecycle_checks": 811
   },
   "final_schema_source_hashes": {
-    "services/backend/tests/e06_live_acceptance.py": "b5bb5be491164b172441af02b31ba829b253df03a7590ffd7378f5f7523e09be",
-    "services/backend/tests/test_e06_acceptance_driver.py": "356822dfe4824a8c00e0f7d6a1cb87b0e7132a3897449393d331e81ab9903ab2"
+    "services/backend/tests/e06_live_acceptance.py": "a858cd633411c559ee46f8ca9460d2628e380fe776c4d63883b72afb19c86571",
+    "services/backend/tests/test_e06_acceptance_driver.py": "cfd67166a7eba42837617863ad5a870afe0a5696f5aa5f9a2484fdae7064e212"
   }
 }
