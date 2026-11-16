@@ -50,7 +50,10 @@ def qualify(content, rules):
 def manual_content(workload, deployment, replicas, rules, authority, rationale, now):
     if rules is None or workload.uid not in rules.workload_uids:
         return None
-    containers, refs = selected(deployment)
+    try:
+        containers, refs = selected(deployment)
+    except Ineligible:
+        return None
     before = {
         "uid": workload.uid,
         "replicas": deployment["spec"].get("replicas", 1),

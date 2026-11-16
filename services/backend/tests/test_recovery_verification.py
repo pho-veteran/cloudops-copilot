@@ -236,6 +236,37 @@ def test_fresh_manual_plan_activates_only_with_its_exact_profile_and_old_preview
     assert not actor.client.get(f"/api/plans/{plan['id']}").json()["valid"]
 
 
+def test_unavailable_optional_qualification_preserves_legacy_manual_downscale(
+    candidate, monkeypatch
+):
+    c = candidate
+    monkeypatch.delenv("RECOVERY_VERIFICATION_FILE", raising=False)
+    deployment = c.consumer.deployment
+    deployment["spec"]["replicas"] = 2
+    deployment["spec"]["template"]["spec"]["volumes"] = [
+        {
+            "name": "explicit-api-token",
+            "projected": {
+                "sources": [{"serviceAccountToken": {"path": "token", "expirationSeconds": 3600}}]
+            },
+        }
+    ]
+    actor = c.actors["operator"]
+    response = actor.client.post(
+        f"/api/incidents/{c.consumer.incident_id}/plans",
+        headers=actor.headers,
+        json={
+            "origin": "operator_manual",
+            "replicas": 1,
+            "rationale": "Explicit legacy manual downscale; no qualified verification configured.",
+        },
+    )
+    assert response.status_code == 201, response.text
+    value = response.json()
+    assert value["origin"] == "operator_manual" and value["content"]["replicas"] == 1
+    assert value["content"].get("schema_version") != "RecoveryPlan/v2"
+
+
 def test_already_recovered_target_is_no_op_without_gateway_call(qualified, monkeypatch):
     identifier, calls = start(qualified, monkeypatch, already_recovered=True)
     assert calls == []

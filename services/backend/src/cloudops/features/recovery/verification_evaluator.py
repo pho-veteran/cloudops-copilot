@@ -187,6 +187,15 @@ def _selected(observation):
     }
 
 
+def _require_source(source, due, lateness):
+    if source["coverage"]["status"] != "available":
+        raise ValueError("incomplete_failure_evidence")
+    at = datetime.fromisoformat(source["source_times"]["observed_at"])
+    collected = datetime.fromisoformat(source["source_times"]["collected_at"])
+    if not due <= at <= collected <= due + timedelta(seconds=lateness):
+        raise ValueError("failure_evidence_outside_slot")
+
+
 def evaluate(profile, acknowledged_at, desired, baseline, samples, raw_metrics):
     scoring_start = acknowledged_at + timedelta(seconds=profile.warmup_seconds)
     deadline = acknowledged_at + timedelta(seconds=profile.window_seconds)
@@ -202,6 +211,7 @@ def evaluate(profile, acknowledged_at, desired, baseline, samples, raw_metrics):
         reasons.add("baseline_offered_traffic_unavailable")
     event_counts, event_deltas = {}, []
     original_pods = set()
+    restart_counts = {}
     try:
         previous = Observation.model_validate(baseline["rollout"])
         if previous.identity.uid != desired["uid"] or not timedelta(
@@ -209,6 +219,11 @@ def evaluate(profile, acknowledged_at, desired, baseline, samples, raw_metrics):
         ) <= acknowledged_at - previous.observed_at <= timedelta(seconds=60):
             raise ValueError("prechange_identity_or_clock_unavailable")
         original_pods = {pod.uid for pod in previous.pods}
+        restart_counts = {
+            (pod.uid, container.kind, container.name): container.restart_count
+            for pod in previous.pods
+            for container in pod.containers
+        }
         if baseline["events"]["coverage"]["status"] != "available":
             raise ValueError("baseline_events_unavailable")
         event_counts = {
@@ -237,25 +252,42 @@ def evaluate(profile, acknowledged_at, desired, baseline, samples, raw_metrics):
                 or observation.observed_at
                 > due + timedelta(seconds=profile.sample_lateness_seconds)
                 or _selected(observation) != desired
-                or observation.coverage != "complete"
             ):
                 raise ValueError("wrong_identity_window_or_desired_state")
+            for pod in observation.pods:
+                for container in pod.containers:
+                    key = (pod.uid, container.kind, container.name)
+                    value = container.restart_count
+                    if key in restart_counts:
+                        previous_count = restart_counts[key]
+                        if value is None or previous_count is None:
+                            reasons.add("restart_counter_unavailable")
+                        elif value < previous_count:
+                            reasons.add("restart_counter_reset")
+                        elif value > previous_count:
+                            failures.add("new_restarts")
+                    if value is not None:
+                        restart_counts[key] = max(value, restart_counts.get(key) or 0)
             state, events = sample["state"], sample["events"]
-            if (
-                state["coverage"]["status"] != "available"
-                or events["coverage"]["status"] != "available"
-            ):
-                raise ValueError("incomplete_failure_evidence")
-            for source in (state, events):
-                at = datetime.fromisoformat(source["source_times"]["observed_at"])
-                collected = datetime.fromisoformat(source["source_times"]["collected_at"])
-                if (
-                    not due
-                    <= at
-                    <= collected
-                    <= due + timedelta(seconds=profile.sample_lateness_seconds)
-                ):
-                    raise ValueError("failure_evidence_outside_slot")
+            _require_source(state, due, profile.sample_lateness_seconds)
+            for pod in state["redacted_bounded_payload"]["pods"]:
+                for container in pod.get("containers", []):
+                    for field in ("state", "last_state"):
+                        terminated = container.get(field, {}).get("terminated", {})
+                        if terminated.get("reason") != "OOMKilled":
+                            continue
+                        try:
+                            raw = terminated.get("finished_at")
+                            if not isinstance(raw, str):
+                                raise ValueError("OOM clock unavailable.")
+                            finished = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                            if finished > min(deadline, observation.observed_at):
+                                reasons.add("oom_time_outside_observation")
+                            elif finished >= acknowledged_at:
+                                failures.add("new_oom")
+                        except (KeyError, TypeError, ValueError):
+                            reasons.add("oom_time_unavailable")
+            _require_source(events, due, profile.sample_lateness_seconds)
             active = {pod.uid for pod in observation.pods if not pod.excluded}
             state_pods = {pod["uid"]: pod for pod in state["redacted_bounded_payload"]["pods"]}
             if due >= scoring_start:
@@ -269,15 +301,8 @@ def evaluate(profile, acknowledged_at, desired, baseline, samples, raw_metrics):
                     }
                     if images != profile.image_ids:
                         raise ValueError("qualified_runtime_image_changed")
-            for pod in state["redacted_bounded_payload"]["pods"]:
-                for container in pod.get("containers", []):
-                    terminated = container.get("last_state", {}).get("terminated", {})
-                    if terminated.get("reason") == "OOMKilled":
-                        finished = datetime.fromisoformat(
-                            terminated["finished_at"].replace("Z", "+00:00")
-                        )
-                        if finished >= acknowledged_at:
-                            failures.add("new_oom")
+            if observation.coverage != "complete":
+                raise ValueError("incomplete_rollout_evidence")
             current_counts = {}
             for event in events["redacted_bounded_payload"]["events"]:
                 count = event.get("count")

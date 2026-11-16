@@ -23,7 +23,7 @@
       },
       "reason": "bounded 200ms serving queue plus independent attempted-request counter; prior diagnostics retained"
     },
-    "backend_source_sha256": "79b3dd6c340d68f272c0c9461e9694304ab2a5df13170674233e7940cb9777d6",
+    "backend_source_sha256": "c72c552cd375c6dc63c72332052e0d0ee95dda6370eee57190ec03e3705dc313",
     "backend_source_files": 133,
     "owning_modules": {
       "features/investigations/prometheus.py": "54c320db9f55d8ab4243d1ace924cd751b523f4b6c45fdedf529c8885020263a",
@@ -31,7 +31,7 @@
       "features/recovery/verification_sources.py": "1de6a8efb8163f04a5d9a1ae7f026d96fd9aabb20d5533abca407e7057af88cd",
       "features/recovery/verification_policy.py": "8e66d091b7475c0ee756296e8588c98f0877579457358972d62eb3ae7c098000",
       "features/recovery/verification.py": "21cad52b8248851c964094d087e3166b4da445908db598f5431ce01027dece19",
-      "features/recovery/verification_evaluator.py": "a65db793c5ab81da839e4caa40f473aaa42aeba52b0ff042bc2d989261ef7e45"
+      "features/recovery/verification_evaluator.py": "b6e003fe0e7ed26364c89851408fb65e8647f720f242636e37bf978e5a3fcb70"
     }
   },
   "policy": {
@@ -112,14 +112,14 @@
     "sample_lateness_seconds": 10
   },
   "positive": {
-    "operation_id": "bb691398-9ce1-42d5-8d67-e5bd31221d58",
-    "plan_id": "c4269bd2-ba08-44b5-8b66-1c3d1c410cd2",
+    "operation_id": "aa462cf0-638b-4645-851b-2bdb544421c0",
+    "plan_id": "bf590a29-fff4-4feb-8914-e9a86c3fd70c",
     "attribution": "acknowledged",
     "execution_state": "succeeded",
     "verification": "passed",
-    "acknowledged_at": "2026-11-16T12:48:32.040411Z",
-    "fixed_deadline": "2026-11-16T12:51:32.040411Z",
-    "first_finalized_at": "2026-11-16T12:51:32.346048Z",
+    "acknowledged_at": "2026-11-16T13:33:46.022734Z",
+    "fixed_deadline": "2026-11-16T13:36:46.022734Z",
+    "first_finalized_at": "2026-11-16T13:36:47.018649Z",
     "profile_digest": "2eaf2fc2ca7b1949a0c84854cce8524a9058e3364f87d4e3667be7c4351ef40b",
     "reserved_slots": 7,
     "stored_slots": [
@@ -139,8 +139,8 @@
       "state": "passed",
       "coverage": 1.0,
       "pod_uids": [
-        "04e6a306-cae3-4f9a-9a47-cb06603360f1",
-        "2031794c-ec9d-4e92-9e34-d49538f7c446"
+        "169f57d4-4add-404e-b46d-7f941b9ce4d4",
+        "36d8e82d-56ba-4699-82c3-0466e2adef70"
       ],
       "offered_rps": 30.0,
       "reason_codes": [],
@@ -151,14 +151,14 @@
     "reason_codes": [],
     "original_run_projection_unchanged": true,
     "load": {
-      "started_at": "2026-11-16T12:46:59.385990+00:00",
-      "finished_at": "2026-11-16T12:52:29.488258+00:00",
+      "started_at": "2026-11-16T13:32:12.983394+00:00",
+      "finished_at": "2026-11-16T13:37:43.052986+00:00",
       "target": "checkout",
       "seconds": 330,
       "rate": 30,
       "responses": {
-        "200": 8899,
-        "503": 1001
+        "200": 8859,
+        "503": 1041
       },
       "concurrency": 16
     },
@@ -172,24 +172,24 @@
             "pod_uid": null,
             "samples": [
               [
-                1794833372.04,
-                0.0026666666666666666
+                1794836086.023,
+                0.001263049153999185
               ],
               [
-                1794833402.04,
-                0.004493897168985536
-              ],
-              [
-                1794833432.04,
+                1794836116.023,
                 0.0
               ],
               [
-                1794833462.04,
-                0.0026666666666666666
+                1794836146.023,
+                0.0
               ],
               [
-                1794833492.04,
-                0.001336898395721925
+                1794836176.023,
+                0.002688172043010753
+              ],
+              [
+                1794836206.023,
+                0.0013297872340425534
               ]
             ],
             "namespace": "demo",
@@ -207,24 +207,24 @@
             "pod_uid": null,
             "samples": [
               [
-                1794833372.04,
-                0.24345637583892618
+                1794836086.023,
+                0.24344370860927153
               ],
               [
-                1794833402.04,
-                0.2448202170963365
+                1794836116.023,
+                0.24307692307692308
               ],
               [
-                1794833432.04,
-                0.2425
+                1794836146.023,
+                0.24269076305220882
               ],
               [
-                1794833462.04,
-                0.24442567567567566
+                1794836176.023,
+                0.24424489795918367
               ],
               [
-                1794833492.04,
-                0.2430738255033557
+                1794836206.023,
+                0.24740027510316367
               ]
             ],
             "namespace": "demo",
@@ -242,23 +242,23 @@
             "pod_uid": null,
             "samples": [
               [
-                1794833372.04,
+                1794836086.023,
                 30.0
               ],
               [
-                1794833402.04,
+                1794836116.023,
                 30.0
               ],
               [
-                1794833432.04,
+                1794836146.023,
                 30.0
               ],
               [
-                1794833462.04,
+                1794836176.023,
                 30.0
               ],
               [
-                1794833492.04,
+                1794836206.023,
                 30.0
               ]
             ],
@@ -277,24 +277,24 @@
             "pod_uid": null,
             "samples": [
               [
-                1794833372.04,
-                30.0
+                1794836086.023,
+                30.398394666666665
               ],
               [
-                1794833402.04,
-                29.934522666666666
+                1794836116.023,
+                29.76
               ],
               [
-                1794833432.04,
-                29.96
-              ],
-              [
-                1794833462.04,
-                30.0
-              ],
-              [
-                1794833492.04,
+                1794836146.023,
                 29.92
+              ],
+              [
+                1794836176.023,
+                29.759999999999998
+              ],
+              [
+                1794836206.023,
+                30.08
               ]
             ],
             "namespace": "demo",
@@ -306,14 +306,14 @@
     }
   },
   "missing_load_control": {
-    "operation_id": "bb3d0bd6-5a00-4804-a6bf-6108dbbe24af",
-    "plan_id": "c63471cc-b1a0-4d8d-8b99-253eb3837d98",
+    "operation_id": "3a7a73ce-0f96-4a53-880c-cefcc190f388",
+    "plan_id": "8747e7ff-8f02-4fd9-a327-dd83140e74b0",
     "attribution": "acknowledged",
     "execution_state": "manual_intervention",
     "verification": "inconclusive",
-    "acknowledged_at": "2026-11-16T12:54:11.486941Z",
-    "fixed_deadline": "2026-11-16T12:57:11.486941Z",
-    "first_finalized_at": "2026-11-16T12:57:12.127612Z",
+    "acknowledged_at": "2026-11-16T13:39:29.749147Z",
+    "fixed_deadline": "2026-11-16T13:42:29.749147Z",
+    "first_finalized_at": "2026-11-16T13:42:30.126059Z",
     "profile_digest": "2eaf2fc2ca7b1949a0c84854cce8524a9058e3364f87d4e3667be7c4351ef40b",
     "reserved_slots": 7,
     "stored_slots": [
@@ -342,7 +342,7 @@
       "insufficient_qualified_observations"
     ],
     "original_run_projection_unchanged": true,
-    "offered_source_deliberately_stopped_at": "2026-11-16T12:54:15.451183+00:00",
+    "offered_source_deliberately_stopped_at": "2026-11-16T13:39:33.941153+00:00",
     "limit": "Deliberate load termination has no completed final client summary; recorded as a missing-load control.",
     "application_samples": {
       "error_ratio": {
@@ -364,23 +364,23 @@
             "pod_uid": null,
             "samples": [
               [
-                1794833711.487,
+                1794836429.749,
                 0.0
               ],
               [
-                1794833741.487,
+                1794836459.749,
                 0.0
               ],
               [
-                1794833771.487,
+                1794836489.749,
                 0.0
               ],
               [
-                1794833801.487,
+                1794836519.749,
                 0.0
               ],
               [
-                1794833831.487,
+                1794836549.749,
                 0.0
               ]
             ],
@@ -523,13 +523,23 @@
     }
   },
   "checks": {
-    "backend_tests": 1938,
     "web_tests": 231,
     "web_build": "passed",
     "contracts_and_drift": "passed",
     "real_postgresql_process": "Actual SIGKILL after durable slot reservation and worker takeover; original slot/deadline/maximum unchanged. Provider observations in this process test are controlled.",
     "history": "Focused authenticated API/PostgreSQL test preserves original Run/Evidence rows, resource export bytes and a separately saved handoff while verification completes.",
-    "migration": "Populated legacy data preserved; retained verification prevents downgrade."
+    "migration": "Populated legacy data preserved; retained verification prevents downgrade.",
+    "prior_full_backend": {
+      "tests": 1938,
+      "head": "38d18c19c6d8f918cff2d9665de458f64a060287",
+      "status": "passed"
+    },
+    "current_focused_backend": {
+      "tests": 99,
+      "status": "passed",
+      "covers": "current/previous excluded-Pod OOM and time bounds; settling restart reset/missing counters; optional manual fallback; existing plan/lifecycle regressions"
+    },
+    "final_head_ci": "Required final-head checks are tracked on PR89; not asserted by this artifact."
   },
   "model_inference_requests_in_slice": 0,
   "limits": [
@@ -537,6 +547,25 @@
     "Restore/memory 300-second policies have controlled-source coverage only; their live qualification remains in R7.",
     "Rollback, full recovery UI, live-model analysis and PostgreSQL restore composition remain required for E07 acceptance."
   ],
+  "transition_safety_regressions": {
+    "before": "Three targeted cases failed before fixes.",
+    "after": "Current OOM and previous terminations bounded to execution/observation clocks; compatible restart counters retain high-water history through settling; optional ineligible v2 extraction preserves manual fallback.",
+    "prechange_source_outage_control": {
+      "operation_id": "e962d5ef-d2b5-48a4-88ad-758c5bf403f0",
+      "attribution": "not_sent",
+      "verification": "not_performed",
+      "state": "manual_intervention",
+      "cause": "TLS metrics proxy unavailable after lab network restart; admission correctly denied before gateway dispatch. Infrastructure preflight repaired; this attempt is not a quality pass."
+    }
+  },
+  "cleanup": {
+    "state": "owned runtime stopped and quarantined",
+    "at": "2026-11-16T13:45:55.673484+00:00",
+    "campaign_seconds": 1659.142443,
+    "host_authority_preserved": true,
+    "gateway_all_configured_targets_closed": true,
+    "identity_journal_volumes_and_model_credential_retained": true
+  },
   "reset_fixture": {
     "sha256": "fb347feb6de8764a0dfd87801cb30c59ae9fd60419145d24369ae25c31c8e6c7",
     "state": "passed",
@@ -547,13 +576,5 @@
     "after_replicas": 1,
     "healthy": true,
     "interpretation": "Post-trial fixture cleanup only; not credited to product recovery"
-  },
-  "cleanup": {
-    "state": "owned runtime stopped and quarantined",
-    "at": "2026-11-16T13:01:00.771048+00:00",
-    "campaign_seconds": 4153.786349,
-    "host_authority_preserved": true,
-    "gateway_all_configured_targets_closed": true,
-    "identity_journal_volumes_and_model_credential_retained": true
   }
 }

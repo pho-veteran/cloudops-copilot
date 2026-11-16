@@ -43,6 +43,8 @@ The evaluator checks original UID/desired fields, complete UID-owned Pod/Replica
 
 Event deltas retain the entire window. The explicit `after_settling/v1` condition scores new Warning occurrences after the 60-second settling boundary; expected startup probe warnings remain visible in the retained transition evidence. OOM and compatible restart deltas still cover the transition. The adapter recognizes modern singleton Events and series counts/clocks according to the [Kubernetes Event API](https://kubernetes.io/docs/reference/kubernetes-api/core/event-v1/); an unrecognized missing counter remains incomplete.
 
+OOM checks inspect both current and previous termination states, including owned failed Pods excluded from active rollout counts. Historical terminations do not become new failures, and an unknown/future termination clock is inconclusive. Compatible Pod/container restart counters retain their highest observed value through settling; a decrease or missing compatible counter cannot be forgotten after later healthy samples. Optional v2 extraction that cannot represent a valid manual-scale target falls back to the existing legacy manual path.
+
 The first durably finalized verification timestamp is immutable and available to the inverse-policy consumer. Reconciliation retains an unknown write result until an exact receipt is available; matching desired fields alone cannot start qualified verification. A late known ACK retains its original clock rather than receiving a new window.
 
 ## Recovery and retention

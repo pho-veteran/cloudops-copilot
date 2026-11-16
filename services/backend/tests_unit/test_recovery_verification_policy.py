@@ -143,6 +143,68 @@ def test_settling_warning_is_retained_without_counting_as_a_scored_failure():
     assert result["event_deltas"] == [{"slot": 0, "uid": "startup", "delta": 1}]
 
 
+@pytest.mark.parametrize(
+    "finished_offset,expected",
+    [(10, "failed"), (-1, "passed"), (181, "inconclusive"), (None, "inconclusive")],
+)
+@pytest.mark.parametrize("missing_events", [False, True])
+def test_current_oom_of_excluded_owned_pod_cannot_be_hidden_by_healthy_replacement(
+    finished_offset, expected, missing_events
+):
+    data = case()
+    sample = data[-2]["1"]
+    pod = deepcopy(sample["rollout"]["pods"][0])
+    pod.update(
+        uid="failed-owned-pod", name="failed-owned-pod", phase="Failed", excluded=True, ready=False
+    )
+    pod["containers"][0].update(state="terminated", exit_code=137, ready=False)
+    sample["rollout"]["pods"].append(pod)
+    sample["state"]["redacted_bounded_payload"]["pods"].append(
+        {
+            "uid": pod["uid"],
+            "containers": [
+                {
+                    "name": "app",
+                    "kind": "regular",
+                    "state": {
+                        "terminated": {
+                            "reason": "OOMKilled",
+                            "finished_at": (ACK + timedelta(seconds=finished_offset)).isoformat()
+                            if finished_offset is not None
+                            else None,
+                        }
+                    },
+                }
+            ],
+        }
+    )
+    if missing_events:
+        sample["events"]["coverage"]["status"] = "unavailable"
+    result = verdict(data)
+    assert result["state"] == expected
+    assert ("new_oom" in result["failed_checks"]) is (expected == "failed")
+
+
+def test_same_pod_restart_counter_reset_during_settling_remains_inconclusive():
+    data = case()
+    data[2]["rollout"]["pods"][0]["containers"][0]["restart_count"] = 1
+    result = verdict(data)
+    assert result["state"] == "inconclusive"
+    assert "restart_counter_reset" in result["reason_codes"]
+
+
+def test_missing_compatible_counter_during_settling_is_not_forgotten():
+    data = case()
+    data[2]["rollout"]["pods"][0]["containers"][0]["restart_count"] = 1
+    data[-2]["0"]["rollout"]["pods"][0]["containers"][0]["restart_count"] = None
+    data[-2]["0"]["rollout"]["coverage"] = "partial"
+    result = verdict(data)
+    assert (
+        result["state"] == "inconclusive"
+        and "restart_counter_unavailable" in result["reason_codes"]
+    )
+
+
 def test_original_input_is_not_mutated_and_duplicate_sample_key_cannot_inflate_denominator():
     data = case()
     before = deepcopy(data)
