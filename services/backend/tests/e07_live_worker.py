@@ -1,8 +1,10 @@
 """Finite trusted E07 worker; never collected by pytest or run by CI."""
 
 import argparse
+from contextlib import contextmanager
 from dataclasses import asdict
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -12,9 +14,12 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.engine import make_url
 
+from cloudops.features.diagnosis.messages import serialize_payload
+from cloudops.features.diagnosis.settings import load
+
 
 def save(path, value):
-    temporary = path.with_suffix(".tmp")
+    temporary = path.with_name(path.name + ".tmp")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(descriptor, "w") as stream:
         json.dump(value, stream, indent=2)
@@ -27,6 +32,30 @@ def save(path, value):
         os.fsync(directory)
     finally:
         os.close(directory)
+
+
+@contextmanager
+def ledger_lock(path):
+    with path.with_name(path.name + ".lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        yield
+
+
+def require_qualification(budget, profile=None):
+    deployment = load()
+    if (
+        deployment.denied()
+        or deployment.identity() != budget.data["accepted_E06_identity_unchanged"]
+        or (profile is not None and profile.identity() != deployment.profile.identity())
+    ):
+        raise ValueError("The exact retained E06 operational qualification is required")
+
+
+def reserve_send(budget, profile, repair, before_send, request):
+    budget.check(profile.model, repair)
+    require_qualification(budget, profile)
+    before_send()
+    budget.reserve(profile.model, repair, **request)
 
 
 class Budget:
@@ -52,10 +81,18 @@ class Budget:
         if repair and any(call.get("repair") for call in self.data["calls"]):
             raise ValueError("Shared structural repair reserve exhausted")
 
-    def reserve(self, model, repair):
+    def reserve(self, model, repair, *, run_id, analysis_id, request_digest):
         self.check(model, repair)
         self.data["calls"].append(
-            {"case": self.case, "model": model, "repair": repair, "outcome": "unsettled"}
+            {
+                "case": self.case,
+                "model": model,
+                "repair": repair,
+                "run_id": run_id,
+                "analysis_id": analysis_id,
+                "request_digest": request_digest,
+                "outcome": "unsettled",
+            }
         )
         self.data["model_requests_total"] += 1
         self.data["remaining_requests"] = 50 - self.data["model_requests_total"]
@@ -86,11 +123,9 @@ def main():
     args = parser.parse_args()
     if make_url(os.environ["DATABASE_URL"]).database != "cloudops_e07_integrated_test":
         raise ValueError("Only the owned integrated acceptance database is supported")
-    with args.ledger.with_suffix(".lock").open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    with ledger_lock(args.ledger):
         budget = Budget(args.ledger, args.case, args.requests)
         from cloudops.features.diagnosis.transport import ModelClient
-        from cloudops.features.diagnosis.settings import load
         from cloudops.features.diagnosis.models import Analysis
         from cloudops.entrypoints import worker
         from cloudops.shared.database import sessions
@@ -100,34 +135,35 @@ def main():
                 "development_collection_v1": worker.HANDLERS["development_collection_v1"]
             }
 
-        deployment = load()
-        if args.requests and (
-            deployment.denied()
-            or deployment.identity() != budget.data["accepted_E06_identity_unchanged"]
-        ):
-            raise ValueError("The exact retained E06 operational qualification is required")
+        if args.requests:
+            require_qualification(budget)
         original, halted = ModelClient.send, []
 
         def counted(client, messages, *, before_send):
             content, _ = json.JSONDecoder().raw_decode(messages[-1].content)
             with sessions()() as db:
-                phase = db.scalar(
-                    select(Analysis.phase).where(
+                analysis = db.execute(
+                    select(Analysis.id, Analysis.phase).where(
                         Analysis.run_id == UUID(content["scope"]["run_id"]),
                         Analysis.purpose == "operational",
                         Analysis.state == "analyzing",
                     )
-                )
-            if phase not in {"initial", "repair"}:
+                ).one_or_none()
+            if analysis is None or analysis.phase not in {"initial", "repair"}:
                 halted.append(True)
                 raise ValueError("Only an initial request or one structural repair is authorized")
-            repair = phase == "repair"
+            repair = analysis.phase == "repair"
+            request = {
+                "run_id": str(UUID(content["scope"]["run_id"])),
+                "analysis_id": str(analysis.id),
+                "request_digest": hashlib.sha256(
+                    serialize_payload(client.profile, messages)
+                ).hexdigest(),
+            }
 
             def reserve():
                 try:
-                    budget.check(client.profile.model, repair)
-                    before_send()
-                    budget.reserve(client.profile.model, repair)
+                    reserve_send(budget, client.profile, repair, before_send, request)
                 except BaseException:
                     halted.append(True)
                     raise
