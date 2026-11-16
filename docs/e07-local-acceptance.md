@@ -50,13 +50,20 @@ its ledger outside PostgreSQL and preserve it across every restore. The existing
 E07 ledger includes the preflight probe and has a50-request ceiling and60,000
 observed-token stop. Unknown usage stays recorded. Unsettled requests require
 explicit reconciliation; provider failures stop the worker instead of silently
-retrying. One structural repair is shared across cases.
+retrying. One structural repair is shared across cases. Every reservation records
+its exact Run, Analysis and serialized request digest before HTTP, without request
+text. Lock and temporary paths append suffixes to the complete ledger filename;
+atomic ledger replacement cannot move the lock to a different inode.
 
 Use `--collect-only --requests 0` to finish real collection and admit Analysis
 without sending it. Inspect the assembled context, required source eligibility
-and byte bound before permitting inference. Then use the exact retained E06
-operational qualification tuple with the authorized Sol endpoint and worker-only
-credential. No provider response, validator, prompt or citation is replaced.
+and byte bound before permitting inference. The draft worker requires the exact
+retained E06 tuple at startup and again at the actual send boundary, including
+the client profile. Context v2 changes that tuple and intentionally invalidates
+the old qualification. A new complete owning-rubric qualification and the pending
+input/token-budget authorization are required before installing its operational
+identity; do not edit an old qualification to bypass this gate. Provider output,
+validation and citations are never substituted.
 `--case`, `--seconds` (maximum900) and `--requests` (maximum3 per invocation) make
 the selected attempt finite. Non-model verification uses `--requests 0` and no
 model credential/configuration. Save actual responses in the application history;

@@ -635,14 +635,28 @@ def _user_content(
     runbooks: list[ContextRunbook],
     limitations: list[str],
 ) -> str:
+    # Citation metadata stays in the stored context; the model returns only aliases.
+    target_metadata = {
+        "evidence_id": True,
+        "source_class": True,
+        "label": True,
+        "entry_digest": True,
+        "evidence_sha256": True,
+        "value_bytes": True,
+        "locator": {"key"},
+    }
     payload = {
         "request": {"text": scope.request_text, "source": scope.request_source},
         "scope": _scope_payload(scope),
         "versions": _versions(),
         "source_coverage": [item.model_dump(mode="json") for item in coverage],
         "families": [item.model_dump(mode="json") for item in families],
-        "required_targets": [item.model_dump(mode="json") for item in required],
-        "optional_targets": [item.model_dump(mode="json") for item in optional],
+        "required_targets": [
+            item.model_dump(mode="json", exclude=target_metadata) for item in required
+        ],
+        "optional_targets": [
+            item.model_dump(mode="json", exclude=target_metadata) for item in optional
+        ],
         "runbooks": [item.model_dump(mode="json") for item in runbooks],
         "limitations": limitations,
     }

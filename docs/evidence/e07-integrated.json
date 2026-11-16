@@ -1,9 +1,8 @@
 {
   "schema_version": "E07IntegratedAcceptance/v1",
   "acceptance_state": "incomplete; live model all-template gate and final delivery remain open",
-  "recorded_at": "2026-11-16T20:51:36.032842+00:00",
+  "recorded_at": "2026-11-16T21:08:42.938536+00:00",
   "implementation_base": "40b058c91f6ddbe8dea852d17a4dd741d6dd5fa5",
-  "tested_source_fingerprint": "d0242677dc3a2d2d3e601da5c10b0675150549598803b01160d6bc1124a0d7e8",
   "topology": {
     "owned_disposable_local_only": true,
     "project": "cloudops-e07-acceptance",
@@ -74,7 +73,7 @@
     "observed_tokens": 72,
     "observed_token_stop": 60000,
     "new_inference_in_this_slice": 0,
-    "current_live_gate": "Three actual context preflights abstained before HTTP at the qualified32KiB bound. No model positive is claimed. A changed identity requires qualification; proposed64KiB hard-cap candidate is not installed or qualified. Owner token-stop answer pending.",
+    "current_live_gate": "The unchanged wire exceeded even64KiB on an actual one-minute Kubernetes-only OOM collection. Candidate context v2 retains observation values/semantic identities/aliases and full server citation metadata; its actual no-send measurement is59,357bytes with repair room. Context-v1 qualification is intentionally invalid for v2. The new64KiB profile and150,000-token stop remain proposed pending owner answer and full12-case quality qualification; no new inference or installed qualification is claimed.",
     "controlled_provider_positive_substitution": false
   },
   "application_restore_cuts": [
@@ -912,7 +911,8 @@
         "running": true,
         "owner": "2f567fcc-6fc1-4746-8ac9-1a02c191d6bd"
       }
-    ]
+    ],
+    "fingerprint_scope": "Actual no-model campaign runtime matched the source before the context-v2 change; it is not a claim that the running API includes context v2."
   },
   "controlled_gateway_transport": {
     "serving_command_instrumented": true,
@@ -926,8 +926,41 @@
   "changed_source_sha256": {
     "apps/web/src/app/foundation.css": "5359a717aa1e441c2d1e746265645b8016373ae9cadcaa75e113725c445edb26",
     "config/lab/recovery_app.py": "d463b506bbe63afefbe11d3dae32d439e7029c83178d0e7a2cc2cec77a30bab6",
-    "services/backend/tests/e07_live_worker.py": "0dad197cb66601964ba4b6499ece435fa541cf5978a2c8525eecbe178443aabf",
-    "services/backend/tests/test_e07_live_budget.py": "7b45f94efa75a89d90d39a35ebe629f85e252e849a8f5b00342fcf6fcbb69212"
+    "services/backend/tests/e07_live_worker.py": "c76a81d6336d1bfbadf92fc5d1efd5ad59cd4544425fe39d3bca4a6f4b546651",
+    "services/backend/tests/test_e07_live_budget.py": "79fc83e989880ecfc120fe8c3f22c27d99b79cea1ed6ab17c5437aa089cfe60a",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "bc7b647945da2accce397a9109d350aa0f0bb00d9848173c93ba1a3879e38f1f",
+    "services/backend/src/cloudops/features/diagnosis/versions.py": "1f4fe927cf75df95bba1a8779c0f877920791bfbaa45e4518655de166c9028c7"
   },
-  "fingerprint_algorithm": "SHA256 of json.dumps(relative path to file SHA256,sort_keys=True); backend/src .py,web/src .ts/.tsx/.css plus the named sample and acceptance driver/tests"
+  "fingerprint_algorithm": "SHA256 of json.dumps(relative path to file SHA256,sort_keys=True); backend/src .py,web/src .ts/.tsx/.css plus the named sample and acceptance driver/tests",
+  "no_model_campaign_tested_head": "fd20b73d1e07cd3817874dac572611090a21acbf",
+  "candidate_source_fingerprint": "3c1fe2eb7f36c767ab0c04397c18299401b31218e9467da09dac6e34b2bb912d",
+  "context_v2_preflight": {
+    "diagnostic_only_no_send": true,
+    "schema": "PreparedContext/v1",
+    "source_run": "3699cac1-0577-47d7-ac1c-2e6b2c555557",
+    "message_bytes": 59357,
+    "input_bound": 65536,
+    "required_targets": 85,
+    "repair_available": true,
+    "context_version": "e06.context/v2",
+    "digest": "9beb3eb9c55844474c9bdff9093e6d39c5cfc52b1621007046a37e6d3ce45b2b",
+    "qualification_installed": false,
+    "source_sha256": {
+      "services/backend/src/cloudops/features/diagnosis/context.py": "bc7b647945da2accce397a9109d350aa0f0bb00d9848173c93ba1a3879e38f1f",
+      "services/backend/src/cloudops/features/diagnosis/versions.py": "1f4fe927cf75df95bba1a8779c0f877920791bfbaa45e4518655de166c9028c7"
+    },
+    "initial_unchanged_wire_64KiB_result": {
+      "schema": "ContextInsufficiency/v1",
+      "reason": "required_targets_exceed_budget",
+      "HTTP_model_requests": 0,
+      "original_input_and_outcome_retained": true
+    }
+  },
+  "candidate_local_checks": {
+    "context_v2_unit": 886,
+    "context_v2_diagnosis_and_budget_integration": 89,
+    "focused_review_and_context_regressions": 92,
+    "full_backend_and_CI": "pending on changed candidate; recorded2,009 tests apply to the earlier no-model source",
+    "web": "259 tests/build unchanged since the tested layout fix"
+  }
 }

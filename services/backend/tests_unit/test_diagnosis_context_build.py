@@ -39,22 +39,20 @@ from cloudops.features.knowledge.schemas import KnowledgeApplicability, Knowledg
 
 def test_versions_are_unique_and_pinned():
     values = {
-        versions.CONTEXT_VERSION: "e06.context/v1",
+        versions.CONTEXT_VERSION: "e06.context/v2",
         versions.TARGET_RULES_VERSION: "e06.targets/v1",
         versions.PROMPT_VERSION: "e06.rca_prompt/v3",
         versions.VALIDATOR_VERSION: "e06.validator/v1",
         versions.PROBE_PROMPT_VERSION: "e06.probe_prompt/v1",
     }
     assert list(values.values()) == [
-        "e06.context/v1",
+        "e06.context/v2",
         "e06.targets/v1",
         "e06.rca_prompt/v3",
         "e06.validator/v1",
         "e06.probe_prompt/v1",
     ]
-    for value in values:
-        assert value.startswith("e06.")
-        assert value.endswith("/v3" if value == versions.PROMPT_VERSION else "/v1")
+    assert list(values) == list(values.values())
     assert len(values) == 5
 
 
@@ -471,6 +469,33 @@ def test_message_bytes_equals_transport_and_prepare_payload_accepts():
     assert prepare_payload(profile(), context.messages)
     assert len(context.messages) == 2
     assert [message.role for message in context.messages] == ["system", "user"]
+
+
+def test_compact_prompt_preserves_alias_values_and_complete_server_citations():
+    context = _build(_minimal_materials())
+    assert isinstance(context, PreparedContext)
+    payload = json.loads(context.messages[1].content)
+    sent = payload["required_targets"] + payload["optional_targets"]
+    stored = list(context.required_targets) + list(context.optional_targets)
+    assert len(sent) == len(stored) and sent
+    for item, target in zip(sent, stored, strict=True):
+        assert item["alias"] == target.alias
+        assert item["value"] == target.value
+        assert item["identity"] == target.identity
+        assert item["source_key"] == target.source_key
+        assert item["family_slots"] == target.family_slots
+        assert target.evidence_id and target.evidence_sha256 and target.entry_digest
+        assert target.locator.key and target.value_bytes > 0
+    assert (
+        PreparedContext.model_validate(context.model_dump()).required_targets
+        == context.required_targets
+    )
+    full = dict(
+        payload,
+        required_targets=[target.model_dump(mode="json") for target in context.required_targets],
+        optional_targets=[target.model_dump(mode="json") for target in context.optional_targets],
+    )
+    assert len(json.dumps(full).encode()) > len(context.messages[1].content.encode())
 
 
 def test_optional_is_omitted_greedily_under_the_repair_reserve():
