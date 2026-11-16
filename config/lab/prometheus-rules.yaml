@@ -1,0 +1,23 @@
+groups:
+  - name: owned-workload
+    rules:
+      - record: lab:pod_binding
+        expr: max by (namespace, pod, pod_uid, deployment_uid) (label_replace(label_replace(kube_pod_labels{namespace="demo",label_cloudops_lab_workload_uid!=""}, "deployment_uid", "$1", "label_cloudops_lab_workload_uid", "(.+)"), "pod_uid", "$1", "uid", "(.+)"))
+      - record: cloudops_requests_per_second
+        expr: sum by (namespace, deployment_uid, deployment) (rate(lab_http_requests_total[30s]))
+      - record: cloudops_error_ratio
+        expr: sum by (namespace, deployment_uid, deployment) (rate(lab_http_requests_total{status="503"}[30s])) / sum by (namespace, deployment_uid, deployment) (rate(lab_http_requests_total[30s]))
+      - record: cloudops_p95_latency_seconds
+        expr: histogram_quantile(0.95, sum by (namespace, deployment_uid, deployment, le) (rate(lab_http_request_duration_seconds_bucket[30s])))
+      - record: cloudops_memory_working_set_bytes
+        expr: sum by (namespace, deployment_uid) (container_memory_working_set_bytes{namespace="demo",container!="",container!="POD",pod_uid!=""} * on (namespace, pod, pod_uid) group_left(deployment_uid) lab:pod_binding)
+      - record: cloudops_memory_limit_bytes
+        expr: sum by (namespace, deployment_uid) (label_replace(kube_pod_container_resource_limits{namespace="demo",resource="memory"}, "pod_uid", "$1", "uid", "(.+)") * on (namespace, pod, pod_uid) group_left(deployment_uid) lab:pod_binding)
+      - record: cloudops_restarts_total
+        expr: sum by (namespace, deployment_uid) (label_replace(kube_pod_container_status_restarts_total{namespace="demo"}, "pod_uid", "$1", "uid", "(.+)") * on (namespace, pod, pod_uid) group_left(deployment_uid) lab:pod_binding)
+      - alert: WorkloadTrafficDegraded
+        expr: (cloudops_error_ratio > 0.1) and (cloudops_requests_per_second > 0)
+        for: 15s
+        labels: {cluster: local-k3s, severity: warning}
+        annotations:
+          summary: Measured HTTP error ratio is elevated

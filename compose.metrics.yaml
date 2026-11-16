@@ -4,13 +4,13 @@ services:
       COLLECTION_SOURCE_MODE: prometheus
       PROMETHEUS_READ_CONFIG: /run/cloudops-prometheus/read.json
     volumes:
-      - ./tmp/e01-integration/prometheus:/run/cloudops-prometheus:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/prometheus:/run/cloudops-prometheus:ro
   worker:
     environment:
       COLLECTION_SOURCE_MODE: prometheus
       PROMETHEUS_READ_CONFIG: /run/cloudops-prometheus/read.json
     volumes:
-      - ./tmp/e01-integration/prometheus:/run/cloudops-prometheus:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/prometheus:/run/cloudops-prometheus:ro
   metrics-fixture:
     image: python:3.13.11-slim-bookworm
     command: [python, /app/metrics_fixture.py]
@@ -19,7 +19,7 @@ services:
       METRICS_FIXTURE_MODE: ${METRICS_FIXTURE_MODE:-finite}
     volumes:
       - ./config/lab/metrics_fixture.py:/app/metrics_fixture.py:ro
-      - ./tmp/e01-integration/prometheus:/run/cloudops-prometheus:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/prometheus:/run/cloudops-prometheus:ro
     expose: ["9100"]
   prometheus:
     depends_on: [metrics-fixture]

@@ -4,9 +4,9 @@ import base64
 import json
 import subprocess
 
-from local_lab import COMPOSE, ROOT
+from local_lab import COMPOSE, LAB_DIR, ROOT
 
-FOLDER = ROOT / "tmp/e01-integration/prometheus"
+FOLDER = LAB_DIR / "prometheus"
 QUERIES = {
     "request_rate": {
         "query": (

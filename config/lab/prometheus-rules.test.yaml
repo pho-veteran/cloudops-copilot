@@ -1,0 +1,43 @@
+rule_files: [rules.yml]
+evaluation_interval: 5s
+tests:
+  - interval: 5s
+    input_series:
+      - series: 'lab_http_requests_total{namespace="demo",deployment_uid="d1",deployment="checkout",status="200"}'
+        values: '0+5x24'
+      - series: 'lab_http_requests_total{namespace="demo",deployment_uid="d1",deployment="checkout",status="503"}'
+        values: '0+5x24'
+    promql_expr_test:
+      - expr: cloudops_error_ratio
+        eval_time: 1m
+        exp_samples:
+          - labels: 'cloudops_error_ratio{namespace="demo",deployment_uid="d1",deployment="checkout"}'
+            value: 0.5
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: WorkloadTrafficDegraded
+        exp_alerts:
+          - exp_labels: {namespace: demo, deployment_uid: d1, deployment: checkout, cluster: local-k3s, severity: warning}
+            exp_annotations: {summary: Measured HTTP error ratio is elevated}
+  - interval: 5s
+    input_series:
+      - series: 'container_memory_working_set_bytes{namespace="demo",pod="reused-name",pod_uid="old-pod",container="app"}'
+        values: '100+0x24'
+      - series: 'kube_pod_labels{namespace="demo",pod="reused-name",uid="new-pod",label_cloudops_lab_workload_uid="new-deployment"}'
+        values: '1+0x24'
+    promql_expr_test:
+      - expr: cloudops_memory_working_set_bytes
+        eval_time: 1m
+        exp_samples: []
+  - interval: 5s
+    input_series:
+      - series: 'container_memory_working_set_bytes{namespace="demo",pod="reused-name",pod_uid="new-pod",container="app"}'
+        values: '200+0x24'
+      - series: 'kube_pod_labels{namespace="demo",pod="reused-name",uid="new-pod",label_cloudops_lab_workload_uid="new-deployment"}'
+        values: '1+0x24'
+    promql_expr_test:
+      - expr: cloudops_memory_working_set_bytes
+        eval_time: 1m
+        exp_samples:
+          - labels: 'cloudops_memory_working_set_bytes{namespace="demo",deployment_uid="new-deployment"}'
+            value: 200

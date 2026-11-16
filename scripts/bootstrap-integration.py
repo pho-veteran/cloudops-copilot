@@ -5,7 +5,7 @@ import json
 import secrets
 import subprocess
 import time
-from local_lab import COMPOSE, ROOT
+from local_lab import COMPOSE, LAB_DIR, OWNED_PROJECT, PROJECT, ROOT
 
 
 def kubectl(*args, body=None):
@@ -54,7 +54,9 @@ def dispatch_permit():
 
 
 def main():
-    folder = ROOT / "tmp/e01-integration"
+    if PROJECT == OWNED_PROJECT:
+        raise SystemExit("Use manage-local-lab.py start for the retained owned lab.")
+    folder = LAB_DIR
     for kind in (
         "reader",
         "writer",
