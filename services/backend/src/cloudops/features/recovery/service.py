@@ -5,7 +5,8 @@ from datetime import timedelta
 
 from sqlalchemy import delete, func, select, update
 
-from cloudops.features.access.service import token_hash
+from cloudops.features.access.models import LoginSession
+from cloudops.features.access.service import lock_principal, token_hash
 from cloudops.features.incidents.coordination import lock_admission
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.states import nonterminal_run
@@ -290,9 +291,19 @@ def _decision_rows(db, plan_id, session, body, *, locked):
     return incident, plan, review, workload, now
 
 
-def decide(db, plan_id, session, body):
-    # Read-only preflight grants no authority and takes no admission or row locks.
+def _require_decision_session(db, session, binding):
+    user = lock_principal(db, binding, operator=True)
+    current = db.get(LoginSession, binding)
+    if user.id != session.principal.id or not secrets.compare_digest(
+        current.csrf_token.encode(), session.csrf_token.encode()
+    ):
+        raise DomainError(401, "session_expired", "Sign in again and review the current plan.")
+
+
+def decide(db, plan_id, session, body, *, binding):
+    # Preflight grants no authority; account locks end before live I/O.
     with db.begin():
+        _require_decision_session(db, session, binding)
         _, plan, _, workload, _ = _decision_rows(db, plan_id, session, body, locked=False)
         target_identity = (
             workload.id,
@@ -315,9 +326,18 @@ def decide(db, plan_id, session, body):
     # concurrent resolve, receipt consumption, scope retirement or plan change.
     db.expire_all()
     with db.begin():
+        _require_decision_session(db, session, binding)
         if body.decision == "approve":
             lock_admission(db)
         _, plan, review, workload, now = _decision_rows(db, plan_id, session, body, locked=True)
+        _require_decision_session(db, session, binding)
+        now = database_now(db)
+        if plan.expires_at <= now or review.expires_at <= now:
+            raise DomainError(
+                409,
+                "plan_refetch_required",
+                "Read a fresh exact plan before deciding; its approval window expired.",
+            )
         if (
             (workload.id, workload.cluster, workload.namespace, workload.name, workload.uid)
             != target_identity

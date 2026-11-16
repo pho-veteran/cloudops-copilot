@@ -4,14 +4,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request
 
 from cloudops.features.access.dependencies import COOKIE, current_session
-from cloudops.features.access.service import token_hash
+from cloudops.features.access.service import lock_principal, token_hash
 from cloudops.features.workloads.baseline_schemas import PROFILE, RestoreContext
 from cloudops.features.workloads.baseline_service import (
     baseline_view,
     check_current,
     digest,
     envelope,
-    lock_principal,
     payload,
 )
 from cloudops.features.workloads.models import Baseline, Workload

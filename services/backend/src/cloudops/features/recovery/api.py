@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from cloudops.features.access.dependencies import current_session, operator
+from cloudops.features.access.dependencies import COOKIE, current_session, operator
+from cloudops.features.access.service import token_hash
 from cloudops.features.access.schemas import Principal, SessionView
 from cloudops.features.recovery import plans as builders, policy, service
 from cloudops.features.recovery.models import ActionPlan, Execution
@@ -168,11 +169,12 @@ def read_plan(
 def decide_plan(
     plan_id: UUID,
     body: Decision,
+    request: Request,
     actor: Principal = Depends(operator),
     session: SessionView = Depends(current_session),
     db: Session = Depends(get_db),
 ):
-    return service.decide(db, plan_id, session, body)
+    return service.decide(db, plan_id, session, body, binding=token_hash(request.cookies[COOKIE]))
 
 
 @router.get(

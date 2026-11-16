@@ -7,7 +7,7 @@ import hashlib
 import json
 from uuid import UUID
 from sqlalchemy import select, tuple_
-from cloudops.features.access.models import LoginSession, User
+from cloudops.features.access.service import lock_principal
 from cloudops.features.workloads.baseline_schemas import (
     PROFILE,
     LEGACY_LIMITATIONS,
@@ -34,22 +34,6 @@ from cloudops.shared.errors import DomainError
 
 def invalid(message="The candidate changed or expired. Inspect a fresh healthy candidate."):
     raise DomainError(409, "candidate_changed", message)
-
-
-def lock_principal(db, binding, operator=False):
-    # Account maintenance locks User before deleting sessions; use the same order.
-    user_id = db.scalar(select(LoginSession.user_id).where(LoginSession.token_hash == binding))
-    if user_id is None:
-        raise DomainError(401, "session_expired", "Sign in again and review a fresh candidate.")
-    user = db.scalar(select(User).where(User.id == user_id).with_for_update())
-    session = db.scalar(
-        select(LoginSession).where(LoginSession.token_hash == binding).with_for_update()
-    )
-    if not user or not session or session.expires_at <= database_now(db):
-        raise DomainError(401, "session_expired", "Sign in again and review a fresh candidate.")
-    if operator and user.role != "operator":
-        raise DomainError(403, "permission_denied", "Only an Operator can confirm a baseline.")
-    return user
 
 
 def envelope(observation):

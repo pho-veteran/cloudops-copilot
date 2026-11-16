@@ -21,6 +21,10 @@ from cloudops.features.investigations.collector import Interrupted
 from cloudops.features.recovery import service
 from cloudops.features.recovery.classification import classify, classification_expression
 from cloudops.features.recovery.models import ActionPlan, Execution
+from cloudops.features.recovery.models import PlanReview
+from cloudops.features.access.models import LoginSession, User
+from cloudops.features.access.service import token_hash
+from cloudops.features.workloads.kubernetes import Kubernetes
 from cloudops.features.recovery.outcomes import RECONCILE_ATTEMPTS, RECONCILE_JOB
 from cloudops.features.recovery.reconciliation import ReconciliationHandler, reconcile
 from cloudops.shared.database import database_now, sessions
@@ -29,6 +33,57 @@ from cloudops.shared.jobs import Job, claim_next, finish
 
 permission_context = _permission_context
 gateway_case, executor = _gateway_case, _executor
+
+
+@pytest.mark.parametrize("loss", ["revoke", "expire", "demote"])
+def test_inflight_session_authority_loss_cannot_admit_approval(
+    permission_context, monkeypatch, loss
+):
+    import json
+
+    c = permission_context
+    actor = c.actors["operator"]
+    path = f"/api/plans/{c.consumer.plan_id}"
+    reviewed = actor.client.get(path).json()
+    binding = token_hash(actor.client.cookies["cloudops_session"])
+
+    def domain_state():
+        with sessions()() as db:
+            return {
+                model.__tablename__: sorted(
+                    json.dumps(dict(row), sort_keys=True, default=str)
+                    for row in db.execute(select(model.__table__)).mappings()
+                )
+                for model in (ActionPlan, PlanReview, Execution, Job)
+            }
+
+    original = Kubernetes.capacity
+
+    def external_read(self, deployment, replicas):
+        with sessions()() as db, db.begin():
+            session = db.get(LoginSession, binding)
+            if loss == "revoke":
+                db.delete(session)
+            elif loss == "expire":
+                session.expires_at = database_now(db) - timedelta(seconds=1)
+            else:
+                db.get(User, UUID(actor.session["principal"]["id"])).role = "viewer"
+        return original(self, deployment, replicas)
+
+    monkeypatch.setattr(Kubernetes, "capacity", external_read)
+    before = domain_state()
+    response = actor.client.post(
+        path + "/decision",
+        headers=actor.headers,
+        json={
+            "version": reviewed["plan"]["version"],
+            "digest": reviewed["plan"]["digest"],
+            "review_token": reviewed["review_token"],
+            "decision": "approve",
+        },
+    )
+    assert response.status_code == (403 if loss == "demote" else 401), response.text
+    assert domain_state() == before
 
 
 def approve(c):
