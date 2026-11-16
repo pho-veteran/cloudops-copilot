@@ -71,7 +71,7 @@ export function RecoveryPlans({
       unwrap(
         await api.POST("/api/incidents/{incident_id}/plans", {
           params: { path: { incident_id: id } },
-          body: { replicas, rationale },
+          body: { origin: "operator_manual", replicas, rationale },
         }),
       ),
     onSuccess: refresh,
@@ -122,7 +122,8 @@ export function RecoveryPlans({
       <h2>Recovery review</h2>
       <p>
         Operator-proposed absolute scale · live Kubernetes prerequisites · no
-        model diagnosis. Other recovery templates remain unavailable.
+        model diagnosis. Restore and memory plans are API previews; their
+        execution remains unavailable.
       </p>
       {canMutate && live && (
         <form
@@ -179,6 +180,9 @@ export function RecoveryPlans({
           <h3>
             Plan version {plan.version} · {plan.state}
           </h3>
+          <p>
+            {plan.template.replaceAll("_", " ")} · {plan.origin?.replaceAll("_", " ") || "Legacy origin unavailable"}
+          </p>
           <p className="mono">
             {plan.id} · {plan.digest}
           </p>

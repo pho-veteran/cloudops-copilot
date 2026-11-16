@@ -316,6 +316,9 @@ it("discards an expired approval intent and requires a fresh plan read and expli
   let decisions = 0;
   const plan = {
     id: planId,
+    template: "scale_deployment",
+    origin: "operator_manual",
+    source_analysis_id: null,
     version: 1,
     digest: "a".repeat(64),
     state: "proposed",

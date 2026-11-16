@@ -20,16 +20,23 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-function mount() {
+function mount(overrides: { template?: string; origin?: string | null; valid?: boolean } = {}) {
   const state = {
     planId: "00000000-0000-4000-8000-000000000001",
     failed: false,
+    template: "scale_deployment",
+    origin: "operator_manual",
+    valid: true,
+    ...overrides,
   };
   network.fetch.mockImplementation(async (input) => {
     const path = new URL((input as Request).url).pathname;
     const plan = {
       id: state.planId,
       version: 1,
+      template: state.template,
+      origin: state.origin,
+      source_analysis_id: null,
       digest: state.planId.repeat(2).replaceAll("-", ""),
       state: "proposed",
       expires_at: new Date(Date.now() + 300_000).toISOString(),
@@ -40,7 +47,7 @@ function mount() {
     if (state.failed) throw new TypeError("Controlled network interruption");
     return Response.json({
       plan,
-      valid: true,
+      valid: state.valid,
       reason: "Controlled provider observation",
       review_token: "fixture-receipt",
     });
@@ -55,6 +62,13 @@ function mount() {
   );
   return state;
 }
+
+it("shows advice preview provenance without enabling execution or hiding manual scale", async () => {
+  mount({ template: "restore_deployment_template", origin: "analysis_advice", valid: false });
+  expect(await screen.findByText("restore deployment template · analysis advice")).toBeDefined();
+  expect((screen.getByRole("button", { name: "Review approval" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole("button", { name: "Prepare live scale plan" })).toBeDefined();
+});
 
 it("closes old approval intent when a different immutable plan becomes current", async () => {
   const state = mount();
