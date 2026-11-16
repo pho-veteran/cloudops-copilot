@@ -188,6 +188,9 @@ def read(db, plan_id, session):
                     from cloudops.features.recovery.verification_policy import require_plan
 
                     require_plan(plan.content)
+                    from cloudops.features.recovery.rollback import require_inverse
+
+                    require_inverse(db, plan)
                 workload = db.get(Workload, plan.workload_id)
                 if not workload or not workload.active:
                     raise DomainError(
@@ -278,6 +281,9 @@ def _decision_rows(db, plan_id, session, body, *, locked):
         from cloudops.features.recovery.verification_policy import require_plan
 
         require_plan(plan.content)
+        from cloudops.features.recovery.rollback import require_inverse
+
+        require_inverse(db, plan, locked=locked)
     workload = query(select(Workload).where(Workload.id == plan.workload_id))
     if not workload or not workload.active:
         raise DomainError(
@@ -312,9 +318,16 @@ def preflight(kube, current, content):
     from types import SimpleNamespace
     from cloudops.features.recovery.capacity import candidate_capacity
     from cloudops.features.recovery.dispatch import SelectedState
-    from cloudops.features.recovery.fields import selected
+    from cloudops.features.recovery.fields import selected, Ineligible
 
-    containers, references = selected(current)
+    try:
+        containers, references = selected(current)
+    except Ineligible:
+        raise DomainError(
+            409,
+            "plan_changed",
+            "Current configuration cannot be represented safely; use manual guidance.",
+        ) from None
     if references != content["config_references"]:
         raise DomainError(409, "plan_changed", "Configuration references changed after preview.")
     candidate_capacity(
@@ -398,6 +411,11 @@ def decide(db, plan_id, session, body, *, binding):
             db.add(execution)
             db.flush()
             execution.dispatch_request = dispatch_request(plan, execution, current)
+            if plan.content.get("direction") == "inverse":
+                from cloudops.features.recovery.rollback import require_inverse
+
+                window = require_inverse(db, plan, execution, locked=True)
+                window.inverse_execution_id = execution.id
             db.add(Job(kind="recovery_execution_v1", subject_id=execution.id))
         review.consumed = True
         plan.state = "approved" if body.decision == "approve" else "rejected"
@@ -583,6 +601,9 @@ def execute(execution_id, *, before_call):
 
                 try:
                     require_plan(plan.content)
+                    from cloudops.features.recovery.rollback import require_inverse
+
+                    require_inverse(db, plan, execution)
                 except DomainError as error:
                     return {
                         "outcome": "denied",
@@ -639,12 +660,31 @@ class ExecutionHandler:
         if execution.maintenance_released or execution.state not in {
             "queued",
             "executing",
+            "rolling_back",
             "reconciling",
             "outcome_unknown",
         }:
             return False
         if execution.dispatch_started_at is not None:
             return True
+        if plan.content.get("direction") == "inverse":
+            from cloudops.features.recovery.rollback import require_inverse
+
+            try:
+                require_inverse(db, plan, execution)
+            except DomainError as error:
+                execution.state, execution.holds_lock = "manual_intervention", False
+                execution.finished_at = database_now(db)
+                record_outcome(
+                    execution,
+                    {
+                        "outcome": "denied",
+                        "attribution": "not_sent",
+                        "verification": "not_performed",
+                        "reason": error.message,
+                    },
+                )
+                return False
         if (
             plan.state != "approved"
             or incident.state == "resolved"
@@ -668,7 +708,14 @@ class ExecutionHandler:
     def started(self, db, subject_id):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())
         if not row.maintenance_released:
-            row.state = "reconciling" if row.dispatch_started_at is not None else "executing"
+            plan = db.get(ActionPlan, row.plan_id)
+            row.state = (
+                "reconciling"
+                if row.dispatch_started_at is not None
+                else "rolling_back"
+                if plan.content.get("direction") == "inverse"
+                else "executing"
+            )
 
     def failed(self, db, subject_id, reason, terminal):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())

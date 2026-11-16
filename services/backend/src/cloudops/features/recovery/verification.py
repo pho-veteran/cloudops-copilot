@@ -107,11 +107,19 @@ def prepare(execution_id, *, before_call):
         result = denied(
             "Fresh comparable offered traffic and complete pre-change rollout evidence are required."
         )
-    elif rollout["health"] == "healthy" and application["state"] == "passed":
+    elif (
+        plan.content.get("direction") == "forward"
+        and rollout["health"] == "healthy"
+        and application["state"] == "passed"
+    ):
         result = denied(
             "The qualified target is already recovered; no remediation was dispatched.", no_op=True
         )
-    elif rollout["health"] == "healthy" and application["state"] != "failed":
+    elif (
+        plan.content.get("direction") == "forward"
+        and rollout["health"] == "healthy"
+        and application["state"] != "failed"
+    ):
         result = denied(
             "The pre-change symptom is not established by qualified application evidence."
         )
@@ -136,8 +144,9 @@ def finalize(db, execution, verification, result):
     verification.result = result
     verification.finalized_at = database_now(db)
     state = result.get("state", "inconclusive")
+    plan = db.get(ActionPlan, execution.plan_id)
     execution.state = (
-        "succeeded"
+        ("rolled_back" if plan.content.get("direction") == "inverse" else "succeeded")
         if state == "passed"
         else "failed"
         if state == "failed"
@@ -157,6 +166,9 @@ def finalize(db, execution, verification, result):
         if state == "failed"
         else "Verification evidence is inconclusive; investigate or hand off before a fresh change.",
     }
+    from cloudops.features.recovery.rollback import arm
+
+    arm(db, execution, verification)
 
 
 def retire(db, execution, reason):

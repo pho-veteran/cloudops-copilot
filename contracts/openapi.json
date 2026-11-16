@@ -2796,6 +2796,23 @@
         "title": "IntakeResult",
         "type": "object"
       },
+      "InversePlanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "rationale": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rationale"
+        ],
+        "title": "InversePlanRequest",
+        "type": "object"
+      },
       "InverseQualification": {
         "additionalProperties": false,
         "properties": {
@@ -4818,6 +4835,18 @@
             "title": "Expires At",
             "type": "string"
           },
+          "forward_execution_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forward Execution Id"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -4833,7 +4862,8 @@
               {
                 "enum": [
                   "operator_manual",
-                  "analysis_advice"
+                  "analysis_advice",
+                  "inverse_rollback"
                 ],
                 "type": "string"
               },
@@ -4900,6 +4930,7 @@
           "template",
           "origin",
           "source_analysis_id",
+          "forward_execution_id",
           "content",
           "digest",
           "target_epoch",
@@ -5501,6 +5532,18 @@
             "title": "Inverse Qualified States",
             "type": "array"
           },
+          "inverse_window_seconds": {
+            "anyOf": [
+              {
+                "const": 600,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inverse Window Seconds"
+          },
           "max_cpu": {
             "title": "Max Cpu",
             "type": "string"
@@ -6010,6 +6053,69 @@
           "reason"
         ],
         "title": "ReviewedPlan",
+        "type": "object"
+      },
+      "RollbackView": {
+        "properties": {
+          "can_propose": {
+            "title": "Can Propose",
+            "type": "boolean"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "eligible_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eligible From"
+          },
+          "forward_execution_id": {
+            "format": "uuid",
+            "title": "Forward Execution Id",
+            "type": "string"
+          },
+          "inverse_execution_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inverse Execution Id"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "forward_execution_id",
+          "can_propose",
+          "reason",
+          "eligible_from",
+          "deadline",
+          "inverse_execution_id"
+        ],
+        "title": "RollbackView",
         "type": "object"
       },
       "RunComparison": {
@@ -8481,6 +8587,228 @@
         "summary": "Read Status",
         "tags": [
           "diagnosis"
+        ]
+      }
+    },
+    "/api/executions/{execution_id}/inverse-plans": {
+      "post": {
+        "operationId": "propose_inverse_plan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Execution Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InversePlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Propose Inverse Plan",
+        "tags": [
+          "recovery"
+        ]
+      }
+    },
+    "/api/executions/{execution_id}/rollback": {
+      "get": {
+        "operationId": "read_rollback_eligibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Execution Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RollbackView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Rollback Eligibility",
+        "tags": [
+          "recovery"
         ]
       }
     },

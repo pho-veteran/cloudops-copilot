@@ -37,6 +37,7 @@ function mount(overrides: { template?: string; origin?: string | null; valid?: b
       template: state.template,
       origin: state.origin,
       source_analysis_id: null,
+      forward_execution_id: null,
       digest: state.planId.repeat(2).replaceAll("-", ""),
       state: "proposed",
       expires_at: new Date(Date.now() + 300_000).toISOString(),

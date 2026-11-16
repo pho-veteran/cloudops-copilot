@@ -1,0 +1,461 @@
+{
+  "schema_version": "E07R5LocalInverse/v1",
+  "scope": {
+    "epic": 10,
+    "issue": 83,
+    "template": "scale_deployment",
+    "source": "Actual API approval, isolated gateway journal, worker, owned K3s and CA-verified TLS Prometheus",
+    "original_deployment_uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+    "sample_version": "9c6caa985036fa71ef7a4cdb18ca573acedf2739c551836d97e863c9707d48b7",
+    "sample_image": "cloudops-e07-recovery:9c6caa985036fa71-healthy",
+    "phase_boundary": "Forward uses fixed 30 RPS through completed verification. Inverse uses a separately declared fixed 8 RPS phase and a new fresh baseline; reducing load is not credited as forward recovery."
+  },
+  "fingerprints": {
+    "backend_source_files": 134,
+    "backend_source_sha256": "6f8c21ef620bcfa0031a653d2100f099353f89fe0f1fef2af92df0391dfdd18e",
+    "owning_modules": {
+      "features/recovery/rollback.py": "8f7c5cd8bbd6a1d3ac71c80fc8efc6e7c884b9ddf79762669481541c77ac898a",
+      "features/recovery/verification_policy.py": "a334e8340e404d6902c28ff086328839f1809c48b5ea45ec7bff02aeba1cce7d",
+      "features/recovery/dispatch_validation.py": "8f2dcf566c607503b39d5dc2cad84a82a072bf2150da942bc43356799dbf2f72",
+      "features/recovery/verification.py": "cccf267dd344ce76cae0f72b649d6eb7e3f1e8f47c395b7b4321ca0efa20be45",
+      "features/recovery/policy.py": "d66ff7735473f8c411bc32704e1cc0ff16f372b76da3124e8f1bdc70ed4bc927",
+      "features/recovery/models.py": "f11b66ce704e458ba6014d7d6650f8505a4770741c8cda149f597fd570113f1e",
+      "features/recovery/api.py": "67e910100e09921ee4792cdc9664a6075e8628e884ba9fc1f4f237c748b55494",
+      "features/recovery/service.py": "4376df769d896e82867b86330648fb2e26c7280eb2d8a1162c890a08a4cf9b43"
+    }
+  },
+  "forward": {
+    "operation_id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918",
+    "plan_id": "3ed2c39c-5910-434d-a070-e9c05e93723e",
+    "state": "succeeded",
+    "attribution": "acknowledged",
+    "verification": "passed",
+    "acknowledged_at": "2026-11-16T14:39:19.345920Z",
+    "fixed_deadline": "2026-11-16T14:42:19.345920Z",
+    "first_finalized_at": "2026-11-16T14:42:20.387323Z",
+    "profile_digest": "2eaf2fc2ca7b1949a0c84854cce8524a9058e3364f87d4e3667be7c4351ef40b",
+    "profile": {
+      "id": "e07-request-health/v1",
+      "queries": {
+        "resets": {
+          "unit": "count",
+          "query": "resets(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}[30s]) and (time() - timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) < 10)"
+        },
+        "requests": {
+          "unit": "count",
+          "query": "lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"} and (time() - timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) < 10)"
+        },
+        "error_ratio": {
+          "unit": "ratio",
+          "query": "sum by(namespace,deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})"
+        },
+        "p95_latency": {
+          "unit": "seconds",
+          "query": "sum by(namespace,deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})"
+        },
+        "sample_time": {
+          "unit": "timestamp",
+          "query": "timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) and (time() - timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) < 10)"
+        },
+        "offered_rate": {
+          "unit": "requests/s",
+          "query": "sum by(namespace,deployment_uid) (rate(lab_offered_requests_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}[30s]))"
+        },
+        "request_rate": {
+          "unit": "requests/s",
+          "query": "sum by(namespace,deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})"
+        },
+        "offered_sample_time": {
+          "unit": "timestamp",
+          "query": "max by(namespace,deployment_uid) (timestamp(lab_offered_requests_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}))"
+        }
+      },
+      "version": "scale-candidate-2",
+      "replicas": [
+        2
+      ],
+      "template": "scale_deployment",
+      "image_ids": {
+        "app": "sha256:58e78a870127fc1dcd79986171a2187e533fdbd9c6e879ae8b19b6f588aa9e8c"
+      },
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:9c6caa985036fa71-healthy",
+          "resources": {
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            }
+          }
+        }
+      ],
+      "minimum_rps": 25.0,
+      "step_seconds": 30,
+      "workload_uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "source_digest": "7626b4eae619004d4df76dc64d0657046d6ba89b96c03d6887a7217473691002",
+      "schema_version": "RecoveryVerificationProfile/v1",
+      "source_version": "9c6caa985036fa71ef7a4cdb18ca573acedf2739c551836d97e863c9707d48b7",
+      "warmup_seconds": 60,
+      "window_seconds": 180,
+      "minimum_coverage": 0.9,
+      "minimum_load_ratio": 0.9,
+      "source_age_seconds": 10,
+      "maximum_error_ratio": 0.05,
+      "maximum_p95_seconds": 0.5,
+      "event_failure_window": "after_settling/v1",
+      "qualification_reference": "R4 v3 measured load; candidate1 remained inconclusive on modern singleton Event counts; candidate2 fixes Event normalization and records warnings during explicit settling separately",
+      "sample_lateness_seconds": 10
+    },
+    "reserved_slots": 7,
+    "stored_slots": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "valid_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "rollout_coverage": 1.0,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "6b578d31-75be-4f7b-82b4-49ab1bcd5635",
+        "6f816a41-c5ae-493e-ab27-d3287659587e"
+      ],
+      "offered_rps": 30.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "failed_checks": [],
+    "reason_codes": [],
+    "generation_delta_before_any_fixture_reset": 1
+  },
+  "inverse": {
+    "operation_id": "e0ded027-fff5-4c5d-9b74-6a196c4a2c60",
+    "plan_id": "df0fb3e3-dbf3-4383-8647-aab0fca7eaa0",
+    "state": "rolled_back",
+    "attribution": "acknowledged",
+    "verification": "passed",
+    "acknowledged_at": "2026-11-16T14:47:24.892475Z",
+    "fixed_deadline": "2026-11-16T14:50:24.892475Z",
+    "first_finalized_at": "2026-11-16T14:50:26.136498Z",
+    "profile_digest": "d4e0fd6f7d10fa1c7681343f68d6239946f0ae401f0b06e3aa5ceccc69bf5da8",
+    "profile": {
+      "id": "e07-request-health/v1",
+      "queries": {
+        "resets": {
+          "unit": "count",
+          "query": "resets(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}[30s]) and (time() - timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) < 10)"
+        },
+        "requests": {
+          "unit": "count",
+          "query": "lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"} and (time() - timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) < 10)"
+        },
+        "error_ratio": {
+          "unit": "ratio",
+          "query": "sum by(namespace,deployment_uid) (cloudops_error_ratio{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})"
+        },
+        "p95_latency": {
+          "unit": "seconds",
+          "query": "sum by(namespace,deployment_uid) (cloudops_p95_latency_seconds{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})"
+        },
+        "sample_time": {
+          "unit": "timestamp",
+          "query": "timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) and (time() - timestamp(lab_http_request_duration_seconds_count{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}) < 10)"
+        },
+        "offered_rate": {
+          "unit": "requests/s",
+          "query": "sum by(namespace,deployment_uid) (rate(lab_offered_requests_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}[30s]))"
+        },
+        "request_rate": {
+          "unit": "requests/s",
+          "query": "sum by(namespace,deployment_uid) (cloudops_requests_per_second{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"})"
+        },
+        "offered_sample_time": {
+          "unit": "timestamp",
+          "query": "max by(namespace,deployment_uid) (timestamp(lab_offered_requests_total{namespace=\"{{namespace}}\",deployment_uid=\"{{workload_uid}}\"}))"
+        }
+      },
+      "version": "scale-candidate-1-low",
+      "replicas": [
+        1
+      ],
+      "template": "scale_deployment",
+      "image_ids": {
+        "app": "sha256:58e78a870127fc1dcd79986171a2187e533fdbd9c6e879ae8b19b6f588aa9e8c"
+      },
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:9c6caa985036fa71-healthy",
+          "resources": {
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            }
+          }
+        }
+      ],
+      "minimum_rps": 5.0,
+      "step_seconds": 30,
+      "workload_uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "source_digest": "7626b4eae619004d4df76dc64d0657046d6ba89b96c03d6887a7217473691002",
+      "schema_version": "RecoveryVerificationProfile/v1",
+      "source_version": "9c6caa985036fa71ef7a4cdb18ca573acedf2739c551836d97e863c9707d48b7",
+      "warmup_seconds": 60,
+      "window_seconds": 180,
+      "minimum_coverage": 0.9,
+      "minimum_load_ratio": 0.9,
+      "source_age_seconds": 10,
+      "maximum_error_ratio": 0.05,
+      "maximum_p95_seconds": 0.5,
+      "event_failure_window": "after_settling/v1",
+      "qualification_reference": "Owned E07 9c6caa985036fa71 calibration: one Pod at fixed 8 RPS, 480/480 HTTP200; independent inverse phase, not forward recovery attribution.",
+      "sample_lateness_seconds": 10
+    },
+    "reserved_slots": 7,
+    "stored_slots": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "valid_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "rollout_coverage": 1.0,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "6f816a41-c5ae-493e-ab27-d3287659587e"
+      ],
+      "offered_rps": 8.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "failed_checks": [],
+    "reason_codes": [],
+    "generation_delta_before_any_fixture_reset": 1
+  },
+  "inverse_linkage": {
+    "forward_execution_id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918",
+    "origin": "inverse_rollback",
+    "selector": {
+      "forward_operation_id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918",
+      "forward_plan_id": "3ed2c39c-5910-434d-a070-e9c05e93723e"
+    },
+    "before_equals_forward_desired": true,
+    "desired_equals_forward_before": true,
+    "rollback_contract_captured_before_forward_approval": {
+      "policy": "captured-old-state/v1",
+      "window_seconds": 600,
+      "verification_profile_digest": "d4e0fd6f7d10fa1c7681343f68d6239946f0ae401f0b06e3aa5ceccc69bf5da8",
+      "safety_digest": "d8bcb47c27d6df4f51567553378847a0b93e563b417fe93a010527b78f01af54"
+    },
+    "original_window": {
+      "forward_execution_id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918",
+      "can_propose": true,
+      "reason": "Fresh target preflight and a separate inverse review/approval are required.",
+      "eligible_from": "2026-11-16T14:42:20.387323Z",
+      "deadline": "2026-11-16T14:52:19.345920Z",
+      "inverse_execution_id": null
+    },
+    "new_inverse_expires_at": "2026-11-16T14:52:19.345920Z",
+    "journal": {
+      "operations": [
+        {
+          "id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918",
+          "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+          "state": "acknowledged",
+          "direction": "forward",
+          "template": "scale_deployment",
+          "plan_id": "3ed2c39c-5910-434d-a070-e9c05e93723e",
+          "operation_id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918"
+        },
+        {
+          "id": "e0ded027-fff5-4c5d-9b74-6a196c4a2c60",
+          "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+          "state": "acknowledged",
+          "direction": "inverse",
+          "template": "scale_deployment",
+          "plan_id": "df0fb3e3-dbf3-4383-8647-aab0fca7eaa0",
+          "operation_id": "e0ded027-fff5-4c5d-9b74-6a196c4a2c60"
+        }
+      ],
+      "inverse_links": [
+        {
+          "forward_id": "3e8b9bf4-ce8a-4590-9c6f-f8d145e20918",
+          "operation_id": "e0ded027-fff5-4c5d-9b74-6a196c4a2c60"
+        }
+      ],
+      "one_durable_entry_per_operation": true
+    }
+  },
+  "load": {
+    "forward": {
+      "started_at": "2026-11-16T14:37:46.808033+00:00",
+      "finished_at": "2026-11-16T14:43:16.911170+00:00",
+      "target": "checkout",
+      "seconds": 330,
+      "rate": 30,
+      "responses": {
+        "200": 8886,
+        "503": 1014
+      },
+      "concurrency": 16
+    },
+    "inverse": {
+      "started_at": "2026-11-16T14:43:20.160620+00:00",
+      "finished_at": "2026-11-16T14:52:20.138218+00:00",
+      "target": "checkout",
+      "seconds": 540,
+      "rate": 8,
+      "responses": {
+        "200": 4320
+      },
+      "concurrency": 16
+    }
+  },
+  "negative_controls": {
+    "forward_token_denied": {
+      "http_status": 409,
+      "error": {
+        "code": "plan_refetch_required",
+        "message": "Read the current plan after signing in and make a fresh explicit decision."
+      },
+      "at": "2026-11-16T14:42:22.391589+00:00"
+    },
+    "unsafe_old_resources_denied": {
+      "http_status": 409,
+      "error": {
+        "code": "inverse_unavailable",
+        "message": "The original inverse policy or qualified old-state evidence changed."
+      },
+      "at": "2026-11-16T14:42:22.417471+00:00",
+      "template": "scale_deployment",
+      "captured_old_memory_limit": "256Mi",
+      "temporarily_narrowed_policy_max_memory": "128Mi",
+      "policy_restored_before_new_proposal": true
+    },
+    "expired_plan_denied": {
+      "http_status": 409,
+      "error": {
+        "code": "plan_unavailable",
+        "message": "This plan is decided, expired or invalidated. Start a new investigation; no decision was replayed."
+      },
+      "at": "2026-11-16T14:47:23.617918+00:00"
+    },
+    "duplicate_inverse_denied": {
+      "http_status": 409,
+      "error": {
+        "code": "inverse_unavailable",
+        "message": "This forward operation already has an approved inverse; inspect its independent outcome."
+      },
+      "at": "2026-11-16T14:50:28.248178+00:00"
+    },
+    "expired_window_denied": {
+      "http_status": 409,
+      "error": {
+        "code": "inverse_unavailable",
+        "message": "No current original rollback window exists; inspect history or use manual handoff."
+      },
+      "at": "2026-11-16T14:52:21.314888+00:00"
+    }
+  },
+  "restart": {
+    "container_id": "3d0ed4a9b6877432c74ab5269d59a5d254667bf3185005044767f2a54856a103",
+    "before_next_slot": 2,
+    "after_next_slot": 2,
+    "acknowledged_at": "2026-11-16T14:47:24.892475Z",
+    "deadline": "2026-11-16T14:50:24.892475Z",
+    "retained_samples_unchanged": true,
+    "cut": "after second persisted observation, before next due slot"
+  },
+  "preservation": {
+    "original_forward_unchanged": true,
+    "original_run_unchanged": true,
+    "clock_never_rearmed": true,
+    "negative_controls_no_functional_change": true,
+    "separate_test_evidence": "Authenticated API/PostgreSQL tests also retain saved handoff/resource export bytes and block resolving an active inverse."
+  },
+  "containment": {
+    "root_memory_bytes": 4294967296,
+    "root_cpu": 4,
+    "root_swap_bytes": 0,
+    "node_allocatable_memory": "3Gi",
+    "node_allocatable_cpu": 3,
+    "sample_container_memory_bytes": 268435456,
+    "sample_container_cpu": "100m",
+    "actual_before_after_receipts": true,
+    "reader_prior_actual_rbac": {
+      "read": 200,
+      "patch_denied": 403,
+      "secret_denied": 403
+    }
+  },
+  "retained_diagnostics": {
+    "first_candidate": {
+      "state": "failed_or_blocked",
+      "disposition": "Gateway denied before functional admission because the capability-dropped UID0 process could not read a UID1000-only policy. Receipt retained; independent reset used for the completed trial. Nonsecret policy is readable in bounded read-only mounts; all three actual process policy digests then matched.",
+      "plan_id": "82ebb78b-d48c-4f85-81cf-b81892c388c4"
+    },
+    "startup_project": "Missing explicit Compose project briefly created only a task-owned extra gateway/network/unused volumes. These were removed after ownership/creation checks. Original K3s, journal and external pin were preserved; subsequent setup used the explicit original project."
+  },
+  "checks": {
+    "full_backend_tests": 1982,
+    "additional_captured_template_API_tests": 2,
+    "captured_template_case_limit": "Exact controlled ACK/finalization inputs plus real PostgreSQL/advice/inverse API. Safe memory/image values need no new forward selector; no live memory/image recovery claim.",
+    "web_tests": 231,
+    "web_build": "passed",
+    "ruff": "302 files formatted; lint passed",
+    "contracts_and_deliberate_drift": "passed",
+    "legacy_policy_digest": "Old/new loaders produce the same digest for the retained no-inverse R4 configuration",
+    "unknown_inverse": "Controlled response loss and post-admission interruption use receipt-only takeover; inverse gateway crash/restart preserves unknown request and never resends. Existing real R2 late-inverse exclusion remains a boundary prerequisite.",
+    "migration": "Legacy content/result bytes and unavailable inverse state preserved; downgrade refuses retained window/linkage.",
+    "final_head_ci": "Tracked separately in the owning PR; local counts above are actual execution records."
+  },
+  "cleanup": {
+    "state": "owned runtime stopped and quarantined",
+    "campaign_seconds": 1984.157028,
+    "containers_stopped": 7,
+    "original_authorities_preserved": true,
+    "all_configured_targets_closed": true,
+    "fixture_reset": {
+      "state": "passed",
+      "fixture": "config/lab/recovery-reset.json",
+      "original_uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "wrong_uid_rejected": true,
+      "rejected_spec_unchanged": true,
+      "after_replicas": 1,
+      "healthy": true,
+      "interpretation": "Post-trial fixture cleanup only; not credited to product recovery"
+    }
+  },
+  "model_inference_requests_in_slice": 0,
+  "limits": [
+    "One owned local qualified scale inverse; not a production SLO or universal exactly-once claim.",
+    "Captured safe memory/image inverse API and gateway branches use controlled sources; full live three-template/model/restore composition remains #85.",
+    "Complete recovery UI, real Edge roles/session/visual journeys remain #84; no R5 browser pass is asserted.",
+    "Approval reserves one inverse operation per forward. Failed or unknown approved inverse requires inspection/handoff rather than a new inverse identity."
+  ]
+}

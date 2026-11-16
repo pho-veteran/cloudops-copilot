@@ -11,7 +11,7 @@ from cloudops.features.access.dependencies import COOKIE, current_session, opera
 from cloudops.features.access.service import token_hash
 from cloudops.features.access.schemas import Principal, SessionView
 from cloudops.features.recovery import plans as builders, policy, service
-from cloudops.features.recovery.models import ActionPlan, Execution, Verification
+from cloudops.features.recovery.models import ActionPlan, Execution, Verification, RollbackWindow
 from cloudops.features.recovery.outcomes import Outcome
 from cloudops.features.recovery.verification_policy import VerificationProfile, configured_profiles
 from cloudops.shared.database import get_db
@@ -66,8 +66,9 @@ class PlanView(View):
     workload_id: UUID
     version: int
     template: Literal["scale_deployment", "restore_deployment_template", "set_memory_profile"]
-    origin: Literal["operator_manual", "analysis_advice"] | None
+    origin: Literal["operator_manual", "analysis_advice", "inverse_rollback"] | None
     source_analysis_id: UUID | None
+    forward_execution_id: UUID | None
     content: dict
     digest: str
     target_epoch: str
@@ -118,6 +119,81 @@ class VerificationView(View):
     samples: dict
     result: dict
     finalized_at: datetime | None
+
+
+class InversePlanRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    rationale: str = Field(min_length=1, max_length=2000, pattern=r"\S")
+
+
+class RollbackView(BaseModel):
+    forward_execution_id: UUID
+    can_propose: bool
+    reason: str
+    eligible_from: datetime | None
+    deadline: datetime | None
+    inverse_execution_id: UUID | None
+
+
+@router.get(
+    "/executions/{execution_id}/rollback",
+    operation_id="read_rollback_eligibility",
+    response_model=RollbackView,
+    dependencies=[Depends(current_session)],
+)
+def rollback_eligibility(execution_id: UUID, db: Session = Depends(get_db)):
+    from cloudops.features.recovery import rollback
+
+    if db.get(Execution, execution_id) is None:
+        raise DomainError(404, "execution_not_found", "Execution not found.")
+    window = db.get(RollbackWindow, execution_id)
+    can_propose, reason = False, "No original rollback authority was recorded."
+    try:
+        from cloudops.features.incidents.models import Incident
+        from cloudops.features.workloads.service import require_active
+
+        forward_execution, original, window, forward = rollback.require_forward(db, execution_id)
+        can_propose = window.inverse_execution_id is None
+        if can_propose:
+            if db.get(Incident, original.incident_id).state == "resolved":
+                rollback.deny("Reopen the saved incident before a fresh inverse proposal.")
+            workload = require_active(db, forward_execution.workload_id)
+            authority = service.available(db, workload)
+            if authority["epoch"] != forward.epoch:
+                rollback.deny("Maintenance retired the original forward authority.")
+        reason = (
+            "Fresh target preflight and a separate inverse review/approval are required."
+            if can_propose
+            else "An inverse is already approved; inspect its independent outcome."
+        )
+    except DomainError as error:
+        can_propose = False
+        reason = error.message
+    return RollbackView(
+        forward_execution_id=execution_id,
+        can_propose=can_propose,
+        reason=reason,
+        eligible_from=window.eligible_from if window else None,
+        deadline=window.deadline if window else None,
+        inverse_execution_id=window.inverse_execution_id if window else None,
+    )
+
+
+@router.post(
+    "/executions/{execution_id}/inverse-plans",
+    operation_id="propose_inverse_plan",
+    response_model=PlanView,
+    status_code=201,
+)
+def propose_inverse_plan(
+    execution_id: UUID,
+    body: InversePlanRequest,
+    actor: Principal = Depends(operator),
+    db: Session = Depends(get_db),
+):
+    from cloudops.features.recovery import rollback
+
+    return rollback.propose(db, execution_id, actor.id, body.rationale)
 
 
 @router.post(
@@ -213,7 +289,7 @@ def decide_plan(
 def executions(incident_id: UUID, db: Session = Depends(get_db)):
     return db.scalars(
         select(Execution)
-        .join(ActionPlan)
+        .join(ActionPlan, Execution.plan_id == ActionPlan.id)
         .where(ActionPlan.incident_id == incident_id)
         .order_by(Execution.created_at.desc())
         .limit(25)

@@ -17,6 +17,9 @@ class ActionPlan(Base):
     template: Mapped[str] = mapped_column(String(64), default="scale_deployment")
     origin: Mapped[str | None] = mapped_column(String(32))
     source_analysis_id: Mapped[UUID | None] = mapped_column(ForeignKey("diagnosis_analyses.id"))
+    forward_execution_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("recovery_executions.id", use_alter=True), index=True
+    )
     content: Mapped[dict] = mapped_column(JSONB)
     digest: Mapped[str] = mapped_column(String(64))
     target_epoch: Mapped[str] = mapped_column(String(64))
@@ -91,3 +94,17 @@ class Verification(Base):
     samples: Mapped[dict] = mapped_column(JSONB, default=dict)
     result: Mapped[dict] = mapped_column(JSONB, default=dict)
     finalized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RollbackWindow(Base):
+    __tablename__ = "recovery_rollback_windows"
+    __table_args__ = (CheckConstraint("deadline > eligible_from", name="rollback_window_positive"),)
+    forward_execution_id: Mapped[UUID] = mapped_column(
+        ForeignKey("recovery_executions.id"), primary_key=True
+    )
+    eligible_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    policy_digest: Mapped[str] = mapped_column(String(64))
+    inverse_execution_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("recovery_executions.id"), unique=True
+    )
