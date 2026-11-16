@@ -145,7 +145,7 @@ def require_plan(content):
     if (
         content.get("schema_version") != "RecoveryPlan/v2"
         or content.get("execution_capability") != CAPABILITY
-        or content.get("direction") != "forward"
+        or content.get("direction") not in {"forward", "inverse"}
         or profile is None
         or content.get("verification_profile") != profile.model_dump(mode="json")
         or content.get("verification_profile_digest") != profile.digest()

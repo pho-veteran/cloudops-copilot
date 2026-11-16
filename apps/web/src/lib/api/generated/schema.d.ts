@@ -77,6 +77,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/executions/{execution_id}/inverse-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Propose Inverse Plan */
+        post: operations["propose_inverse_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/executions/{execution_id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rollback Eligibility */
+        get: operations["read_rollback_eligibility"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/executions/{execution_id}/verification": {
         parameters: {
             query?: never;
@@ -1946,6 +1980,11 @@ export interface components {
              */
             delivery_id: string;
         };
+        /** InversePlanRequest */
+        InversePlanRequest: {
+            /** Rationale */
+            rationale: string;
+        };
         /** InverseQualification */
         InverseQualification: {
             /** Containers */
@@ -2671,6 +2710,8 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+            /** Forward Execution Id */
+            forward_execution_id: string | null;
             /**
              * Id
              * Format: uuid
@@ -2682,7 +2723,7 @@ export interface components {
              */
             incident_id: string;
             /** Origin */
-            origin: ("operator_manual" | "analysis_advice") | null;
+            origin: ("operator_manual" | "analysis_advice" | "inverse_rollback") | null;
             /** Rationale */
             rationale: string;
             /** Source Analysis Id */
@@ -2934,6 +2975,8 @@ export interface components {
             inverse_policy: string;
             /** Inverse Qualified States */
             inverse_qualified_states?: components["schemas"]["InverseQualification"][];
+            /** Inverse Window Seconds */
+            inverse_window_seconds?: 600 | null;
             /** Max Cpu */
             max_cpu: string;
             /** Max Memory */
@@ -3145,6 +3188,24 @@ export interface components {
             review_token: string;
             /** Valid */
             valid: boolean;
+        };
+        /** RollbackView */
+        RollbackView: {
+            /** Can Propose */
+            can_propose: boolean;
+            /** Deadline */
+            deadline: string | null;
+            /** Eligible From */
+            eligible_from: string | null;
+            /**
+             * Forward Execution Id
+             * Format: uuid
+             */
+            forward_execution_id: string;
+            /** Inverse Execution Id */
+            inverse_execution_id: string | null;
+            /** Reason */
+            reason: string;
         };
         /** RunComparison */
         RunComparison: {
@@ -4229,6 +4290,164 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    propose_inverse_plan: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-csrf-token"?: string | null;
+            };
+            path: {
+                execution_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InversePlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_rollback_eligibility: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execution_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RollbackView"];
                 };
             };
             /** @description Unauthorized */

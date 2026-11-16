@@ -14,10 +14,14 @@ from consumer_cases import consumer_observation
 from cloudops.features.investigations.locators import digest
 from cloudops.features.recovery.dispatch import RecoveryDispatch
 from cloudops.features.recovery.fields import selected
-from cloudops.features.recovery.models import ActionPlan, Execution
+from cloudops.features.recovery.models import ActionPlan, Execution, Verification, RollbackWindow
 from cloudops.features.recovery.policy import load
 from cloudops.features.workloads import baseline_service
-from cloudops.features.workloads.baseline_schemas import BaselinePayload, Provenance
+from cloudops.features.workloads.baseline_schemas import (
+    BaselinePayload,
+    Provenance,
+    RestorableContainer,
+)
 from cloudops.features.workloads.kubernetes import Kubernetes
 from cloudops.features.workloads.models import Baseline, BaselineCandidate, Workload
 from cloudops.features.workloads.observation_service import public
@@ -143,8 +147,9 @@ def gateway_case(executor, permission_context, tmp_path, monkeypatch):
                 "qualification_reference": "test://controlled-not-live",
             }
         ],
-        "verification_policy": "fixture-unqualified/v1",
-        "inverse_policy": "fixture-explicit-old-state/v1",
+        "verification_policy": "controlled-profile",
+        "inverse_policy": "captured-old-state/v1",
+        "inverse_window_seconds": 600,
         "inverse_qualified_states": [
             {
                 "workload_uid": uid,
@@ -156,6 +161,22 @@ def gateway_case(executor, permission_context, tmp_path, monkeypatch):
     path = tmp_path / "policy.json"
     path.write_text(json.dumps(rules))
     monkeypatch.setenv("RECOVERY_POLICY_FILE", str(path))
+    from recovery_verification_fixtures import profile
+    from cloudops.features.recovery import rollback
+
+    def old_profile(uid, template, desired):
+        return profile(template).model_copy(
+            update={
+                "workload_uid": uid,
+                "containers": [
+                    RestorableContainer.model_validate(c) for c in desired["containers"]
+                ],
+                "replicas": [desired["replicas"]],
+                "image_ids": {c["name"]: "sha256:" + "b" * 64 for c in desired["containers"]},
+            }
+        )
+
+    monkeypatch.setattr(rollback, "load_for", old_profile)
     return SimpleNamespace(
         gate=gate,
         provider=provider,
@@ -263,6 +284,8 @@ def intent(case, template="set_memory_profile", *, direction="forward", forward=
 
 
 def approve(case, body):
+    from cloudops.features.recovery import rollback, service
+
     content = {
         "schema_version": "RecoveryPlan/v2",
         "source": "controlled_gateway_protocol_fixture",
@@ -277,7 +300,43 @@ def approve(case, body):
         "desired": body.desired.selected(),
         "selector": body.selector.model_dump(mode="json"),
         "policy": body.policy.model_dump(mode="json"),
+        "template": body.template,
+        "config_references": selected(case.provider.value)[1],
     }
+    if body.direction == "forward":
+        content["rollback_contract"] = rollback.contract(content, load())
+    else:
+        with sessions()() as db, db.begin():
+            original = db.get(Execution, body.selector.forward_operation_id)
+            original_plan = db.get(ActionPlan, original.plan_id)
+            receipt = case.gate.operation(original.id)
+            if receipt and receipt.get("attribution") == "acknowledged":
+                now = datetime.now(timezone.utc)
+                anchor = now - timedelta(
+                    seconds=(180 if body.template == "scale_deployment" else 300) + 1
+                )
+                receipt = {**receipt, "acknowledged_at": anchor.isoformat()}
+                original.result = service.receipt_result(
+                    receipt, original.id, original.dispatch_request
+                )
+                original.state, original.holds_lock = "succeeded", False
+                original.dispatch_started_at = anchor - timedelta(seconds=1)
+                record = Verification(
+                    execution_id=original.id,
+                    profile={},
+                    profile_digest="0" * 64,
+                    acknowledged_at=anchor,
+                    deadline=now - timedelta(seconds=1),
+                    samples={},
+                    result={"state": "passed"},
+                    finalized_at=now,
+                )
+                db.add(record)
+                rollback.arm(db, original, record)
+            captured = original_plan.content.get("rollback_contract")
+            content["verification_profile_digest"] = (
+                captured["verification_profile_digest"] if captured else None
+            )
     body = body.model_copy(update={"plan_digest": digest(content)})
     with sessions()() as db, db.begin():
         for row in db.query(Execution).filter(
@@ -291,6 +350,9 @@ def approve(case, body):
             incident_id=UUID(case.context.consumer.incident_id),
             workload_id=UUID(case.context.consumer.workload_id),
             template=body.template,
+            forward_execution_id=body.selector.forward_operation_id
+            if body.direction == "inverse"
+            else None,
             content=content,
             digest=body.plan_digest,
             target_epoch=body.epoch,
@@ -303,13 +365,18 @@ def approve(case, body):
         )
         db.add(row)
         db.flush()
-        db.add(
-            Execution(
-                id=body.execution_id,
-                plan_id=row.id,
-                workload_id=row.workload_id,
-                state="executing",
-                holds_lock=True,
-            )
+        execution = Execution(
+            id=body.execution_id,
+            plan_id=row.id,
+            workload_id=row.workload_id,
+            state="rolling_back" if body.direction == "inverse" else "executing",
+            holds_lock=True,
+            dispatch_request=body.model_dump(mode="json"),
+            dispatch_started_at=datetime.now(timezone.utc),
         )
+        db.add(execution)
+        if body.direction == "inverse":
+            window = db.get(RollbackWindow, body.selector.forward_operation_id)
+            if window:
+                window.inverse_execution_id = execution.id
     return body

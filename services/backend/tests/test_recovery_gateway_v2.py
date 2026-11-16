@@ -236,6 +236,35 @@ def test_inverse_requires_acknowledged_exact_capture_and_independent_safety(gate
     assert c.provider.writes == 1
 
 
+def test_inverse_expiry_during_capacity_cannot_admit_a_write(gateway_case, monkeypatch):
+    from cloudops.features.recovery import gateway
+
+    c = gateway_case
+    ready(c.gate, c.uid)
+    forward = approve(c, intent(c, "scale_deployment"))
+    assert c.gate.dispatch(forward)["attribution"] == "acknowledged"
+    inverse = approve(c, intent(c, "scale_deployment", direction="inverse", forward=forward))
+
+    class Clock:
+        value = datetime.now(timezone.utc)
+
+        @classmethod
+        def now(cls, timezone):
+            return cls.value
+
+    capacity = c.provider.capacity_budget
+
+    def expire_during_capacity(deployment, extra):
+        capacity(deployment, extra)
+        Clock.value = inverse.expires_at + timedelta(microseconds=1)
+
+    monkeypatch.setattr(gateway, "datetime", Clock)
+    monkeypatch.setattr(c.provider, "capacity_budget", expire_during_capacity)
+    result = c.gate.dispatch(inverse)
+    assert result["attribution"] == "denied" and result["code"] == "plan_expired"
+    assert c.provider.writes == 1 and current(c) == forward.desired.selected()
+
+
 def test_lost_acknowledgement_lookup_and_restart_never_resend(gateway_case):
     c = gateway_case
     ready(c.gate, c.uid)
@@ -303,12 +332,17 @@ def test_http_union_authentication_and_read_only_receipts(gateway_case):
         assert c.provider.writes == 1
 
 
+@pytest.mark.parametrize("direction", ["forward", "inverse"])
 def test_crash_after_admission_preserves_typed_unknown_and_captured_request(
-    gateway_case, monkeypatch
+    gateway_case, monkeypatch, direction
 ):
     c = gateway_case
     ready(c.gate, c.uid)
     body = approve(c, intent(c))
+    if direction == "inverse":
+        assert c.gate.dispatch(body)["attribution"] == "acknowledged"
+        body = approve(c, intent(c, direction="inverse", forward=body))
+    writes_before = c.provider.writes
     original = c.provider.request
 
     def crash(path, *, patch=None, **kwargs):
@@ -329,7 +363,7 @@ def test_crash_after_admission_preserves_typed_unknown_and_captured_request(
         result["schema_version"] == "RecoveryReceipt/v2"
         and result["attribution"] == "outcome_unknown"
     )
-    assert restarted.dispatch(body) == result and c.provider.writes == 0
+    assert restarted.dispatch(body) == result and c.provider.writes == writes_before
     with restarted.connection() as db:
         stored = dict(
             db.execute("SELECT * FROM attempts WHERE id=?", (str(body.operation_id),)).fetchone()

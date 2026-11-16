@@ -51,6 +51,7 @@ class RecoveryPolicy(BaseModel):
     absence_policy: Literal["require-present-positive/v1"] = "require-present-positive/v1"
     verification_policy: str = Field(min_length=1, max_length=128)
     inverse_policy: str = Field(min_length=1, max_length=128)
+    inverse_window_seconds: Literal[600] | None = None
     inverse_qualified_states: list[InverseQualification] = Field(
         default_factory=list, max_length=128
     )
@@ -85,7 +86,10 @@ class RecoveryPolicy(BaseModel):
         return self
 
     def digest(self):
-        return digest(self.model_dump(mode="json"))
+        value = self.model_dump(mode="json")
+        if self.inverse_window_seconds is None:
+            value.pop("inverse_window_seconds")
+        return digest(value)
 
 
 def load():

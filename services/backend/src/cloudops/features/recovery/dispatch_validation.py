@@ -61,6 +61,11 @@ def approved_plan(body, workload, rules):
             ):
                 deny("The exact active claimed execution is required.")
             content = row.content
+            if body.direction == "inverse":
+                from cloudops.features.recovery.rollback import require_inverse
+
+                # The gateway rechecks captured safety/window authority without observer credentials.
+                require_inverse(db, row, execution, check_sources=False)
             if (
                 row.version != body.plan_version
                 or row.digest != body.plan_digest

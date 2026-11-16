@@ -44,6 +44,9 @@ def qualify(content, rules):
             verification_profile=profile.model_dump(mode="json"),
             verification_profile_digest=profile.digest(),
         )
+        from cloudops.features.recovery.rollback import contract
+
+        content["rollback_contract"] = contract(content, rules)
     return content
 
 

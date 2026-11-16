@@ -17,7 +17,13 @@ from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.recovery.api import PolicyView
 from cloudops.features.recovery import client as gateway_client
-from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview, Verification
+from cloudops.features.recovery.models import (
+    ActionPlan,
+    Execution,
+    PlanReview,
+    Verification,
+    RollbackWindow,
+)
 from cloudops.features.workloads.kubernetes import Kubernetes, snapshot
 from cloudops.features.workloads.models import (
     Baseline,
@@ -77,6 +83,7 @@ CONSUMER_MODELS = (
     Execution,
     PlanReview,
     Verification,
+    RollbackWindow,
 )
 
 
@@ -561,7 +568,29 @@ CASES = {
         lambda c: {"path_params": {"execution_id": c.consumer.execution_id}},
         lambda r, c, a: missing_legacy_verification(r),
     ),
+    "read_rollback_eligibility": RequestCase(
+        lambda c: {"path_params": {"execution_id": c.consumer.execution_id}},
+        lambda r, c, a: legacy_rollback_check(r),
+    ),
+    "propose_inverse_plan": RequestCase(
+        lambda c: {
+            "path_params": {"execution_id": c.consumer.execution_id},
+            "json": {"rationale": "Permission boundary for legacy unavailable rollback"},
+        },
+        lambda r, c, a: unavailable_inverse_check(r),
+    ),
 }
+
+
+def legacy_rollback_check(response):
+    assert response.status_code == 200, response.text
+    assert not response.json()["can_propose"]
+    assert response.json()["eligible_from"] is None and response.json()["deadline"] is None
+
+
+def unavailable_inverse_check(response):
+    assert response.status_code == 409, response.text
+    assert response.json()["error"]["code"] == "inverse_unavailable"
 
 
 def missing_legacy_verification(response):
