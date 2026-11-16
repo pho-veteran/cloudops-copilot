@@ -1,0 +1,42 @@
+{
+  "proof_class": "Controlled PostgreSQL and loopback HTTP; zero live provider requests",
+  "environment": "Linux, Python3.13.11, PostgreSQL17.11, owned cloudops_e06_gpt_review_test",
+  "checks": {
+    "driver": "Entire 12-case evaluation, secondary probe and one operational smoke over actual worker/client with loopback responses; 14 fixture HTTP calls, zero paid inference; post-send result-read failure cannot permit repeated smoke; evaluation excluded from operational API",
+    "budget": "Global request accounting carries prior attempts toward owner-approved total50; primary stage remains bounded to14 calls and one repair; partial observed usage prevents further sends",
+    "ownership": "Other database or missing owned-lab authority denied before any send",
+    "negative_scope": "Actual public Run POST rejects foreign workload with target_mismatch and zero model calls",
+    "negative_missing": "Actual context/worker insufficiency and zero model calls",
+    "negative_provider": "Actual controlled 429 hold/explicit resume/deadline preservation and 401/500 bounded classification without recollection",
+    "carryover": "Passing exact secondary probe reused with no new HTTP request; wrong destination/model/marker/history rejected"
+  },
+  "result": "12 passed,32 deselected; controlled PostgreSQL/loopback only; inherited Starlette/httpx deprecation warning",
+  "source_sha256": {
+    "services/backend/tests/e06_live_acceptance.py": "6c2d39a0189eb4c012b0f91f1661184d5b08270eecfbd4dfde1b252693325005",
+    "services/backend/tests/test_e06_acceptance_driver.py": "2301612cffccbf43203554ebf35a685330e66610c7eff2c18e68e62970d18daa",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "b3363be608d47e69b2780e8f995e57d7afdcf67ea3b9921a26cb226b87fec467",
+    "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
+    "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
+    "services/backend/tests/fixtures/e06/cases.json": "1c1bce8bbc83d4a2f9e02897902b3a41802477ffab940b00581f9b7aecf5278c",
+    "services/backend/tests/fixtures/e06/oracle.json": "2e85af63b06c82978be966eefa809802c04c7c9494b6d6d4d663c1fbe7464123"
+  },
+  "continuation_setup": {
+    "initial_admission": "refused before any model request because an expired zero-call terminal lab job remained after the original usage stop",
+    "cleanup": "Retired exactly one expired job belonging to a failed zero-call evaluation in the owned database; no model replay",
+    "prevention": "Budget checked before creating a new acceptance Run or Analysis"
+  },
+  "schema_contract_correction": {
+    "prompt_version": "e06.rca_prompt/v3",
+    "controlled_checks": 12,
+    "unit_context_and_advice_checks": 81,
+    "schema_lifecycle_checks": 811
+  },
+  "whole_repository_ci": {
+    "source_commit": "02cfc65bfe0dbd40993165cd23e132ece2f6e1e2",
+    "run": "https://github.com/pho-veteran/cloudops-copilot/actions/runs/43802532320",
+    "backend": "1682 passed; lint/format, PostgreSQL migration/authorization/recovery, generated contracts/drift and local HTTPS session smoke passed",
+    "web": "230 tests and production build passed",
+    "final_publication": "Exact final documentation/evidence head is checked separately in PR78"
+  }
+}

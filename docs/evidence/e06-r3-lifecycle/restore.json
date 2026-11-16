@@ -1,0 +1,40 @@
+{
+  "schema": "E06ActualRestore/v1",
+  "driver_sha256": "76308021d7352cd4bec80d270d93842d03459809d05e0687761972310777da4d",
+  "restored_bytes_unchanged": true,
+  "job_ids_attempts_preserved_before_cleanup": true,
+  "cleanup": {
+    "sessions_revoked": true,
+    "restored_model_work_retired": true,
+    "analysis_dispatch_denied": true,
+    "permit_generation": 2
+  },
+  "post_resume_replay": false,
+  "private_working_contexts_cleared": true,
+  "context_manifests_preserved": true,
+  "operational_provider_quality": "not_measured",
+  "source": "Controlled fixture; actual pg_dump/pg_restore and Linux authority.",
+  "runtime_source_sha256": {
+    "services/backend/src/cloudops/entrypoints/dispatch.py": "1cbd87c1439cf63d1649c3362d968799979dbb309f0f946683a2f70571ac14cd",
+    "services/backend/src/cloudops/entrypoints/worker.py": "b9f341cdaa10e037e07ca1b58325e596aa225b14ead3d398fb555cc5073ef81c",
+    "services/backend/src/cloudops/shared/jobs.py": "3b6fb261e7be8e7fc4a7f9147685721455c07e0d2946d99fdad692d8daeedb0a",
+    "services/backend/src/cloudops/features/diagnosis/advice.py": "0ebc20289a17a53f128be1668e540f181d139356304ca6ad5e89644ce9c4fed7",
+    "services/backend/src/cloudops/features/diagnosis/api.py": "4659efd37f9719ba7ceb4c890a40b7bdd87b2d72cd6c5ff9b752d59a1dbb46b2",
+    "services/backend/src/cloudops/features/diagnosis/api_schemas.py": "93fd210bfc33846ddba53713374ba6517e86387256e6c04edc86f14e7b5ed614",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "585eb1ccfbd262dd193d509bb0f79b430f9554595666237d81ab24cd9470f739",
+    "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
+    "services/backend/src/cloudops/features/diagnosis/lifecycle.py": "cd3f02b7e4ce7859a53680c24feadfa9098913961ad484e46fc1618146051bb4",
+    "services/backend/src/cloudops/features/diagnosis/messages.py": "cc2c181f9c96809bed6a3d02a24b5805252d87ab40cd3bbd7d22f5c5d71541a4",
+    "services/backend/src/cloudops/features/diagnosis/models.py": "095db3fc206e37239ff504f71df88622183bec6567234c51f7ee4b85ca19dd46",
+    "services/backend/src/cloudops/features/diagnosis/pins.py": "f549d9de1d0c98404b3bbf49a13135327849dc6c44649a80493019f04ba94fbd",
+    "services/backend/src/cloudops/features/diagnosis/profile.py": "5ca2865c1a05cc421a5a82c9dfd292cd3ce8dc5fa1b1ba086d1eedf6e80ef538",
+    "services/backend/src/cloudops/features/diagnosis/schemas.py": "537295c60d1e130295b55ad8a943642440aa29c11b6f37651f433460b8e553c5",
+    "services/backend/src/cloudops/features/diagnosis/service.py": "8ed6f51ee0cc39938f9742421673a454e22c7f1c1239ce8e80ea363faacf9769",
+    "services/backend/src/cloudops/features/diagnosis/settings.py": "610f14bfb4e8acdfe78ae1b04bc0ea121849e2ec17b9c5cec164ee6fdb3a2819",
+    "services/backend/src/cloudops/features/diagnosis/slot.py": "a02e98524fa76fc2d112290017c0015ee24e99e33421564b1c187ba15975ab5d",
+    "services/backend/src/cloudops/features/diagnosis/transport.py": "2780d0cc17d487a72714f0d934cabc5dbdc93e7c3ec73dbde275c663626a06c9",
+    "services/backend/src/cloudops/features/diagnosis/versions.py": "4549be8c20cea88c4c878afb9c00397e3ebdad45099400e64d7d5882cf7686a8",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "24c2e31ad812924c74ef4f1c33d3430f852d630c15bb16fc679cd946b33fd607"
+  },
+  "runtime_source_binding": "Worktree bytes captured after the owned drill; runtime source was unchanged during seed/restore/verify."
+}

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertReceipts } from "./AlertReceipts";
 import { KnowledgeStatus } from "@/features/knowledge/KnowledgeStatus";
+import { ModelConnection } from "@/features/diagnosis/ModelConnection";
 
 export function Connections({ canMutate }: { canMutate: boolean }) {
   const cache = useQueryClient();
@@ -87,6 +88,7 @@ export function Connections({ canMutate }: { canMutate: boolean }) {
       )}
       <AlertReceipts />
       <KnowledgeStatus />
+      <ModelConnection canMutate={canMutate} />
     </section>
   );
 }

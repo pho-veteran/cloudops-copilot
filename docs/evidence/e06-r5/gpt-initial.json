@@ -1,0 +1,196 @@
+{
+  "cohort": "e06-gpt-owned-fixtures-v1",
+  "source_commit": "31bd28a6bc3453a1fd1d1e1ef74fb276d1bbdb87",
+  "driver_sha256": "2fbbe226c982bd4e16063874997c0927fe2a602e79c0ee888a35a15a52af6aa6",
+  "cases_sha256": "1c1bce8bbc83d4a2f9e02897902b3a41802477ffab940b00581f9b7aecf5278c",
+  "oracle_sha256": "2e85af63b06c82978be966eefa809802c04c7c9494b6d6d4d663c1fbe7464123",
+  "models": [
+    "gpt-6.1-sol",
+    "codex/gpt-6.1-terra"
+  ],
+  "endpoint": "http://localhost:20128/v1",
+  "request_limit": 50,
+  "observed_token_stop": 60000,
+  "allowance": "Owner authorized 50 requests across all attempts; this cohort uses at most 14 primary calls, one shared repair, and reuses a passing secondary fixed probe when supplied; no implicit retry",
+  "source_authority": "Owner-authorized synthetic owned-lab fixtures only; no private real telemetry",
+  "calls": [
+    {
+      "model": "gpt-6.1-sol",
+      "case": "c01",
+      "repair": false,
+      "outcome": {
+        "kind": "text",
+        "identity": {
+          "config_id": "e06-primary",
+          "config_version": "2",
+          "behavior_digest": "5f3f6b5fe0b4bb3df5c96ae81f9991e589995c681f54cd857177b7d3e20ab305",
+          "endpoint_label": "owned-local-gateway",
+          "requested_model": "gpt-6.1-sol",
+          "authorization_id": "owner-authorized-e06-local-gateway",
+          "budget_policy_id": "e06-finite-50-requests"
+        },
+        "text": "{\"apiVersion\": \"RCAAdvice/v1\", \"status\": \"insufficient_evidence\", \"assessment\": {\"summary\": \"Stored observations support a container startup failure associated with missing APP_PORT configuration, followed by restart backoff.\", \"confidence\": \"high for the observed failure mechanism; configuration provenance and remediation are unverified\", \"findings\": [{\"statement\": \"The observed pod has waiting reason CrashLoopBackOff and restart count 6; an event reports backoff restarting failed container app.\", \"evidence\": [\"E001\", \"E003\", \"E005\"]}, {\"statement\": \"Current and previous retained logs both report that required APP_PORT is missing and the application is exiting with status 1. These segments contain identical content and should not be treated as independent corroboration.\", \"evidence\": [\"E006\", \"E007\"]}, {\"statement\": \"The recorded pod phase is Running, which does not establish container health or recovery given the recorded restart backoff.\", \"evidence\": [\"E004\", \"E001\"]}]}, \"uncertainties\": [\"The observations do not establish why APP_PORT is missing, its intended value, or which configuration source should supply it.\", \"No selected runbook or recovery template is available; no remediation action or parameter can be grounded in the supplied sources.\", \"Traffic rate, error ratio, and latency sources are missing, so user-facing impact cannot be assessed.\", \"The supplied observations do not establish OOM termination, scheduling failure, or image-pull failure as the cause.\", \"Stored observations do not establish current recovery or workload-wide impact.\"], \"missing_sources\": [\"Selected runbook supporting manual recovery actions\", \"Configuration evidence establishing the source and intended value of APP_PORT\", \"prometheus.request_rate\", \"prometheus.error_ratio\", \"prometheus.p95_latency\"], \"manual_next_steps\": [], \"recovery_actions\": []}",
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 3399,
+          "completion_tokens": 348,
+          "total_tokens": 3747
+        },
+        "usage_status": "observed",
+        "served_model": "gpt-6.1-sol",
+        "http_status": 200,
+        "error_code": null,
+        "retry_after_seconds": null,
+        "retry_after_raw": null,
+        "elapsed_ms": 12339,
+        "response_bytes": 2211,
+        "response_sha256": "b334f6b91e6af4b9984276f405b2b27c681809f4677cf0a8f1ae621e9171044a"
+      }
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "case": "c01",
+      "repair": true,
+      "outcome": {
+        "kind": "text",
+        "identity": {
+          "config_id": "e06-primary",
+          "config_version": "2",
+          "behavior_digest": "5f3f6b5fe0b4bb3df5c96ae81f9991e589995c681f54cd857177b7d3e20ab305",
+          "endpoint_label": "owned-local-gateway",
+          "requested_model": "gpt-6.1-sol",
+          "authorization_id": "owner-authorized-e06-local-gateway",
+          "budget_policy_id": "e06-finite-50-requests"
+        },
+        "text": "{\"schema_version\": \"RCAAdvice/v1\", \"status\": \"insufficient_evidence\", \"cause_category\": \"crashloop_startup\", \"summary\": \"Stored observations support a startup failure: container app reports that required APP_PORT is missing and exits with status 1. The pod has six restarts and is in CrashLoopBackOff. The underlying configuration defect and a validated recovery procedure are not established.\", \"supporting_evidence_ids\": [\"E001\", \"E003\", \"E005\", \"E006\", \"E007\"], \"contradicting_evidence_ids\": [], \"alternatives\": [], \"ruled_out_hypotheses\": [], \"unverified_checks\": [], \"missing_evidence\": [\"Configuration evidence establishing why APP_PORT is missing.\", \"Selected runbook supporting recovery actions.\", \"Request-rate, error-ratio, and p95-latency observations needed to assess traffic impact.\"], \"limitations\": [\"No runbook was selected; no recovery actions or parameter values are supplied.\", \"Current and previous log segments have identical content and digests and should not be treated as independent corroboration.\", \"Pod phase Running does not establish container health or recovery; CrashLoopBackOff is also recorded.\", \"The supplied observations do not establish OOM termination, scheduling failure, or image-pull failure; these hypotheses are not definitively ruled out.\", \"The evidence supports an application-reported missing startup setting, but does not establish its configuration source or the scope of user impact.\"], \"actions\": []}",
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 3497,
+          "completion_tokens": 312,
+          "total_tokens": 3809
+        },
+        "usage_status": "observed",
+        "served_model": "gpt-6.1-sol",
+        "http_status": 200,
+        "error_code": null,
+        "retry_after_seconds": null,
+        "retry_after_raw": null,
+        "elapsed_ms": 11185,
+        "response_bytes": 1884,
+        "response_sha256": "67834c6879078d8e2a5b0a17c141bd65d70ccae3d01803f80386b1e08e82a86a"
+      }
+    }
+  ],
+  "cases": {
+    "n-required-gap": {
+      "analysis_id": "95550885-01d1-46a0-8f61-4774c1095474",
+      "run_id": "07f6ea6d-608f-404d-845b-34db4c36308b",
+      "purpose": "evaluation",
+      "state": "insufficient_evidence",
+      "reason": "no_evidence",
+      "identity": {
+        "model": "gpt-6.1-sol",
+        "config_id": "e06-primary",
+        "policy_digest": "d850d4f2c8ed9c2214dc0b540273fd76ea43f2ce21ef79069270192a1eadc590",
+        "config_version": "2",
+        "endpoint_label": "owned-local-gateway",
+        "prompt_version": "e06.rca_prompt/v1",
+        "behavior_digest": "5f3f6b5fe0b4bb3df5c96ae81f9991e589995c681f54cd857177b7d3e20ab305",
+        "context_version": "e06.context/v1",
+        "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+        "validator_version": "e06.validator/v1"
+      },
+      "calls": 0,
+      "repairs": 0,
+      "result": null,
+      "resolved_support": [],
+      "excluded_from_operational_api": true
+    },
+    "c01": {
+      "analysis_id": "ec5f95e7-b2aa-4a3f-80e5-5420107271e7",
+      "run_id": "b8c5bacc-1f47-4deb-9c49-b8ca5e3767dc",
+      "purpose": "evaluation",
+      "state": "failed",
+      "reason": "validation_failed",
+      "identity": {
+        "model": "gpt-6.1-sol",
+        "config_id": "e06-primary",
+        "policy_digest": "d850d4f2c8ed9c2214dc0b540273fd76ea43f2ce21ef79069270192a1eadc590",
+        "config_version": "2",
+        "endpoint_label": "owned-local-gateway",
+        "prompt_version": "e06.rca_prompt/v1",
+        "behavior_digest": "5f3f6b5fe0b4bb3df5c96ae81f9991e589995c681f54cd857177b7d3e20ab305",
+        "context_version": "e06.context/v1",
+        "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+        "validator_version": "e06.validator/v1"
+      },
+      "calls": 2,
+      "repairs": 1,
+      "result": null,
+      "resolved_support": [],
+      "excluded_from_operational_api": true
+    }
+  },
+  "repairs": 1,
+  "observed_tokens": 7700,
+  "missing_usage_calls": 1,
+  "prior_requests": 3,
+  "total_requests": 5,
+  "secondary_probe": {
+    "identity": {
+      "config_id": "e06-gpt-probe-2",
+      "config_version": "1",
+      "behavior_digest": "009d8b4a625c2796995e203c54195195e8858134087e3d6f09c999e1620f7c24",
+      "endpoint_label": "owned-local-gateway",
+      "requested_model": "codex/gpt-6.1-terra",
+      "authorization_id": "owner-requested-gpt-probes",
+      "budget_policy_id": "e06-global15-new2-probes-only"
+    },
+    "policy_digest": "fc6603d1c536a5256dd9f593a1db06690f727ae609f0ce59dae1aeab902af0fb",
+    "state": "completed",
+    "receipt": {
+      "kind": "text",
+      "served_model": "gpt-6.1-terra",
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 67,
+        "completion_tokens": 5,
+        "total_tokens": 72
+      },
+      "usage_status": "observed",
+      "elapsed_ms": 1159,
+      "response_sha256": "7038ca9d4013e34877604743b765003f685ce9a713fe7d9da50ab60230c5256a",
+      "transport_success": true,
+      "schema_success": true
+    },
+    "quality": "not_established",
+    "source": "Reused owner-authorized fixed probe; no repeat HTTP request"
+  },
+  "carryover_sha256": "002eab0cb50e2944c7e45c826e3edeec3525641b7369d4d62f21af9183828f25",
+  "started": true,
+  "primary_identity": {
+    "config_id": "e06-primary",
+    "config_version": "2",
+    "endpoint_label": "owned-local-gateway",
+    "behavior_digest": "5f3f6b5fe0b4bb3df5c96ae81f9991e589995c681f54cd857177b7d3e20ab305",
+    "model": "gpt-6.1-sol",
+    "policy_digest": "d850d4f2c8ed9c2214dc0b540273fd76ea43f2ce21ef79069270192a1eadc590",
+    "prompt_version": "e06.rca_prompt/v1",
+    "context_version": "e06.context/v1",
+    "validator_version": "e06.validator/v1",
+    "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900"
+  },
+  "scope_negative": {
+    "status": 409,
+    "code": "target_mismatch",
+    "http_model_calls": 0
+  },
+  "assessment": {
+    "result": "failed_initial_schema_contract",
+    "stopped_after": "c01 initial plus one repair",
+    "quality_gate": "not_met",
+    "qualification_installed": false,
+    "further_cases": "not_run",
+    "root_cause": "Trusted prompt named RCAAdvice/v1 but omitted its wire schema; responses guessed incompatible keys. Strict validator safely rejected both."
+  }
+}

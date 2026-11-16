@@ -38,6 +38,7 @@ class Job(Base):
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     error: Mapped[str | None] = mapped_column(String(256))
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
 
 class JobAttempt(Base):
@@ -129,6 +130,7 @@ def claim_next(handlers: dict[str, JobHandler], gate: DispatchGate) -> Claim | N
                 select(Job)
                 .where(
                     Job.kind.in_(kinds),
+                    or_(Job.due_at.is_(None), Job.due_at <= now),
                     or_(
                         Job.state == "queued",
                         and_(Job.state == "running", Job.lease_until <= now),
@@ -264,7 +266,7 @@ def checkpoint(
             .limit(1)
         )
         carry = write(db, previous.carry if previous else None)
-        if carry is not None and len(json.dumps(carry, separators=(",", ":"))) > 16384:
+        if carry is not None and len(json.dumps(carry, separators=(",", ":")).encode()) > 16384:
             raise ValueError("Checkpoint carry exceeds its bound.")
         db.add(
             JobCheckpoint(
@@ -280,6 +282,22 @@ def checkpoint(
             )
         )
         return True
+
+
+def defer_owned(db: Session, claim: Claim, due_at: datetime | None) -> None:
+    """Release a fenced claim in its caller's transaction; None holds it until resumed.
+
+    The caller must already have obtained ``_fenced`` under its dispatch admission.
+    Feature outcome, attempt completion and deferral must commit together.
+    """
+    job = owned(db, claim)
+    if job is None:
+        raise RuntimeError("Cannot defer an obsolete claim.")
+    attempt = db.scalar(select(JobAttempt).where(JobAttempt.lease_token == claim.token))
+    attempt.state, attempt.finished_at = "succeeded", database_now(db)
+    job.state = "held" if due_at is None else "queued"
+    job.due_at = due_at
+    job.lease_token, job.lease_until = None, None
 
 
 def finish(

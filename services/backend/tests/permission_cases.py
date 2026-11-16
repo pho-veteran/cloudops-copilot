@@ -167,7 +167,8 @@ def health_check(response, context, actor):
     assert set(observations) == {"database", "worker", "collector", "diagnosis", "executor"}
     assert observations["database"].status == "available"
     assert observations["collector"].source == "development_fixture"
-    assert observations["diagnosis"].status == observations["executor"].status == "unavailable"
+    assert observations["diagnosis"].status == "available"
+    assert observations["executor"].status == "unavailable"
 
 
 def create_incident_request(context):
@@ -300,3 +301,7 @@ from knowledge_cases import CASES as KNOWLEDGE_CASES  # noqa: E402
 
 CASES.update(CONSUMER_CASES)
 CASES.update(KNOWLEDGE_CASES)
+
+from diagnosis_cases import CASES as DIAGNOSIS_CASES  # noqa: E402
+
+CASES.update(DIAGNOSIS_CASES)

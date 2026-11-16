@@ -14,6 +14,15 @@ class Operation:
 
 
 OPERATIONS = {
+    "get_analysis": Operation(
+        "GET", "/api/incidents/{incident_id}/runs/{run_id}/analysis", "protected_read"
+    ),
+    "resume_analysis": Operation(
+        "POST", "/api/incidents/{incident_id}/runs/{run_id}/analysis/resume", "operator_mutation"
+    ),
+    "get_model_status": Operation("GET", "/api/diagnosis/status", "protected_read"),
+    "list_model_checks": Operation("GET", "/api/diagnosis/checks", "protected_read"),
+    "create_model_check": Operation("POST", "/api/diagnosis/checks", "operator_mutation"),
     "compare_runs": Operation(
         "GET", "/api/incidents/{incident_id}/runs/{run_id}/compare", "protected_read"
     ),
@@ -122,6 +131,7 @@ OPERATIONS = {
     "export_recommendation_report": Operation(
         "GET", "/api/recommendation-reports/{report_id}/export", "protected_read"
     ),
+    "get_recovery_policy": Operation("GET", "/api/recovery-policy", "protected_read"),
     "propose_plan": Operation("POST", "/api/incidents/{incident_id}/plans", "operator_mutation"),
     "list_plans": Operation("GET", "/api/incidents/{incident_id}/plans", "protected_read"),
     "read_plan": Operation("GET", "/api/plans/{plan_id}", "protected_review"),

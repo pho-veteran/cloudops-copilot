@@ -1,4 +1,8 @@
-import { buildIncidentHash, incidentReturnHash } from "@/app/routes";
+import {
+  buildIncidentHash,
+  buildKnowledgeHash,
+  incidentReturnHash,
+} from "@/app/routes";
 
 const uuid = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
 type RecordValue = Record<string, unknown>;
@@ -60,6 +64,46 @@ export function storedReferences(snapshot: unknown) {
   return [...byId.values()];
 }
 
+export function storedRunbooks(snapshot: unknown) {
+  const root = object(snapshot);
+  const runs = object(root?.runs);
+  const declared = new Set(
+    (Array.isArray(runs?.items) ? runs.items : []).map(
+      (row: unknown) => object(row)?.id,
+    ),
+  );
+  const section = object(root?.runbook_citations);
+  return (Array.isArray(section?.items) ? section.items : []).flatMap(
+    (value: unknown) => {
+      const row = object(value);
+      const ref = object(row?.reference);
+      if (
+        !row ||
+        !ref ||
+        typeof row.run_id !== "string" ||
+        !declared.has(row.run_id) ||
+        ![
+          row.run_id,
+          row.selection_id,
+          ref.document_version_id,
+          ref.chunk_id,
+        ].every((id) => typeof id === "string" && uuid.test(id))
+      )
+        return [];
+      return [
+        {
+          run: row.run_id,
+          selection: row.selection_id as string,
+          document: ref.document_version_id as string,
+          chunk: ref.chunk_id as string,
+          title: String(ref.document_key),
+          version: String(ref.version),
+        },
+      ];
+    },
+  );
+}
+
 export function HandoffReferences({
   incidentId,
   resolutionId,
@@ -70,6 +114,7 @@ export function HandoffReferences({
   snapshot: unknown;
 }) {
   const refs = storedReferences(snapshot);
+  const runbooks = storedRunbooks(snapshot);
   return (
     <section
       aria-label="Stored handoff evidence references"
@@ -107,6 +152,29 @@ export function HandoffReferences({
             </li>
           ))}
         </ul>
+      )}
+      {runbooks.length > 0 && (
+        <>
+          <h4>Stored runbook methodology</h4>
+          <ul>
+            {runbooks.map((ref, i) => (
+              <li key={i}>
+                <a
+                  href={buildKnowledgeHash({
+                    incident: incidentId,
+                    run: ref.run,
+                    document: ref.document,
+                    chunk: ref.chunk,
+                    selection: ref.selection,
+                    returnTo: window.location.hash,
+                  })}
+                >
+                  {ref.title} · version {ref.version} · stored selection
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

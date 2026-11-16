@@ -129,6 +129,8 @@ def targets(db, incident_id, run_id, evidence_id, kind, cursor, limit):
 
 
 def _side(db, incident_id, run_id):
+    from cloudops.features.diagnosis.service import analysis_view
+
     # The current application read policy allows either signed-in role to read
     # every incident. Keep both exact resource checks here, before serialization.
     get_incident(db, incident_id)
@@ -154,6 +156,7 @@ def _side(db, incident_id, run_id):
         outcome_code=row.outcome_code,
         created_at=row.created_at,
         finished_at=row.finished_at,
+        analysis=analysis_view(db, run_id),
     )
 
 

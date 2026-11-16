@@ -75,7 +75,7 @@ context is always sendable under the policy that built it.
 | --- | --- | --- |
 | Context | `e06.context/v1` | prepared-context shape |
 | Target rules | `e06.targets/v1` | extraction caps and order |
-| Prompt | `e06.rca_prompt/v1` | fixed system/user envelope |
+| Prompt | `e06.rca_prompt/v3` | fixed system/user envelope |
 | Validator | `e06.validator/v1` | structural + exact-reference checks |
 | Probe prompt | `e06.probe_prompt/v1` | transport-only probe |
 | Policy | `EgressPolicy/v1` | allowlist, destination, deny patterns |

@@ -332,6 +332,9 @@ def collect_checkpointed(
 
 
 class CollectionHandler:
+    def __init__(self, finalize=None):
+        self.finalize = finalize
+
     def eligible(self, db: Session, subject_id: UUID) -> bool:
         from cloudops.features.investigations.service import dispatch_blocker, terminalize
         from cloudops.features.recovery.service import invalidate
@@ -382,6 +385,9 @@ class CollectionHandler:
             )
         else:
             store_batch(db, subject_id, result.workload_uid, result.source_results)
+        if self.finalize is not None:
+            self.finalize(db, run)
+            return
         run.state = "insufficient_evidence"
         run.outcome_code = "analysis_unavailable"
         run.reason = "Evidence collection saved. Analysis and recovery planning are unavailable."

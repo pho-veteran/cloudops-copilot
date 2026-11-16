@@ -27,7 +27,6 @@ from cloudops.features.diagnosis.versions import (
     PROMPT_VERSION,
     VALIDATOR_VERSION,
 )
-from cloudops.features.investigations import comparison_service
 from cloudops.features.investigations.citation_schemas import CitationRef
 from cloudops.features.investigations.locators import (
     UnsupportedProjection,
@@ -612,6 +611,8 @@ def _exact_entry(content, target: ContextTarget):
 
 
 def _resolve_evidence(db, context: PreparedContext, alias: str, target: ContextTarget):
+    from cloudops.features.investigations import comparison_service
+
     resolution = comparison_service.citation(
         db,
         context.incident_id,
@@ -655,6 +656,7 @@ def _resolve_runbook(db, context: PreparedContext, alias: str, runbook):
         runbook.selection_id,
         runbook.reference.chunk_id,
         runbook.reference.document_version_id,
+        allow_evaluation=True,
     )
     if resolved.reference != runbook.reference or resolved.selection_id != runbook.selection_id:
         return _failure("runbook_reference_mismatch", "$", repairable=False)

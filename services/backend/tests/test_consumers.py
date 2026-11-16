@@ -137,6 +137,9 @@ def test_invalid_approval_never_consumes_receipt_or_admits_execution(
         body["digest"] = "f" * 64
     if reason == "live_changed":
         c.consumer.deployment["metadata"]["resourceVersion"] = "new-fixture-rv"
+        c.consumer.deployment["spec"]["template"]["spec"]["containers"][0]["image"] = (
+            "example/fixture:changed"
+        )
     if reason == "controller":
 
         def controller(*_args):

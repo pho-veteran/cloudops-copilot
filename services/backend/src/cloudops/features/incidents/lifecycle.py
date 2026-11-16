@@ -126,7 +126,8 @@ def _preview(db, incident_id, resolution_id):
             markdown=composer.legacy_markdown(stored),
         )
     if (
-        stored.get("schema_version") not in ("HandoffSnapshot/v1", composer.SCHEMA_VERSION)
+        stored.get("schema_version")
+        not in ("HandoffSnapshot/v1", "HandoffSnapshot/v2", composer.SCHEMA_VERSION)
         or not isinstance(stored.get("snapshot"), dict)
         or not isinstance(stored.get("markdown"), str)
     ):

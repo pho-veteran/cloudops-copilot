@@ -141,7 +141,7 @@ def test_current_handoff_discloses_retirement_without_changing_saved_snapshot(
     incident_id = create(client, headers, incident_body(client)).json()["incident_id"]
     url = f"/api/incidents/{incident_id}/handoff"
     before = client.get(url + "/preview").json()
-    assert before["schema_version"] == "HandoffSnapshot/v2"
+    assert before["schema_version"] == "HandoffSnapshot/v3"
     assert before["snapshot"]["workload"]["active"] is True
     assert "Workload status: Active" in before["markdown"]
     old_markdown = "# Incident handoff\n\nPrior v2 saved bytes\n"

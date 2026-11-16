@@ -111,6 +111,9 @@ def observations(db: Session = Depends(get_db)):
             reason=reason,
         )
 
+    from cloudops.features.diagnosis.service import model_status
+
+    model = model_status(db)
     return HealthView(
         observations=[
             observation(
@@ -133,9 +136,13 @@ def observations(db: Session = Depends(get_db)):
             ),
             observation(
                 "diagnosis",
-                "unavailable",
-                "unimplemented",
-                "AI diagnosis is unavailable until E06.",
+                "available"
+                if model.availability == "available" and model.dispatch_allowed
+                else "unavailable",
+                "runtime",
+                "Bounded analysis: "
+                + model.availability
+                + ". Quality and transport checks are separate.",
             ),
             observation(
                 "executor",
