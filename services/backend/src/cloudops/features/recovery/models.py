@@ -69,3 +69,25 @@ class Execution(Base):
         from cloudops.features.recovery.outcomes import project
 
         return project(self)
+
+
+class Verification(Base):
+    __tablename__ = "recovery_verifications"
+    __table_args__ = (
+        CheckConstraint("next_slot >= 0 AND next_slot <= 11", name="verification_slot_bound"),
+        CheckConstraint(
+            "deadline IS NULL OR deadline > acknowledged_at", name="verification_window"
+        ),
+    )
+    execution_id: Mapped[UUID] = mapped_column(
+        ForeignKey("recovery_executions.id"), primary_key=True
+    )
+    profile: Mapped[dict] = mapped_column(JSONB)
+    profile_digest: Mapped[str] = mapped_column(String(64))
+    baseline: Mapped[dict | None] = mapped_column(JSONB)
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_slot: Mapped[int] = mapped_column(default=0, server_default="0")
+    samples: Mapped[dict] = mapped_column(JSONB, default=dict)
+    result: Mapped[dict] = mapped_column(JSONB, default=dict)
+    finalized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

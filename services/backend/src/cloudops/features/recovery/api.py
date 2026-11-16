@@ -11,10 +11,11 @@ from cloudops.features.access.dependencies import COOKIE, current_session, opera
 from cloudops.features.access.service import token_hash
 from cloudops.features.access.schemas import Principal, SessionView
 from cloudops.features.recovery import plans as builders, policy, service
-from cloudops.features.recovery.models import ActionPlan, Execution
+from cloudops.features.recovery.models import ActionPlan, Execution, Verification
 from cloudops.features.recovery.outcomes import Outcome
+from cloudops.features.recovery.verification_policy import VerificationProfile, configured_profiles
 from cloudops.shared.database import get_db
-from cloudops.shared.errors import ERROR_RESPONSES
+from cloudops.shared.errors import ERROR_RESPONSES, DomainError
 from cloudops.shared.schemas import View
 
 router = APIRouter(prefix="/api", tags=["recovery"], responses=ERROR_RESPONSES)
@@ -106,6 +107,19 @@ class ExecutionView(View):
     finished_at: datetime | None
 
 
+class VerificationView(View):
+    execution_id: UUID
+    profile: dict
+    profile_digest: str
+    baseline: dict | None
+    acknowledged_at: datetime | None
+    deadline: datetime | None
+    next_slot: int
+    samples: dict
+    result: dict
+    finalized_at: datetime | None
+
+
 @router.post(
     "/incidents/{incident_id}/plans",
     operation_id="propose_plan",
@@ -126,7 +140,8 @@ def propose(
 class PolicyView(BaseModel):
     policy: policy.RecoveryPolicy | None
     digest: str | None
-    execution_capability: Literal["manual_scale_only"] = "manual_scale_only"
+    execution_capability: Literal["manual_scale_only", "qualified_profiles"] = "manual_scale_only"
+    verification_profiles: list[VerificationProfile] = Field(default_factory=list)
 
 
 @router.get(
@@ -137,7 +152,19 @@ class PolicyView(BaseModel):
 )
 def recovery_policy():
     rules = policy.load()
-    return PolicyView(policy=rules, digest=rules.digest() if rules else None)
+    profiles = [
+        profile
+        for profile in configured_profiles()
+        if rules
+        and rules.verification_policy == profile.id
+        and profile.workload_uid in rules.workload_uids
+    ]
+    return PolicyView(
+        policy=rules,
+        digest=rules.digest() if rules else None,
+        execution_capability="qualified_profiles" if profiles else "manual_scale_only",
+        verification_profiles=profiles,
+    )
 
 
 @router.get(
@@ -191,3 +218,20 @@ def executions(incident_id: UUID, db: Session = Depends(get_db)):
         .order_by(Execution.created_at.desc())
         .limit(25)
     ).all()
+
+
+@router.get(
+    "/executions/{execution_id}/verification",
+    operation_id="read_recovery_verification",
+    response_model=VerificationView,
+    dependencies=[Depends(current_session)],
+)
+def verification(execution_id: UUID, db: Session = Depends(get_db)):
+    row = db.get(Verification, execution_id)
+    if row is None:
+        raise DomainError(
+            404,
+            "verification_not_found",
+            "No qualified verification record exists for this execution.",
+        )
+    return row

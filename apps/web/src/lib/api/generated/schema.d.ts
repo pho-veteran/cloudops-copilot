@@ -77,6 +77,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/executions/{execution_id}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Verification */
+        get: operations["read_recovery_verification"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -2721,10 +2738,12 @@ export interface components {
             /**
              * Execution Capability
              * @default manual_scale_only
-             * @constant
+             * @enum {string}
              */
-            execution_capability: "manual_scale_only";
+            execution_capability: "manual_scale_only" | "qualified_profiles";
             policy: components["schemas"]["RecoveryPolicy"] | null;
+            /** Verification Profiles */
+            verification_profiles?: components["schemas"]["VerificationProfile"][];
         };
         /** Principal */
         Principal: {
@@ -2799,6 +2818,13 @@ export interface components {
             started_at: string;
             /** Unrelated Pods */
             unrelated_pods: number;
+        };
+        /** QuerySpec */
+        QuerySpec: {
+            /** Query */
+            query: string;
+            /** Unit */
+            unit: string;
         };
         /**
          * RCAResult
@@ -3436,6 +3462,122 @@ export interface components {
             check: string;
             /** Reason */
             reason: string;
+        };
+        /** VerificationProfile */
+        VerificationProfile: {
+            /** Containers */
+            containers: components["schemas"]["RestorableContainer"][];
+            /**
+             * Event Failure Window
+             * @default after_settling/v1
+             * @constant
+             */
+            event_failure_window: "after_settling/v1";
+            /** Id */
+            id: string;
+            /** Image Ids */
+            image_ids: {
+                [key: string]: string;
+            };
+            /** Maximum Error Ratio */
+            maximum_error_ratio: number;
+            /** Maximum P95 Seconds */
+            maximum_p95_seconds: number;
+            /** Minimum Coverage */
+            minimum_coverage: number;
+            /** Minimum Load Ratio */
+            minimum_load_ratio: number;
+            /** Minimum Rps */
+            minimum_rps: number;
+            /** Qualification Reference */
+            qualification_reference: string;
+            /** Queries */
+            queries: {
+                [key: string]: components["schemas"]["QuerySpec"];
+            };
+            /** Replicas */
+            replicas: number[];
+            /**
+             * Sample Lateness Seconds
+             * @default 10
+             * @constant
+             */
+            sample_lateness_seconds: 10;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "RecoveryVerificationProfile/v1";
+            /**
+             * Source Age Seconds
+             * @default 10
+             * @constant
+             */
+            source_age_seconds: 10;
+            /** Source Digest */
+            source_digest: string;
+            /** Source Version */
+            source_version: string;
+            /**
+             * Step Seconds
+             * @default 30
+             * @constant
+             */
+            step_seconds: 30;
+            /**
+             * Template
+             * @enum {string}
+             */
+            template: "scale_deployment" | "restore_deployment_template" | "set_memory_profile";
+            /** Version */
+            version: string;
+            /**
+             * Warmup Seconds
+             * @default 60
+             * @constant
+             */
+            warmup_seconds: 60;
+            /**
+             * Window Seconds
+             * @enum {integer}
+             */
+            window_seconds: 180 | 300;
+            /** Workload Uid */
+            workload_uid: string;
+        };
+        /** VerificationView */
+        VerificationView: {
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Baseline */
+            baseline: {
+                [key: string]: unknown;
+            } | null;
+            /** Deadline */
+            deadline: string | null;
+            /**
+             * Execution Id
+             * Format: uuid
+             */
+            execution_id: string;
+            /** Finalized At */
+            finalized_at: string | null;
+            /** Next Slot */
+            next_slot: number;
+            /** Profile */
+            profile: {
+                [key: string]: unknown;
+            };
+            /** Profile Digest */
+            profile_digest: string;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            };
+            /** Samples */
+            samples: {
+                [key: string]: unknown;
+            };
         };
         /**
          * WindowInterval
@@ -4087,6 +4229,82 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelStatus"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_recovery_verification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execution_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationView"];
                 };
             };
             /** @description Unauthorized */

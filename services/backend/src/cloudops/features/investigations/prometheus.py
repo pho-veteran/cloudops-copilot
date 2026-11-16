@@ -151,6 +151,8 @@ def parse_response(
     context: CollectionContext,
     window,
     query_id: str,
+    *,
+    include_pod_uid: bool = False,
 ) -> Parsed:
     """Validate one Prometheus matrix response and project only bound series."""
     if not isinstance(payload, dict) or payload.get("status") != "success":
@@ -205,6 +207,8 @@ def parse_response(
             projected["pod"] = pod
         if container:
             projected["container"] = container
+        if include_pod_uid:
+            projected["pod_uid"] = _text_label(metric, "pod_uid")
         series.append(projected)
 
     series.sort(key=lambda row: row["uid"])
@@ -344,10 +348,10 @@ def _coverage(parsed: Parsed, step_seconds: int, window) -> Coverage:
     return Coverage(status="partial" if reasons else "available", reason_codes=sorted(reasons))
 
 
-async def _read(
+async def read_matrix(
     config: PrometheusConfig,
     ssl_context: ssl.SSLContext,
-    query_id: str,
+    query_spec: QuerySpec,
     context: CollectionContext,
     timeout_seconds: float,
     transport: httpx.AsyncBaseTransport | None = None,
@@ -357,7 +361,6 @@ async def _read(
         raise ReadFailure("not_captured")
     if timeout_seconds <= 0:
         raise ReadFailure("timeout")
-    query_spec = config.queries[query_id]
     query = substitute_query(query_spec.query, context.namespace, context.workload_uid)
     headers = {
         "Accept": "application/json",
@@ -419,7 +422,9 @@ async def read_query(
         else None
     )
     try:
-        payload = await _read(config, ssl_context, query_id, context, timeout_seconds, transport)
+        payload = await read_matrix(
+            config, ssl_context, query_spec, context, timeout_seconds, transport
+        )
         parsed = parse_response(payload, config, query_spec, context, window, query_id)
     except ReadFailure as error:
         return _failure(

@@ -5006,8 +5006,11 @@
             "title": "Digest"
           },
           "execution_capability": {
-            "const": "manual_scale_only",
             "default": "manual_scale_only",
+            "enum": [
+              "manual_scale_only",
+              "qualified_profiles"
+            ],
             "title": "Execution Capability",
             "type": "string"
           },
@@ -5020,6 +5023,13 @@
                 "type": "null"
               }
             ]
+          },
+          "verification_profiles": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationProfile"
+            },
+            "title": "Verification Profiles",
+            "type": "array"
           }
         },
         "required": [
@@ -5219,6 +5229,29 @@
           "limitations"
         ],
         "title": "PublicObservation",
+        "type": "object"
+      },
+      "QuerySpec": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "unit": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "unit"
+        ],
+        "title": "QuerySpec",
         "type": "object"
       },
       "RCAResult": {
@@ -6932,6 +6965,278 @@
         "title": "UnverifiedCheck",
         "type": "object"
       },
+      "VerificationProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "containers": {
+            "items": {
+              "$ref": "#/components/schemas/RestorableContainer"
+            },
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Containers",
+            "type": "array"
+          },
+          "event_failure_window": {
+            "const": "after_settling/v1",
+            "default": "after_settling/v1",
+            "title": "Event Failure Window",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "image_ids": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Image Ids",
+            "type": "object"
+          },
+          "maximum_error_ratio": {
+            "exclusiveMaximum": 1.0,
+            "minimum": 0.0,
+            "title": "Maximum Error Ratio",
+            "type": "number"
+          },
+          "maximum_p95_seconds": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 60.0,
+            "title": "Maximum P95 Seconds",
+            "type": "number"
+          },
+          "minimum_coverage": {
+            "maximum": 1.0,
+            "minimum": 0.9,
+            "title": "Minimum Coverage",
+            "type": "number"
+          },
+          "minimum_load_ratio": {
+            "maximum": 1.0,
+            "minimum": 0.9,
+            "title": "Minimum Load Ratio",
+            "type": "number"
+          },
+          "minimum_rps": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000.0,
+            "title": "Minimum Rps",
+            "type": "number"
+          },
+          "qualification_reference": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Qualification Reference",
+            "type": "string"
+          },
+          "queries": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/QuerySpec"
+            },
+            "title": "Queries",
+            "type": "object"
+          },
+          "replicas": {
+            "items": {
+              "maximum": 3.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Replicas",
+            "type": "array"
+          },
+          "sample_lateness_seconds": {
+            "const": 10,
+            "default": 10,
+            "title": "Sample Lateness Seconds",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "RecoveryVerificationProfile/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_age_seconds": {
+            "const": 10,
+            "default": 10,
+            "title": "Source Age Seconds",
+            "type": "integer"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          },
+          "source_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Source Version",
+            "type": "string"
+          },
+          "step_seconds": {
+            "const": 30,
+            "default": 30,
+            "title": "Step Seconds",
+            "type": "integer"
+          },
+          "template": {
+            "enum": [
+              "scale_deployment",
+              "restore_deployment_template",
+              "set_memory_profile"
+            ],
+            "title": "Template",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Version",
+            "type": "string"
+          },
+          "warmup_seconds": {
+            "const": 60,
+            "default": 60,
+            "title": "Warmup Seconds",
+            "type": "integer"
+          },
+          "window_seconds": {
+            "enum": [
+              180,
+              300
+            ],
+            "title": "Window Seconds",
+            "type": "integer"
+          },
+          "workload_uid": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Workload Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "version",
+          "workload_uid",
+          "template",
+          "containers",
+          "image_ids",
+          "replicas",
+          "source_version",
+          "source_digest",
+          "qualification_reference",
+          "window_seconds",
+          "minimum_coverage",
+          "minimum_rps",
+          "minimum_load_ratio",
+          "maximum_error_ratio",
+          "maximum_p95_seconds",
+          "queries"
+        ],
+        "title": "VerificationProfile",
+        "type": "object"
+      },
+      "VerificationView": {
+        "properties": {
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          },
+          "baseline": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "execution_id": {
+            "format": "uuid",
+            "title": "Execution Id",
+            "type": "string"
+          },
+          "finalized_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finalized At"
+          },
+          "next_slot": {
+            "title": "Next Slot",
+            "type": "integer"
+          },
+          "profile": {
+            "additionalProperties": true,
+            "title": "Profile",
+            "type": "object"
+          },
+          "profile_digest": {
+            "title": "Profile Digest",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          },
+          "samples": {
+            "additionalProperties": true,
+            "title": "Samples",
+            "type": "object"
+          }
+        },
+        "required": [
+          "execution_id",
+          "profile",
+          "profile_digest",
+          "baseline",
+          "acknowledged_at",
+          "deadline",
+          "next_slot",
+          "samples",
+          "result",
+          "finalized_at"
+        ],
+        "title": "VerificationView",
+        "type": "object"
+      },
       "WindowInterval": {
         "additionalProperties": false,
         "description": "An explicit interval: 1 to 60 minutes and not ending in the future.",
@@ -8176,6 +8481,104 @@
         "summary": "Read Status",
         "tags": [
           "diagnosis"
+        ]
+      }
+    },
+    "/api/executions/{execution_id}/verification": {
+      "get": {
+        "operationId": "read_recovery_verification",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execution_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Execution Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Verification",
+        "tags": [
+          "recovery"
         ]
       }
     },

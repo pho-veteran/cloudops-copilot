@@ -1,0 +1,9 @@
+[
+  {"op": "test", "path": "/metadata/uid", "value": "REPLACE_WITH_ORIGINAL_UID"},
+  {"op": "test", "path": "/metadata/resourceVersion", "value": "REPLACE_WITH_FRESH_RESOURCE_VERSION"},
+  {"op": "test", "path": "/spec/template/spec/containers/0/name", "value": "app"},
+  {"op": "replace", "path": "/spec/replicas", "value": 1},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "REPLACE_WITH_QUALIFIED_HEALTHY_IMAGE"},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value": {"requests": {"cpu": "50m", "memory": "192Mi"}, "limits": {"cpu": "100m", "memory": "256Mi"}}},
+  {"op": "add", "path": "/spec/template/metadata/annotations", "value": {"cloudops-lab-trial": "REPLACE_WITH_FRESH_TRIAL_ID"}}
+]

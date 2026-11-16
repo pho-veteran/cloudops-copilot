@@ -11,22 +11,29 @@ from urllib.error import HTTPError, URLError
 from urllib.request import ProxyHandler, build_opener
 
 
-def run(target, seconds, rate):
+def run(target, seconds, rate, *, concurrency=4, on_attempt=None):
     if (
         target not in {"checkout", "history", "both"}
         or not 1 <= seconds <= 21600
         or not 1 <= rate <= 30
+        or type(concurrency) is not int
+        or not 1 <= concurrency <= 16
     ):
-        raise ValueError("Use an owned target, 1..21600 seconds and 1..30 requests/second.")
+        raise ValueError(
+            "Use an owned target, 1..21600 seconds, 1..30 requests/second and 1..16 clients."
+        )
     targets = ("checkout", "history") if target == "both" else (target,)
     counts, lock = Counter(), threading.Lock()
-    slots = threading.BoundedSemaphore(4)
+    slots = threading.BoundedSemaphore(concurrency)
+    opener = build_opener(ProxyHandler({}))
 
     def request(destination):
         url = f"http://k3s:{30080 if destination == 'checkout' else 30081}/work"
         try:
+            if on_attempt is not None:
+                on_attempt()
             try:
-                with build_opener(ProxyHandler({})).open(url, timeout=2) as response:
+                with opener.open(url, timeout=2) as response:
                     response.read(1024)
                     result = str(response.status)
             except HTTPError as error:
@@ -41,7 +48,7 @@ def run(target, seconds, rate):
 
     started_at = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
         for index in range(seconds * rate):
             delay = start + index / rate - time.monotonic()
             if delay > 0:
