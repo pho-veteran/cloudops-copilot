@@ -1,0 +1,142 @@
+{
+  "proof_class": "Actual authorized local gateway HTTP request on controlled telemetry; failed before accepted model output; no semantic quality or live-cluster claim",
+  "source_commit": "83cb7d3053694daef45105dac28cdff54a8d9772",
+  "driver_sha256": "7e8c278fce3a010faf7c0a9b774d885609135e8e8e90d26ceee5617b78a1e4eb",
+  "cases_sha256": "1c1bce8bbc83d4a2f9e02897902b3a41802477ffab940b00581f9b7aecf5278c",
+  "oracle_sha256": "2e85af63b06c82978be966eefa809802c04c7c9494b6d6d4d663c1fbe7464123",
+  "cohort": "e06-initial-owned-fixtures-v1",
+  "inference_http_requests": 1,
+  "limit_total_requests": 15,
+  "remaining_model_requests": 14,
+  "usage": {
+    "known_lower_bound": 0,
+    "missing_usage_calls": 1,
+    "actual_total_tokens": null,
+    "cost": null
+  },
+  "initial_calls": [
+    {
+      "model": "kr/claude-sonnet-5.5",
+      "case": "c01",
+      "repair": false,
+      "outcome": {
+        "kind": "request_rejected",
+        "identity": {
+          "config_id": "e06-primary",
+          "config_version": "1",
+          "behavior_digest": "cb920b88cfeb4883055dae0e4774506c54e32cf8d0994246887729fc2593c153",
+          "endpoint_label": "owned-local-gateway",
+          "requested_model": "kr/claude-sonnet-5.5",
+          "authorization_id": "owner-authorized-e06-local-gateway",
+          "budget_policy_id": "e06-finite-15-requests"
+        },
+        "text": null,
+        "finish_reason": null,
+        "usage": null,
+        "usage_status": "unavailable",
+        "request_id": null,
+        "served_model": null,
+        "http_status": 400,
+        "error_code": "request_rejected",
+        "retry_after_seconds": null,
+        "retry_after_raw": null,
+        "elapsed_ms": 1259,
+        "response_bytes": 0,
+        "response_sha256": null
+      }
+    }
+  ],
+  "case_outcomes": {
+    "n-required-gap": {
+      "analysis_id": "02b351d8-1f8b-4aa6-8521-b2e7df7ded66",
+      "run_id": "c82afa11-669a-47bc-8c5a-77d281dcd68f",
+      "purpose": "evaluation",
+      "state": "insufficient_evidence",
+      "reason": "no_evidence",
+      "identity": {
+        "model": "kr/claude-sonnet-5.5",
+        "config_id": "e06-primary",
+        "policy_digest": "e65491915b1afa70cb0954d74a49aff2551c0a6d5cca6448883b5aeb91b767d6",
+        "config_version": "1",
+        "endpoint_label": "owned-local-gateway",
+        "prompt_version": "e06.rca_prompt/v1",
+        "behavior_digest": "cb920b88cfeb4883055dae0e4774506c54e32cf8d0994246887729fc2593c153",
+        "context_version": "e06.context/v1",
+        "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+        "validator_version": "e06.validator/v1"
+      },
+      "calls": 0,
+      "repairs": 0,
+      "result": null,
+      "resolved_support": [],
+      "excluded_from_operational_api": true
+    },
+    "c01": {
+      "analysis_id": "a0d7e72f-7876-4fd9-ae02-ea4bad0fc55f",
+      "run_id": "3d4c7080-44b5-4d9f-a84f-c85f7397de34",
+      "purpose": "evaluation",
+      "state": "failed",
+      "reason": "request_rejected",
+      "identity": {
+        "model": "kr/claude-sonnet-5.5",
+        "config_id": "e06-primary",
+        "policy_digest": "e65491915b1afa70cb0954d74a49aff2551c0a6d5cca6448883b5aeb91b767d6",
+        "config_version": "1",
+        "endpoint_label": "owned-local-gateway",
+        "prompt_version": "e06.rca_prompt/v1",
+        "behavior_digest": "cb920b88cfeb4883055dae0e4774506c54e32cf8d0994246887729fc2593c153",
+        "context_version": "e06.context/v1",
+        "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+        "validator_version": "e06.validator/v1"
+      },
+      "calls": 1,
+      "repairs": 0,
+      "result": null,
+      "resolved_support": [],
+      "excluded_from_operational_api": true
+    }
+  },
+  "unrun_cases": [
+    "c02",
+    "c03",
+    "c04",
+    "c05",
+    "c06",
+    "c07",
+    "c08",
+    "c09",
+    "c10",
+    "n-healthy",
+    "n-injection"
+  ],
+  "primary_quality": "not_established; diagnostic rubric not measured",
+  "secondary_compatibility": "not_run; no additional inference after common gateway failure",
+  "secondary_quality": "not_established",
+  "operational_smoke": "not_run; no qualification installed",
+  "failure": {
+    "http_status": 400,
+    "outcome": "request_rejected",
+    "gateway_version": "OmniRoute 3.8.52",
+    "upstream_message": "This version of Kiro is no longer supported. Please update to the latest version of Kiro to continue.",
+    "evidence": "Exact timestamp/model/status-matched gateway call artifact for the owned c01 request; no unrelated account records retained",
+    "action": "Gateway owner must provide a supported integration before another bounded cohort; initial failure remains retained"
+  },
+  "metadata_read": {
+    "http_requests": 1,
+    "model_inference": false,
+    "http_status": 200,
+    "exact_requested_models_listed": [
+      "kr/claude-sonnet-5.5",
+      "kr/claude-opus-5.5"
+    ],
+    "claim": "Catalog presence does not establish working chat compatibility"
+  },
+  "runtime_boundaries": {
+    "purpose": "evaluation",
+    "analysis_state": "failed",
+    "job_state": "completed",
+    "private_context_discarded": true,
+    "operational_api_has_result": false
+  },
+  "private_ledger_sha256": "9cd340fff848b3c259ba676e9d19c7e6d040dc7a889af24869e693568983e877"
+}

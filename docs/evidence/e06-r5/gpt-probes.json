@@ -1,0 +1,115 @@
+{
+  "at": "2026-11-16T03:39:52.060564+00:00",
+  "source_commit": "11d77bb1bab95294f1c27e426d16c11bdb7fc2ed",
+  "purpose": "Owner-requested two tiny compatibility probes, not diagnostic quality or operational qualification",
+  "endpoint": "http://localhost:20128/v1",
+  "prior_model_requests": 1,
+  "global_limit": 15,
+  "maximum_new_requests": 2,
+  "output_limit": {
+    "param": "max_completion_tokens",
+    "value": 64
+  },
+  "implicit_retries": 0,
+  "results": [
+    {
+      "requested_model": "gpt-6.1-sol",
+      "configured_model": "gpt-6.1-sol",
+      "profile_identity": {
+        "config_id": "e06-gpt-probe-1",
+        "config_version": "1",
+        "behavior_digest": "e30b5b96b6f94d6fd2b83f671782cca364e1b8573b26fc465702d416f81fa421",
+        "endpoint_label": "owned-local-gateway",
+        "requested_model": "gpt-6.1-sol",
+        "authorization_id": "owner-requested-gpt-probes",
+        "budget_policy_id": "e06-global15-new2-probes-only"
+      },
+      "policy_digest": "e951a34a4855abfc1d93c7a33ea328625915f0c2db46dc80f1b36cd8dc03f4cd",
+      "input_bytes": 419,
+      "payload_sha256": "ebc592d8667c94a3b265ace9cee4a82e2c24e886bfd925d496fa841594a054c3",
+      "admitted": true,
+      "outcome": {
+        "kind": "text",
+        "identity": {
+          "config_id": "e06-gpt-probe-1",
+          "config_version": "1",
+          "behavior_digest": "e30b5b96b6f94d6fd2b83f671782cca364e1b8573b26fc465702d416f81fa421",
+          "endpoint_label": "owned-local-gateway",
+          "requested_model": "gpt-6.1-sol",
+          "authorization_id": "owner-requested-gpt-probes",
+          "budget_policy_id": "e06-global15-new2-probes-only"
+        },
+        "text": "OK",
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 67,
+          "completion_tokens": 5,
+          "total_tokens": 72
+        },
+        "usage_status": "observed",
+        "served_model": "gpt-6.1-sol",
+        "http_status": 200,
+        "error_code": null,
+        "retry_after_seconds": null,
+        "retry_after_raw": null,
+        "elapsed_ms": 2686,
+        "response_bytes": 305,
+        "response_sha256": "e515702e6be0c0c848f35723181ec2b7207a97dd0b765801bb8aa35a378b9328"
+      },
+      "schema_success": true,
+      "quality": "not_established",
+      "transport_success": true
+    },
+    {
+      "requested_model": "gpt-6.1-terra",
+      "configured_model": "codex/gpt-6.1-terra",
+      "profile_identity": {
+        "config_id": "e06-gpt-probe-2",
+        "config_version": "1",
+        "behavior_digest": "009d8b4a625c2796995e203c54195195e8858134087e3d6f09c999e1620f7c24",
+        "endpoint_label": "owned-local-gateway",
+        "requested_model": "codex/gpt-6.1-terra",
+        "authorization_id": "owner-requested-gpt-probes",
+        "budget_policy_id": "e06-global15-new2-probes-only"
+      },
+      "policy_digest": "fc6603d1c536a5256dd9f593a1db06690f727ae609f0ce59dae1aeab902af0fb",
+      "input_bytes": 427,
+      "payload_sha256": "0388558d20fa41fd107a7554cf07cd75a300e72c48cd8f602daf5afb14ad5529",
+      "admitted": true,
+      "outcome": {
+        "kind": "text",
+        "identity": {
+          "config_id": "e06-gpt-probe-2",
+          "config_version": "1",
+          "behavior_digest": "009d8b4a625c2796995e203c54195195e8858134087e3d6f09c999e1620f7c24",
+          "endpoint_label": "owned-local-gateway",
+          "requested_model": "codex/gpt-6.1-terra",
+          "authorization_id": "owner-requested-gpt-probes",
+          "budget_policy_id": "e06-global15-new2-probes-only"
+        },
+        "text": "OK",
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 67,
+          "completion_tokens": 5,
+          "total_tokens": 72
+        },
+        "usage_status": "observed",
+        "served_model": "gpt-6.1-terra",
+        "http_status": 200,
+        "error_code": null,
+        "retry_after_seconds": null,
+        "retry_after_raw": null,
+        "elapsed_ms": 1159,
+        "response_bytes": 307,
+        "response_sha256": "7038ca9d4013e34877604743b765003f685ce9a713fe7d9da50ab60230c5256a"
+      },
+      "schema_success": true,
+      "quality": "not_established",
+      "transport_success": true
+    }
+  ],
+  "model_requests_total": 3,
+  "remaining_requests": 12,
+  "proof_class": "Two actual fixed-marker probes through the same E06 client; not a diagnostic quality or operational qualification"
+}

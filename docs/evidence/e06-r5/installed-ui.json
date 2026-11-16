@@ -1,0 +1,48 @@
+{
+  "proof_class": "Actual connected Microsoft Edge Profile 1, actual API/PostgreSQL, and fresh operational live gpt-6.1-sol inference over controlled stored E04-shaped telemetry; no live cluster claim",
+  "source_commit": "02cfc65bfe0dbd40993165cd23e132ece2f6e1e2",
+  "environment": "Linux, PostgreSQL17.11, Python3.13.11, Node24.21.0; owned cloudops_e06_gpt_test; API8106 and Vite5176",
+  "journeys": [
+    "Connections shows exact gpt-6.1-sol identity and qualified v3 cohort, separately from unrecorded connection probes",
+    "Fresh operational Run shows actual supported startup finding, limitations, safe manual next steps and exact log link",
+    "Exact log citation resolves stored APP_PORT failure and focuses Exact citation target",
+    "Resolve/reopen current versus saved v3 handoff; exact14889 characters and matching SHA256 in API, Operator DOM and Viewer DOM after API restart",
+    "Viewer sign-in preserves selected Run/resolution, shows read-only findings and saved handoff without investigation or mutation controls"
+  ],
+  "saved_handoff_sha256": "b6e428aa8840de3f24d79284b36e2320b1a66392b8b7e7e175b6c139244604c8",
+  "responsive": [
+    {
+      "width": 320,
+      "theme": "dark",
+      "scrollWidth": 305,
+      "clientWidth": 305,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "scrollWidth": 1265,
+      "clientWidth": 1265,
+      "horizontal_overflow": false
+    }
+  ],
+  "temporary_viewport": "Reset to host default after QA; unrelated tabs preserved",
+  "screenshots": [
+    "live-findings-desktop.jpg",
+    "live-citation-desktop.jpg",
+    "live-findings-320-dark.jpg",
+    "live-viewer-desktop.jpg"
+  ],
+  "capture_limit": "Full-page capture timed out; viewport screenshots retained at the tested responsive dimensions",
+  "reused_ui_matrix": "../e06-r4-ui/acceptance.json retains unchanged component role/expiry/quota/compare/history, Knowledge references and 320/390/768/1280 light/dark evidence",
+  "no_new_model_requests": true,
+  "qa_verdict": "Pass for the exercised installed journeys, 5/5",
+  "r4_component_fingerprints_unchanged": true
+}

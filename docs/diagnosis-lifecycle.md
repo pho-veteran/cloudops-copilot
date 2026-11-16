@@ -2,7 +2,7 @@
 
 New collection finalization saves coverage and admits one operational Analysis/Job in the same fenced transaction. It does not backfill historical Runs. Without an enabled, exactly qualified model and matching egress policy, collection remains `insufficient_evidence` / `analysis_unavailable`, with zero model requests. The default Compose configuration leaves diagnosis unconfigured.
 
-This slice provides API/worker orchestration. Findings/Connections UI and new compare/handoff consumers belong to #71; actual provider compatibility and quality cohorts belong to #72. Loopback fixtures establish lifecycle behavior, not model quality or live collection.
+The [Findings and Connections UI](diagnosis-findings.md) reads these stored APIs and integrates new comparison/handoff projections. The [finite acceptance campaign](diagnosis-acceptance.md) records actual provider compatibility and quality separately. Loopback fixtures establish lifecycle behavior, not model quality or live collection.
 
 ## Configuration and authority
 

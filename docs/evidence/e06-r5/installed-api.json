@@ -1,0 +1,15 @@
+{
+  "incident_id": "06fbfb83-e0ca-4f1c-858a-c6ecc3aac93d",
+  "run_id": "f895adaf-805c-429e-ad15-cb0655ca9ee6",
+  "resolution_id": "052d590a-863b-408e-9451-673094a0b5c9",
+  "analysis_sha256": "b93883cb2d4e08ab1a8e6e085563250fa5ecf93d49f51d24d18eaf9d0b8c0ebb",
+  "saved_markdown_sha256": "b6e428aa8840de3f24d79284b36e2320b1a66392b8b7e7e175b6c139244604c8",
+  "saved_markdown_characters": 14889,
+  "evaluation_excluded": true,
+  "comparison_exact_operational_and_excluded_evaluation": true,
+  "resolve_reopen_frozen_bytes": true,
+  "handoff_export_exact": true,
+  "requests_after": 30,
+  "viewer_read_and_mutation_denial": true,
+  "api_restart_preserves_exact_saved_bytes_and_result": true
+}
