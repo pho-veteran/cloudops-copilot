@@ -404,9 +404,22 @@ def test_status_rv_movement_keeps_exact_diff_and_freezes_dispatch_preconditions(
         lambda path, value: requests.append(value) or {"outcome": "acknowledged"},
     )
     service.execute(identifier, before_call=lambda: None)
+    with sessions()() as db, db.begin():
+        service.ExecutionHandler().failed(db, identifier, "Controlled lost worker", False)
+    service.execute(identifier, before_call=lambda: None)
+    with sessions()() as db, db.begin():
+        service.ExecutionHandler().publish(
+            db, identifier, {"outcome": "acknowledged", "verification": "inconclusive"}
+        )
+    with sessions()() as db:
+        assert (
+            db.get(Execution, identifier).result["dispatch_resource_version"]
+            == "new-status-only-rv"
+        )
+    service.execute(identifier, before_call=lambda: None)
     c.consumer.deployment["metadata"]["resourceVersion"] = "later-status-rv"
     service.execute(identifier, before_call=lambda: None)
-    assert requests[0] == requests[1]
+    assert all(request == requests[0] for request in requests)
     assert requests[0]["resource_version"] == "new-status-only-rv"
 
 

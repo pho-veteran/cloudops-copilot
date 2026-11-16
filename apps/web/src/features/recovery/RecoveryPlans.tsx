@@ -71,7 +71,7 @@ export function RecoveryPlans({
       unwrap(
         await api.POST("/api/incidents/{incident_id}/plans", {
           params: { path: { incident_id: id } },
-          body: { replicas, rationale },
+          body: { origin: "operator_manual", replicas, rationale },
         }),
       ),
     onSuccess: refresh,

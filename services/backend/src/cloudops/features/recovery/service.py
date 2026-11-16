@@ -355,6 +355,11 @@ def execute(execution_id, *, before_call):
         }
 
 
+def record_outcome(row, result):
+    captured = row.result.get("dispatch_resource_version")
+    row.result = {**result, **({"dispatch_resource_version": captured} if captured else {})}
+
+
 class ExecutionHandler:
     def started(self, db, subject_id):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())
@@ -366,17 +371,20 @@ class ExecutionHandler:
         if row.maintenance_released:
             return
         row.state, row.holds_lock = "outcome_unknown", True
-        row.result = {
-            "outcome": "outcome_unknown",
-            "verification": "inconclusive",
-            "reason": "The worker could not publish its execution receipt; trusted reconciliation is required.",
-        }
+        record_outcome(
+            row,
+            {
+                "outcome": "outcome_unknown",
+                "verification": "inconclusive",
+                "reason": "The worker could not publish its execution receipt; trusted reconciliation is required.",
+            },
+        )
 
     def publish(self, db, subject_id, result):
         row = db.scalar(select(Execution).where(Execution.id == subject_id).with_for_update())
         if row.maintenance_released:
             return
-        row.result = result
+        record_outcome(row, result)
         row.state = (
             "outcome_unknown" if result["outcome"] == "outcome_unknown" else "manual_intervention"
         )
