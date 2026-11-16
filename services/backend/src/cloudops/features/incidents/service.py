@@ -453,7 +453,7 @@ def list_incidents(
         )
 
     execution_class_expr = classification_expression(
-        Execution.state, Execution.holds_lock, Execution.maintenance_released
+        Execution.state, Execution.holds_lock, Execution.maintenance_released, Execution.result
     )
 
     def has_execution(*conditions):
@@ -643,7 +643,7 @@ def list_incidents(
     executions: dict[UUID, list[WorkQueueExecution]] = {}
     for execution, owner_incident_id in execution_rows:
         execution_classification = classify_execution(
-            execution.state, execution.holds_lock, execution.maintenance_released
+            execution.state, execution.holds_lock, execution.maintenance_released, execution.result
         )
         if execution_classification == "terminal" and execution.state != "manual_intervention":
             continue
@@ -655,6 +655,7 @@ def list_incidents(
                 holds_lock=execution.holds_lock,
                 workload_id=execution.workload_id,
                 created_at=execution.created_at,
+                outcome=execution.outcome,
             )
         )
 

@@ -70,6 +70,7 @@ class Maintenance(BaseModel):
     request_id: UUID
     operation: Literal[
         "status",
+        "target_status",
         "enter_recovery",
         "enable_target",
         "release_uncertain_target",
@@ -503,6 +504,18 @@ class Gateway:
                             self.target(t) for t in body.targets if t in self.workloads
                         ],
                     }
+                if body.operation == "target_status":
+                    return {
+                        "targets": [
+                            {
+                                key: value
+                                for key, value in self.target(target).items()
+                                if key
+                                in {"deployment_id", "uid", "epoch", "enabled", "recovery_mode"}
+                            }
+                            for target in self.workloads
+                        ]
+                    }
                 if body.operation == "status":
                     return {
                         "targets": [self.target(k) for k in self.workloads],
@@ -603,17 +616,40 @@ class Gateway:
                                     .with_for_update()
                                 ).all()
                                 for execution in executions:
+                                    known = (
+                                        execution.result.get(
+                                            "attribution", execution.result.get("outcome")
+                                        )
+                                        == "acknowledged"
+                                    )
+                                    attribution = "acknowledged" if known else "outcome_unknown"
                                     (
                                         execution.state,
                                         execution.holds_lock,
                                         execution.maintenance_released,
-                                    ) = "outcome_unknown", False, True
+                                    ) = (
+                                        "manual_intervention"
+                                        if attribution == "acknowledged"
+                                        else "outcome_unknown",
+                                        False,
+                                        True,
+                                    )
                                     execution.result = {
                                         **execution.result,
-                                        "outcome": "outcome_unknown",
+                                        "outcome": attribution,
+                                        "attribution": attribution,
+                                        "verification": "inconclusive"
+                                        if execution.result.get("verification")
+                                        not in {"passed", "failed"}
+                                        else execution.result["verification"],
                                         "maintenance_request_id": identity,
-                                        "reason": "Trusted maintenance established current safety; historical write attribution remains unknown.",
+                                        "reason": execution.result.get("reason")
+                                        or "Historical execution receipt remains incomplete.",
+                                        "maintenance_reason": "Trusted maintenance established current safety; retained write attribution and application verification remain separate.",
                                     }
+                                    execution.finished_at = execution.finished_at or datetime.now(
+                                        timezone.utc
+                                    )
                     if body.operation == "exit_recovery_mode":
                         db.execute(
                             "INSERT OR REPLACE INTO control VALUES ('recovery_mode', 'false')"

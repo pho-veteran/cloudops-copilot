@@ -1741,6 +1741,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            outcome: components["schemas"]["Outcome"];
             /**
              * Plan Id
              * Format: uuid
@@ -2567,6 +2568,38 @@ export interface components {
             /** Source Id */
             source_id: string | null;
         };
+        /** Outcome */
+        Outcome: {
+            /**
+             * Attribution
+             * @enum {string}
+             */
+            attribution: "not_sent" | "acknowledged" | "denied" | "outcome_unknown";
+            /**
+             * Future Authority
+             * @enum {string}
+             */
+            future_authority: "target_locked" | "maintenance_proof_recorded_recheck_required" | "fresh_preflight_required";
+            /**
+             * Operation Id
+             * Format: uuid
+             */
+            operation_id: string;
+            /** Reason */
+            reason: string;
+            reconciliation?: components["schemas"]["Reconciliation"] | null;
+            /**
+             * Schema Version
+             * @default RecoveryOutcome/v1
+             * @constant
+             */
+            schema_version: "RecoveryOutcome/v1";
+            /**
+             * Verification
+             * @enum {string}
+             */
+            verification: "not_performed" | "pending" | "passed" | "failed" | "inconclusive";
+        };
         /** PackCoverage */
         PackCoverage: {
             /** Missing Required */
@@ -2842,6 +2875,18 @@ export interface components {
             unverified_checks: components["schemas"]["UnverifiedCheck"][];
             /** Validator Version */
             validator_version: string;
+        };
+        /** Reconciliation */
+        Reconciliation: {
+            /** Attempts */
+            attempts: number;
+            /** Deadline */
+            deadline: string | null;
+            /**
+             * Maximum Attempts
+             * @default 6
+             */
+            maximum_attempts: number;
         };
         /** RecoveryPolicy */
         RecoveryPolicy: {
@@ -3439,6 +3484,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            outcome: components["schemas"]["Outcome"];
             /** State */
             state: string;
             /**

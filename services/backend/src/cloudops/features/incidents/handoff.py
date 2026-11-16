@@ -88,7 +88,10 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
                 & or_(
                     Execution.holds_lock.is_(True),
                     classification_expression(
-                        Execution.state, Execution.holds_lock, Execution.maintenance_released
+                        Execution.state,
+                        Execution.holds_lock,
+                        Execution.maintenance_released,
+                        Execution.result,
                     ).in_(BLOCKING),
                 ),
             )
@@ -181,7 +184,10 @@ def compose(db, incident_id, *, findings_fixture: FixtureFindings | None = None)
                 ),
             ),
             "incident_id": str(owner),
-            "classification": classify(row.state, row.holds_lock, row.maintenance_released),
+            "outcome": row.outcome.model_dump(mode="json"),
+            "classification": classify(
+                row.state, row.holds_lock, row.maintenance_released, row.result
+            ),
             "job_state": job_state,
             "terminal_unknown_handoff_eligible": terminal_unknown_eligible(
                 row.state, row.holds_lock, row.maintenance_released, job_state, row.result
@@ -434,6 +440,12 @@ def _render_v3(snapshot):
         sections.append("No executions recorded.\n\n")
     for execution in actions["executions"]:
         result = execution["result"] if isinstance(execution["result"], dict) else {}
+        outcome = execution.get("outcome")
+        outcome_line = (
+            f"- Attribution: {_inline(outcome.get('attribution'))}; verification: {_inline(outcome.get('verification'))}; future authority: {_inline(outcome.get('future_authority'))}\n\n"
+            if isinstance(outcome, dict)
+            else f"- Outcome: {_inline(result.get('outcome'))}; verification: {_inline(result.get('verification'))}\n\n"
+        )
         sections.extend(
             [
                 f"### Execution {_inline(execution['id'])}\n\n",
@@ -441,7 +453,7 @@ def _render_v3(snapshot):
                 f"- State: {_inline(execution['state'])}; classification: {_inline(execution['classification'])}; Job state: {_inline(execution['job_state'])}\n",
                 f"- Holds lock: {_inline(execution['holds_lock'])}; maintenance released: {_inline(execution['maintenance_released'])}; terminal unknown handoff eligible: {_inline(execution['terminal_unknown_handoff_eligible'])}\n",
                 f"- Created: {_inline(execution['created_at'])}; finished: {_inline(execution['finished_at'])}\n",
-                f"- Outcome: {_inline(result.get('outcome'))}; verification: {_inline(result.get('verification'))}\n\n",
+                outcome_line,
             ]
         )
         if isinstance(result.get("reason"), str):

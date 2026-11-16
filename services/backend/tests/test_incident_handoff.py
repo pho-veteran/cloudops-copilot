@@ -617,6 +617,8 @@ def test_actual_execution_producer_unknown_and_sql_classification(permission_con
     with sessions()() as db, db.begin():
         row = db.get(Execution, execution_id)
         row.state, row.holds_lock, row.maintenance_released = "queued", True, False
+        row.dispatch_started_at = database_now(db)
+        row.reconcile_deadline = database_now(db) + timedelta(seconds=120)
         db.add(
             Job(
                 kind="recovery_execution_v1",
@@ -649,7 +651,7 @@ def test_actual_execution_producer_unknown_and_sql_classification(permission_con
                 )
             ).where(Execution.id == execution_id)
         )
-        assert row.finished_at is None  # failed() producer does not set a completion timestamp
+        assert row.finished_at is not None
         assert (
             sql_class
             == classify(row.state, row.holds_lock, row.maintenance_released)
@@ -661,12 +663,14 @@ def test_actual_execution_producer_unknown_and_sql_classification(permission_con
         assert db.get(Execution, execution_id).holds_lock
 
 
-def test_published_unknown_receipt_is_terminal_but_retains_lock(permission_context):
+def test_published_exhausted_unknown_receipt_is_terminal_but_retains_lock(permission_context):
     c = permission_context
     execution_id = UUID(c.consumer.execution_id)
     with sessions()() as db, db.begin():
         row = db.get(Execution, execution_id)
         row.state, row.holds_lock, row.maintenance_released = "queued", True, False
+        row.dispatch_started_at = database_now(db) - timedelta(minutes=2)
+        row.reconcile_deadline = database_now(db) - timedelta(seconds=1)
         db.add(Job(kind="recovery_execution_v1", subject_id=execution_id))
     handler = recovery.ExecutionHandler()
     claim = claim_next({"recovery_execution_v1": handler}, GATE)

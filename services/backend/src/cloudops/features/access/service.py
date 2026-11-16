@@ -80,6 +80,30 @@ def authenticate(db: Session, token: str | None) -> SessionView:
     return view(user, session)
 
 
+def lock_principal(db, binding, operator=False):
+    # Account maintenance locks User before deleting sessions; use the same order.
+    user_id = db.scalar(select(LoginSession.user_id).where(LoginSession.token_hash == binding))
+    if user_id is None:
+        raise DomainError(401, "session_expired", "Sign in again and review the current action.")
+    user = db.scalar(
+        select(User)
+        .where(User.id == user_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    session = db.scalar(
+        select(LoginSession)
+        .where(LoginSession.token_hash == binding)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if not user or not session or session.expires_at <= database_now(db):
+        raise DomainError(401, "session_expired", "Sign in again and review the current action.")
+    if operator and user.role != "operator":
+        raise DomainError(403, "permission_denied", "An Operator must perform this action.")
+    return user
+
+
 def provision(db: Session, username: str, password: str, role: str):
     from cloudops.features.access.schemas import LoginRequest
 

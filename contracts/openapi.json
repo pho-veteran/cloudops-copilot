@@ -2317,6 +2317,9 @@
             "title": "Id",
             "type": "string"
           },
+          "outcome": {
+            "$ref": "#/components/schemas/Outcome"
+          },
           "plan_id": {
             "format": "uuid",
             "title": "Plan Id",
@@ -2344,6 +2347,7 @@
           "state",
           "holds_lock",
           "result",
+          "outcome",
           "created_at",
           "finished_at"
         ],
@@ -4626,6 +4630,75 @@
         "title": "OriginView",
         "type": "object"
       },
+      "Outcome": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "enum": [
+              "not_sent",
+              "acknowledged",
+              "denied",
+              "outcome_unknown"
+            ],
+            "title": "Attribution",
+            "type": "string"
+          },
+          "future_authority": {
+            "enum": [
+              "target_locked",
+              "maintenance_proof_recorded_recheck_required",
+              "fresh_preflight_required"
+            ],
+            "title": "Future Authority",
+            "type": "string"
+          },
+          "operation_id": {
+            "format": "uuid",
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "reconciliation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Reconciliation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "const": "RecoveryOutcome/v1",
+            "default": "RecoveryOutcome/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "verification": {
+            "enum": [
+              "not_performed",
+              "pending",
+              "passed",
+              "failed",
+              "inconclusive"
+            ],
+            "title": "Verification",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation_id",
+          "attribution",
+          "verification",
+          "future_authority",
+          "reason"
+        ],
+        "title": "Outcome",
+        "type": "object"
+      },
       "PackCoverage": {
         "properties": {
           "missing_required": {
@@ -5327,6 +5400,37 @@
           "candidate_template_id"
         ],
         "title": "RCAResult",
+        "type": "object"
+      },
+      "Reconciliation": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "maximum_attempts": {
+            "default": 6,
+            "title": "Maximum Attempts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attempts",
+          "deadline"
+        ],
+        "title": "Reconciliation",
         "type": "object"
       },
       "RecoveryPolicy": {
@@ -6895,6 +6999,9 @@
             "title": "Id",
             "type": "string"
           },
+          "outcome": {
+            "$ref": "#/components/schemas/Outcome"
+          },
           "state": {
             "title": "State",
             "type": "string"
@@ -6911,7 +7018,8 @@
           "classification",
           "holds_lock",
           "workload_id",
-          "created_at"
+          "created_at",
+          "outcome"
         ],
         "title": "WorkQueueExecution",
         "type": "object"

@@ -76,8 +76,9 @@ def admit_run(
     db: Session, incident_id: UUID, origin: Origin, request: Request, *, deferred=False
 ) -> InvestigationRun:
     """Create one Run (and its Job unless deferred) inside the caller's admission transaction."""
-    from cloudops.features.recovery.service import invalidate
+    from cloudops.features.recovery.service import invalidate, retire_unsent
 
+    retire_unsent(db, incident_id)
     if blocking_execution(db, incident_id):
         raise DomainError(
             409,

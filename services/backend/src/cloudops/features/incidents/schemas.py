@@ -11,6 +11,7 @@ from cloudops.features.investigations.schemas import (
     WindowSpec,
 )
 from cloudops.features.workloads.schemas import WorkloadView
+from cloudops.features.recovery.outcomes import Outcome
 from cloudops.shared.schemas import View
 
 
@@ -116,6 +117,7 @@ class WorkQueueExecution(BaseModel):
     holds_lock: bool
     workload_id: UUID
     created_at: datetime
+    outcome: Outcome
 
 
 class WorkQueueItem(IncidentView):

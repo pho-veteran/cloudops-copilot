@@ -11,6 +11,7 @@ from sqlalchemy import func, select, update
 from test_permissions import ORIGIN, permission_context as _permission_context, send, snapshot
 
 from cloudops.features.access.models import LoginSession
+from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.recovery import client as gateway_client
 from cloudops.features.recovery.models import ActionPlan, Execution, PlanReview
@@ -20,7 +21,7 @@ from cloudops.features.workloads.models import BaselineCandidate
 from cloudops.shared.config import settings
 from cloudops.shared.database import database_now, sessions
 from cloudops.shared.errors import DomainError
-from cloudops.shared.jobs import Job
+from cloudops.shared.jobs import Job, claim_next
 
 permission_context = _permission_context
 
@@ -241,6 +242,7 @@ def test_resolution_is_immutable_and_does_not_release_unknown_target(permission_
 def test_active_execution_blocks_resolution_and_reinvestigation(permission_context):
     c = permission_context
     assert decide(c).status_code == 200
+    assert claim_next({"recovery_execution_v1": ExecutionHandler()}, GATE) is not None
     before = snapshot()
     response = send(
         c,
