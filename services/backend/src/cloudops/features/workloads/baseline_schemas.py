@@ -100,6 +100,7 @@ class RestoreContext(BaseModel):
         "config_unverified",
         "no_supported_diff",
         "restore_not_implemented",
+        "exact_plan_required",
     ]
     execution_eligible: Literal[False] = False
     baseline: BaselineView | None = None

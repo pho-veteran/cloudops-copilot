@@ -127,7 +127,7 @@ def test_confirm_provenance_exact_context_idempotence_and_legacy(permission_cont
         assert result["baseline"]["snapshot"] == value["snapshot"]
     c.consumer.deployment["spec"]["template"]["spec"]["containers"][0]["image"] = "fixture:changed"
     result = context(c, value["id"]).json()
-    assert result["state"] == "baseline_context" and result["reason"] == "restore_not_implemented"
+    assert result["state"] == "baseline_context" and result["reason"] == "exact_plan_required"
     assert result["supported_diff"] == [
         {
             "path": "containers.consumer.image",

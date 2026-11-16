@@ -145,10 +145,10 @@ async def resolve_restore_baseline(workload_id, baseline_id, binding):
         if saved.config_references != current.config_references
         else "no_supported_diff"
         if not changes
-        else "restore_not_implemented"
+        else "exact_plan_required"
     )
     return RestoreContext(
-        state="baseline_context" if reason == "restore_not_implemented" else "manual_only",
+        state="baseline_context" if reason == "exact_plan_required" else "manual_only",
         reason=reason,
         baseline=selected,
         current_uid=current.identity.uid,
