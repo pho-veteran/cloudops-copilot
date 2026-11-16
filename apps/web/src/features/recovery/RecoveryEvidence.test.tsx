@@ -14,11 +14,18 @@ it.each([
   ["no_op", "not_sent", "not_performed", /excluded from remediation success/],
   ["rolled_back", "acknowledged", "passed", /original forward result remains unchanged/],
 ] as const)("shows %s with independent attribution and verification", (state, attribution, verification, explanation) => {
-  const outcome: Outcome = { schema_version: "RecoveryOutcome/v1", operation_id: "00000000-0000-4000-8000-000000000001", attribution, verification, future_authority: "fresh_preflight_required", reason: "Controlled outcome fixture; no live write." };
+  const outcome: Outcome = { schema_version: "RecoveryOutcome/v1", operation_id: "00000000-0000-4000-8000-000000000001", attribution, verification, future_authority: attribution === "outcome_unknown" ? "target_locked" : "fresh_preflight_required", reason: "Controlled outcome fixture; no live write." };
   render(<ExecutionOutcome state={state} outcome={outcome} />);
   expect(screen.getAllByText(explanation).length).toBeGreaterThan(0);
   expect(screen.getByText("Write attribution")).toBeTruthy();
   expect(screen.getByText("Future write authority")).toBeTruthy();
+});
+
+it("keeps historical unknown attribution separate from recorded maintenance proof", () => {
+  const outcome: Outcome = { schema_version: "RecoveryOutcome/v1", operation_id: "00000000-0000-4000-8000-000000000001", attribution: "outcome_unknown", verification: "inconclusive", future_authority: "maintenance_proof_recorded_recheck_required", reason: "Controlled historical unknown; maintenance was recorded later." };
+  render(<ExecutionOutcome state="outcome_unknown" outcome={outcome} />);
+  expect(screen.getByText(/Recorded maintenance proof does not change this historical attribution/)).toBeTruthy();
+  expect(screen.queryByText(/Keep the target quarantine/)).toBeNull();
 });
 
 it("does not present reserved verification slots as measured coverage", () => {

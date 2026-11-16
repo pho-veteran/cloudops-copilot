@@ -71,7 +71,7 @@ afterEach(() => {
 });
 
 it("requires explicit selection and performs no background comparison before it", () => {
-  window.location.hash = buildIncidentHash(incident, left);
+  window.location.hash = buildIncidentHash(incident, left, "#/queue", "", "", { plan: evidence, execution: right });
   mount(<RunComparison incidentId={incident} runId={left} />);
   expect(http.fetch).not.toHaveBeenCalled();
   expect(
@@ -88,6 +88,7 @@ it("requires explicit selection and performs no background comparison before it"
     screen.getByRole("button", { name: "Compare selected runs" }),
   );
   expect(safeRoute(window.location.hash).selection?.rightRun).toBe(right);
+  expect(safeRoute(window.location.hash).selection).toMatchObject({ plan: evidence, execution: right });
 });
 
 it("loads exact pair IDs outside history pagination and swaps them without creating work", async () => {

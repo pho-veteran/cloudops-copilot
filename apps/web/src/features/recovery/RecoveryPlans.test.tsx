@@ -27,6 +27,7 @@ function mount(overrides: { template?: string; origin?: string | null; valid?: b
   const state = {
     planId: "00000000-0000-4000-8000-000000000001",
     failed: false,
+    approved: false,
     template: "scale_deployment",
     origin: "operator_manual",
     valid: true,
@@ -35,6 +36,13 @@ function mount(overrides: { template?: string; origin?: string | null; valid?: b
   };
   network.fetch.mockImplementation(async (input) => {
     const path = new URL((input as Request).url).pathname;
+    if ((input as Request).method === "POST" && path.endsWith("/decision")) {
+      state.approved = true;
+      return Response.json({ id: "00000000-0000-4000-8000-000000000008", plan_id: state.planId,
+        workload_id: "00000000-0000-4000-8000-000000000004", state: "queued", holds_lock: true,
+        result: {}, created_at: new Date().toISOString(), finished_at: null,
+        outcome: { schema_version: "RecoveryOutcome/v1", operation_id: "00000000-0000-4000-8000-000000000008", attribution: "not_sent", verification: "not_performed", future_authority: "target_locked", reason: "Controlled queued decision receipt." } });
+    }
     if ((input as Request).method === "POST") return Response.json({ state: "manual_only", reason: "Controlled applicability result.", next_step: "Inspect the original scope." }, { status: 201 });
     const readId = path.startsWith("/api/plans/") ? path.split("/").at(-1)! : state.planId;
     const plan = {
@@ -48,12 +56,15 @@ function mount(overrides: { template?: string; origin?: string | null; valid?: b
       source_analysis_id: null,
       forward_execution_id: null,
       digest: readId.repeat(2).replaceAll("-", ""),
-      state: readId === state.planId ? "proposed" : "approved",
+      state: readId === state.planId && !state.approved ? "proposed" : "approved",
       expires_at: new Date(Date.now() + 300_000).toISOString(),
       content: { source: "controlled_ui_fixture", replicas: 2 },
     };
     if (path.endsWith("/plans")) return Response.json([plan]);
-    if (path.endsWith("/executions")) return Response.json([]);
+    if (path.endsWith("/executions")) {
+      if (state.approved) await new Promise(resolve => setTimeout(resolve, 80));
+      return Response.json([]);
+    }
     if (path.endsWith("/recovery-availability")) return Response.json(state.malformed ? {} : recoveryAvailabilityFixture(plan.workload_id));
     if (path === "/api/recovery-policy") return Response.json({ policy: { memory_profiles: [{ id: "controlled-memory", version: "1", workload_uid: "controlled-deployment-uid", request: "64Mi", limit: "128Mi" }] }, digest: null, verification_profiles: [] });
     if (path.endsWith("/baselines")) return Response.json({ items: [{ id: "00000000-0000-4000-8000-000000000007", profile: "deployment-images-resources/v1", confirmed_at: "2026-11-16T12:00:00Z" }], next_cursor: null });
@@ -131,6 +142,17 @@ it("keeps Viewer history read-only without proposal, approval or inverse control
   expect(screen.queryByRole("button", { name: "Prepare live scale plan" })).toBeNull();
   await userEvent.click(screen.getByRole("button", { name: "Read exact plan again" }));
   expect(network.fetch.mock.calls.every(([request]) => (request as Request).method === "GET")).toBe(true);
+});
+
+it("does not report successful approval as an expired review during refresh", async () => {
+  mount();
+  await userEvent.click(await screen.findByRole("button", { name: "Review approval" }));
+  await userEvent.click(screen.getByRole("button", { name: "Approve this version and dispatch" }));
+  await screen.findByText("Plan version 1 · approved");
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(cache.isMutating()).toBe(0));
+  expect(screen.queryByText(/The exact review expired or changed/)).toBeNull();
+  expect(network.fetch.mock.calls.filter(([request]) => (request as Request).method === "POST")).toHaveLength(1);
 });
 
 it("fails closed with useful guidance for an incomplete authority response", async () => {

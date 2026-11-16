@@ -22,7 +22,7 @@ export function ExecutionOutcome({ state, outcome }: { state: string; outcome: c
       <dt>Future write authority</dt><dd>{words(outcome.future_authority)}</dd>
     </dl>
     <p>{outcome.reason}</p>
-    {outcome.attribution === "outcome_unknown" && <p>Write outcome unknown. Matching current fields do not establish a write. Keep the target quarantine and use trusted deployment maintenance for future authority.</p>}
+    {outcome.attribution === "outcome_unknown" && <p>Write outcome unknown. Matching current fields do not establish a write. {outcome.future_authority === "target_locked" ? "Keep the target quarantine and use trusted deployment maintenance for future authority." : "Recorded maintenance proof does not change this historical attribution. Inspect current target authority and make a fresh preflight before future work."}</p>}
     {outcome.attribution === "acknowledged" && outcome.verification === "inconclusive" && <p>The write was acknowledged; application recovery is inconclusive. Inspect fresh evidence or hand off this result.</p>}
     {state === "no_op" && <p>No functional change. This is excluded from remediation success.</p>}
     {state === "rolled_back" && <p>The separately approved inverse passed its post-checks. Its original forward result remains unchanged.</p>}

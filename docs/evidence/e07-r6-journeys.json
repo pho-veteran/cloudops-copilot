@@ -1,0 +1,191 @@
+{
+  "schema_version": "E07R6JourneyEvidence/v1",
+  "scope": "R6 UI/API integration, not integrated E07 release acceptance",
+  "recorded_at": "2026-11-16T18:11:28.139606+00:00",
+  "accepted_base": "d86d3f408d2ff6b96896eb6342a6d604f09e99f3",
+  "runtime": {
+    "browser": "Connected Microsoft Edge Profile1, separate owned lab tab",
+    "api_worker_gateway": "Actual candidate containers, dedicated PostgreSQL and original isolated Kubernetes gateway",
+    "backend_modules": 135,
+    "all_backend_sources_match": true,
+    "backend_source_sha256": "8fd04e0e4d188c7e9a3967754fa7808429a704e19bd3aaa181809ac48684e158",
+    "no_model_credential_in_containers": true,
+    "model_requests_added": 0,
+    "investigation_sources": "Collection source mode none. Runs honestly retain unavailable coverage; no operational diagnosis claimed."
+  },
+  "source_sha256": {
+    "apps/web/src/features/recovery/RecoveryPlans.tsx": "38a5275db895f67f4f43febdb12d4beef86d55931c4fd23cf445d158baa46682",
+    "apps/web/src/features/recovery/RecoveryEvidence.tsx": "e8420d65eb9079b1db3a17352b5d0696379c20976273e82a3a8b73af59d9faad",
+    "apps/web/src/features/recovery/PlanDiff.tsx": "46a5522864bbaa6c7e1a54e6a6f8301b92679a69d8cd68d1b0afecfb2e57648e",
+    "apps/web/src/features/investigations/RunComparison.tsx": "5e9b775d9e4099835115e8dc11357b0846ba9cb1b7164ca0820624e70b83f168",
+    "apps/web/src/app/routes.ts": "5cf19388758d96aac471fbf472c84beef4151d55d3c705fe3dd8ee5777f33fbb"
+  },
+  "forward": {
+    "id": "edb0b2ab-2cdc-40e6-b9c2-a8ece5eb7506",
+    "state": "succeeded",
+    "attribution": "acknowledged",
+    "verification": "passed",
+    "acknowledged_at": "2026-11-16T17:51:46.050081+00:00",
+    "fixed_deadline": "2026-11-16T17:54:46.050081+00:00",
+    "finalized_at": "2026-11-16T17:54:47.301911+00:00",
+    "stored_slots": 7,
+    "rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "6a995e71-b639-48e6-9dbe-9a8adf47159b",
+        "fb039c20-4baf-4b73-83e8-5c9986554a36"
+      ],
+      "offered_rps": 30.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "profile_digest": "2eaf2fc2ca7b1949a0c84854cce8524a9058e3364f87d4e3667be7c4351ef40b"
+  },
+  "inverse": {
+    "id": "fe333ad7-d3be-4374-b4cc-79ea5e6b0986",
+    "state": "rolled_back",
+    "attribution": "acknowledged",
+    "verification": "passed",
+    "acknowledged_at": "2026-11-16T17:59:24.072849+00:00",
+    "fixed_deadline": "2026-11-16T18:02:24.072849+00:00",
+    "finalized_at": "2026-11-16T18:02:24.518748+00:00",
+    "stored_slots": 7,
+    "rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "6a995e71-b639-48e6-9dbe-9a8adf47159b"
+      ],
+      "offered_rps": 8.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "profile_digest": "d4e0fd6f7d10fa1c7681343f68d6239946f0ae401f0b06e3aa5ceccc69bf5da8"
+  },
+  "write_identity": {
+    "one_acknowledged_journal_row_per_operation": true,
+    "exact_forward_inverse_link": true,
+    "original_uid_preserved": true,
+    "deployment_generation_before": 33,
+    "after_forward": 34,
+    "after_inverse": 35
+  },
+  "browser_gates": {
+    "browser": "Edge Profile1, verified connected extension",
+    "manualForward": "edb0b2ab-2cdc-40e6-b9c2-a8ece5eb7506",
+    "separatelyApprovedInverse": "fe333ad7-d3be-4374-b4cc-79ea5e6b0986",
+    "operatorKeyboardApprove": true,
+    "escapeClosedDialogAndRestoredReviewButton": true,
+    "viewerMutationControlsAbsent": true,
+    "actual401ClearedDialogAndFocusedUsername": true,
+    "reauthenticationDidNotReplay": true,
+    "comparisonPlanSelectionRegressionFixedAndRetested": true,
+    "exactEvidenceResolutionComparisonPlanRetainedOnReload": true,
+    "workloadsAndConnectionsCurrentQuarantineObserved": true,
+    "gatewayUnavailablePreservedHistory": true,
+    "apiOutageErrorAndRetryOffered": true,
+    "apiPollingRecoveredBeforeRetryClick": true,
+    "noDecisionReplay": true,
+    "savedCopyBytes": 13521,
+    "savedCopySha256": "0dd721aa82e910b183e2ba778e6d5e15b8a3e3ee6eba2aa34a906301ce251cf6",
+    "responsiveWidths": [
+      320,
+      390
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "downloadEventCapture": "timed out; not counted as a browser file-download pass",
+    "analysis": "not configured; manual flow and retained history only; model/template composition belongs to R7"
+  },
+  "saved_handoff": {
+    "same_saved_bytes": true,
+    "saved_sha256": "0dd721aa82e910b183e2ba778e6d5e15b8a3e3ee6eba2aa34a906301ce251cf6",
+    "bytes": 13521,
+    "executions": 2,
+    "forward_state": "succeeded",
+    "inverse_state": "rolled_back",
+    "read_only_outages_no_new_mutations": true
+  },
+  "role_negatives": {
+    "cases": [
+      {
+        "path": "/api/incidents/31f3eca8-0134-4849-9c6d-a808adbae5f9/plans",
+        "status": 403,
+        "error": "permission_denied"
+      },
+      {
+        "path": "/api/plans/a1ce484e-1406-45d7-bfeb-811794730260/decision",
+        "status": 403,
+        "error": "permission_denied"
+      },
+      {
+        "path": "/api/executions/edb0b2ab-2cdc-40e6-b9c2-a8ece5eb7506/inverse-plans",
+        "status": 403,
+        "error": "permission_denied"
+      }
+    ],
+    "executions_remain_one": true,
+    "inputs": "Controlled negative intents; actual API/session/PG boundary."
+  },
+  "session_negative": {
+    "actual_session_revocation": true,
+    "sign_in_focus": "username",
+    "confirmation_after_signin": false,
+    "execution_count": 1,
+    "inverse_state": "proposed"
+  },
+  "history": {
+    "original_forward_result_unchanged": true,
+    "original_inverse_clock_unchanged": true,
+    "fixed_eligible_from": "2026-11-16T17:54:47.301911+00:00",
+    "fixed_inverse_deadline": "2026-11-16T18:04:46.050081+00:00",
+    "recorded_inverse_id": "fe333ad7-d3be-4374-b4cc-79ea5e6b0986",
+    "comparison_plan_loss_reproduced_then_fixed": true,
+    "exact_run_evidence_resolution_plan_survive_comparison_and_reload": true,
+    "retained_unknown_and_recorded_maintenance_render_separately": true
+  },
+  "checks": {
+    "full_backend": 2000,
+    "backend_note": "Same backend tree as checkpoint; subsequent fixes affect web only. Final-head CI still required.",
+    "focused_backend": 406,
+    "web": 254,
+    "build": "pass; existing >500KB bundle advisory retained",
+    "contracts": "match",
+    "schema_drift": "pass",
+    "ruff": "pass",
+    "format": "303 files pass",
+    "ui_regressions": "Success-refresh false-expiry and comparison selection loss each reproduced before correction."
+  },
+  "visuals": [
+    "docs/images/e07-r6-inverse-320-light.jpg",
+    "docs/images/e07-r6-inverse-320-dark.jpg",
+    "docs/images/e07-r6-inverse-390-light.jpg",
+    "docs/images/e07-r6-inverse-390-dark.jpg",
+    "docs/images/e07-r6-approval-320-light.jpg"
+  ],
+  "cleanup": {
+    "finite_load_stopped": true,
+    "worker_stopped": true,
+    "all_host_classes_denied": true,
+    "both_original_gateway_targets_quarantined": true,
+    "authorities_journal_pins_and_data_preserved": true,
+    "api_retained_for_read_only_checks": true
+  },
+  "limits": [
+    "Browser file-download event capture timed out; it is not counted as a download pass. Exact saved export bytes were proved through actual Edge copy and API SHA-256 comparison.",
+    "Historical unknown/maintenance records retain their original controlled R3 fixture provenance. New forward and inverse were real approved Kubernetes operations.",
+    "Advice selector/expiry/foreign-record cases also have controlled web fixtures; all-template live-model and pg_dump/restore composition remain R7.",
+    "No production, multi-node, lost-authority-volume or Kubernetes datastore recovery claim."
+  ]
+}

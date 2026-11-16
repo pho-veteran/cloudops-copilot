@@ -67,7 +67,7 @@ export function RecoveryPlans({ id, canMutate, live, workloadId, runId, latestRu
   const available = ready && inScope && review.data?.valid && plan?.state === "proposed" && now < Date.parse(plan.expires_at) && now < Date.parse(review.data.review_expires_at) && !review.isFetching && !review.isError && !changed && !propose.isPending && !inverse.isPending;
   useEffect(() => setApproval(null), [planId, plan?.digest, plan?.state, review.data?.review_token, review.data?.valid, review.isError, canMutate, changed]);
   useEffect(() => { setManualReason(""); propose.reset(); decide.reset(); inverse.reset(); }, [selection.plan, selection.execution, runId, workloadId]);
-  useEffect(() => { if (approval && !available) { setApproval(null); setManualReason("The exact review expired or changed. Read it again before a new explicit decision."); } }, [available, approval]);
+  useEffect(() => { if (approval && !available && !decide.isPending) { setApproval(null); setManualReason("The exact review expired or changed. Read it again before a new explicit decision."); } }, [available, approval, decide.isPending]);
   useEffect(() => { if (changed) void review.refetch(); }, [changed]);
   useEffect(() => { if (propose.isError || decide.isError || inverse.isError || manualReason) feedback.current?.focus(); }, [propose.isError, decide.isError, inverse.isError, manualReason]);
   useEffect(() => { if (selection.plan || selection.execution) heading.current?.focus(); }, [selection.plan, selection.execution]);
