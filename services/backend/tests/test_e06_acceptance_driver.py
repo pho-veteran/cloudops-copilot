@@ -245,3 +245,28 @@ def test_carryover_keeps_prior_spend_and_reuses_only_exact_secondary_proof(tmp_p
         source.write_text(json.dumps(bad))
         with pytest.raises(ValueError):
             campaign.carried_probe(source)
+
+
+def test_changed_prompt_cohort_preserves_used_requests_tokens_and_repair(tmp_path):
+    probe = tmp_path / "probe.json"
+    probe.write_text(json.dumps(passing_probe_receipt()))
+    initial = tmp_path / "initial"
+    campaign.freeze(initial, probe)
+    budget = campaign.Budget(initial / "ledger.json")
+    budget.reserve(campaign.MODELS[0], "failed-initial", True)
+    budget.data["calls"][-1]["outcome"] = {"kind": "text"}
+    budget.data["observed_tokens"] += 100
+    campaign.save(budget.path, budget.data)
+    changed = tmp_path / "changed"
+    campaign.freeze(changed, previous=budget.path)
+    carried = campaign.Budget(changed / "ledger.json")
+    assert carried.data["prior_requests"] == carried.data["total_requests"] == 4
+    assert carried.data["observed_tokens"] == 244
+    assert carried.data["missing_usage_calls"] == 1
+    assert carried.data["secondary_probe"] == budget.data["secondary_probe"]
+    with pytest.raises(ValueError, match="repair reserve"):
+        carried.reserve(campaign.MODELS[0], "second-repair", True)
+    budget.data["calls"][-1]["outcome"] = "unsettled"
+    campaign.save(budget.path, budget.data)
+    with pytest.raises(ValueError, match="unsettled"):
+        campaign.freeze(tmp_path / "unsafe", previous=budget.path)

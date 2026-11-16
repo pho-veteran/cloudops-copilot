@@ -20,5 +20,15 @@
     "services/backend/src/cloudops/features/diagnosis/egress.py": "67c5d3416a6e30cf7001ae2cd5cae2e33a3b58c8fff45b5b40fb07e83fa943cd",
     "services/backend/tests/fixtures/e06/cases.json": "1c1bce8bbc83d4a2f9e02897902b3a41802477ffab940b00581f9b7aecf5278c",
     "services/backend/tests/fixtures/e06/oracle.json": "2e85af63b06c82978be966eefa809802c04c7c9494b6d6d4d663c1fbe7464123"
+  },
+  "post_confirmation_schema_fix": {
+    "prompt_version": "e06.rca_prompt/v2",
+    "controlled_checks": 11,
+    "unit_context_and_advice_checks": 81,
+    "review_limit": "No third independent review; post-confirmation adjustment verified locally"
+  },
+  "final_schema_source_hashes": {
+    "services/backend/tests/e06_live_acceptance.py": "b5bb5be491164b172441af02b31ba829b253df03a7590ffd7378f5f7523e09be",
+    "services/backend/tests/test_e06_acceptance_driver.py": "356822dfe4824a8c00e0f7d6a1cb87b0e7132a3897449393d331e81ab9903ab2"
   }
 }

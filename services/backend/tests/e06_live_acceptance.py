@@ -404,12 +404,33 @@ def carried_probe(path):
     }
 
 
-def freeze(root, carryover=None):
+def carried_campaign(path):
+    previous = json.loads(path.read_text())
+    count = previous.get("prior_requests", 0) + len(previous["calls"])
+    if count != previous["total_requests"] or not 0 < count < MAX_REQUESTS:
+        raise ValueError("Prior campaign request count is invalid")
+    if any(not isinstance(call["outcome"], dict) for call in previous["calls"]):
+        raise ValueError("Prior campaign has an unsettled call; no automatic replay")
+    if previous["models"] != list(MODELS) or previous["endpoint"] != "http://localhost:20128/v1":
+        raise ValueError("Prior campaign destination changed")
+    return {
+        "prior_requests": count,
+        "total_requests": count,
+        "observed_tokens": previous["observed_tokens"],
+        "missing_usage_calls": previous["missing_usage_calls"],
+        "repairs": previous["repairs"],
+        "secondary_probe": previous["secondary_probe"],
+        "previous_cohort_sha256": sha(path),
+        "previous_cohort": previous["cohort"],
+    }
+
+
+def freeze(root, carryover=None, previous=None):
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     if (root / "ledger.json").exists():
         raise ValueError("Campaign already exists; never overwrite an initial cohort")
     plan = {
-        "cohort": "e06-gpt-owned-fixtures-v1",
+        "cohort": "e06-gpt-schema-v2-owned-fixtures",
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "driver_sha256": sha(Path(__file__)),
         "cases_sha256": sha(FIXTURES / "cases.json"),
@@ -426,8 +447,12 @@ def freeze(root, carryover=None):
         "observed_tokens": 0,
         "missing_usage_calls": 0,
     }
+    if carryover is not None and previous is not None:
+        raise ValueError("Choose one prior history source")
     if carryover is not None:
         plan.update(carried_probe(carryover))
+    if previous is not None:
+        plan.update(carried_campaign(previous))
     save(root / "ledger.json", plan)
 
 
@@ -436,10 +461,11 @@ def main():
     parser.add_argument("phase", choices=["freeze", "run", "smoke"])
     parser.add_argument("--state-dir", type=Path, required=True)
     parser.add_argument("--carryover-probe", type=Path)
+    parser.add_argument("--carryover-campaign", type=Path)
     args = parser.parse_args()
     root = args.state_dir.resolve()
     if args.phase == "freeze":
-        freeze(root, args.carryover_probe)
+        freeze(root, args.carryover_probe, args.carryover_campaign)
         return
     if (
         make_url(os.environ.get("DATABASE_URL", "")).database != OWNED_DATABASE

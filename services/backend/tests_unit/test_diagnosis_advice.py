@@ -255,7 +255,7 @@ def test_supported_fixture_normalizes_in_advice_order():
     assert result.incident_id == context.incident_id
     assert result.context_digest == context.digest
     assert result.validator_version == "e06.validator/v1"
-    assert result.prompt_version == "e06.rca_prompt/v1"
+    assert result.prompt_version == "e06.rca_prompt/v2"
     assert result.context_version == "e06.context/v1"
     assert result.policy_version == context.policy_version
     assert result.status == "supported"
