@@ -155,6 +155,45 @@ printf '%s\n%s\n' "$OPERATOR_PASSWORD" "$VIEWER_PASSWORD" |
 
 The probe creates one incident/Run through the real API/worker, checks six metric sources, query metadata, timeline markers, Viewer reads and optional API/worker restart with the same evidence IDs/digests. It writes `tmp/prometheus48-receipt.json`; keep sanitized receipts under `docs/evidence/prometheus48/`. It never prints passwords or tokens. Stop and remove only the task-owned Compose project after recording results; do not remove unrelated volumes.
 
+## Real retained-lab telemetry
+
+The [retained lab](e01-local-lab.md#retained-local-testing-lab) uses `compose.lab.yaml`
+and `prometheus-real.yaml`, independently of `compose.metrics.yaml`. Do not add the
+synthetic metrics overlay to that command. The original finite/empty/non-finite/gapped
+fixture and its historical receipts remain unchanged.
+
+The sample app exposes actual HTTP counters and duration buckets. The finite load
+driver requests `/work`; Prometheus derives rate/error ratio/p95. Zero traffic can
+produce unavailable ratios/quantiles, not fabricated zero latency. Per-Pod discovery
+retains namespace, Deployment UID, Pod UID and container at scrape time. Setup stamps
+the actual Deployment UID using conditional patches; verification independently
+checks the controlling Deployment → ReplicaSet → Pod UID chain.
+
+Resource rules join on **Pod UID**, namespace and Pod name, and record the Deployment
+UID at evaluation time. They cannot attach an old same-name Pod's cAdvisor samples
+to its replacement. Kubelet scrapes require the cluster CA, serving-name validation
+and a separate ServiceAccount with only the named node's `nodes/metrics` permission.
+There is no `nodes/proxy`, Secret read, insecure TLS or product-reader expansion.
+If the real cAdvisor `id` cannot prove Pod UID, resource samples are dropped and
+verification fails; do not replace this with a historical name-to-current-owner join.
+
+`verify` runs promtool configuration/rule checks and the supplied rule tests, checks
+actual target health and finite samples for both workloads. Rule fixtures cover
+measured errors and rejection of a reused Pod name with a different UID. Those
+fixtures require execution with the pinned Prometheus image; YAML parsing alone is
+not a PromQL or scrape pass. Measured traffic errors flow through real Prometheus
+rules → Alertmanager → authenticated existing HTTPS intake. Read intake receipts to
+prove delivery; an alert rule file alone does not establish notification success.
+
+Prometheus uses a persistent volume, 48-hour retention and a 2-GB block target with
+additional WAL/head/compaction space. KRR remains on demand: explicitly build/start
+`krr` with the retained lab Compose command before requesting an existing report.
+Use the stable `history` workload for live idle/steady/peak phases, for example three
+successive two-hour loads at rates 1, 5 and 15. Observe actual scrape coverage and token
+expiry throughout. Six elapsed hours, point count or a successful KRR exit does not
+qualify recommendations. The existing wrapper continues to withhold them; there is
+no new recommendation/apply policy, synthetic backfill or live model configuration.
+
 ## Verification and limits
 
 Focused backend cases cover config rejection, TLS/HTTP failure classification, total deadline, binding/replacement, non-finite and empty samples, deterministic truncation, batch/checkpoint parity, storage validation, timeline scoping and permissions. Web cases cover the chart/table, missing data, warnings, series selection and timeline failure. The repository suite, Ruff, generated-contract/drift and web build remain required.

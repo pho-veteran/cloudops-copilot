@@ -18,26 +18,26 @@ services:
       EXECUTOR_URL: http://executor:8081
       KRR_RUNNER_URL: http://krr:8082
     volumes:
-      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
   api:
     environment: *integration-env
     volumes:
-      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
   worker:
     environment:
       <<: *integration-env
       EXECUTOR_DISPATCH_KEY: /run/cloudops-dispatch/key
       KRR_RUNNER_KEY: /run/cloudops-krr/key
     volumes:
-      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
-      - ./tmp/e01-integration/dispatcher:/run/cloudops-dispatch:ro
-      - ./tmp/e01-integration/krr:/run/cloudops-krr:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/dispatcher:/run/cloudops-dispatch:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/krr:/run/cloudops-krr:ro
   observer:
     environment:
       WORKLOADS_FILE: /run/cloudops-reader/workloads.json
       KUBE_READ_CONFIG: /run/cloudops-reader/client.json
     volumes:
-      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
     depends_on:
       k3s:
         condition: service_healthy
@@ -65,8 +65,8 @@ services:
     volumes:
       - executor_authority:/var/lib/cloudops-executor
       - executor_identity:/run/cloudops-executor-identity:ro
-      - ./tmp/e01-integration/writer:/run/cloudops-writer:ro
-      - ./tmp/e01-integration/dispatcher:/run/cloudops-dispatch
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/writer:/run/cloudops-writer:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/dispatcher:/run/cloudops-dispatch
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -91,8 +91,8 @@ services:
       context: .
       dockerfile: services/krr/Dockerfile
     volumes:
-      - ./tmp/e01-integration/reader:/run/cloudops-reader:ro
-      - ./tmp/e01-integration/krr:/run/cloudops-krr:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/krr:/run/cloudops-krr:ro
     depends_on: [prometheus, k3s]
 volumes:
   k3s_data:

@@ -2,6 +2,217 @@
 
 This is an operational handoff for the optional, disposable `cloudops-e01-https` lab. E01 acceptance and the continuing E02/E03/E07/E08/E09/E10 scope remain in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and linked EPICs. The default investigation collector is still synthetic. An Operator can separately propose an absolute scale using fresh live Kubernetes observations; collector output is never treated as a diagnosis or execution prerequisite.
 
+## Retained local testing lab
+
+`manage-local-lab.py` extends the existing integration stack as one owned project,
+`cloudops-local-testing-lab`. It retains K3s 1.37.1 at the existing digest, uses
+Prometheus 3.13.5 and PostgreSQL 17.12, and adds a measured sample application and
+minimal kube-state-metrics. It does not install host tools or touch host kubeconfig,
+routing, certificate trust or unrelated Docker resources. Host Python 3.13 with the
+backend's locked development dependencies supplies the driver and YAML parser.
+
+From this checkout, use an explicit project and generated directory:
+
+```sh
+LAB_DIR="$PWD/tmp/local-testing-lab"
+LAB=(uv run --project services/backend --frozen python scripts/manage-local-lab.py
+  --project cloudops-local-testing-lab --directory "$LAB_DIR")
+"${LAB[@]}" preflight
+"${LAB[@]}" start
+"${LAB[@]}" status
+```
+
+Preflight checks the local Linux/amd64 Docker daemon, cgroup v2, bounded-swap support,
+ports, disk headroom and CIDR overlap. Start verifies registry references before
+building, imports the source-hashed sample image into the owned node, and records
+actual image identities. A missing marker with existing project resources, a foreign
+ownership label, changed Deployment/namespace UID, or missing/replaced recorded
+data/authority volume is a refusal, never adoption.
+K3s data, kubelet state, CNI state and logs each use an explicitly named owned volume;
+unexpected or anonymous K3s mounts are refused. There is no automatic volume adoption
+or migration of older generated state.
+Registry verification uses Buildx and checks pinned digests. Public image access uses
+an empty private Docker configuration; host authentication and builder routing are
+not inherited or modified.
+Each successful registry result is saved immediately. An unchanged digest-pinned
+reference may reuse that result only with a matching local Linux/amd64 artifact;
+mutable build bases still require registry verification. Rate limits stop incomplete
+setup rather than triggering a credential, tag or mirror fallback.
+Repeated start preserves accounts, existing credential scope, PostgreSQL and the
+independent executor/dispatch journals. It does not repair missing identity by
+replacing a workload. The retained database is **cloudops_lab**; pytest is configured
+for **cloudops_checks_test**, a separate database which must be created explicitly.
+Restore drills must use **cloudops_restore_test** in a separate owned disposable
+project. The older fixed-project restore probes are not retained-lab restore commands.
+
+The private directory is mode 0700. Its generated `lab.env`, credential files and
+receipts are mode 0600. `reader/`, `writer/`, `monitoring/`, `dispatcher/`, `krr/` and
+intake subdirectories are mounted separately; fault/reset records in the parent
+folder are never mounted into the product. ServiceAccount `expiry.json` files record
+the actual issued expiry. No password, private key or bearer token is printed.
+Generated lab state is excluded from Git and Docker build contexts.
+The application consumes `reader/scope.json`, a v2 namespace/name policy pinned to
+the reader's server and CA. KRR retains its separate exact-UID `reader/workloads.json`
+list; the executor uses only `writer/workloads.json`. Both exports are checked
+against recorded workload identities. Renewal cannot silently change the cluster pin.
+
+Start does not provision accounts. To create the two lab accounts once, use the
+existing CLI; the command prompts for a password. Calling `account` for an existing
+username intentionally resets its password and revokes sessions, so do not repeat it
+as part of startup:
+
+```sh
+DC=(docker --host unix:///var/run/docker.sock compose --env-file "$LAB_DIR/lab.env"
+  -p cloudops-local-testing-lab --profile observation
+  -f compose.yaml -f compose.https.yaml -f compose.integration.yaml
+  -f compose.alertmanager.yaml -f compose.lab.yaml)
+export DOCKER_CONFIG="$LAB_DIR/docker-config"
+# Ensure ambient interpolation cannot replace the generated lab password.
+unset POSTGRES_PASSWORD EXECUTOR_PROOF_PROVIDER
+"${DC[@]}" exec api python -m cloudops.entrypoints.cli account operator --role operator
+"${DC[@]}" exec api python -m cloudops.entrypoints.cli account viewer --role viewer
+"${LAB[@]}" denials
+"${LAB[@]}" containment
+"${LAB[@]}" load --target both --seconds 90 --rate 10
+"${LAB[@]}" verify
+read -rs -p "Existing Operator password: " OPERATOR_PASSWORD
+printf '%s\n' "$OPERATOR_PASSWORD" | "${LAB[@]}" collect --password-stdin
+```
+
+Fresh setup initializes the executor journal and a separate owned `executor_identity`
+volume before starting application services. Preserve both authority volumes.
+When upgrading an original unpinned v1 lab, stop its executor first and retain its
+recorded deployment UUID. After building the current backend, use the same `DC`
+array for explicit adoption, then retry `start`:
+
+```sh
+"${DC[@]}" run --rm -T --no-deps executor-init python -m cloudops.features.recovery.authority \
+  --root /var/lib/cloudops-executor --identity-file /run/cloudops-executor-identity/identity.json \
+  --adopt-legacy-id <ORIGINAL-DEPLOYMENT-UUID>
+```
+
+Startup refuses an existing journal without that confirmation. It never replaces
+the journal, adopts an already pinned authority with a missing pin, or enables writes.
+
+`collect` reads the existing Operator password as one stdin line; the example reads
+it without terminal echo and keeps it out of arguments and generated files. It uses the normal
+HTTPS API, admission and worker, checks content digests and compares raw logs using
+the collector's captured window/options and exact Pod/container identities. The
+first collection is retained as an immutable persistence baseline. `stored
+--password-stdin` checks that baseline again without admitting another Run. Raw log
+reads occur later than collection; comparison records differences and source
+coverage without weakening completeness or inventing timestamps.
+
+The endpoint is `https://localhost:8443`; Kubernetes is `127.0.0.1:6445`. Other
+service ports are unpublished. CLI probes validate the copied CA. Browser trust is
+separate: use the running Edge only if its existing trust permits this origin; do
+not bypass warnings or change trust as a setup side effect.
+
+Every `load` and `fault` requires fresh effective cgroup proof. The driver locates
+sample processes beneath the limited K3s parent, checks memory/swap/CPU limits,
+Pod controller/UID labels, node pressure, allocatable capacity and concurrency.
+Kubelet reserves leave control-plane headroom. If actual allocatable capacity still
+advertises unavailable host CPU/RAM, stress is blocked; never patch Node capacity.
+The service envelope is at most 8.5 GiB and eight CPUs, including on-demand KRR and
+load, with a 20-GiB disk budget, rotated logs and bounded Prometheus retention.
+These are configured ceilings, not measured footprint or runtime qualification.
+The disk budget requires monitoring available space; retention is not a filesystem quota.
+
+Faults affect only the recorded `demo/checkout` UID and condition every patch on its
+current UID/resourceVersion. Run one fixed scenario, observe it, optionally collect
+its evidence, then reset before another scenario:
+
+```sh
+"${LAB[@]}" fault crashloop   # alternatives: oom, traffic, pending, imagepull, init-retry
+"${LAB[@]}" observe
+printf '%s\n' "$OPERATOR_PASSWORD" | "${LAB[@]}" collect --password-stdin
+"${LAB[@]}" reset
+# For traffic, run bounded load before observe/collect:
+"${LAB[@]}" fault traffic
+"${LAB[@]}" load --target checkout --seconds 90 --rate 10
+"${LAB[@]}" observe
+printf '%s\n' "$OPERATOR_PASSWORD" | "${LAB[@]}" collect --password-stdin
+"${LAB[@]}" reset
+```
+
+Observe requires an actual OOMKilled status, CrashLoop restart, Unschedulable
+condition/event, runtime ImagePull error, or measured traffic error ratio, as
+applicable. Each allocation is bounded; crash/init/OOM Pods continue retrying until
+reset or stop. Reset restores only captured fault fields, preserves unrelated
+metadata/environment and refuses concurrent field changes, active executions and
+unresolved old writers. It cannot unlock a target or label reset as product recovery.
+Previous-log gaps remain explicit and block complete CrashLoop/OOM evidence claims.
+
+For same-name identity validation, load history, run `replace-history`, then load
+both targets and verify again. Only the read-only history Deployment is replaced;
+its old samples retain their old UID, reader scope is explicitly renewed, and writer
+scope is unchanged. Stop/start and network recreation preserve persistent state:
+
+```sh
+"${LAB[@]}" stop
+"${LAB[@]}" start
+"${LAB[@]}" load --target both --seconds 90 --rate 10
+"${LAB[@]}" verify
+printf '%s\n' "$OPERATOR_PASSWORD" | "${LAB[@]}" stored --password-stdin
+"${LAB[@]}" recreate
+"${LAB[@]}" load --target both --seconds 90 --rate 10
+"${LAB[@]}" verify
+```
+
+Stop closes dispatch and quarantines the executor. Start resumes collection/report
+classes when needed, without enabling writer authority. Recreate replaces the K3s
+container while keeping its data and explicitly **recreates** Prometheus in the new
+network namespace. Fresh namespace attachment, DNS, discovery and authenticated TLS
+kubelet scrapes must pass again. Monitoring shares no K3s files or PID namespace.
+K3s may exit once when its persisted Node IP changes. Startup permits one restart
+only for exit 1 with a fresh matching IP-change event, unchanged container identity
+and no OOM. It checks the assigned Docker address, converged Node IP and stable
+readiness; unrelated failures and a second failure remain errors.
+
+Renew credentials explicitly with `renew reader`, `renew monitoring`, or `renew
+writer`. Renewal can bring up the owned prerequisites after a stop; it does not
+require an expired connection to authorize itself. Writer renewal requires quarantine and absence of unresolved execution;
+it restarts the executor but does not enable it. A positive scale test first requires
+fresh `containment`, then the documented exact-UID maintenance proof/enable/exit and,
+when dispatch is in recovery, explicit resumption of `recovery_execution`. For that
+explicit test, use the retained `DC` array and UID, rather than the legacy project
+commands below:
+
+```sh
+TARGET_UID=$(uv run --project services/backend --frozen python -c \
+  'import json,sys; print(json.load(open(sys.argv[1]))[0]["uid"])' "$LAB_DIR/writer/workloads.json")
+"${DC[@]}" exec -T executor python -m cloudops.features.recovery.maintenance enable_target \
+  --target "$TARGET_UID" --reason "Explicit bounded scale acceptance" --evidence local://lab/containment
+"${DC[@]}" exec -T executor python -m cloudops.features.recovery.maintenance exit_recovery_mode \
+  --target "$TARGET_UID" --reason "Explicit bounded scale acceptance" --evidence local://lab/containment
+"${DC[@]}" run --rm -T --no-deps dispatch-admin resume --class recovery_execution \
+  --reason "Explicit bounded scale acceptance" --evidence local://lab/containment
+```
+
+The audit reference is not a substitute for proof: maintenance performs its own
+conditional fence and current-state validation. Review/approve one fresh absolute
+scale plan through the existing UI/API. An acknowledged patch still has manual,
+inconclusive verification. After the test, use driver `stop` then `start` to close
+write admission and leave the readable baseline available. The lab driver never
+enables writes or automatically replays an approval.
+
+Keep the safe baseline available at handoff. To deliberately delete it, first run
+`stop`, read the non-secret owner UUID from `status`, then use `cleanup
+--confirm-owner <UUID>`. Cleanup enumerates and validates only this project's
+containers, network and volumes; it does not prune images or remove unrelated data.
+The private directory and receipts remain for explicit local disposal. Removing the
+cluster data is destructive and is not part of normal reset, stop or recreation.
+
+| Testing need | Local entry point | Limit |
+| --- | --- | --- |
+| Accounts, HTTPS and authority separation | CLI accounts, `denials`, existing HTTPS probes | Browser trust requires its own authorized setup. |
+| Kubernetes incident evidence | `fault`, `observe`, `collect`, `reset` | Check actual coverage; raw previous-log gaps remain gaps. |
+| Measured metrics and identity history | `load`, `verify`, `replace-history` | Historical samples keep their original UID. |
+| Persistence and source recovery | `stored`, `stop`/`start`, `recreate` | Restore drills use a separate disposable project and `_test` database. |
+| Existing scale execution | Fresh containment, maintenance proof, explicit plan review/approval | Acknowledgement has manual, inconclusive verification. |
+| Resource recommendation inputs | Real kubelet/KSM metrics and retained load history | Six hours alone does not qualify recommendations. |
+| Diagnosis and future actions | Existing model-free fixtures and feature-specific tests | Installing the lab does not implement missing orchestration/actions or qualify a live provider. |
+
 ## Start the isolated lab
 
 For optional UID-owned workload health, freshness and context, follow the [workload observer handoff](workload-observation.md). Its dedicated process has reader credentials only and does not occupy the collection/recovery worker. For a pinned real Alertmanager sending to intake, add the overlay described in [Alertmanager intake](alert-intake.md#local-lab). Set `CLOUDOPS_LAB_PROJECT` to run these scripts against a separate disposable Compose project.
