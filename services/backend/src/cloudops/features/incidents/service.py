@@ -659,6 +659,50 @@ def list_incidents(
             )
         )
 
+    recent_rank = (
+        select(
+            Execution.id.label("execution_id"),
+            ActionPlan.incident_id,
+            func.row_number()
+            .over(
+                partition_by=ActionPlan.incident_id,
+                order_by=(Execution.created_at.desc(), Execution.id.desc()),
+            )
+            .label("position"),
+        )
+        .join(ActionPlan, Execution.plan_id == ActionPlan.id)
+        .where(ActionPlan.incident_id.in_(incident_ids))
+        .subquery()
+    )
+    recent_rows = (
+        db.execute(
+            select(Execution, recent_rank.c.incident_id)
+            .join(recent_rank, Execution.id == recent_rank.c.execution_id)
+            .where(recent_rank.c.position <= 5)
+            .order_by(recent_rank.c.incident_id, recent_rank.c.position)
+        ).all()
+        if incident_ids
+        else []
+    )
+    recent_executions: dict[UUID, list[WorkQueueExecution]] = {}
+    for execution, owner_incident_id in recent_rows:
+        recent_executions.setdefault(owner_incident_id, []).append(
+            WorkQueueExecution(
+                id=execution.id,
+                state=execution.state,
+                classification=classify_execution(
+                    execution.state,
+                    execution.holds_lock,
+                    execution.maintenance_released,
+                    execution.result,
+                ),
+                holds_lock=execution.holds_lock,
+                workload_id=execution.workload_id,
+                created_at=execution.created_at,
+                outcome=execution.outcome,
+            )
+        )
+
     actor_ids = {item.created_by for item in incidents if item.created_by}
     actor_ids.update(run.requested_by for run, _ in run_rows if run.requested_by)
     actor_ids.update(item.actor_id for item in acknowledgements.values())
@@ -680,6 +724,7 @@ def list_incidents(
                 latest_run=latest_runs.get(incident.id),
                 run_blockers=sorted(run_blockers.get(incident.id, set())),
                 relevant_executions=executions.get(incident.id, []),
+                recent_executions=recent_executions.get(incident.id, []),
             )
         )
     return IncidentPage(

@@ -2,10 +2,24 @@
 import { afterEach, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import type { components } from "@/lib/api/generated/schema";
-import { ExecutionOutcome, VerificationDetails } from "./RecoveryEvidence";
+import { AuthoritySummary, ExecutionOutcome, VerificationDetails } from "./RecoveryEvidence";
+import { recoveryAvailabilityFixture } from "./fixtures";
 
 afterEach(cleanup);
 type Outcome = components["schemas"]["Outcome"];
+
+it.each([
+  ["failed", "acknowledged", "failed"],
+  ["no_op", "not_sent", "not_performed"],
+  ["manual_intervention", "acknowledged", "inconclusive"],
+] as const)("shows released %s history alongside independent authority", (state, attribution, verification) => {
+  const id = "00000000-0000-4000-8000-000000000001";
+  render(<AuthoritySummary value={{ ...recoveryAvailabilityFixture(id), recent_executions: [{ id, incident_id: id, state, holds_lock: false, outcome: { schema_version: "RecoveryOutcome/v1", operation_id: id, attribution, verification, future_authority: "fresh_preflight_required", reason: "Controlled released history fixture." } }] }} />);
+  expect(screen.getByRole("link", { name: `Inspect recorded operation ${id}` }).getAttribute("href")).toContain(`execution=${id}`);
+  expect(screen.getByText("Controlled released history fixture.")).toBeTruthy();
+  expect(screen.queryByRole("link", { name: /Inspect blocking operation/ })).toBeNull();
+  expect(screen.getByText(/application: ready for preflight/)).toBeTruthy();
+});
 
 it.each([
   ["outcome_unknown", "outcome_unknown", "inconclusive", /Matching current fields do not establish a write/],

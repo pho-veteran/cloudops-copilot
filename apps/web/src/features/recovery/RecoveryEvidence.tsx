@@ -34,7 +34,7 @@ export function useRecoveryAvailability(workloadId?: string) {
   return useQuery({ queryKey: ["recovery-availability", workloadId], enabled: !!workloadId,
     queryFn: async () => {
       const value = unwrap(await api.GET("/api/workloads/{workload_id}/recovery-availability", { params: { path: { workload_id: workloadId! } } }));
-      if (value.workload_id !== workloadId || typeof value.uid !== "string" || !["enabled", "quarantined", "unavailable"].includes(value.target_authority) || !["ready_for_preflight", "blocked", "unavailable"].includes(value.application_state) || !Array.isArray(value.qualified_templates) || !Array.isArray(value.blocking_executions))
+      if (value.workload_id !== workloadId || typeof value.uid !== "string" || !["enabled", "quarantined", "unavailable"].includes(value.target_authority) || !["ready_for_preflight", "blocked", "unavailable"].includes(value.application_state) || !Array.isArray(value.qualified_templates) || !Array.isArray(value.blocking_executions) || !Array.isArray(value.recent_executions))
         throw new ApiError(502, "recovery_availability_incomplete", "Current target authority is incomplete. Refresh before preparing a change.");
       return value;
     },
@@ -53,6 +53,13 @@ export function AuthoritySummary({ value }: { value: components["schemas"]["Reco
       <ExecutionOutcome state={row.state} outcome={row.outcome} />
     </article>)}
     {value.blocking_executions_truncated && <p>Additional blockers exist. Inspect target history before planning.</p>}
+    <h4>Recent execution outcomes</h4>
+    <p>Latest five recorded operations. Historical outcomes do not grant current write authority.</p>
+    {value.recent_executions.filter(row => !value.blocking_executions.some(blocker => blocker.id === row.id)).map(row => <article className="foundation-panel" key={row.id}>
+      <a className="break-all" href={buildIncidentHash(row.incident_id, "", "#/queue", "", "", { execution: row.id })}>Inspect recorded operation {row.id}</a>
+      <ExecutionOutcome state={row.state} outcome={row.outcome} />
+    </article>)}
+    {!value.recent_executions.length && <p>No recorded operations.</p>}
   </div>;
 }
 

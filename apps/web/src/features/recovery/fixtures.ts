@@ -5,6 +5,7 @@ export const recoveryAvailabilityFixture = (workloadId: string, uid = "controlle
   target_authority: "enabled", application_state: "ready_for_preflight", epoch: "controlled-epoch",
   reason: "Controlled gateway observation; no live write or recovery claim.",
   qualified_templates: ["scale_deployment"], blocking_executions: [], blocking_executions_truncated: false,
+  recent_executions: [],
 });
 
 export const reviewClockFixture = (serverTime = new Date().toISOString()) => ({

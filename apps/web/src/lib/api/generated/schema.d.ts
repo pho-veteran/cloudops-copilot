@@ -1284,8 +1284,8 @@ export interface components {
              */
             state: "running" | "expired" | "succeeded" | "failed";
         };
-        /** AvailabilityBlocker */
-        AvailabilityBlocker: {
+        /** AvailabilityExecution */
+        AvailabilityExecution: {
             /** Holds Lock */
             holds_lock: boolean;
             /**
@@ -3015,7 +3015,7 @@ export interface components {
              */
             application_state: "ready_for_preflight" | "blocked" | "unavailable";
             /** Blocking Executions */
-            blocking_executions: components["schemas"]["AvailabilityBlocker"][];
+            blocking_executions: components["schemas"]["AvailabilityExecution"][];
             /** Blocking Executions Truncated */
             blocking_executions_truncated: boolean;
             /** Epoch */
@@ -3029,6 +3029,8 @@ export interface components {
             qualified_templates: ("scale_deployment" | "restore_deployment_template" | "set_memory_profile")[];
             /** Reason */
             reason: string;
+            /** Recent Executions */
+            recent_executions: components["schemas"]["AvailabilityExecution"][];
             /**
              * Target Authority
              * @enum {string}
@@ -3828,6 +3830,8 @@ export interface components {
             last_seen_at: string | null;
             latest_run: components["schemas"]["WorkQueueRun"] | null;
             origin: components["schemas"]["OriginView"];
+            /** Recent Executions */
+            recent_executions?: components["schemas"]["WorkQueueExecution"][];
             /** Relevant Executions */
             relevant_executions: components["schemas"]["WorkQueueExecution"][];
             /** Run Blockers */

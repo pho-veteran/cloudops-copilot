@@ -86,6 +86,12 @@ def test_current_authority_is_separate_from_an_old_unknown_lock(
     assert exact.status_code == 200 and exact.json()["id"] == str(identifier)
     assert exact.json()["outcome"]["future_authority"] == "target_locked"
     assert viewer.get(f"/api/incidents/{c.consumer.incident_id}/plans?offset=25").status_code == 200
+    assert len(value["recent_executions"]) == 5
+    assert str(identifier) not in {row["id"] for row in value["recent_executions"]}
+    page = viewer.get("/api/incidents?view=all").json()
+    queued = next(row for row in page["items"] if row["id"] == c.consumer.incident_id)
+    assert len(queued["recent_executions"]) == 5
+    assert str(identifier) in {row["id"] for row in queued["relevant_executions"]}
 
 
 @pytest.mark.parametrize("kind", ["missing", "malformed", "replacement"])
@@ -132,6 +138,55 @@ def test_synthetic_scope_and_invalid_history_inputs_are_honest(permission_contex
             == 422
         )
     assert viewer.get(f"/api/executions/{uuid4()}").status_code == 404
+
+
+@pytest.mark.parametrize(
+    "state, attribution, verification",
+    [
+        ("failed", "acknowledged", "failed"),
+        ("no_op", "not_sent", "not_performed"),
+        ("manual_intervention", "acknowledged", "inconclusive"),
+        ("rolled_back", "acknowledged", "passed"),
+    ],
+)
+def test_released_terminal_outcomes_remain_visible_without_blocking(
+    permission_context, monkeypatch, state, attribution, verification
+):
+    c = permission_context
+    identifier = UUID(c.consumer.execution_id)
+    with sessions()() as db, db.begin():
+        row = db.get(Execution, identifier)
+        row.state, row.holds_lock = state, False
+        row.created_at = database_now(db) - timedelta(minutes=2)
+        row.result = {
+            "outcome": attribution,
+            "verification": verification,
+            "reason": "Controlled terminal outcome projection.",
+        }
+    monkeypatch.setattr(
+        client,
+        "target",
+        lambda uid: {
+            "uid": uid,
+            "epoch": "fixture",
+            "enabled": True,
+            "recovery_mode": False,
+        },
+    )
+    viewer = c.actors["viewer"].client
+    value = viewer.get(f"/api/workloads/{c.consumer.workload_id}/recovery-availability").json()
+    assert value["application_state"] == "ready_for_preflight"
+    assert value["blocking_executions"] == []
+    recent = value["recent_executions"][0]
+    assert recent["id"] == str(identifier) and recent["state"] == state
+    assert recent["outcome"]["attribution"] == attribution
+    assert recent["outcome"]["verification"] == verification
+    page = viewer.get("/api/incidents?view=all").json()
+    incident = next(row for row in page["items"] if row["id"] == c.consumer.incident_id)
+    assert incident["recent_executions"][0]["id"] == str(identifier)
+    assert incident["recent_executions"][0]["outcome"]["verification"] == verification
+    if state != "manual_intervention":
+        assert str(identifier) not in {row["id"] for row in incident["relevant_executions"]}
 
 
 def test_review_clock_reports_the_stored_receipt_deadline(permission_context):

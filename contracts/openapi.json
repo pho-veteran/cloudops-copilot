@@ -797,7 +797,7 @@
         "title": "AttemptView",
         "type": "object"
       },
-      "AvailabilityBlocker": {
+      "AvailabilityExecution": {
         "properties": {
           "holds_lock": {
             "title": "Holds Lock",
@@ -828,7 +828,7 @@
           "holds_lock",
           "outcome"
         ],
-        "title": "AvailabilityBlocker",
+        "title": "AvailabilityExecution",
         "type": "object"
       },
       "BaselineIdentity": {
@@ -5544,7 +5544,7 @@
           },
           "blocking_executions": {
             "items": {
-              "$ref": "#/components/schemas/AvailabilityBlocker"
+              "$ref": "#/components/schemas/AvailabilityExecution"
             },
             "title": "Blocking Executions",
             "type": "array"
@@ -5585,6 +5585,13 @@
             "title": "Reason",
             "type": "string"
           },
+          "recent_executions": {
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityExecution"
+            },
+            "title": "Recent Executions",
+            "type": "array"
+          },
           "target_authority": {
             "enum": [
               "enabled",
@@ -5614,7 +5621,8 @@
           "reason",
           "qualified_templates",
           "blocking_executions",
-          "blocking_executions_truncated"
+          "blocking_executions_truncated",
+          "recent_executions"
         ],
         "title": "RecoveryAvailability",
         "type": "object"
@@ -7689,6 +7697,13 @@
           },
           "origin": {
             "$ref": "#/components/schemas/OriginView"
+          },
+          "recent_executions": {
+            "items": {
+              "$ref": "#/components/schemas/WorkQueueExecution"
+            },
+            "title": "Recent Executions",
+            "type": "array"
           },
           "relevant_executions": {
             "items": {

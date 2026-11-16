@@ -404,15 +404,15 @@ export function WorkQueue() {
                         Run blockers in history: {incident.run_blockers.join(", ").replaceAll("_", " ")}
                       </p>
                     )}
-                    {(incident.relevant_executions ?? []).map((execution) => (
+                    {[...(incident.relevant_executions ?? []), ...(incident.recent_executions ?? []).filter(row => !(incident.relevant_executions ?? []).some(relevant => relevant.id === row.id))].map((execution) => (
                       <div className="text-xs" role="status" key={execution.id}>
                         Execution: {execution.state} · {execution.classification.replaceAll("_", " ")}
                         {execution.holds_lock ? " · target locked" : " · target lock released"}
                         <ExecutionOutcome state={execution.state} outcome={execution.outcome} />
                       </div>
                     ))}
-                    {(incident.relevant_executions ?? []).length === 0 && (
-                      <p className="muted text-xs">Active or unknown execution: none recorded</p>
+                    {(incident.relevant_executions ?? []).length === 0 && (incident.recent_executions ?? []).length === 0 && (
+                      <p className="muted text-xs">No active, unknown or recent execution outcomes recorded.</p>
                     )}
                     <p className="muted text-xs">{incident.id}</p>
                   </div>

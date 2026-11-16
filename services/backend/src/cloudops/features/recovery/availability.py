@@ -31,6 +31,13 @@ def read(db, workload_id):
         .order_by(Execution.created_at.desc(), Execution.id.desc())
         .limit(26)
     ).all()
+    recent = db.execute(
+        select(Execution, ActionPlan.incident_id)
+        .join(ActionPlan, Execution.plan_id == ActionPlan.id)
+        .where(Execution.workload_id == workload.id)
+        .order_by(Execution.created_at.desc(), Execution.id.desc())
+        .limit(5)
+    ).all()
     result = {
         "workload_id": workload.id,
         "uid": workload.uid,
@@ -51,6 +58,16 @@ def read(db, workload_id):
             for row, incident in rows[:25]
         ],
         "blocking_executions_truncated": len(rows) > 25,
+        "recent_executions": [
+            {
+                "id": row.id,
+                "incident_id": incident,
+                "state": row.state,
+                "holds_lock": row.holds_lock,
+                "outcome": row.outcome,
+            }
+            for row, incident in recent
+        ],
     }
     if not workload.active or workload.source != "live_kubernetes":
         return result

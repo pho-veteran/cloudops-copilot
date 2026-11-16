@@ -123,7 +123,7 @@ class VerificationView(View):
     finalized_at: datetime | None
 
 
-class AvailabilityBlocker(BaseModel):
+class AvailabilityExecution(BaseModel):
     id: UUID
     incident_id: UUID
     state: str
@@ -142,8 +142,9 @@ class RecoveryAvailability(BaseModel):
     qualified_templates: list[
         Literal["scale_deployment", "restore_deployment_template", "set_memory_profile"]
     ]
-    blocking_executions: list[AvailabilityBlocker]
+    blocking_executions: list[AvailabilityExecution]
     blocking_executions_truncated: bool
+    recent_executions: list[AvailabilityExecution]
 
 
 @router.get(

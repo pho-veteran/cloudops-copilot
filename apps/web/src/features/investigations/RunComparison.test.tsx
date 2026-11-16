@@ -95,12 +95,17 @@ it("loads exact pair IDs outside history pagination and swaps them without creat
   window.location.hash = buildIncidentHash(incident, left, "#/queue", "", "", {
     rightIncident: incident,
     rightRun: right,
+    plan: evidence,
+    execution: right,
   });
   http.fetch.mockResolvedValue(
     new Response(JSON.stringify(result), { status: 200 }),
   );
   mount(<RunComparison incidentId={incident} runId={left} />);
   await screen.findByRole("heading", { name: "Left Run" });
+  const returned = safeRoute(screen.getByRole("link", { name: "Return to Run evidence" }).getAttribute("href")!);
+  expect(returned.selection).toEqual({ plan: evidence, execution: right });
+  expect(returned.run).toBe(left);
   expect(
     new URL((http.fetch.mock.calls[0][0] as Request).url).searchParams.get(
       "right_run_id",

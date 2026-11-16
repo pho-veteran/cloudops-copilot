@@ -128,6 +128,7 @@ class WorkQueueItem(IncidentView):
     latest_run: WorkQueueRun | None
     run_blockers: list[Literal["queued", "waiting_for_quota", "failed", "insufficient_evidence"]]
     relevant_executions: list[WorkQueueExecution]
+    recent_executions: list[WorkQueueExecution] = Field(default_factory=list)
 
 
 class IncidentPage(BaseModel):
