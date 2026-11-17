@@ -18,7 +18,7 @@ class ObservationPolicy:
     max_requests: int = 9
     response_bytes: int = 2_000_000
     observation_bytes: int = 65_536
-    history_count: int = 100
+    history_count: int = 1024
     history_days: int = 7
 
 

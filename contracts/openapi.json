@@ -5876,6 +5876,18 @@
             ],
             "title": "Observed At"
           },
+          "pod_template_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pod Template Digest"
+          },
           "resources_digest": {
             "anyOf": [
               {

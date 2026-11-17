@@ -1,6 +1,8 @@
 """Pure UID ownership, whitelisted extraction and health/comparison policy."""
 
 from copy import deepcopy
+import hashlib
+import json
 from uuid import uuid4
 
 from pydantic import ValidationError
@@ -429,6 +431,15 @@ def _evaluate(identity, start, end, rs_list, pod_list, started_at, observed_at):
         pods=sorted(pods, key=lambda p: p.uid),
         unrelated_pods=unrelated,
         template_fields=selected,
+        pod_template_digest=hashlib.sha256(
+            json.dumps(
+                start["spec"]["template"],
+                sort_keys=True,
+                ensure_ascii=False,
+                allow_nan=False,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest(),
         config_references=refs,
     )
 

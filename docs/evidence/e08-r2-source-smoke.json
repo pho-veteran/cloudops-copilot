@@ -1,0 +1,263 @@
+{
+  "proof": "real owned K3s/Prometheus scoped read; short history, no KRR call or six-hour qualification",
+  "subject_workload_uuid": "source-smoke-only deterministic UUID; no persisted report/job",
+  "collected_at": "2026-11-17T12:06:26.652841+00:00",
+  "uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
+  "cluster_fingerprint": "9a21fcefa0b85f78084fea58b61f5870ee732d971214bf0153b2cf868cc0a827",
+  "observation_coverage": "complete",
+  "query_digest": "fbc22b50c150dd5bcc3270f6e33ec6be714d2f9088ec95a93381ce0099199699",
+  "metric_series_counts": {
+    "container_cpu_usage_seconds_total": 6,
+    "container_memory_working_set_bytes": 6,
+    "kube_pod_info": 2,
+    "kube_pod_owner": 2,
+    "kube_pod_created": 2,
+    "kube_pod_completion_time": 0,
+    "kube_pod_container_state_started": 2,
+    "kube_pod_container_status_restarts_total": 2,
+    "kube_pod_container_status_last_terminated_reason": 2,
+    "kube_pod_container_status_last_terminated_timestamp": 2,
+    "kube_replicaset_owner": 10
+  },
+  "raw_samples": 17028,
+  "resource_states": [
+    {
+      "container": "app",
+      "resource": "cpu",
+      "state": "insufficient_data",
+      "reasons": [
+        "coverage_below_threshold",
+        "coverage_gap",
+        "ownership_history_incomplete",
+        "pod_lifetime_unproven"
+      ]
+    },
+    {
+      "container": "app",
+      "resource": "memory",
+      "state": "insufficient_data",
+      "reasons": [
+        "container_lifetime_unproven",
+        "coverage_below_threshold",
+        "coverage_gap",
+        "oom_history_incomplete",
+        "ownership_history_incomplete",
+        "pod_lifetime_unproven"
+      ]
+    }
+  ],
+  "evidence": {
+    "policy_version": "e08-coverage-v1",
+    "identity": {
+      "workload_id": "829738e0-9ebc-586f-8f3a-17b8919c6729",
+      "cluster": "local-k3s",
+      "cluster_fingerprint": "9a21fcefa0b85f78084fea58b61f5870ee732d971214bf0153b2cf868cc0a827",
+      "namespace": "demo",
+      "name": "checkout",
+      "uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
+      "observation_id": "135c5794-9cb3-40ed-8b92-6a538f9b8a89",
+      "observed_at": "2026-11-17T12:06:26.552067Z",
+      "template_digest": "2940675e7ad4ca8acd6a0053efada5bd0a5291295f1208beb666e3899c720915",
+      "pod_template_digest": "c1f8daa668a8e0a4cc87e11ac22eb7b803966547abef778810e95976ba1ff0fe",
+      "resources_digest": "67491960f33ae60244c7793bdf6020769eff642f717484ddd4720b865f8ff6b9",
+      "containers": [
+        "app"
+      ]
+    },
+    "window": {
+      "kind": "exact",
+      "start": "2026-11-17T06:06:26.553277Z",
+      "end": "2026-11-17T12:06:26.553277Z",
+      "raw_input_start": "2026-11-17T06:05:11.553277Z",
+      "raw_input_end": "2026-11-17T12:06:26.553277Z"
+    },
+    "query_digest": "fbc22b50c150dd5bcc3270f6e33ec6be714d2f9088ec95a93381ce0099199699",
+    "config_digest": "a18359ddc9fff242a4f4556765972f4850a6fa8f9cbe053a6d4fd08e23c13b4b",
+    "history_digest": "d74efcd78e08b9bc0f302cda40dd676cc1664d4782013c1f9f5ea0695faac8a5",
+    "collected_at": "2026-11-17T12:06:26.652841Z",
+    "pods": [
+      {
+        "pod": "checkout-6b874f8d54-m7jx6",
+        "uid": "43af5016-4bf8-49b9-8c3f-254ceacd3695",
+        "replicaset_uid": "90000c43-9a21-400b-87e8-6818517fc745",
+        "container": "app",
+        "start": "2026-11-17T06:06:26.553277Z",
+        "end": "2026-11-17T12:06:26.553277Z",
+        "lifetime": "current",
+        "cpu": {
+          "expected_bins": 360,
+          "covered_bins": 50,
+          "ratio": 0.1388888888888889,
+          "longest_gap_seconds": 18619.006722927094,
+          "first_sample_at": "2026-11-17T11:16:45.560000Z",
+          "last_sample_at": "2026-11-17T12:06:12.013000Z",
+          "reasons": [
+            "coverage_below_threshold",
+            "coverage_gap"
+          ]
+        },
+        "memory": {
+          "expected_bins": 360,
+          "covered_bins": 51,
+          "ratio": 0.14166666666666666,
+          "longest_gap_seconds": 18549.586723089218,
+          "first_sample_at": "2026-11-17T11:15:36.140000Z",
+          "last_sample_at": "2026-11-17T12:06:12.013000Z",
+          "reasons": [
+            "coverage_below_threshold",
+            "coverage_gap"
+          ]
+        },
+        "restarts": {
+          "expected_bins": 360,
+          "covered_bins": 51,
+          "ratio": 0.14166666666666666,
+          "longest_gap_seconds": 18566.411722898483,
+          "first_sample_at": "2026-11-17T11:15:52.965000Z",
+          "last_sample_at": "2026-11-17T12:06:22.965000Z",
+          "reasons": [
+            "coverage_below_threshold",
+            "coverage_gap"
+          ]
+        },
+        "cpu_raw_samples": 205,
+        "memory_raw_samples": 205,
+        "reasons": [
+          "ownership_history_incomplete",
+          "pod_lifetime_unproven"
+        ],
+        "memory_reasons": [
+          "container_lifetime_unproven",
+          "oom_history_incomplete"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "container": "app",
+        "resource": "cpu",
+        "state": "insufficient_data",
+        "reasons": [
+          "coverage_below_threshold",
+          "coverage_gap",
+          "ownership_history_incomplete",
+          "pod_lifetime_unproven"
+        ]
+      },
+      {
+        "container": "app",
+        "resource": "memory",
+        "state": "insufficient_data",
+        "reasons": [
+          "container_lifetime_unproven",
+          "coverage_below_threshold",
+          "coverage_gap",
+          "oom_history_incomplete",
+          "ownership_history_incomplete",
+          "pod_lifetime_unproven"
+        ]
+      }
+    ],
+    "reasons": [
+      "ownership_history_incomplete"
+    ],
+    "limitations": [
+      "Five-second metric scraping and thirty-second ownership polling are sampled evidence; unobserved events remain possible.",
+      "Eligibility alone supplies no KRR recommendation and authorizes no cluster write."
+    ]
+  },
+  "cluster_writes": 0,
+  "model_requests": 0,
+  "runner_requests": 0,
+  "module_sha256": {
+    "services/backend/src/cloudops/features/recommendations/sources.py": "ed13f380641c535e4b8b414b3c470166e72fd27962152c028687c4827b82b1e0",
+    "services/backend/src/cloudops/features/recommendations/evidence_schemas.py": "91780d7b3c764b78406f4c17c1f0b4909e5b01724d2d84d41c4429c444642a14",
+    "services/backend/src/cloudops/features/recommendations/coverage.py": "ddddd9f5957d9ce6349889a7a4694c45657e276bc8acc1b390cde3681efd7876",
+    "services/backend/src/cloudops/features/recommendations/schemas.py": "a7f600f1160d2431cca2c7bae1ffe91028c2b9fc1ed239687addbb2937575fcb",
+    "services/backend/src/cloudops/features/recommendations/worker.py": "420a4be150c595ed7869b7f4fdab2fd6cba73aef9593cb7897a4b5d6553bb8d4",
+    "services/backend/src/cloudops/features/recommendations/models.py": "e70f8ba2bedacbfaefbc8794f39c23e57ae974ec6e51239b2a1e98696e7cc341",
+    "services/backend/src/cloudops/features/recommendations/api.py": "577c4d7e586cc38c87e36ac13fb794b21685f70f4323acf6035570484efcffdb",
+    "services/backend/src/cloudops/features/recommendations/qualification.py": "b59a399c10f57ddbf610770cbc82f5edef4f67957e58750511dccf4303e21211",
+    "services/backend/src/cloudops/features/recommendations/service.py": "1072ada0f2937c9f9db2aa23b852aadc8cc028667f3dd6422449db902768c583"
+  },
+  "runtime_image_id": "sha256:b1f0e6865cff800e4c51380c424eefc0e5f4089e8eaeebede627f745a63453c0",
+  "driver_sha256": "aeebd94249224eea032ee842ddaae369480f3879ea413d7636cde1e0a615d551",
+  "controlled_fix_execution": {
+    "proof": "installed candidate policy execution with controlled inputs; no live six-hour or numeric KRR qualification",
+    "findings": {
+      "F1": {
+        "states": {
+          "cpu": "eligible",
+          "memory": "insufficient_data"
+        },
+        "unchanged_restart_count": 0,
+        "memory_covered_bins": 360,
+        "memory_expected_bins": 360,
+        "reasons": [
+          "container_state_unresolved"
+        ]
+      },
+      "F2": {
+        "states": {
+          "cpu": "insufficient_data",
+          "memory": "insufficient_data"
+        },
+        "selected_fields_unchanged": true,
+        "full_template_changed": true,
+        "reasons": [
+          "template_changed"
+        ]
+      },
+      "F3": {
+        "states": {
+          "cpu": "insufficient_data",
+          "memory": "insufficient_data"
+        },
+        "applicable_pod_intervals": 0,
+        "resource_reasons": {
+          "cpu": [
+            "expected_pods_unproven"
+          ],
+          "memory": [
+            "expected_pods_unproven"
+          ]
+        }
+      }
+    },
+    "numeric_published": false,
+    "cluster_requests": 0,
+    "model_requests": 0,
+    "driver_sha256": "bbc4c079cd3616303ae5fcd87ad6a77697cb8bc22380361dc9c58ef611718405"
+  },
+  "post_confirmation_applicability": {
+    "state": "passed",
+    "proof": "separate installed R2 API process and real PostgreSQL/handler/lease/dispatch over controlled retained observations; no live six-hour or numeric KRR qualification",
+    "cases": {
+      "expected": {
+        "report_id": "d1eb6178-e420-401b-b1cd-a60f3d36c5c0",
+        "missing_full_hash": "unknown",
+        "known_other_drift": "stale",
+        "export_unchanged": true,
+        "export_sha256": "0b58c4add9455533400ecaed7df20d9a5cbd1ef787af99ce51857f3ea94b05f2"
+      },
+      "current": {
+        "report_id": "750fe20c-59b0-462a-9ed5-c0745643a4fc",
+        "missing_full_hash": "unknown",
+        "known_other_drift": "stale",
+        "export_unchanged": true,
+        "export_sha256": "bd140ba6a462c4f1db739f468d6978280b37a6b55552a75e770279dff5965ed1"
+      }
+    },
+    "original_retained_exports_unchanged": true,
+    "numeric_advice_published": false,
+    "cluster_requests": 0,
+    "model_requests": 0,
+    "driver_sha256": "464a80b31611ef006142544f7a3d8651b515c161ac2073107763328f3ffd366f"
+  },
+  "post_confirmation_adjustment": "Missing expected/current full-template hashes now produce unknown before otherwise-current; known drift stays stale. This final correction has focused and installed HTTP/PostgreSQL checks, no additional independent review after the two-round limit.",
+  "additional_source_sha256": {
+    "services/backend/src/cloudops/features/workloads/observation_evaluator.py": "428d24621926a3cf85b0830aa1417c260446b152563976ef1dd06749353a028e",
+    "services/backend/src/cloudops/features/workloads/observation_schemas.py": "7b3697498fd030b964586ef41897a2d1ef3435497fdf69249684209c823d33a3",
+    "services/backend/src/cloudops/features/workloads/observation_service.py": "4a759e16b4651e6b32163a186fd2ec132b9dbeed294f710b567faa1a83dffb4b"
+  }
+}

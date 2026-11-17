@@ -389,6 +389,7 @@ def public(value):
                 "replicaset_resource_version",
                 "pod_resource_version",
                 "template_fields",
+                "pod_template_digest",
                 "config_references",
             }
         )
