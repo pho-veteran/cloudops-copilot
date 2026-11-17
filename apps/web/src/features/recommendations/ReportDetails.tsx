@@ -9,11 +9,19 @@ type Value = Advice["current_request"];
 
 export const words = (value: string) => value.replaceAll("_", " ");
 export const time = (value?: string | null) => value ? new Date(value).toISOString().replace("T", " ").replace(".000Z", " UTC").replace(/Z$/, " UTC") : "Not recorded";
+export const outcome = (report: Report) => report.schema_version === 1 ? "Legacy" : report.result_state ? words(report.result_state) : "Pending";
+
+function millicores(value: string) {
+  const [whole, fraction = ""] = value.split(".");
+  const integer = `${whole}${fraction.padEnd(3, "0").slice(0, 3)}`.replace(/^0+(?=\d)/, "");
+  const remainder = fraction.slice(3).replace(/0+$/, "");
+  return `${integer}${remainder ? `.${remainder}` : ""}`;
+}
 
 function Amount({ value }: { value?: Value | null }) {
   if (!value || value.kind === "unavailable") return <>Unavailable{value?.kind === "unavailable" && ` · ${words(value.reason)}`}</>;
   if (value.kind === "unset") return <>Unset</>;
-  if (value.unit === "cores") return <>{value.value} cores</>;
+  if (value.unit === "cores") return <>{millicores(value.value)}m <span className="muted">({value.value} cores)</span></>;
   return <>{(Number(value.value) / 1024 ** 2).toLocaleString(undefined, { maximumFractionDigits: 2 })} MiB <span className="muted">({value.value} bytes)</span></>;
 }
 
@@ -38,7 +46,7 @@ export function ReportDetails({ report, historyHref }: { report: Report; history
       {!identity && <p className="break-all">Workload record ID: {report.workload_id}</p>}
       <div className="foundation-actions">
         <Badge variant="outline">Job: {words(report.job_phase)}</Badge>
-        <Badge variant="outline">Stored outcome: {report.schema_version === 1 ? "Legacy" : report.result_state ? words(report.result_state) : "Pending"}</Badge>
+        <Badge variant="outline">Stored outcome: {outcome(report)}</Badge>
         <Badge variant="outline">Applicability: {report.applicability.state}</Badge>
       </div>
       <p>{report.reason}</p>

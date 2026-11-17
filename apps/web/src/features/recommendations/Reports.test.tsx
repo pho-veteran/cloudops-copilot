@@ -80,7 +80,11 @@ afterEach(() => { cleanup(); cache.clear(); });
 it("renders mixed advice, zero, unset, excluded memory, envelope and stale applicability independently", async () => {
   mount({ report: reportId(99) });
   const cpu = await screen.findByRole("region", { name: "app cpu advice" });
-  expect(within(cpu).getByText("0 cores")).toBeTruthy();
+  expect(within(cpu).getByText("(0 cores)")).toBeTruthy();
+  expect(within(cpu).getByText("0m")).toBeTruthy();
+  expect(within(cpu).getByText("200m")).toBeTruthy();
+  expect(within(cpu).getByText("10m")).toBeTruthy();
+  expect(cpu.textContent).toContain("minimum: 10m");
   expect(within(cpu).getAllByText("Unset")).toHaveLength(2);
   expect(within(cpu).getByText(/360\/360 distinct/)).toBeTruthy();
   const memory = screen.getByRole("region", { name: "app memory advice" });
@@ -186,7 +190,18 @@ it("keeps empty and legacy histories readable without inventing versioned advice
   expect(await screen.findByText("Legacy report")).toBeTruthy();
   expect(screen.getByText(/not qualified versioned resource advice/)).toBeTruthy();
   expect(screen.getByText("Stored outcome: Legacy")).toBeTruthy();
+  const history = screen.getByRole("list", { name: "Reports on this history page" });
+  expect(within(history).getByRole("link").textContent).toContain("finished / Legacy");
+  expect(history.textContent).not.toMatch(/pending/i);
   expect((screen.getByRole("button", { name: /Export selected report/ }) as HTMLButtonElement).disabled).toBe(false);
+});
+
+it("displays fractional millicores without rounding a positive observation to zero", async () => {
+  records[0].result_v2!.resources![0].observed = { kind: "quantity", value: "0.00000000000000000000000000000000000001", unit: "cores" };
+  mount({ report: reportId(99) });
+  const cpu = await screen.findByRole("region", { name: "app cpu advice" });
+  expect(within(cpu).getByText("0.00000000000000000000000000000000001m")).toBeTruthy();
+  expect(within(cpu).queryByText("0m")).toBeNull();
 });
 
 

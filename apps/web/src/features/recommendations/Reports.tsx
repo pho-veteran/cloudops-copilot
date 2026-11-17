@@ -7,7 +7,7 @@ import { Failure, Loading } from "@/app/Feedback";
 import { buildReportHash, type ReportRoute } from "@/app/routes";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ReportDetails, time, words } from "./ReportDetails";
+import { ReportDetails, outcome, time, words } from "./ReportDetails";
 
 export function Reports({ canMutate, route = {} }: { canMutate: boolean; route?: ReportRoute }) {
   const cache = useQueryClient();
@@ -119,7 +119,7 @@ export function Reports({ canMutate, route = {} }: { canMutate: boolean; route?:
         <ul ref={historyList} className="foundation-stack report-history-list" aria-label="Reports on this history page">
           {reports.data.items.map(report => <li key={report.id}>
             <a href={buildReportHash({ ...route, report: report.id })} aria-label={`Open report ${report.id}: ${time(report.created_at)}`} aria-current={route.report === report.id ? "true" : undefined}>
-              {time(report.created_at)} · {report.input_identity ? `${report.input_identity.namespace}/${report.input_identity.name} · UID ${report.input_identity.uid}` : `workload ${report.workload_id}`} · {words(report.job_phase)} / {report.result_state ? words(report.result_state) : "pending"} · report {report.id.slice(0, 8)}
+              {time(report.created_at)} · {report.input_identity ? `${report.input_identity.namespace}/${report.input_identity.name} · UID ${report.input_identity.uid}` : `workload ${report.workload_id}`} · {words(report.job_phase)} / {outcome(report)} · report {report.id.slice(0, 8)}
             </a>
           </li>)}
         </ul>

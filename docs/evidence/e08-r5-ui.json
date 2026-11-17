@@ -2,9 +2,9 @@
   "issue": 97,
   "scope": "R5 selected resource report UI; controlled persisted PostgreSQL/API fixtures, not real six-hour recommendation qualification",
   "status": "Implementation and focused browser checks complete; new-UI native download completion remains pending",
-  "source_base": "7e3c4d493f5543fcd616b65b4473dc1963f89e94",
+  "source_base": "29f02f9630f21dc54900f528e3ef1b18dc6d738d",
   "checks": {
-    "focused_web_tests": 75,
+    "focused_web_tests": 76,
     "production_build": "passed",
     "browser": "User running Microsoft Edge, separate owned localhost:5177 lab tab",
     "history": "76 distinct reports over pages 25/25/25/1, padded real API cursors, selected exact report retained over pagination/reload/Back",
@@ -12,7 +12,7 @@
     "operator": "Workloads entry; explicit 7-hour generation returns queued/paused, refresh preserves exact report, export disabled; recommendation-only dispatch restored and worker resumed, terminal insufficient data with no tool call",
     "session": "Actual expired Operator fixture session returns 401, sign-in restores same selection; report count stays 77 and no POST replay",
     "degraded": "Actual API invalid cursor 422 recovers to first page with legacy selection retained; empty inactive history disables generation; missing exact ID returns 404 with no latest fallback",
-    "display": "Controlled CPU zero/unset/10m minimum, excluded OOM memory, exact bytes, stored available/current stale, query envelope and Pod UID/lifetime/restart details",
+    "display": "Controlled CPU 0m / 200m / 10m minimum with exact original cores, excluded OOM memory, exact bytes, stored available/current stale, query envelope and Pod UID/lifetime/restart details",
     "keyboard": "Native disclosures opened using Enter, Tab advances to job-attempt disclosure; selected report receives focus without polling stealing focus",
     "viewport": [
       {
@@ -27,7 +27,8 @@
       }
     ],
     "restoration": "Theme restored to light and temporary viewport override reset",
-    "full_web_tests": 278
+    "full_web_tests": 279,
+    "review_fix_regressions": "Legacy terminal history/detail labels agree; exact decimal millicore conversion preserves positive values down to the contract decimal bound without floating-point rounding."
   },
   "native_download": {
     "original_completed_export": {
@@ -55,7 +56,7 @@
   "screenshots": [
     {
       "path": "../images/e08-r5-cpu-320-light.jpg",
-      "sha256": "82c43e89feca4c168d17e3d4c6bf7bba05393aa9cc05b54156eeda4e40ce6cfa",
+      "sha256": "d2570fd069d2ced46220ac405971d50aed2b95308058f99e98db8091f7d73d9f",
       "fixture": true
     },
     {

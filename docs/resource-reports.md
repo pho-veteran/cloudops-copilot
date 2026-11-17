@@ -66,7 +66,8 @@ Read **Job**, **Stored outcome** and **Applicability** separately. An available
 stored result can now be stale, and a paused service does not erase saved reports.
 Each container has separate CPU and memory quantities, exclusions and coverage.
 Zero is a measured quantity; **Unset** is deliberate; **Unavailable** supplies no
-number. Memory shows MiB together with exact stored bytes. Expand per-Pod evidence
+number. CPU displays millicores together with exact stored cores, including
+positive sub-millicore observations. Memory shows MiB together with exact stored bytes. Expand per-Pod evidence
 for UID/lifetime, scrape gaps and restart coverage. Legacy results remain visibly
 unqualified preserved output.
 
