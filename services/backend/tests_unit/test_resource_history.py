@@ -141,7 +141,9 @@ def test_phase_boundary_takes_one_checkpoint_without_consuming_the_handoff_budge
     assert calls == [15] and clock[0] == 15
 
 
-@pytest.mark.parametrize("mode", ["short", "missing_native", "cleanup_failure"])
+@pytest.mark.parametrize(
+    "mode", ["short", "missing_native", "cleanup_failure", "source_policy_drift"]
+)
 def test_handoff_never_qualifies_short_missing_native_or_failed_cleanup(
     modules, tmp_path, monkeypatch, mode
 ):
@@ -176,18 +178,25 @@ def test_handoff_never_qualifies_short_missing_native_or_failed_cleanup(
         lambda **kw: setattr(
             recipe,
             "initial",
-            {"identity": identity, "profile": profile, "metrics_attestation": "controlled"},
+            {
+                "identity": identity,
+                "profile": profile,
+                "metrics_attestation": "controlled",
+                "config_digest": "policy",
+            },
         ),
     )
     monkeypatch.setattr(recipe, "start_load", lambda seconds, rate: None)
     monkeypatch.setattr(recipe, "stop_load", lambda: None)
-    if mode == "cleanup_failure":
+    if mode in {"cleanup_failure", "source_policy_drift"}:
         report["result_v2"].update(
             {
                 "source": "live_krr",
                 "tool_exit_code": 0,
                 "tool_invocation": {"metrics_source_sha256": "controlled"},
-                "source_evidence": {"fixture": True},
+                "source_evidence": {
+                    "config_digest": "different" if mode == "source_policy_drift" else "policy"
+                },
             }
         )
         monkeypatch.setattr(
@@ -196,10 +205,12 @@ def test_handoff_never_qualifies_short_missing_native_or_failed_cleanup(
             lambda window: [{"phase": name, "seconds": 1} for name in ("idle", "steady", "peak")],
         )
 
-        def failed_cleanup():
-            raise RuntimeError("Controlled cleanup failure")
+        if mode == "cleanup_failure":
 
-        monkeypatch.setattr(recipe, "stop_load", failed_cleanup)
+            def failed_cleanup():
+                raise RuntimeError("Controlled cleanup failure")
+
+            monkeypatch.setattr(recipe, "stop_load", failed_cleanup)
 
     def phase(name, seconds, rate):
         clock[0] += seconds
@@ -213,12 +224,14 @@ def test_handoff_never_qualifies_short_missing_native_or_failed_cleanup(
                 RuntimeError,
                 match="actual pinned KRR"
                 if mode == "missing_native"
+                else "configuration/policy differs"
+                if mode == "source_policy_drift"
                 else "Controlled cleanup failure",
             ):
                 recipe.run(client, {})
     assert requests.count(("POST", "/api/recommendation-reports")) == 1
     assert not recipe.record["qualified"]
-    if mode != "missing_native":
+    if mode not in {"missing_native", "source_policy_drift"}:
         assert (tmp_path / "report.json").read_bytes() == b"stored bytes"
     if mode == "cleanup_failure":
         assert recipe.record["cleanup_failed"]
@@ -314,14 +327,16 @@ def test_cleanup_finds_owned_load_when_launch_acknowledgement_was_lost(modules, 
     assert removed == ["late-id"]
 
 
-def test_different_producer_or_uid_snapshot_cannot_be_stitched_into_success(
-    modules, tmp_path, monkeypatch
+@pytest.mark.parametrize("field", ["profile", "config_digest"])
+def test_different_producer_or_policy_snapshot_cannot_be_stitched_into_success(
+    modules, tmp_path, monkeypatch, field
 ):
     driver = modules[0]
     source = {
         "identity": {"uid": "original", "namespace": "demo", "name": "checkout"},
         "profile": {"image": "pinned"},
         "metrics_attestation": "source",
+        "config_digest": "policy",
         "pods": [{"uid": "pod"}],
         "measurements": {
             "cpu": [{"samples": [[driver.time.time(), "1"]]}],
@@ -350,7 +365,154 @@ def test_different_producer_or_uid_snapshot_cannot_be_stitched_into_success(
     )
     recipe.checkpoint()
     changed = copy.deepcopy(source)
-    changed["profile"]["image"] = "different"
+    if field == "profile":
+        changed["profile"]["image"] = "different"
+    else:
+        changed["config_digest"] = "different-policy"
     source.update(changed)
     with pytest.raises(RuntimeError, match="start a new cohort"):
         recipe.checkpoint()
+
+
+@pytest.fixture
+def ksm_inputs(modules):
+    source = modules[1]
+    now = 1000
+    identity = SimpleNamespace(name="checkout", namespace="demo", uid="deployment")
+    pod = SimpleNamespace(
+        uid="pod",
+        name="checkout-pod",
+        replicaset_uid="rs-uid",
+        containers=[SimpleNamespace(name="app")],
+    )
+
+    def row(labels, value):
+        return SimpleNamespace(labels=labels, samples=[(995, value)])
+
+    labels = {"uid": "pod", "pod": "checkout-pod"}
+    series = {
+        "kube_pod_info": [
+            row({**labels, "created_by_kind": "ReplicaSet", "created_by_name": "checkout-rs"}, 1)
+        ],
+        "kube_pod_owner": [
+            row(
+                {
+                    **labels,
+                    "owner_kind": "ReplicaSet",
+                    "owner_name": "checkout-rs",
+                    "owner_is_controller": "true",
+                },
+                1,
+            )
+        ],
+        "kube_pod_created": [row(labels, 900)],
+        "kube_pod_container_state_started": [row({**labels, "container": "app"}, 910)],
+        "kube_pod_container_status_restarts_total": [row({**labels, "container": "app"}, 0)],
+        "kube_replicaset_owner": [
+            row(
+                {
+                    "replicaset": "checkout-rs",
+                    "owner_kind": "Deployment",
+                    "owner_name": "checkout",
+                    "owner_is_controller": "true",
+                },
+                1,
+            )
+        ],
+    }
+    return source, series, identity, [pod], now
+
+
+def test_fresh_uid_ksm_metadata_allows_absent_termination_metrics_for_zero_restarts(ksm_inputs):
+    source, series, identity, pods, now = ksm_inputs
+    source.validate_ksm(series, identity, pods, now)
+
+
+@pytest.mark.parametrize(
+    "metric",
+    [
+        "kube_pod_info",
+        "kube_pod_owner",
+        "kube_pod_created",
+        "kube_pod_container_state_started",
+        "kube_pod_container_status_restarts_total",
+        "kube_replicaset_owner",
+    ],
+)
+def test_required_ksm_family_absence_prevents_ready(ksm_inputs, metric):
+    source, series, identity, pods, now = ksm_inputs
+    series[metric] = []
+    with pytest.raises(source.ReadinessFailure):
+        source.validate_ksm(series, identity, pods, now)
+
+
+@pytest.mark.parametrize(
+    "metric",
+    [
+        "kube_pod_info",
+        "kube_pod_owner",
+        "kube_pod_created",
+        "kube_pod_container_state_started",
+        "kube_pod_container_status_restarts_total",
+    ],
+)
+def test_foreign_uid_ksm_cannot_satisfy_current_pod(ksm_inputs, metric):
+    source, series, identity, pods, now = ksm_inputs
+    series[metric][0].labels["uid"] = "foreign"
+    with pytest.raises(source.ReadinessFailure):
+        source.validate_ksm(series, identity, pods, now)
+
+
+@pytest.mark.parametrize("problem", ["stale", "ambiguous", "restarted", "wrong_owner"])
+def test_ksm_freshness_uniqueness_and_ownership_are_required(ksm_inputs, problem):
+    source, series, identity, pods, now = ksm_inputs
+    if problem == "stale":
+        series["kube_pod_created"][0].samples = [(800, 900)]
+    elif problem == "ambiguous":
+        series["kube_pod_info"] *= 2
+    elif problem == "restarted":
+        series["kube_pod_container_status_restarts_total"][0].samples = [(995, 1)]
+    else:
+        series["kube_replicaset_owner"][0].labels["owner_name"] = "foreign"
+    with pytest.raises(source.ReadinessFailure):
+        source.validate_ksm(series, identity, pods, now)
+
+
+def test_same_template_replacement_at_final_source_read_fails_readiness(modules):
+    source = modules[1]
+    template = {"spec": {"containers": [{"name": "app"}]}}
+    identity = SimpleNamespace(
+        uid="original",
+        name="checkout",
+        namespace="demo",
+        pod_template_digest=source.digest(template),
+    )
+    before = {
+        "metadata": {"uid": "original", "name": "checkout", "namespace": "demo"},
+        "spec": {"template": template},
+    }
+    data = SimpleNamespace(before=before, after=copy.deepcopy(before))
+    source.validate_target(data, identity)
+    data.after["metadata"]["uid"] = "replacement"
+    with pytest.raises(source.ReadinessFailure, match="identity changed"):
+        source.validate_target(data, identity)
+
+
+def test_ownership_policy_changes_configuration_digest_without_changing_metrics_view(
+    modules, tmp_path, monkeypatch
+):
+    source = modules[1]
+    path = tmp_path / "policy.json"
+    policy = {
+        "schema_version": 1,
+        "cluster_fingerprint": "a" * 64,
+        "operator_managed_uids": ["deployment"],
+        "resource_managers": ["kubectl"],
+    }
+    path.write_text(json.dumps(policy))
+    monkeypatch.setenv("RECOMMENDATION_SOURCE_POLICY", str(path))
+    config = SimpleNamespace(model_dump=lambda **kw: {"endpoint": "same-metrics"})
+    before = source.configuration_digest(config)
+    policy["resource_managers"] = ["changed"]
+    path.write_text(json.dumps(policy))
+    assert source.configuration_digest(config) != before

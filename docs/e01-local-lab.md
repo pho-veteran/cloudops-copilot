@@ -133,6 +133,11 @@ changes workload resources. Setup must first provide healthy zero-restart Pods
 under the original Deployment UID/template, current reader/monitoring credentials,
 the pinned KRR producer, effective observation retention and bounded runtime
 containers. Fixture preparation is separate from the read-only recipe.
+Readiness requires fresh unambiguous KSM metadata for each current Pod UID and
+container, including ownership, creation, start and restart inputs. Missing
+termination metrics are valid for zero-restart Pods. Source policy/configuration
+digests remain bound across checkpoints and the final stored report; both live
+Deployment reads must match the admitted UID/name/namespace.
 
 Create a private mode-0600 JSON file with these fields:
 

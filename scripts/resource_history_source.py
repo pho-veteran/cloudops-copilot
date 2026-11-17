@@ -8,6 +8,7 @@ import os
 import signal
 import sys
 import time
+from pathlib import Path
 from uuid import UUID
 
 if __name__ == "__main__":
@@ -29,7 +30,12 @@ from cloudops.features.recommendations.krr_protocol import metrics_attestation, 
 from cloudops.features.recommendations.producer import runner_key
 from cloudops.features.recommendations.schemas import ReportWindow
 from cloudops.features.recommendations.service import capture_identity, digest, prepare_report
-from cloudops.features.recommendations.sources import SourceFailure, SourceReader, parse_matrix
+from cloudops.features.recommendations.sources import (
+    OwnershipPolicy,
+    SourceFailure,
+    SourceReader,
+    parse_matrix,
+)
 from cloudops.features.workloads.models import Workload
 from cloudops.features.workloads.observation_service import detail
 from cloudops.features.workloads.observation_settings import POLICY
@@ -38,6 +44,94 @@ from cloudops.shared.database import sessions
 
 class ReadinessFailure(ValueError):
     pass
+
+
+KSM_REQUIRED = (
+    "kube_pod_info",
+    "kube_pod_owner",
+    "kube_pod_created",
+    "kube_pod_container_state_started",
+    "kube_pod_container_status_restarts_total",
+    "kube_replicaset_owner",
+)
+
+
+def configuration_digest(config):
+    policy = OwnershipPolicy.model_validate_json(
+        Path(os.environ["RECOMMENDATION_SOURCE_POLICY"]).read_text()
+    )
+    return digest(
+        {
+            "prometheus": config.model_dump(exclude={"token", "queries"}),
+            "ownership": policy.model_dump(),
+        }
+    )
+
+
+def validate_target(source, identity):
+    if any(
+        any(
+            target.get("metadata", {}).get(key) != getattr(identity, key)
+            for key in ("uid", "name", "namespace")
+        )
+        for target in (source.before, source.after)
+    ):
+        raise ReadinessFailure("Live Deployment identity changed during readiness")
+    if (
+        source.before["spec"]["template"] != source.after["spec"]["template"]
+        or digest(source.before["spec"]["template"]) != identity.pod_template_digest
+    ):
+        raise ReadinessFailure("Live Deployment template differs from the admitted identity")
+
+
+def validate_ksm(series, identity, pods, now):
+    def one(metric, pod=None, container=None, replicaset=None):
+        rows = [
+            row
+            for row in series.get(metric, [])
+            if (
+                row.labels.get("pod_uid", row.labels.get("uid")) == pod.uid
+                if pod
+                else row.labels.get("replicaset") == replicaset
+            )
+            and (container is None or row.labels.get("container") == container)
+        ]
+        if len(rows) != 1 or (pod and rows[0].labels.get("pod") != pod.name):
+            raise ReadinessFailure(f"Unambiguous current-UID {metric} input required")
+        row = rows[0]
+        if not row.samples or not 0 <= now - row.samples[-1][0] <= 120:
+            raise ReadinessFailure(f"Fresh current-UID {metric} input required")
+        return row
+
+    for pod in pods:
+        info, owner = one("kube_pod_info", pod), one("kube_pod_owner", pod)
+        rs = info.labels.get("created_by_name")
+        if (
+            info.samples[-1][1] != 1
+            or info.labels.get("created_by_kind") != "ReplicaSet"
+            or not rs
+            or owner.labels.get("owner_kind") != "ReplicaSet"
+            or owner.labels.get("owner_is_controller") != "true"
+            or owner.labels.get("owner_name") != rs
+            or owner.samples[-1][1] != 1
+        ):
+            raise ReadinessFailure("Current Pod ownership/lifecycle metadata is incomplete")
+        rs_owner = one("kube_replicaset_owner", replicaset=rs)
+        if (
+            rs_owner.labels.get("owner_kind") != "Deployment"
+            or rs_owner.labels.get("owner_name") != identity.name
+            or rs_owner.labels.get("owner_is_controller") != "true"
+            or rs_owner.samples[-1][1] != 1
+        ):
+            raise ReadinessFailure("Current ReplicaSet ownership metadata differs")
+        created = one("kube_pod_created", pod).samples[-1][1]
+        if not 0 < created <= now:
+            raise ReadinessFailure("Current Pod creation evidence is invalid")
+        for container in pod.containers:
+            started = one("kube_pod_container_state_started", pod, container.name).samples[-1][1]
+            restarts = one("kube_pod_container_status_restarts_total", pod, container.name)
+            if not created <= started <= now or any(value != 0 for _, value in restarts.samples):
+                raise ReadinessFailure("Current container start/restart evidence is incomplete")
 
 
 def traffic_rows(payload, uids, now):
@@ -129,6 +223,7 @@ async def checkpoint(workload_id, *, full=False):
         raise ReadinessFailure("Stable healthy Pods without restarts required before qualification")
     now = datetime.now(timezone.utc)
     config = load_config(os.environ["PROMETHEUS_READ_CONFIG"])
+    source_digest = configuration_digest(config)
     attestation = metrics_attestation(
         metrics_binding(config.model_dump(by_alias=True)), runner_key()
     )
@@ -137,6 +232,7 @@ async def checkpoint(workload_id, *, full=False):
         "identity": identity.model_dump(mode="json", exclude={"observation_id", "observed_at"}),
         "profile": profile,
         "metrics_attestation": attestation,
+        "config_digest": source_digest,
         "observation_at": observation.current.observed_at.isoformat(),
         "pods": sorted((p.model_dump(mode="json") for p in pods), key=lambda p: p["uid"]),
         "retention": {"count": POLICY.history_count, "days": POLICY.history_days},
@@ -151,11 +247,10 @@ async def checkpoint(workload_id, *, full=False):
             raw_input_end=now,
         )
         source = await SourceReader().read(identity, window)
+        validate_target(source, identity)
         if (
-            source.before["metadata"]["uid"] != identity.uid
-            or source.before["spec"]["template"] != source.after["spec"]["template"]
-            or digest(source.before["spec"]["template"]) != identity.pod_template_digest
-            or any(source.controllers.values())
+            any(source.controllers.values())
+            or source.config_digest != source_digest
             or metrics_attestation(source.metrics_source_sha256, runner_key()) != attestation
         ):
             raise ReadinessFailure("Current source/controller/producer binding is not ready")
@@ -171,6 +266,7 @@ async def checkpoint(workload_id, *, full=False):
     queries = {
         "cpu": 'container_cpu_usage_seconds_total{namespace="' + namespace + '"}[180s]',
         "memory": 'container_memory_working_set_bytes{namespace="' + namespace + '"}[180s]',
+        **{name: name + '{namespace="' + namespace + '"}[180s]' for name in KSM_REQUIRED},
         **{
             name: name + '{namespace="' + namespace + '",deployment_uid="' + uid + '"}[180s]'
             for name in (
@@ -209,6 +305,10 @@ async def checkpoint(workload_id, *, full=False):
                     if len(raw) > 512_000:
                         raise ReadinessFailure("Measured source response exceeded its bound")
             payload = json.loads(raw)
+            if name in KSM_REQUIRED:
+                return name, parse_matrix(
+                    payload, identity.namespace, now.timestamp() - 180, now.timestamp(), [0]
+                )
             if name in {"cpu", "memory"}:
                 rows = parse_matrix(
                     payload, identity.namespace, now.timestamp() - 180, now.timestamp(), [0]
@@ -238,17 +338,22 @@ async def checkpoint(workload_id, *, full=False):
                 samples = traffic_rows(payload, {p.uid for p in pods}, now.timestamp())
             return name, samples
 
-        output["measurements"] = dict(
-            await asyncio.gather(*(read(n, q) for n, q in queries.items()))
-        )
+        measured = dict(await asyncio.gather(*(read(n, q) for n, q in queries.items())))
+        metadata = {name: measured.pop(name) for name in KSM_REQUIRED}
+        validate_ksm(metadata, identity, pods, now.timestamp())
+        output["required_metadata"] = {
+            name: {"series": len(rows), "samples": sum(len(row.samples) for row in rows)}
+            for name, rows in metadata.items()
+        }
+        output["measurements"] = measured
+    current_config = load_config(os.environ["PROMETHEUS_READ_CONFIG"])
     if (
         metrics_attestation(
-            metrics_binding(
-                load_config(os.environ["PROMETHEUS_READ_CONFIG"]).model_dump(by_alias=True)
-            ),
+            metrics_binding(current_config.model_dump(by_alias=True)),
             runner_key(),
         )
         != attestation
+        or configuration_digest(current_config) != source_digest
     ):
         raise ReadinessFailure("Metrics configuration changed during checkpoint")
     return output

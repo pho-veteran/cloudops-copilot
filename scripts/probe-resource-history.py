@@ -383,6 +383,7 @@ class Recipe:
             "identity": source["identity"],
             "profile": source["profile"],
             "metrics_attestation": source["metrics_attestation"],
+            "config_digest": source["config_digest"],
             "pods": sorted(p["uid"] for p in source["pods"]),
             "containers": footprint["containers"],
         }
@@ -553,6 +554,11 @@ class Recipe:
                     result["tool_invocation"]["metrics_source_sha256"]
                     == self.initial["metrics_attestation"],
                     "Stored report source differs",
+                )
+            if result.get("source_evidence"):
+                require(
+                    result["source_evidence"].get("config_digest") == self.initial["config_digest"],
+                    "Stored report configuration/policy differs from the cohort",
                 )
             private_write(self.output / "report.json", exported.text)
             self.checkpoint()
