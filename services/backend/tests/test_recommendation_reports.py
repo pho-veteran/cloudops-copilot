@@ -592,6 +592,41 @@ def test_windowless_report_still_discloses_known_identity_drift(permission_conte
     assert viewer.get(f"{PATH}/{identifier}/export").content == frozen
 
 
+@pytest.mark.parametrize("missing", ["expected", "current"])
+def test_missing_full_template_hash_is_unknown_and_preserves_export(permission_context, missing):
+    c = permission_context
+    with sessions()() as db, db.begin():
+        workload = db.get(Workload, UUID(c.consumer.workload_id))
+        row, _ = retain_current_observation(db, workload, database_now(db) - timedelta(seconds=10))
+        if missing == "expected":
+            row.payload = {
+                key: value for key, value in row.payload.items() if key != "pod_template_digest"
+            }
+    identifier = UUID(create(c).json()["id"])
+    claim = claim_next({service.REPORT_JOB: ReportHandler()}, GATE)
+    with sessions()() as db:
+        value = controlled_result(db.get(RecommendationReport, identifier), database_now(db))
+    assert finish(claim, ReportHandler(), result=value, gate=GATE)
+    viewer = c.actors["viewer"].client
+    frozen = viewer.get(f"{PATH}/{identifier}/export").content
+    with sessions()() as db, db.begin():
+        row, _ = retain_current_observation(
+            db, db.get(Workload, UUID(c.consumer.workload_id)), database_now(db)
+        )
+        if missing == "current":
+            row.payload = {
+                key: value for key, value in row.payload.items() if key != "pod_template_digest"
+            }
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "unknown"
+    assert viewer.get(f"{PATH}/{identifier}/export").content == frozen
+    with sessions()() as db, db.begin():
+        retain_current_observation(
+            db, db.get(Workload, UUID(c.consumer.workload_id)), database_now(db), "resources"
+        )
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "stale"
+    assert viewer.get(f"{PATH}/{identifier}/export").content == frozen
+
+
 def suppressed_result(row, cpu_state, aggregate):
     identity = service.ReportIdentity.model_validate(row.input_identity).model_copy(
         update={"containers": ["app"]}

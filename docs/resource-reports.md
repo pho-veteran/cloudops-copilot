@@ -138,6 +138,9 @@ R2 requires a matching full digest throughout the actual window and before/after
 collection. Older observations with no full digest remain unproven; no historical
 digest is backfilled from today's template. A qualifying cohort therefore needs
 the updated observer running before its warmup begins.
+Stop/update older API, worker and observer processes before publishing the new
+metadata: older strict DTO readers do not accept the additional JSON field. New
+readers accept old rows as unproven; stored report export bytes remain untouched.
 
 The collector has a 45-second total deadline, per-phase 5/8-second timeouts, no
 redirects/proxy inheritance, trusted HTTPS CAs, at most 23 GETs, 8 MiB per response,

@@ -192,7 +192,12 @@ def applicability(db, row, now):
     known = known and observation.coverage == "complete" and observation.freshness == "fresh"
     if not known or any(
         getattr(expected, k) is None or getattr(current, k) is None
-        for k in ("cluster_fingerprint", "template_digest", "resources_digest")
+        for k in (
+            "cluster_fingerprint",
+            "template_digest",
+            "pod_template_digest",
+            "resources_digest",
+        )
     ):
         return Applicability(
             state="unknown", assessed_at=now, reasons=["current_observation_unavailable"]
