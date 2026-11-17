@@ -98,6 +98,7 @@ def capture_identity(db, workload):
             fields = [x.model_dump(mode="json") for x in observation.template_fields]
             identity.observation_id, identity.observed_at = row.id, observation.observed_at
             identity.template_digest = digest(fields)
+            identity.pod_template_digest = observation.pod_template_digest
             identity.resources_digest = digest(
                 [{k: f[k] for k in ("name", "requests", "limits")} for f in fields]
             )
@@ -169,6 +170,7 @@ def applicability(db, row, now):
         "uid",
         "cluster_fingerprint",
         "template_digest",
+        "pod_template_digest",
         "resources_digest",
     ):
         old, new = getattr(expected, key), getattr(current, key)

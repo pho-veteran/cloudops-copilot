@@ -120,6 +120,10 @@ def qualify(identity, window, history: History, source: SourceData) -> Qualified
             or sorted(f["name"] for f in fields) != sorted(identity.containers)
         ):
             global_reasons.append("template_changed")
+        if identity.pod_template_digest is None:
+            global_reasons.append("template_history_unproven")
+        elif digest(before["spec"]["template"]) != identity.pod_template_digest:
+            global_reasons.append("template_changed")
         spec = before["spec"]["template"]["spec"]
         if any(
             spec.get(k) for k in ("initContainers", "ephemeralContainers", "resources", "overhead")
@@ -165,6 +169,10 @@ def qualify(identity, window, history: History, source: SourceData) -> Qualified
         ):
             global_reasons.append("template_changed")
         valid.append(observation)
+        if observation.pod_template_digest is None:
+            global_reasons.append("template_history_unproven")
+        elif observation.pod_template_digest != identity.pod_template_digest:
+            global_reasons.append("template_changed")
     history_coverage = assess(start, end, [o.observed_at.timestamp() for o in valid])
     if history_coverage.reasons:
         global_reasons.append("ownership_history_incomplete")
@@ -286,6 +294,24 @@ def qualify(identity, window, history: History, source: SourceData) -> Qualified
                 for c in p.containers
                 if c.name == container and c.kind == "regular"
             ]
+            unresolved = [
+                c
+                for o, p in seen
+                if active_start <= o.observed_at.timestamp() <= pod_end
+                for c in p.containers
+                if c.name == container
+                and c.kind == "regular"
+                and (c.state != "running" or c.reason is not None)
+                and not (
+                    lifetime == "completed"
+                    and p.phase == "Succeeded"
+                    and c.state == "terminated"
+                    and c.exit_code == 0
+                    and c.reason is None
+                )
+            ]
+            if unresolved:
+                memory_reasons.append("container_state_unresolved")
             if len(states) != len(seen):
                 local.append("container_identity_unproven")
             for metric in ("kube_pod_info", "kube_pod_owner", "kube_pod_created"):
@@ -397,6 +423,8 @@ def qualify(identity, window, history: History, source: SourceData) -> Qualified
                     ]
                 ),
             ]
+            if not selected:
+                evidence_reasons.append("expected_pods_unproven")
             if resource == "memory" and "recent_oom" in evidence_reasons:
                 policy_reasons.append("recent_oom")
             reasons = sorted(set([*policy_reasons, *evidence_reasons]))

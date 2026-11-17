@@ -34,6 +34,7 @@ def six_hour_case():
         containers=["app"],
         observed_at=start,
         template_digest=digest(fields),
+        pod_template_digest=first.pod_template_digest,
         resources_digest=digest(
             [{k: f[k] for k in ("name", "requests", "limits")} for f in fields]
         ),

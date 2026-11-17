@@ -130,6 +130,14 @@ repetition cannot manufacture covered bins. The native UID shapes are documented
 in [KSM v2.20.0](https://github.com/kubernetes/kube-state-metrics/blob/v2.20.0/docs/metrics/workload/pod-metrics.md).
 KSM ReplicaSet names alone do not establish Deployment UID: the retained E02 chain
 must independently bind each Pod UID and ReplicaSet UID to the exact target.
+New E02 observations retain only a SHA-256 of the full canonical Deployment Pod
+template, covering environment, command, probes and other template changes without
+storing their values. Reports capture it as `pod_template_digest`; the existing
+`template_digest` keeps its selected name/image/CPU/memory meaning for compatibility.
+R2 requires a matching full digest throughout the actual window and before/after
+collection. Older observations with no full digest remain unproven; no historical
+digest is backfilled from today's template. A qualifying cohort therefore needs
+the updated observer running before its warmup begins.
 
 The collector has a 45-second total deadline, per-phase 5/8-second timeouts, no
 redirects/proxy inheritance, trusted HTTPS CAs, at most 23 GETs, 8 MiB per response,
@@ -153,6 +161,10 @@ container lifetime suppress it. Proven in-window OOM suppresses all numeric memo
 advice. An OOM reason without trustworthy timing remains insufficient rather than
 being labeled a proven recent event. Sampled evidence cannot prove every event was
 observed.
+Unresolved in-window container state/reason also suppresses memory, including the
+first termination before its restart counter increases. A proven clean completed
+lifetime remains distinct. After pre-window completed Pods are filtered out, each
+resource still needs at least one applicable Pod/container evidence interval.
 
 E02 retention now keeps at most 1,024 observations and 1,024 attempts per workload,
 still bounded by seven days. At nominal 30-second cadence this covers more than

@@ -14,6 +14,7 @@ from recommendation_fixtures import six_hour_case
 
 from cloudops.features.recommendations.coverage import assess, cpu_points
 from cloudops.features.recommendations.qualification import qualify
+from cloudops.features.recommendations.service import digest
 from cloudops.features.recommendations.sources import (
     Series,
     SourceFailure,
@@ -221,6 +222,110 @@ def test_missing_attempt_history_suppresses_memory(case):
     identity, window, history, source = case
     result = qualify(identity, window, replace(history, attempts=[]), source)
     assert states(result) == {"cpu": "eligible", "memory": "insufficient_data"}
+
+
+@pytest.mark.parametrize("state", ["terminated", "waiting", "unknown"])
+def test_unresolved_current_container_suppresses_memory_before_restart(case, state):
+    identity, window, history, source = case
+    current = history.observations[-1].pods[0].containers[0]
+    current.state = state
+    current.exit_code = 137 if state == "terminated" else None
+    current.reason = "container_terminated" if state == "terminated" else None
+    assert current.restart_count == 0
+    assert "kube_pod_container_status_last_terminated_reason" not in source.series
+    result = qualify(identity, window, history, source)
+    assert states(result) == {"cpu": "eligible", "memory": "insufficient_data"}
+    assert "container_state_unresolved" in result.pods[0].memory_reasons
+
+
+def test_only_pre_window_completed_pods_cannot_supply_eligible_resources(case):
+    identity, window, history, source = case
+    row = source.series["kube_pod_created"][0]
+    source.series["kube_pod_completion_time"] = [
+        replace(row, samples=[(t, window.start.timestamp() - 1) for t, _ in row.samples])
+    ]
+    for observation in history.observations:
+        pod = observation.pods[0]
+        pod.phase = "Succeeded"
+        pod.excluded = True
+        pod.containers[0].state = "terminated"
+        pod.containers[0].exit_code = 0
+    result = qualify(identity, window, history, source)
+    assert result.pods == [] and all(
+        r.state == "insufficient_data" and "expected_pods_unproven" in r.reasons
+        for r in result.resources
+    )
+
+
+def test_legacy_observations_without_full_template_proof_are_unqualified(case):
+    for observation in case[2].observations:
+        observation.pod_template_digest = None
+    result = qualify(*case)
+    assert "template_history_unproven" in result.reasons
+    assert all(r.state == "insufficient_data" for r in result.resources)
+
+
+@pytest.mark.parametrize("field", ["env", "command"])
+def test_full_template_history_rejects_otherwise_sufficient_rollout(case, field):
+    identity, window, history, source = case
+    middle = window.start.timestamp() + 10800
+    old_digest = identity.pod_template_digest
+    new = copy.deepcopy(source.before)
+    new["spec"]["template"]["spec"]["containers"][0][field] = (
+        [{"name": "MODE", "value": "new"}] if field == "env" else ["new-command"]
+    )
+    new_digest = digest(new["spec"]["template"])
+    identity = identity.model_copy(update={"pod_template_digest": new_digest})
+    source = replace(
+        source, before=new, after=copy.deepcopy(new), series=copy.deepcopy(source.series)
+    )
+    for observation in history.observations:
+        if observation.observed_at.timestamp() >= middle:
+            observation.pod_template_digest = new_digest
+            observation.current_replicaset_uid = "rs-new"
+            observation.pods[0].uid = "pod-new"
+            observation.pods[0].name = "checkout-new"
+            observation.pods[0].replicaset_uid = "rs-new"
+        else:
+            assert observation.pod_template_digest == old_digest
+    for metric, rows in list(source.series.items()):
+        if metric == "kube_replicaset_owner":
+            rows.append(
+                Series({**rows[0].labels, "replicaset": "checkout-rs-new"}, rows[0].samples)
+            )
+            continue
+        row = rows[0]
+        labels = {**row.labels, "uid": "pod-new", "pod": "checkout-new"}
+        if "pod_uid" in labels:
+            labels["pod_uid"] = "pod-new"
+        if "created_by_name" in labels:
+            labels["created_by_name"] = "checkout-rs-new"
+        if "owner_name" in labels:
+            labels["owner_name"] = "checkout-rs-new"
+        value = (
+            middle + 1
+            if metric == "kube_pod_container_state_started"
+            else middle
+            if metric == "kube_pod_created"
+            else None
+        )
+        new_samples = [
+            (t, value if value is not None else v) for t, v in row.samples if t >= middle
+        ]
+        source.series[metric] = [
+            replace(row, samples=[(t, v) for t, v in row.samples if t < middle]),
+            Series(labels, new_samples),
+        ]
+    source.series["kube_pod_completion_time"] = [
+        Series({"uid": "pod-uid", "pod": "checkout-pod"}, [(middle, middle)])
+    ]
+    result = qualify(identity, window, history, source)
+    assert result.reasons == ["template_changed"]
+    assert len(result.pods) == 2 and all(
+        not p.reasons and not p.memory_reasons and p.memory.ratio >= 0.95 and p.cpu.ratio >= 0.95
+        for p in result.pods
+    )
+    assert states(result) == {"cpu": "insufficient_data", "memory": "insufficient_data"}
 
 
 def test_later_container_start_cannot_erase_an_older_pod_interval(case):

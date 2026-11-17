@@ -131,6 +131,9 @@ class Observation(SafeModel):
     pods: list[PodObservation] = Field(max_length=100)
     unrelated_pods: Counter
     template_fields: list[TemplateContainer] = Field(max_length=32)
+    pod_template_digest: str | None = Field(
+        default=None, pattern=r"^[a-f0-9]{64}$", exclude_if=lambda value: value is None
+    )
     config_references: list[ConfigReference] = Field(max_length=128)
     limitations: Literal[
         "Kubernetes rollout only; application traffic, referenced contents and external effects are unverified."

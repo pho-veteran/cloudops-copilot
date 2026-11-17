@@ -27,6 +27,22 @@ def test_owned_health_and_whitelist_exclude_sensitive_sources():
     )
 
 
+@pytest.mark.parametrize("field", ["env", "command"])
+def test_full_template_digest_captures_changes_without_storing_values(field):
+    original = observed()
+    data = objects()
+    for template in (data[0]["spec"]["template"], data[1]["items"][0]["spec"]["template"]):
+        template["spec"]["containers"][0][field] = (
+            [{"name": "PRIVATE", "value": "private-new-sentinel"}]
+            if field == "env"
+            else ["private-new-sentinel"]
+        )
+    changed = observed(data=data)
+    assert changed.template_fields == original.template_fields
+    assert changed.pod_template_digest != original.pod_template_digest
+    assert "private-new-sentinel" not in changed.model_dump_json()
+
+
 @pytest.mark.parametrize("owner", [None, "replacement-rs", "matching-label"])
 def test_matching_labels_do_not_establish_ownership(owner):
     data = objects()

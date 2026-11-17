@@ -485,6 +485,10 @@ def retain_current_observation(db, workload, at, changed=None):
         container = dep["spec"]["template"]["spec"]["containers"][0]
         if changed == "template":
             container["image"] = "fixture:2"
+        elif changed == "env":
+            container["env"] = [{"name": "MODE", "value": "private-changed-sentinel"}]
+        elif changed == "command":
+            container["command"] = ["private-changed-sentinel"]
         else:
             container["resources"]["requests"]["cpu"] = "200m"
         rs["metadata"]["uid"] = str(uuid4())
@@ -556,7 +560,7 @@ def test_new_source_failure_cannot_reuse_recent_success_as_current(permission_co
     assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "stale"
 
 
-@pytest.mark.parametrize("changed", ["fingerprint", "template", "resources"])
+@pytest.mark.parametrize("changed", ["fingerprint", "template", "resources", "env", "command"])
 def test_windowless_report_still_discloses_known_identity_drift(permission_context, changed):
     from cloudops.features.workloads.models import ScopeState
 
@@ -570,6 +574,9 @@ def test_windowless_report_still_discloses_known_identity_drift(permission_conte
         value = service.unavailable(db.get(RecommendationReport, identifier))
     assert value.window is None and finish(claim, ReportHandler(), result=value, gate=GATE)
     viewer = c.actors["viewer"].client
+    frozen = viewer.get(f"{PATH}/{identifier}/export").content
+    saved = viewer.get(f"{PATH}/{identifier}").json()["input_identity"]
+    assert saved["pod_template_digest"] is not None
     assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "unknown"
     with sessions()() as db, db.begin():
         if changed == "fingerprint":
@@ -578,7 +585,11 @@ def test_windowless_report_still_discloses_known_identity_drift(permission_conte
             retain_current_observation(
                 db, db.get(Workload, UUID(c.consumer.workload_id)), database_now(db), changed
             )
-    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "stale"
+    detail = viewer.get(f"{PATH}/{identifier}")
+    assert detail.json()["applicability"]["state"] == "stale"
+    assert detail.json()["input_identity"] == saved
+    assert "private-changed-sentinel" not in detail.text
+    assert viewer.get(f"{PATH}/{identifier}/export").content == frozen
 
 
 def suppressed_result(row, cpu_state, aggregate):

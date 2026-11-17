@@ -47,6 +47,7 @@ class ReportIdentity(SafeModel):
     observation_id: UUID | None = None
     observed_at: datetime | None = None
     template_digest: Digest | None = None
+    pod_template_digest: Digest | None = None
     resources_digest: Digest | None = None
     containers: list[Name] = Field(default_factory=list, max_length=32)
 

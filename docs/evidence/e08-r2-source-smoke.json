@@ -1,7 +1,7 @@
 {
   "proof": "real owned K3s/Prometheus scoped read; short history, no KRR call or six-hour qualification",
   "subject_workload_uuid": "source-smoke-only deterministic UUID; no persisted report/job",
-  "collected_at": "2026-11-17T11:41:42.014137+00:00",
+  "collected_at": "2026-11-17T11:54:35.281417+00:00",
   "uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
   "cluster_fingerprint": "9a21fcefa0b85f78084fea58b61f5870ee732d971214bf0153b2cf868cc0a827",
   "observation_coverage": "complete",
@@ -19,7 +19,7 @@
     "kube_pod_container_status_last_terminated_timestamp": 2,
     "kube_replicaset_owner": 10
   },
-  "raw_samples": 8696,
+  "raw_samples": 13044,
   "resource_states": [
     {
       "container": "app",
@@ -55,9 +55,10 @@
       "namespace": "demo",
       "name": "checkout",
       "uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
-      "observation_id": "87893c31-f977-417a-8ce4-28d0df1d2639",
-      "observed_at": "2026-11-17T11:41:41.898455Z",
+      "observation_id": "4ef747e6-2250-4118-89c7-f4687d04fc41",
+      "observed_at": "2026-11-17T11:54:35.131487Z",
       "template_digest": "2940675e7ad4ca8acd6a0053efada5bd0a5291295f1208beb666e3899c720915",
+      "pod_template_digest": "c1f8daa668a8e0a4cc87e11ac22eb7b803966547abef778810e95976ba1ff0fe",
       "resources_digest": "67491960f33ae60244c7793bdf6020769eff642f717484ddd4720b865f8ff6b9",
       "containers": [
         "app"
@@ -65,31 +66,31 @@
     },
     "window": {
       "kind": "exact",
-      "start": "2026-11-17T05:41:41.900607Z",
-      "end": "2026-11-17T11:41:41.900607Z",
-      "raw_input_start": "2026-11-17T05:40:26.900607Z",
-      "raw_input_end": "2026-11-17T11:41:41.900607Z"
+      "start": "2026-11-17T05:54:35.132821Z",
+      "end": "2026-11-17T11:54:35.132821Z",
+      "raw_input_start": "2026-11-17T05:53:20.132821Z",
+      "raw_input_end": "2026-11-17T11:54:35.132821Z"
     },
     "query_digest": "fbc22b50c150dd5bcc3270f6e33ec6be714d2f9088ec95a93381ce0099199699",
     "config_digest": "a18359ddc9fff242a4f4556765972f4850a6fa8f9cbe053a6d4fd08e23c13b4b",
-    "history_digest": "6c5d1c69d2df21025c960e0d77855d17f55ad08569c66e4a7dceb16d49878157",
-    "collected_at": "2026-11-17T11:41:42.014137Z",
+    "history_digest": "979b4a1cc5a36da25bf4ced635c74493c5a86f15abcd2c01dedcfb95de5e8edb",
+    "collected_at": "2026-11-17T11:54:35.281417Z",
     "pods": [
       {
         "pod": "checkout-6b874f8d54-m7jx6",
         "uid": "43af5016-4bf8-49b9-8c3f-254ceacd3695",
         "replicaset_uid": "90000c43-9a21-400b-87e8-6818517fc745",
         "container": "app",
-        "start": "2026-11-17T05:41:41.900607Z",
-        "end": "2026-11-17T11:41:41.900607Z",
+        "start": "2026-11-17T05:54:35.132821Z",
+        "end": "2026-11-17T11:54:35.132821Z",
         "lifetime": "current",
         "cpu": {
           "expected_bins": 360,
-          "covered_bins": 25,
-          "ratio": 0.06944444444444445,
-          "longest_gap_seconds": 20103.65939283371,
+          "covered_bins": 38,
+          "ratio": 0.10555555555555556,
+          "longest_gap_seconds": 19330.42717885971,
           "first_sample_at": "2026-11-17T11:16:45.560000Z",
-          "last_sample_at": "2026-11-17T11:41:38.393000Z",
+          "last_sample_at": "2026-11-17T11:54:32.535000Z",
           "reasons": [
             "coverage_below_threshold",
             "coverage_gap"
@@ -97,11 +98,11 @@
         },
         "memory": {
           "expected_bins": 360,
-          "covered_bins": 27,
-          "ratio": 0.075,
-          "longest_gap_seconds": 20034.239392995834,
+          "covered_bins": 39,
+          "ratio": 0.10833333333333334,
+          "longest_gap_seconds": 19261.007179021835,
           "first_sample_at": "2026-11-17T11:15:36.140000Z",
-          "last_sample_at": "2026-11-17T11:41:38.393000Z",
+          "last_sample_at": "2026-11-17T11:54:32.535000Z",
           "reasons": [
             "coverage_below_threshold",
             "coverage_gap"
@@ -109,18 +110,18 @@
         },
         "restarts": {
           "expected_bins": 360,
-          "covered_bins": 26,
-          "ratio": 0.07222222222222222,
-          "longest_gap_seconds": 20051.0643928051,
+          "covered_bins": 39,
+          "ratio": 0.10833333333333334,
+          "longest_gap_seconds": 19277.8321788311,
           "first_sample_at": "2026-11-17T11:15:52.965000Z",
-          "last_sample_at": "2026-11-17T11:41:37.965000Z",
+          "last_sample_at": "2026-11-17T11:54:32.965000Z",
           "reasons": [
             "coverage_below_threshold",
             "coverage_gap"
           ]
         },
-        "cpu_raw_samples": 107,
-        "memory_raw_samples": 107,
+        "cpu_raw_samples": 159,
+        "memory_raw_samples": 159,
         "reasons": [
           "ownership_history_incomplete",
           "pod_lifetime_unproven"
@@ -172,13 +173,65 @@
     "services/backend/src/cloudops/features/recommendations/sources.py": "ed13f380641c535e4b8b414b3c470166e72fd27962152c028687c4827b82b1e0",
     "services/backend/src/cloudops/features/recommendations/evidence_schemas.py": "91780d7b3c764b78406f4c17c1f0b4909e5b01724d2d84d41c4429c444642a14",
     "services/backend/src/cloudops/features/recommendations/coverage.py": "ddddd9f5957d9ce6349889a7a4694c45657e276bc8acc1b390cde3681efd7876",
-    "services/backend/src/cloudops/features/recommendations/schemas.py": "25c205eb83b419d001f676f12ba8817190f90d15d269284af3b742021985dd2e",
+    "services/backend/src/cloudops/features/recommendations/schemas.py": "a7f600f1160d2431cca2c7bae1ffe91028c2b9fc1ed239687addbb2937575fcb",
     "services/backend/src/cloudops/features/recommendations/worker.py": "420a4be150c595ed7869b7f4fdab2fd6cba73aef9593cb7897a4b5d6553bb8d4",
     "services/backend/src/cloudops/features/recommendations/models.py": "e70f8ba2bedacbfaefbc8794f39c23e57ae974ec6e51239b2a1e98696e7cc341",
     "services/backend/src/cloudops/features/recommendations/api.py": "577c4d7e586cc38c87e36ac13fb794b21685f70f4323acf6035570484efcffdb",
-    "services/backend/src/cloudops/features/recommendations/qualification.py": "3dac3e81668410f4dba3ff8eeaf90d5ad2aed1c318ce7935ea8d624ac72053a8",
-    "services/backend/src/cloudops/features/recommendations/service.py": "c714f56874ec04bd22dcba228797914705cb676d92855b8d05a9315ace365d99"
+    "services/backend/src/cloudops/features/recommendations/qualification.py": "b59a399c10f57ddbf610770cbc82f5edef4f67957e58750511dccf4303e21211",
+    "services/backend/src/cloudops/features/recommendations/service.py": "b3d7242ced880ebce8b3c495826f2fc305b0eb046fef33ff34d7d9c0c909415d"
   },
   "runtime_image_id": "sha256:b1f0e6865cff800e4c51380c424eefc0e5f4089e8eaeebede627f745a63453c0",
-  "driver_sha256": "e1dd5e595b76813d7ab5ecdb06f7accbd86d6d71dbb024c937f12da92760aac0"
+  "driver_sha256": "aeebd94249224eea032ee842ddaae369480f3879ea413d7636cde1e0a615d551",
+  "controlled_fix_execution": {
+    "proof": "installed candidate policy execution with controlled inputs; no live six-hour or numeric KRR qualification",
+    "findings": {
+      "F1": {
+        "states": {
+          "cpu": "eligible",
+          "memory": "insufficient_data"
+        },
+        "unchanged_restart_count": 0,
+        "memory_covered_bins": 360,
+        "memory_expected_bins": 360,
+        "reasons": [
+          "container_state_unresolved"
+        ]
+      },
+      "F2": {
+        "states": {
+          "cpu": "insufficient_data",
+          "memory": "insufficient_data"
+        },
+        "selected_fields_unchanged": true,
+        "full_template_changed": true,
+        "reasons": [
+          "template_changed"
+        ]
+      },
+      "F3": {
+        "states": {
+          "cpu": "insufficient_data",
+          "memory": "insufficient_data"
+        },
+        "applicable_pod_intervals": 0,
+        "resource_reasons": {
+          "cpu": [
+            "expected_pods_unproven"
+          ],
+          "memory": [
+            "expected_pods_unproven"
+          ]
+        }
+      }
+    },
+    "numeric_published": false,
+    "cluster_requests": 0,
+    "model_requests": 0,
+    "driver_sha256": "bbc4c079cd3616303ae5fcd87ad6a77697cb8bc22380361dc9c58ef611718405"
+  },
+  "additional_source_sha256": {
+    "services/backend/src/cloudops/features/workloads/observation_evaluator.py": "428d24621926a3cf85b0830aa1417c260446b152563976ef1dd06749353a028e",
+    "services/backend/src/cloudops/features/workloads/observation_schemas.py": "7b3697498fd030b964586ef41897a2d1ef3435497fdf69249684209c823d33a3",
+    "services/backend/src/cloudops/features/workloads/observation_service.py": "4a759e16b4651e6b32163a186fd2ec132b9dbeed294f710b567faa1a83dffb4b"
+  }
 }

@@ -3160,6 +3160,8 @@ export interface components {
             observation_id?: string | null;
             /** Observed At */
             observed_at?: string | null;
+            /** Pod Template Digest */
+            pod_template_digest?: string | null;
             /** Resources Digest */
             resources_digest?: string | null;
             /** Template Digest */
