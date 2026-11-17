@@ -171,6 +171,23 @@ class ReportResult(SafeModel):
         available = any(x.state == "available" for x in self.resources)
         if (self.state == "available") != available:
             raise ValueError("Aggregate availability must reflect at least one usable resource.")
+        if self.resources and not available:
+            states = {x.state for x in self.resources}
+            operational_failure = self.source == "unconfigured" or self.tool_exit_code not in (
+                None,
+                0,
+            )
+            expected = (
+                "unavailable"
+                if operational_failure or "unavailable" in states
+                else "insufficient_data"
+                if "insufficient_data" in states
+                else "excluded"
+            )
+            if self.state != expected:
+                raise ValueError(
+                    "Aggregate nonavailable state must preserve failure/evidence precedence."
+                )
         if available and (
             self.source != "live_krr"
             or self.window is None

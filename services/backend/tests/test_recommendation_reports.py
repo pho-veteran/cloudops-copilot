@@ -464,3 +464,182 @@ def test_old_tool_receipt_preserves_only_unqualified_provenance(permission_conte
     )
     assert response.json()["result"]["tool_exit_code"] == code
     assert "ignored-secret" not in response.text and "ignored untrusted reason" not in response.text
+
+
+def retain_current_observation(db, workload, at, changed=None):
+    from copy import deepcopy
+    from observation_fixtures import objects, observed
+    from cloudops.features.workloads.models import ScopeState
+    from cloudops.features.workloads.observation_models import ObservationState, WorkloadObservation
+    from cloudops.features.workloads.observation_schemas import Identity
+
+    data = objects()
+    dep, replicasets, pods = data
+    dep["metadata"].update(name=workload.name, namespace=workload.namespace, uid=workload.uid)
+    rs = replicasets["items"][0]
+    rs["metadata"]["namespace"] = workload.namespace
+    rs["metadata"]["ownerReferences"][0]["uid"] = workload.uid
+    pod = pods["items"][0]
+    pod["metadata"]["namespace"] = workload.namespace
+    if changed:
+        container = dep["spec"]["template"]["spec"]["containers"][0]
+        if changed == "template":
+            container["image"] = "fixture:2"
+        else:
+            container["resources"]["requests"]["cpu"] = "200m"
+        rs["metadata"]["uid"] = str(uuid4())
+        rs["spec"]["template"] = deepcopy(dep["spec"]["template"])
+        pod["metadata"]["ownerReferences"][0]["uid"] = rs["metadata"]["uid"]
+        pod["metadata"]["uid"] = str(uuid4())
+        pod["spec"] = deepcopy(dep["spec"]["template"]["spec"])
+    value = observed(
+        Identity(
+            workload_id=workload.id,
+            cluster=workload.cluster,
+            namespace=workload.namespace,
+            name=workload.name,
+            uid=workload.uid,
+            epoch=workload.observation_epoch,
+        ),
+        at,
+        data,
+    )
+    assert value.coverage == "complete"
+    row = WorkloadObservation(
+        id=value.observation_id,
+        workload_id=workload.id,
+        epoch=workload.observation_epoch,
+        observed_at=at,
+        payload=value.model_dump(mode="json"),
+        comparison={},
+    )
+    db.add(row)
+    state = db.get(ObservationState, workload.id)
+    if state is None:
+        state = ObservationState(workload_id=workload.id, next_due_at=at + timedelta(seconds=30))
+        db.add(state)
+    state.sequence = state.success_sequence = 1
+    state.latest_outcome = "complete"
+    state.last_attempt_at = state.last_success_at = at
+    state.last_success_id = row.id
+    state.next_due_at = at + timedelta(seconds=30)
+    scope = db.get(ScopeState, 1)
+    scope.mode, scope.cluster_key, scope.fingerprint = "v2", workload.cluster, "c" * 64
+    db.flush()
+    return row, state
+
+
+@pytest.mark.parametrize("outcome", ["failed", "partial"])
+def test_new_source_failure_cannot_reuse_recent_success_as_current(permission_context, outcome):
+    from cloudops.features.workloads.models import ScopeState
+    from cloudops.features.workloads.observation_models import ObservationState
+
+    c = permission_context
+    with sessions()() as db, db.begin():
+        workload = db.get(Workload, UUID(c.consumer.workload_id))
+        retain_current_observation(db, workload, database_now(db) - timedelta(seconds=10))
+    identifier = UUID(create(c).json()["id"])
+    claim = claim_next({service.REPORT_JOB: ReportHandler()}, GATE)
+    with sessions()() as db:
+        value = controlled_result(db.get(RecommendationReport, identifier), database_now(db))
+    assert finish(claim, ReportHandler(), result=value, gate=GATE)
+    viewer = c.actors["viewer"].client
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "current"
+    with sessions()() as db, db.begin():
+        state = db.get(ObservationState, UUID(c.consumer.workload_id))
+        state.latest_outcome = outcome
+        state.last_attempt_at = state.last_failure_at = database_now(db)
+        state.last_failure_reason = "cluster_unavailable"
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "unknown"
+    with sessions()() as db, db.begin():
+        db.get(ScopeState, 1).fingerprint = "d" * 64
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "stale"
+
+
+@pytest.mark.parametrize("changed", ["fingerprint", "template", "resources"])
+def test_windowless_report_still_discloses_known_identity_drift(permission_context, changed):
+    from cloudops.features.workloads.models import ScopeState
+
+    c = permission_context
+    with sessions()() as db, db.begin():
+        workload = db.get(Workload, UUID(c.consumer.workload_id))
+        retain_current_observation(db, workload, database_now(db) - timedelta(seconds=10))
+    identifier = UUID(create(c).json()["id"])
+    claim = claim_next({service.REPORT_JOB: ReportHandler()}, GATE)
+    with sessions()() as db:
+        value = service.unavailable(db.get(RecommendationReport, identifier))
+    assert value.window is None and finish(claim, ReportHandler(), result=value, gate=GATE)
+    viewer = c.actors["viewer"].client
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "unknown"
+    with sessions()() as db, db.begin():
+        if changed == "fingerprint":
+            db.get(ScopeState, 1).fingerprint = "d" * 64
+        else:
+            retain_current_observation(
+                db, db.get(Workload, UUID(c.consumer.workload_id)), database_now(db), changed
+            )
+    assert viewer.get(f"{PATH}/{identifier}").json()["applicability"]["state"] == "stale"
+
+
+def suppressed_result(row, cpu_state, aggregate):
+    identity = service.ReportIdentity.model_validate(row.input_identity).model_copy(
+        update={"containers": ["app"]}
+    )
+    resources = []
+    for resource, state in [("cpu", cpu_state), ("memory", "excluded")]:
+        resources.append(
+            ResourceAdvice(
+                container="app",
+                resource=resource,
+                state=state,
+                current_request=Unavailable(reason="current_unknown"),
+                current_limit=Unset(),
+                recommended_request=Unavailable(reason="history_gap"),
+                recommended_limit=Unavailable(reason="history_gap"),
+                reasons=["history_gap"],
+            )
+        )
+    return ReportResult(
+        state=aggregate,
+        reason="controlled_suppressed",
+        source="live_krr",
+        identity=identity,
+        profile=service.ReportProfile.model_validate(row.profile),
+        resources=resources,
+    )
+
+
+@pytest.mark.parametrize(
+    "resource_state,valid,contradictory",
+    [
+        ("insufficient_data", "insufficient_data", "excluded"),
+        ("unavailable", "unavailable", "excluded"),
+        ("unavailable", "unavailable", "insufficient_data"),
+    ],
+)
+def test_nonavailable_precedence_is_enforced_at_publication(
+    permission_context, resource_state, valid, contradictory
+):
+    c = permission_context
+    identifier = UUID(create(c).json()["id"])
+    claim = claim_next({service.REPORT_JOB: ReportHandler()}, GATE)
+    with sessions()() as db:
+        value = suppressed_result(db.get(RecommendationReport, identifier), resource_state, valid)
+    invalid = value.model_copy(update={"state": contradictory})
+    with pytest.raises(ValidationError, match="precedence"):
+        finish(claim, ReportHandler(), result=invalid, gate=GATE)
+    with sessions()() as db:
+        assert db.get(RecommendationReport, identifier).export_text is None
+    assert finish(claim, ReportHandler(), result=value, gate=GATE)
+
+
+def test_global_tool_failure_outranks_nonavailable_resource_reasons(permission_context):
+    c = permission_context
+    identifier = UUID(create(c).json()["id"])
+    claim = claim_next({service.REPORT_JOB: ReportHandler()}, GATE)
+    with sessions()() as db:
+        value = suppressed_result(
+            db.get(RecommendationReport, identifier), "insufficient_data", "insufficient_data"
+        )
+    value = value.model_copy(update={"tool_exit_code": 1, "state": "unavailable"})
+    assert finish(claim, ReportHandler(), result=value, gate=GATE)

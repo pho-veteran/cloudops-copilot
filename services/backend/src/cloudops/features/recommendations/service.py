@@ -21,8 +21,9 @@ from cloudops.features.recommendations.schemas import (
     ReportView,
 )
 from cloudops.features.workloads.models import ScopeState, Workload
-from cloudops.features.workloads.observation_models import WorkloadObservation
+from cloudops.features.workloads.observation_models import ObservationState, WorkloadObservation
 from cloudops.features.workloads.observation_schemas import Observation
+from cloudops.features.workloads.observation_service import summary as observation_summary
 from cloudops.shared.database import WorkerHeartbeat, database_now
 from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job, JobAttempt
@@ -159,10 +160,6 @@ def applicability(db, row, now):
         reasons.append("workload_inactive")
     if reasons:
         return Applicability(state="stale", assessed_at=now, reasons=reasons)
-    if result.window is None:
-        return Applicability(
-            state="unknown", assessed_at=now, reasons=["source_window_unavailable"]
-        )
     current = capture_identity(db, workload)
     expected = result.identity
     for key in (
@@ -180,7 +177,17 @@ def applicability(db, row, now):
             break
     if reasons:
         return Applicability(state="stale", assessed_at=now, reasons=reasons)
+    if result.window is None:
+        return Applicability(
+            state="unknown", assessed_at=now, reasons=["source_window_unavailable"]
+        )
     known = current.observed_at and now - timedelta(seconds=60) <= current.observed_at <= now
+    state = db.get(ObservationState, workload.id)
+    retained = (
+        db.get(WorkloadObservation, current.observation_id) if current.observation_id else None
+    )
+    observation = observation_summary(workload, state, retained, now)
+    known = known and observation.coverage == "complete" and observation.freshness == "fresh"
     if not known or any(
         getattr(expected, k) is None or getattr(current, k) is None
         for k in ("cluster_fingerprint", "template_digest", "resources_digest")

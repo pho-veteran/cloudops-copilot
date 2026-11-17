@@ -3,28 +3,29 @@
   "source_files_sha256": {
     "services/backend/src/cloudops/features/recommendations/api.py": "577c4d7e586cc38c87e36ac13fb794b21685f70f4323acf6035570484efcffdb",
     "services/backend/src/cloudops/features/recommendations/models.py": "e70f8ba2bedacbfaefbc8794f39c23e57ae974ec6e51239b2a1e98696e7cc341",
-    "services/backend/src/cloudops/features/recommendations/schemas.py": "ed6e8f93ef49875e9c8f7fee1fe504ef9d5c0e33eaa2f7ce466baacb8f53f692",
-    "services/backend/src/cloudops/features/recommendations/service.py": "64cd541b3068c2068d653b555aab5f376f15205028a7f14ad29b708801d50c03",
+    "services/backend/src/cloudops/features/recommendations/schemas.py": "25c205eb83b419d001f676f12ba8817190f90d15d269284af3b742021985dd2e",
+    "services/backend/src/cloudops/features/recommendations/service.py": "c714f56874ec04bd22dcba228797914705cb676d92855b8d05a9315ace365d99",
     "services/backend/src/cloudops/features/recommendations/worker.py": "420a4be150c595ed7869b7f4fdab2fd6cba73aef9593cb7897a4b5d6553bb8d4",
     "services/backend/migrations/versions/0017_recommendation_reports.py": "c1cccd865a97b184de038fd3ea339dd49d3760efdc48a04f624b1805a54d2180",
-    "apps/web/src/features/recommendations/Reports.tsx": "1b6843eff6193fea33122258ebc2487de5e45f2e0e2d5ec8e41a56b029d9bf91"
+    "apps/web/src/features/recommendations/Reports.tsx": "1b6843eff6193fea33122258ebc2487de5e45f2e0e2d5ec8e41a56b029d9bf91",
+    "scripts/smoke-e01-consumers.py": "e09c3c3abe6a0e640774524d27ee4b09471f599bd208f64f3dc103acad1b6ce1",
+    "services/backend/tests/test_recommendation_reports.py": "8f8715e2d947c28986accf6f43e3c29fb0a03d5b2e59686c3f0c2be8728a5bdb"
   },
   "proof_class": "Real PostgreSQL, separate installed API/worker processes and Edge with a controlled fixture target. No live Kubernetes/Prometheus/KRR recommendation qualification.",
   "API_worker": {
     "state": "passed",
     "proof_class": "Actual separate uvicorn API and worker processes, real PostgreSQL, controlled fixture workload; no Kubernetes/KRR/model qualification",
-    "report_id": "d3d750a9-a5c2-414a-a6d8-d791ad5c8bf2",
+    "report_id": "c38e7111-2c07-46ca-a0c6-0e4ad5eabf41",
     "schema_version": 2,
     "outcome": "unavailable",
     "attempt_state": "succeeded",
-    "export_bytes": 2343,
-    "export_sha256": "989e76a6cdcb1e9d8c093513f44ae52e60bba7d14e27b9c9d446373736d55787",
+    "export_bytes": 2403,
+    "export_sha256": "6a57aff7e7564365d679ca3d2588cb65d78150c7c396a83f7e629b7e6a0aabdd",
     "API_and_worker_process_restart": "passed",
     "frozen_export_byte_equality": true,
     "Viewer_generation_denied": 403,
     "new_jobs_after_denial": 0,
-    "native_download": "pending; not substituted by API export",
-    "PostgreSQL_process_restart": "passed; final export bytes identical"
+    "native_download": "pending; not substituted by API export"
   },
   "Edge": {
     "browser": "Edge Profile1 extension relay",
@@ -46,5 +47,39 @@
     "R4 finite history recipe",
     "R5 full report journey/native download completion",
     "R6 representative six-hour real cohort and final integration"
-  ]
+  ],
+  "API_worker_before_currentness_regressions": {
+    "state": "passed",
+    "proof_class": "Actual separate uvicorn API and worker processes, real PostgreSQL, controlled fixture workload; no Kubernetes/KRR/model qualification",
+    "report_id": "d3d750a9-a5c2-414a-a6d8-d791ad5c8bf2",
+    "schema_version": 2,
+    "outcome": "unavailable",
+    "attempt_state": "succeeded",
+    "export_bytes": 2343,
+    "export_sha256": "989e76a6cdcb1e9d8c093513f44ae52e60bba7d14e27b9c9d446373736d55787",
+    "API_and_worker_process_restart": "passed",
+    "frozen_export_byte_equality": true,
+    "Viewer_generation_denied": 403,
+    "new_jobs_after_denial": 0,
+    "native_download": "pending; not substituted by API export",
+    "PostgreSQL_process_restart": "passed; final export bytes identical"
+  },
+  "currentness_and_export_regressions": {
+    "state": "passed",
+    "proof_class": "Installed separate API process and PostgreSQL over controlled retained observation/window inputs; actual shared handler/lease/permit publication. No live source/KRR/six-hour qualification.",
+    "F1": "Matching recent success current; newer failed source unknown; known fingerprint drift stale",
+    "F2": "Windowless report unknown; subsequent known fingerprint drift stale",
+    "F3": "Updated consumer-smoke export assertion executed through real HTTP for three terminal reports; digest/stability matched",
+    "F4": "Contradictory aggregate rejected atomically, export409; only proper unconfigured unavailable result subsequently published",
+    "report_ids": [
+      "f1ce0324-c8c1-4605-b81d-c65b171adff6",
+      "b5927a70-090d-4c09-ae0d-01a3bff03b77",
+      "77486655-115f-4efe-929e-0776faf41d0e"
+    ],
+    "model_requests": 0,
+    "Kubernetes_requests": 0,
+    "numeric_advice_published": false
+  },
+  "regression_driver_sha256": "93d9929365a97370c4eddbc379eed6fa604a17209ec7613c8820c98af0f9ab90",
+  "focused_report_cases": 27
 }
