@@ -13,6 +13,10 @@ from cloudops.features.investigations.admission_settings import deferred_run_lim
 from cloudops.features.investigations.collector import configured_adapters
 from cloudops.features.investigations.service import configure_dispatch_status
 from cloudops.features.investigations.states import COLLECTION_JOB
+from cloudops.features.recommendations.service import (
+    REPORT_JOB,
+    configure_dispatch_status as configure_recommendation_dispatch,
+)
 from cloudops.shared.config import settings
 from cloudops.shared.database import require_schema
 from cloudops.shared.errors import DomainError, domain_error_handler, validation_error_handler
@@ -36,6 +40,7 @@ def create_app():
     app.add_exception_handler(RequestValidationError, validation_error_handler)
     # The API mounts the trusted permit read-only to show why queued collection waits.
     configure_dispatch_status(lambda: GATE.status(COLLECTION_JOB))
+    configure_recommendation_dispatch(lambda: GATE.status(REPORT_JOB))
 
     @app.exception_handler(SQLAlchemyError)
     async def database_unavailable(request, exc):

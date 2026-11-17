@@ -77,7 +77,7 @@ export function Reports({ canMutate }: { canMutate: boolean }) {
       {create.isError && <Failure error={create.error} />}
       {reports.isError && <Failure error={reports.error} />}
       {exporting.isError && <Failure error={exporting.error} />}
-      {reports.data?.map((r) => (
+      {reports.data?.items.map((r) => (
         <article className="foundation-panel" key={r.id}>
           <h2>{r.state.replaceAll("_", " ")}</h2>
           <p>{r.reason}</p>
@@ -88,11 +88,12 @@ export function Reports({ canMutate }: { canMutate: boolean }) {
           <pre>{JSON.stringify(r.result, null, 2)}</pre>
           <Button
             variant="outline"
-            disabled={exporting.isPending}
+            disabled={exporting.isPending || !r.export_ready}
             onClick={() => exporting.mutate(r.id)}
           >
             Export report {r.id.slice(0, 8)}
           </Button>
+          {!r.export_ready && <p>The export becomes available when this report finishes.</p>}
         </article>
       ))}
     </section>

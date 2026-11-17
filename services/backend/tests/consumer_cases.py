@@ -174,6 +174,9 @@ def seed(context, monkeypatch):
         )
         db.add_all([old, candidate, incident, report, check])
         db.flush()
+        from cloudops.features.recommendations.service import freeze_legacy
+
+        freeze_legacy(report)
         baseline = Baseline(
             workload_id=workload.id,
             candidate_id=old.id,
@@ -429,6 +432,11 @@ def report_check(response, c, actor):
     )
 
 
+def report_page_check(response, c, actor):
+    assert response.status_code == 200, response.text
+    assert any(item["id"] == c.consumer.report_id for item in response.json()["items"])
+
+
 def report_create_check(response, c, actor):
     assert response.status_code == 201, response.text
     with sessions()() as db:
@@ -529,9 +537,7 @@ CASES = {
         lambda c: {"json": {"workload_id": c.consumer.workload_id, "requested_hours": 6}},
         report_create_check,
     ),
-    "list_recommendation_reports": RequestCase(
-        lambda c: {}, lambda r, c, a: saved_list(r, c, a, "id", c.consumer.report_id)
-    ),
+    "list_recommendation_reports": RequestCase(lambda c: {}, report_page_check),
     "get_recommendation_report": RequestCase(report_path, report_check),
     "export_recommendation_report": RequestCase(report_path, report_check),
     "get_recovery_policy": RequestCase(

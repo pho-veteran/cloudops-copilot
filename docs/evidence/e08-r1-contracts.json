@@ -1,0 +1,50 @@
+{
+  "baseline": "2622d69a8c17f0e0fe19fe506c8b439902670320",
+  "source_files_sha256": {
+    "services/backend/src/cloudops/features/recommendations/api.py": "577c4d7e586cc38c87e36ac13fb794b21685f70f4323acf6035570484efcffdb",
+    "services/backend/src/cloudops/features/recommendations/models.py": "e70f8ba2bedacbfaefbc8794f39c23e57ae974ec6e51239b2a1e98696e7cc341",
+    "services/backend/src/cloudops/features/recommendations/schemas.py": "ed6e8f93ef49875e9c8f7fee1fe504ef9d5c0e33eaa2f7ce466baacb8f53f692",
+    "services/backend/src/cloudops/features/recommendations/service.py": "64cd541b3068c2068d653b555aab5f376f15205028a7f14ad29b708801d50c03",
+    "services/backend/src/cloudops/features/recommendations/worker.py": "420a4be150c595ed7869b7f4fdab2fd6cba73aef9593cb7897a4b5d6553bb8d4",
+    "services/backend/migrations/versions/0017_recommendation_reports.py": "c1cccd865a97b184de038fd3ea339dd49d3760efdc48a04f624b1805a54d2180",
+    "apps/web/src/features/recommendations/Reports.tsx": "1b6843eff6193fea33122258ebc2487de5e45f2e0e2d5ec8e41a56b029d9bf91"
+  },
+  "proof_class": "Real PostgreSQL, separate installed API/worker processes and Edge with a controlled fixture target. No live Kubernetes/Prometheus/KRR recommendation qualification.",
+  "API_worker": {
+    "state": "passed",
+    "proof_class": "Actual separate uvicorn API and worker processes, real PostgreSQL, controlled fixture workload; no Kubernetes/KRR/model qualification",
+    "report_id": "d3d750a9-a5c2-414a-a6d8-d791ad5c8bf2",
+    "schema_version": 2,
+    "outcome": "unavailable",
+    "attempt_state": "succeeded",
+    "export_bytes": 2343,
+    "export_sha256": "989e76a6cdcb1e9d8c093513f44ae52e60bba7d14e27b9c9d446373736d55787",
+    "API_and_worker_process_restart": "passed",
+    "frozen_export_byte_equality": true,
+    "Viewer_generation_denied": 403,
+    "new_jobs_after_denial": 0,
+    "native_download": "pending; not substituted by API export",
+    "PostgreSQL_process_restart": "passed; final export bytes identical"
+  },
+  "Edge": {
+    "browser": "Edge Profile1 extension relay",
+    "origin": "http://localhost:5177",
+    "operator": "Created report through UI; queued state and disabled export explanation observed while owned worker paused, then worker resumed and saved explicit unavailable outcome.",
+    "viewer": "Signed out, signed in as Viewer; same saved records visible, no generation controls.",
+    "viewport_samples": [
+      "320px light pending",
+      "320px light Viewer terminal",
+      "390px dark Viewer"
+    ],
+    "native_download": "Incomplete .crdownload bytes match stored export, but native completion unproven; event listener timed out. User assistance requested; remains R5/R6 gate.",
+    "capture_limit": "Full-page capture timed out; ordinary viewport screenshots are genuine and inspected.",
+    "temporary_viewport_and_theme": "restored"
+  },
+  "remaining_E08_gates": [
+    "R2 bounded historical UID/OOM retention and per-replica coverage",
+    "R3 structured live KRR producer/policy integration",
+    "R4 finite history recipe",
+    "R5 full report journey/native download completion",
+    "R6 representative six-hour real cohort and final integration"
+  ]
+}
