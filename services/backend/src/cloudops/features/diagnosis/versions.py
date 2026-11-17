@@ -1,4 +1,4 @@
-"""Fixed identities and bounds for the scoped diagnosis context (`e06.*/v1`).
+"""Fixed identities and bounds for the scoped diagnosis context.
 
 Pure constants: no imports from other diagnosis modules and no side effects. Every
 selection, budget decision and validation result is reproducible from these values.
@@ -6,7 +6,7 @@ selection, budget decision and validation result is reproducible from these valu
 
 from __future__ import annotations
 
-CONTEXT_VERSION = "e06.context/v1"
+CONTEXT_VERSION = "e06.context/v2"
 TARGET_RULES_VERSION = "e06.targets/v1"
 PROMPT_VERSION = "e06.rca_prompt/v3"
 VALIDATOR_VERSION = "e06.validator/v1"

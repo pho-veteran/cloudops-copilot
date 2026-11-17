@@ -47,6 +47,7 @@ def main():
         raise SystemExit("startup configuration rejected by this image version")
     if variant != "healthy":
         raise SystemExit("unsupported image version")
+    print("allocating bounded 160 MiB resident working set", flush=True)
     WORKING_SET = bytearray(160 * 1024 * 1024)
     # Touch each page so the bounded working set is resident before readiness.
     for offset in range(0, len(WORKING_SET), 4096):

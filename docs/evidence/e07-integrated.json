@@ -1,0 +1,1731 @@
+{
+  "schema_version": "E07IntegratedAcceptance/v1",
+  "acceptance_state": "Runtime and owned-lab cleanup gates demonstrated; final independent confirmation, exact-head CI and delivery are tracked by PR92.",
+  "recorded_at": "2026-11-17T02:56:07.879252+00:00",
+  "implementation_base": "40b058c91f6ddbe8dea852d17a4dd741d6dd5fa5",
+  "topology": {
+    "owned_disposable_local_only": true,
+    "project": "cloudops-e07-acceptance",
+    "cluster": "e07-owned",
+    "namespace": "demo",
+    "deployment": "checkout",
+    "original_uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+    "original_node_uid": "88cfc091-9b39-428f-8c7f-1bd24ab035f1",
+    "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+    "independent_gateway_authority": "dbf8c91d-a0be-4f36-8645-7029596b2af2",
+    "independent_host_authority": "0453b909-dcb3-48ed-99fe-50390ae5566a",
+    "application_database": "cloudops_e07_integrated_test",
+    "retained_R1_R6_database_untouched": "cloudops_e07_gateway_test",
+    "strategy": "Supported Recreate only during one-Pod experiments; captured original RollingUpdate restored and healthy before stopping; see cleanup.",
+    "node_cgroup_cpu": "400000 100000",
+    "node_memory_bytes": 4294967296,
+    "node_swap_bytes": 0,
+    "allocatable_cpu": "3",
+    "allocatable_memory": "3145732Ki",
+    "healthy_pod_cpu": "10000 100000",
+    "healthy_pod_memory_bytes": 268435456,
+    "finite_load_max_seconds": 900
+  },
+  "sample_artifact": {
+    "source_version": "b5ea56c203d0770c75d2fc795cb786018e2cb5c411d8b01ae0bc0ed824663bd0",
+    "files": {
+      "recovery_app.py": "d463b506bbe63afefbe11d3dae32d439e7029c83178d0e7a2cc2cec77a30bab6",
+      "sample_app.py": "c1ea4bb6bde192f272667f1ce03a04e300683fbfcab92676a73901ed72c2b11f",
+      "recovery_load.py": "89385ce97a841171ecf985bf85275449c09fa0588059a26d4ed41f0c3f6aed75",
+      "load.py": "6218579d02734ce30af7c314f944ada618d55b055080a846669c3425b0dcf3bc",
+      "Dockerfile.recovery": "4c1e6102615289fafe95441eb5978a0827522a40ba960b2373297597eac55c2b"
+    },
+    "reason": "startup log before resident allocation keeps real OOM telemetry observable; all prior diagnostics retained"
+  },
+  "calibration": [
+    {
+      "case": "one-low",
+      "responses": {
+        "200": 480
+      },
+      "seconds": 60,
+      "rate": 8
+    },
+    {
+      "case": "one-hot",
+      "responses": {
+        "200": 1800,
+        "503": 900
+      },
+      "seconds": 90,
+      "rate": 30
+    },
+    {
+      "case": "two-hot",
+      "responses": {
+        "200": 2696,
+        "503": 4
+      },
+      "seconds": 90,
+      "rate": 30
+    }
+  ],
+  "model": {
+    "requested_model": "gpt-6.1-sol",
+    "endpoint": "http://localhost:20128/v1",
+    "requests_used": 15,
+    "request_ceiling": 50,
+    "observed_tokens": 73092,
+    "observed_token_stop": 150000,
+    "new_inference_in_this_slice": 14,
+    "current_live_gate": "Passed original12-case context-v2 qualification before operational activation; two new real scoped telemetry/model/plan/approval/write/300s verification cases then passed. No fixture RCA was promoted into either live result.",
+    "controlled_provider_positive_substitution": false,
+    "qualified_operational_identity": {
+      "config_id": "e07-primary-context64k",
+      "config_version": "1",
+      "endpoint_label": "owned-local-gateway",
+      "behavior_digest": "3492d758e64474424e44d483eec69496124b6098a3bdc2a74d3dd53c6e63c575",
+      "model": "gpt-6.1-sol",
+      "policy_digest": "2b6d4327d63c9b7438b4544dff29ec34bdb600ace0a8c92f77623f9c732fc30b",
+      "prompt_version": "e06.rca_prompt/v3",
+      "context_version": "e06.context/v2",
+      "validator_version": "e06.validator/v1",
+      "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900"
+    },
+    "shared_structural_repairs_used": 0,
+    "quality_rubric": "e07-model-requalification.json"
+  },
+  "application_restore_cuts": [
+    {
+      "cut": "before-approval",
+      "snapshot": {
+        "bytes": 166890,
+        "sha256": "94e6e481dec6e56d2064aa71421777203eb59d0822adf1906a5762647fdf1a35",
+        "created_at": "2026-11-16T19:43:12.446195+00:00"
+      },
+      "pg_restore": {
+        "returncode": 0,
+        "finished_at": "2026-11-16T19:43:14.806220+00:00"
+      },
+      "configured_gateway_targets": 2,
+      "all_classes_denied": true,
+      "restored_cookie_status": 401,
+      "old_decision_status": 409,
+      "cleanup": {
+        "recovery_restore": {
+          "cleanup_id": "e8f23892-b5eb-45ee-9dd5-80029aa36616",
+          "sessions_revoked": 8,
+          "reviews_retired": 4,
+          "jobs_retired": 0,
+          "executions_retired": 0,
+          "plans_invalidated": 1,
+          "configured_gateway_targets_closed": 2,
+          "permit_generation": 15,
+          "actor": {
+            "uid": 0,
+            "pid": 1,
+            "channel": "local_os_account"
+          }
+        },
+        "diagnosis_recovery": {
+          "sessions_revoked": true,
+          "restored_model_work_retired": true,
+          "analysis_dispatch_denied": true,
+          "permit_generation": 15
+        }
+      },
+      "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+      "absent_uid_rows": 0,
+      "retained_review_rows": 0,
+      "active_recovery_jobs": 0,
+      "explicit_proof_backed_resumption_at": "2026-11-16T19:43:34.283866+00:00"
+    },
+    {
+      "cut": "after-approval-before-call",
+      "snapshot": {
+        "bytes": 166516,
+        "sha256": "8d14d906892668d7291c53dfa6c416c885c693fa5c4a8ee707b894180830b2fa",
+        "created_at": "2026-11-16T19:43:34.813715+00:00"
+      },
+      "pg_restore": {
+        "returncode": 0,
+        "finished_at": "2026-11-16T19:43:37.020937+00:00"
+      },
+      "configured_gateway_targets": 2,
+      "all_classes_denied": true,
+      "restored_cookie_status": 401,
+      "old_decision_status": 409,
+      "cleanup": {
+        "recovery_restore": {
+          "cleanup_id": "b10b57f0-e97b-469f-b882-77a3707e4af0",
+          "sessions_revoked": 2,
+          "reviews_retired": 1,
+          "jobs_retired": 1,
+          "executions_retired": 1,
+          "plans_invalidated": 1,
+          "configured_gateway_targets_closed": 2,
+          "permit_generation": 17,
+          "actor": {
+            "uid": 0,
+            "pid": 1,
+            "channel": "local_os_account"
+          }
+        },
+        "diagnosis_recovery": {
+          "sessions_revoked": true,
+          "restored_model_work_retired": true,
+          "analysis_dispatch_denied": true,
+          "permit_generation": 17
+        }
+      },
+      "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+      "absent_uid_rows": 0,
+      "retained_review_rows": 0,
+      "active_recovery_jobs": 0,
+      "explicit_proof_backed_resumption_at": "2026-11-16T19:44:00.838489+00:00"
+    },
+    {
+      "cut": "after-dispatch",
+      "snapshot": {
+        "bytes": 169626,
+        "sha256": "0a2a6ec7e8503092f4ba3a4b1fbbcbd92dbdc268edf4052b7fce0f6af2fbd227",
+        "created_at": "2026-11-16T19:47:13.631678+00:00"
+      },
+      "pg_restore": {
+        "returncode": 0,
+        "finished_at": "2026-11-16T19:47:15.839738+00:00"
+      },
+      "configured_gateway_targets": 2,
+      "all_classes_denied": true,
+      "restored_cookie_status": 401,
+      "old_decision_status": 409,
+      "cleanup": {
+        "recovery_restore": {
+          "cleanup_id": "95441a82-bc27-4d70-96e3-fbd4828a6509",
+          "sessions_revoked": 3,
+          "reviews_retired": 1,
+          "jobs_retired": 1,
+          "executions_retired": 1,
+          "plans_invalidated": 1,
+          "configured_gateway_targets_closed": 2,
+          "permit_generation": 19,
+          "actor": {
+            "uid": 0,
+            "pid": 1,
+            "channel": "local_os_account"
+          }
+        },
+        "diagnosis_recovery": {
+          "sessions_revoked": true,
+          "restored_model_work_retired": true,
+          "analysis_dispatch_denied": true,
+          "permit_generation": 19
+        }
+      },
+      "configured_absent_row_uid": "c3c90481-d03d-4e6f-b3be-68641afb56b0",
+      "absent_uid_rows": 0,
+      "retained_review_rows": 0,
+      "active_recovery_jobs": 0,
+      "explicit_proof_backed_resumption_at": "2026-11-16T19:47:35.157719+00:00"
+    }
+  ],
+  "fresh_post_restore_verified_scale": {
+    "plan_id": "d8e72ef0-a50f-410b-957e-49cddf2c6710",
+    "plan_digest": "05c41bc098d716a9a144ce1f18b26366b8ce31b871e801f06dad224b7b1757fb",
+    "template": "scale_deployment",
+    "origin": "operator_manual",
+    "execution_id": "488c5884-1373-4e68-bc8d-e3edb801e6f9",
+    "state": "succeeded",
+    "outcome": {
+      "schema_version": "RecoveryOutcome/v1",
+      "operation_id": "488c5884-1373-4e68-bc8d-e3edb801e6f9",
+      "attribution": "acknowledged",
+      "verification": "passed",
+      "future_authority": "fresh_preflight_required",
+      "reason": "Qualified post-change checks passed; inspect the independent observations.",
+      "reconciliation": {
+        "attempts": 0,
+        "maximum_attempts": 6,
+        "deadline": "2026-11-16T20:06:44.783418Z"
+      }
+    },
+    "before": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 1,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "desired": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 2,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "id": "e07-local-recovery",
+      "version": "r7-integrated-1",
+      "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+    },
+    "verification_profile_digest": "d012187afac9194107071ca4ed3ef7d3b08752a6ca0ea219763e9749d6b08e8c",
+    "acknowledged_at": "2026-11-16T20:04:44.899794Z",
+    "fixed_deadline": "2026-11-16T20:07:44.899794Z",
+    "finalized_at": "2026-11-16T20:07:45.884888Z",
+    "qualified_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "2c38e296-66d0-44ca-93b2-dc3e3f26b559",
+        "97db9b34-d4a1-4b38-aa5d-5040454ee2c3"
+      ],
+      "offered_rps": 30.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "reason_codes": []
+  },
+  "verified_after_inverse_exclusion": {
+    "plan_id": "f47630d2-0835-48ee-aa28-872e4151f9e8",
+    "plan_digest": "f376360e53be36e9f2d314fe94f1ce921eae7509f5674643f2cad1e8cc1c4d4a",
+    "template": "scale_deployment",
+    "origin": "operator_manual",
+    "execution_id": "79badc88-e46f-49a8-afaf-2c65ba0fb1aa",
+    "state": "succeeded",
+    "outcome": {
+      "schema_version": "RecoveryOutcome/v1",
+      "operation_id": "79badc88-e46f-49a8-afaf-2c65ba0fb1aa",
+      "attribution": "acknowledged",
+      "verification": "passed",
+      "future_authority": "fresh_preflight_required",
+      "reason": "Qualified post-change checks passed; inspect the independent observations.",
+      "reconciliation": {
+        "attempts": 0,
+        "maximum_attempts": 6,
+        "deadline": "2026-11-16T20:16:16.968150Z"
+      }
+    },
+    "before": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 1,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "desired": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 2,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "id": "e07-local-recovery",
+      "version": "r7-integrated-1",
+      "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+    },
+    "verification_profile_digest": "d012187afac9194107071ca4ed3ef7d3b08752a6ca0ea219763e9749d6b08e8c",
+    "acknowledged_at": "2026-11-16T20:14:17.084240Z",
+    "fixed_deadline": "2026-11-16T20:17:17.084240Z",
+    "finalized_at": "2026-11-16T20:17:17.876998Z",
+    "qualified_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "55cb95bc-a079-4a3f-b355-9ebc2b8c3d68",
+        "fd073097-d39a-45de-abef-dbe5f7e79739"
+      ],
+      "offered_rps": 30.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "reason_codes": []
+  },
+  "fresh_safe_inverse": {
+    "plan_id": "2634f4fc-14d8-4127-aebe-168b45ee55ea",
+    "plan_digest": "09e1667ecc2197b21182255abdd63e3899eb063fcc00c5d3fce08a4035be110a",
+    "template": "scale_deployment",
+    "origin": "inverse_rollback",
+    "execution_id": "0a53841d-3288-4472-84e0-a6ee0bb4951f",
+    "state": "rolled_back",
+    "outcome": {
+      "schema_version": "RecoveryOutcome/v1",
+      "operation_id": "0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "attribution": "acknowledged",
+      "verification": "passed",
+      "future_authority": "fresh_preflight_required",
+      "reason": "Qualified post-change checks passed; inspect the independent observations.",
+      "reconciliation": {
+        "attempts": 0,
+        "maximum_attempts": 6,
+        "deadline": "2026-11-16T20:21:57.829198Z"
+      }
+    },
+    "before": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 2,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "desired": {
+      "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+      "replicas": 1,
+      "containers": [
+        {
+          "name": "app",
+          "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          }
+        }
+      ]
+    },
+    "policy": {
+      "id": "e07-local-recovery",
+      "version": "r7-integrated-1",
+      "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+    },
+    "verification_profile_digest": "94ba3c38c35ca1f02c3cae0a64f254f721faa3f743ea3f6fbd8ea4dc914e3993",
+    "acknowledged_at": "2026-11-16T20:19:57.968529Z",
+    "fixed_deadline": "2026-11-16T20:22:57.968529Z",
+    "finalized_at": "2026-11-16T20:22:59.126551Z",
+    "qualified_rollout_samples": 5,
+    "expected_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "coverage": 1.0,
+      "pod_uids": [
+        "fd073097-d39a-45de-abef-dbe5f7e79739"
+      ],
+      "offered_rps": 8.0,
+      "reason_codes": [],
+      "valid_samples": 5,
+      "failed_samples": [],
+      "expected_samples": 5
+    },
+    "reason_codes": []
+  },
+  "lost_acknowledgement": {
+    "kind": "Controlled acknowledgement interruption after actual Kubernetes conditional write; real product approval/job/gateway",
+    "execution_id": "7af96edd-e07e-436e-886c-1c582e928e63",
+    "plan_id": "78a98eba-44e7-4617-ad69-26a50c8b60a7",
+    "functional_generation_delta_before_maintenance": 1,
+    "terminal_state": "outcome_unknown",
+    "reconciliation": {
+      "attempts": 6,
+      "maximum_attempts": 6,
+      "deadline": "2026-11-16T19:26:12.065224Z"
+    },
+    "matching_desired_fields_did_not_relabel_unknown": true,
+    "cross_incident_denial": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "target_locked",
+          "message": "An active, locked or unclassified execution blocks this target. Inspect its evidence and maintenance state."
+        }
+      }
+    },
+    "after_proof_state": "outcome_unknown",
+    "after_proof_attribution": "outcome_unknown",
+    "after_proof_holds_lock": false,
+    "real_Edge_resolution": {
+      "incident_id": "8a1e1c7b-d69d-4b89-8237-5daf2602bc66",
+      "resolution_id": "d80a714f-6cec-481f-b1cd-582f1e65ce02",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "activity": {
+        "id": "d80a714f-6cec-481f-b1cd-582f1e65ce02",
+        "incident_id": "8a1e1c7b-d69d-4b89-8237-5daf2602bc66",
+        "kind": "resolve",
+        "text": "Controlled lost-response acceptance: write attribution remains unknown. Hand off investigation and keep the original target quarantined until trusted current-state and old-writer-exclusion proof. Incident resolution grants no execution authority.",
+        "actor_id": "74733ec9-e076-4f65-9521-bac55c296525",
+        "actor_name": "e07-r7-operator",
+        "created_at": "2026-11-16T19:25:17.421869Z"
+      }
+    }
+  },
+  "late_forward": {
+    "kind": "Controlled paused functional transport, real old conditional Kubernetes PATCH released after real root fences",
+    "execution_id": "f7884e42-18e8-40bc-a742-66bcc09ef5b7",
+    "captured_patch": [
+      {
+        "op": "test",
+        "path": "/metadata/uid",
+        "value": "a8c64be4-4fb0-4066-9485-0673bf0b99aa"
+      },
+      {
+        "op": "test",
+        "path": "/metadata/resourceVersion",
+        "value": "13962"
+      },
+      {
+        "op": "replace",
+        "path": "/spec/replicas",
+        "value": 2
+      }
+    ],
+    "late_result": "target_changed",
+    "released_at": 1794857921.973307,
+    "release_before_plan_expiry": true,
+    "selected_spec_unchanged": true,
+    "historical_attribution": "outcome_unknown"
+  },
+  "late_inverse": {
+    "kind": "Actual separately approved inverse with controlled delayed conditional transport",
+    "plan_id": "1cc49081-b974-44e5-a008-d22499ce853e",
+    "execution_id": "f24624af-a146-4395-a937-7575392c74c4",
+    "initial_attribution": "outcome_unknown",
+    "captured_patch": [
+      {
+        "op": "test",
+        "path": "/metadata/uid",
+        "value": "a8c64be4-4fb0-4066-9485-0673bf0b99aa"
+      },
+      {
+        "op": "test",
+        "path": "/metadata/resourceVersion",
+        "value": "15068"
+      },
+      {
+        "op": "replace",
+        "path": "/spec/replicas",
+        "value": 1
+      }
+    ],
+    "late_result": "target_changed",
+    "selected_spec_unchanged": true,
+    "released_before_plan_expiry": true,
+    "maintenance_generation_delta": 2
+  },
+  "initial_outcomes_retained": {
+    "context_required_targets_exceed_budget": {
+      "attempts": 3,
+      "HTTP_model_requests": 0,
+      "no_positive_claim": true
+    },
+    "insufficient_prechange_coverage": {
+      "execution_id": "b89aa245-9b1d-4b5b-adcd-d47a0a16676c",
+      "attribution": "not_sent",
+      "verification": "not_performed",
+      "valid_samples": 2,
+      "expected_samples": 3,
+      "reason": "insufficient_traffic; original fault arm never received a functional request"
+    },
+    "wrong_immutable_image_binding": {
+      "plan_id": "621873d2-d4fe-4a79-a51a-3dbdb6b0a9b8",
+      "plan_digest": "ecb27c26165377d252bcda8328be1dc143ed1967f1886a1fbd687dcf3348fca8",
+      "template": "scale_deployment",
+      "origin": "operator_manual",
+      "execution_id": "0de9541f-bfc7-45e7-8dcd-60b0077b8b22",
+      "state": "manual_intervention",
+      "outcome": {
+        "schema_version": "RecoveryOutcome/v1",
+        "operation_id": "0de9541f-bfc7-45e7-8dcd-60b0077b8b22",
+        "attribution": "acknowledged",
+        "verification": "inconclusive",
+        "future_authority": "fresh_preflight_required",
+        "reason": "Verification evidence is inconclusive; investigate or hand off before a fresh change.",
+        "reconciliation": {
+          "attempts": 0,
+          "maximum_attempts": 6,
+          "deadline": "2026-11-16T19:52:08.819933Z"
+        }
+      },
+      "before": {
+        "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+        "replicas": 1,
+        "containers": [
+          {
+            "name": "app",
+            "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "192Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              }
+            }
+          }
+        ]
+      },
+      "desired": {
+        "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+        "replicas": 2,
+        "containers": [
+          {
+            "name": "app",
+            "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "192Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              }
+            }
+          }
+        ]
+      },
+      "policy": {
+        "id": "e07-local-recovery",
+        "version": "r7-integrated-1",
+        "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+      },
+      "verification_profile_digest": "c890fed10d8ad3e11cd46abaa69bf655037b76b1b35206534edaf20fb16b35e0",
+      "acknowledged_at": "2026-11-16T19:50:08.930876Z",
+      "fixed_deadline": "2026-11-16T19:53:08.930876Z",
+      "finalized_at": "2026-11-16T19:53:10.495468Z",
+      "qualified_rollout_samples": 0,
+      "expected_rollout_samples": 5,
+      "application": {
+        "state": "passed",
+        "coverage": 1.0,
+        "pod_uids": [
+          "638f44a6-d795-4488-b8d9-3e596f06f144",
+          "6cf88b86-bc52-4f00-a1f2-784bddfa8fe0"
+        ],
+        "offered_rps": 30.0,
+        "reason_codes": [],
+        "valid_samples": 5,
+        "failed_samples": [],
+        "expected_samples": 5
+      },
+      "reason_codes": [
+        "insufficient_qualified_observations",
+        "rollout_failure_or_window_coverage_incomplete"
+      ]
+    },
+    "runtime_image_correction": {
+      "old_docker_config_digest": {
+        "app": "sha256:b213a46dc386770a6d0cae4323da81f5767a174626f5676cee6abfcccf0f7cf1"
+      },
+      "actual_Kubernetes_runtime_digest": {
+        "app": "sha256:490ed5ccf70b99400e1aef592bfff395975ea23ac268ea2a0b84031c3104a8be"
+      },
+      "read_only_diagnostic_not_fresh_success": true,
+      "historical_inconclusive_result_unchanged": true
+    },
+    "harness_limits": "Initial readiness and finite-worker wait checks were corrected. Existing acknowledged/unknown executions and root exclusion receipts were retained without repeating functional operations; maintenance annotation generation changes are counted separately from selected-spec writes.",
+    "post_restore_verified_harness_boundary": {
+      "error": "list index out of range",
+      "finished_at": "2026-11-17T02:20:49.677385+00:00",
+      "stage": "After completed approved verified restore, unsafe inverse control and joined finite worker; stdout summary empty after root stopped load. No operation or inference replay."
+    }
+  },
+  "UI": {
+    "source_layout_fix": "Explicit minmax(0,1fr) on vertical foundation-stack; actual long verification version overflow measured and fixed",
+    "before_320": {
+      "at": "2026-11-16T19:39:39.574Z",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "measurements": {
+        "clientWidth": 305,
+        "scrollWidth": 356
+      },
+      "source": "accepted R6 CSS; selected actual lost-ACK execution with R7 long verification profile version"
+    },
+    "after_320": {
+      "at": "2026-11-16T19:41:16.876Z",
+      "measurements": {
+        "clientWidth": 305,
+        "height": 844,
+        "scrollWidth": 305,
+        "width": 320
+      },
+      "source": "R7 foundation-stack minmax(0,1fr)",
+      "data": "same actual lost-ACK execution and long profile version"
+    },
+    "frozen_export_before_restores": {
+      "incident_id": "8a1e1c7b-d69d-4b89-8237-5daf2602bc66",
+      "resolution_id": "d80a714f-6cec-481f-b1cd-582f1e65ce02",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "actual_UI_copy_matches_API_bytes": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "at": "2026-11-16T19:28:29.662Z"
+    },
+    "frozen_export_after3real_restores": {
+      "phase": "after all3 real pg_dump/pg_restore cuts and new approval",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "exact_UI_copy_matches_original_API_bytes": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "theme": "dark",
+      "at": "2026-11-16T20:05:14.979Z"
+    },
+    "browser": "Actual connected Microsoft Edge Profile1, separate owned tab; no trust/permission changes",
+    "native_file_download_event": "Earlier R6 event capture timed out; not counted as a native file-download pass. Exact actual UI-copy/API bytes are proven.",
+    "frozen_export_after_all_operations": {
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd"
+    },
+    "viewer_inverse_390_light": {
+      "role": "viewer",
+      "selected_execution": "0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "expected_state": "rolled_back",
+      "expected_verification": "passed",
+      "mutation_controls": 0,
+      "layout": {
+        "clientWidth": 375,
+        "height": 844,
+        "scrollWidth": 375,
+        "width": 390
+      },
+      "at": "2026-11-16T20:39:29.684Z"
+    },
+    "viewer_inverse_390_dark": {
+      "client": 375,
+      "height": 844,
+      "scroll": 375,
+      "selection": "#/incidents/ac062142-a7e8-4cf5-89fc-56c2a1fa377d?plan=2634f4fc-14d8-4127-aebe-168b45ee55ea&execution=0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "width": 390
+    },
+    "viewer_verification_320_dark": {
+      "client": 305,
+      "height": 844,
+      "scroll": 305,
+      "selection": "#/incidents/ac062142-a7e8-4cf5-89fc-56c2a1fa377d?plan=2634f4fc-14d8-4127-aebe-168b45ee55ea&execution=0a53841d-3288-4472-84e0-a6ee0bb4951f",
+      "width": 320
+    },
+    "shared_stack_consumers_320_dark": {
+      "workload_context_dialog": {
+        "client_width": 277,
+        "scroll_width": 277
+      },
+      "connections": {
+        "document_client_width": 305,
+        "document_scroll_width": 305
+      },
+      "only_read_UI_actions": true
+    },
+    "screenshots": [
+      "../images/e07-r7-frozen-copy-320-dark.jpg",
+      "../images/e07-r7-viewer-inverse-320-light.jpg",
+      "../images/e07-r7-viewer-inverse-390-dark.jpg",
+      "../images/e07-r7-viewer-verification-320-dark.jpg",
+      "../images/e07-r7-live-restore-findings-390-dark.jpg",
+      "../images/e07-r7-live-restore-citation-390-dark.jpg",
+      "../images/e07-r7-live-restore-succeeded-390-dark.jpg",
+      "../images/e07-r7-live-memory-findings-320-light.jpg",
+      "../images/e07-r7-live-memory-succeeded-320-light.jpg"
+    ],
+    "frozen_export_after_new_qualified_live_operations": {
+      "at": "2026-11-17T02:34:22.165707+00:00",
+      "bytes": 13357,
+      "sha256": "976ffa40fa9a89e2ae8a6fd0a3b543d3d0ca4f21bc6f5dca0f1aedd276cfa2cd",
+      "same_after_real_restores_context_v2_new_qualified_model_operations": true,
+      "historical_unknown_state": "outcome_unknown",
+      "historical_unknown_attribution": "outcome_unknown",
+      "maintenance_released_trusted_readonly_exact_ORM": true,
+      "historical_holds_lock": false
+    },
+    "fresh_live_citation": {
+      "client": 375,
+      "height": 844,
+      "scroll": 375,
+      "url": "http://localhost:5177/#/incidents/61063463-75b0-47ff-bec1-b7611a7a9240?run=04d31ff9-5693-44d2-b8ff-e00b4085775d&evidence=c8a9f59b-b44b-42ee-8943-ab763c938175&locator_kind=log_segment&locator_key=v1_0cec75a57ad17b8b451059866f5548455a7ce05b1d73fdadd2b2c7b7f7613d30",
+      "width": 390
+    },
+    "memory_findings_320_light": {
+      "client": 305,
+      "height": 844,
+      "mutation_buttons": 0,
+      "scroll": 305,
+      "url": "http://localhost:5177/#/incidents/7e5cc131-c02e-4db8-afdb-94d1f3124778?run=0c9abc8e-5015-4df9-befc-26007fcd2f7e&execution=51e17800-751f-464e-a626-9bf4ce7cbf49",
+      "width": 320
+    },
+    "memory_passed_320_light": {
+      "client": 305,
+      "height": 844,
+      "scroll": 305,
+      "url": "http://localhost:5177/#/incidents/7e5cc131-c02e-4db8-afdb-94d1f3124778?run=0c9abc8e-5015-4df9-befc-26007fcd2f7e&execution=51e17800-751f-464e-a626-9bf4ce7cbf49",
+      "width": 320
+    },
+    "fresh_model_flow_QA": {
+      "verdict": "pass",
+      "tested_flow_score_out_of_5": 5,
+      "scope": "Actual Viewer reads newly qualified live findings, exact same-Run/locator citation payload, succeeded/acknowledged/passed history and 320/390px reflow. Existing Operator/session/queue/frozen export matrix retained at its tested fingerprints.",
+      "native_download_event_excluded_from_score": true
+    }
+  },
+  "release_limits": [
+    "No cloud or production qualification",
+    "No SLO/rules-comparator/15-run E10 release claim",
+    "Memory success describes the bounded300s observation, not a repaired leak",
+    "Recorded native file-download event is not proven; actual UI-copy/API saved bytes are proven",
+    "Final exact-head CI/independent confirmation/merge/issue closure remain delivery prerequisites, recorded on PR92 and Epic10"
+  ],
+  "negative_controls": {
+    "already_current_no_op": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "no_op",
+          "message": "The target already has that replica count; no executable change is needed."
+        }
+      }
+    },
+    "controller_conflict": {
+      "hpa_uid": "53e98da2-fd16-4961-9ae1-f04ad4aed443",
+      "denial": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "controller_conflict",
+            "message": "A workload controller owns this target. Manual review is required."
+          }
+        }
+      }
+    },
+    "capacity_conflict": {
+      "pod_uid": "0570baa6-14cf-49a8-b053-ef34bfaa95f5",
+      "node_uid": "88cfc091-9b39-428f-8c7f-1bd24ab035f1",
+      "assigned_node": "cloudops-e07",
+      "previous_allocated_cpu": "0.295",
+      "reservation_millicores": 2680,
+      "remaining_millicores": 25,
+      "denial": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "capacity_unproven",
+            "message": "Requested replicas exceed proven allocatable requests."
+          }
+        }
+      }
+    },
+    "viewer": {
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "permission_denied",
+          "message": "Viewer access is read-only. An Operator must perform this action."
+        }
+      }
+    },
+    "real401_no_replay": {
+      "status": 401,
+      "body": {
+        "error": {
+          "code": "session_expired",
+          "message": "Sign in to continue. Your saved work is still available."
+        }
+      }
+    },
+    "old_session_receipt": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "plan_refetch_required",
+          "message": "Read the current plan after signing in and make a fresh explicit decision."
+        }
+      }
+    },
+    "unknown_forward_inverse": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "inverse_unavailable",
+          "message": "Reopen the saved incident before proposing a separately approved inverse."
+        }
+      }
+    },
+    "empty_restore_diff": {
+      "state": "manual_only",
+      "reason": "no_supported_diff",
+      "execution_eligible": false
+    },
+    "configuration_only": {
+      "state": "manual_only",
+      "reason": "config_unverified",
+      "execution_eligible": false
+    },
+    "initial_unassigned_capacity_preview": {
+      "HTTP_status": 201,
+      "plan_id": "ab35ae18-a01b-47ad-9f9e-01d62b2f210e",
+      "no_approval_or_dispatch": true,
+      "reason": "Reservation was not yet assigned to the Node when inspected; preserve preview, require actual allocation before capacity control."
+    },
+    "terminating_reservation_still_denied": {
+      "HTTP_status": 409,
+      "code": "capacity_unproven",
+      "no_approval_or_dispatch": true
+    },
+    "owned_controls_cleaned_up": true
+  },
+  "tested_runtime": {
+    "at": "2026-11-17T02:28:52.184633+00:00",
+    "source_modules": 135,
+    "core_source_fingerprint": "bd0cbb4806b950ff2650f83350bc65d74cf74b254a749b32b9c9efcc8dffdbda",
+    "containers": [
+      {
+        "name": "cloudops-e07-acceptance-api-1",
+        "image_id": "sha256:1a78c83bbc157af6c729d22049868b77c6efb512b0e24b8a29e1a4178dc6e7ad",
+        "core_matches_source": true,
+        "provider_credential_present": false
+      },
+      {
+        "name": "cloudops-e07-acceptance-gateway-1",
+        "image_id": "sha256:1a78c83bbc157af6c729d22049868b77c6efb512b0e24b8a29e1a4178dc6e7ad",
+        "core_matches_source": true,
+        "provider_credential_present": false
+      }
+    ],
+    "actual_operational_driver_sha256": "76a47f99bdf025f9234a76a19336bfc868f4e66a3a51b9e03b90660ee3ad1422",
+    "actual_evaluation_runner_sha256": "e6276f25b8c64f69623f0713c0afeb64998f3c7a1a1b7cddd7b70a8d0f9f6813"
+  },
+  "controlled_gateway_transport": {
+    "actual_fault_injection": "Completed controlled lost/delayed response campaign; original real product/job/Kubernetes conditional path and authority stores retained",
+    "final_runtime": "Normal uninstrumented gateway; original identity/pin/flock and functional journal survived both removal and context-v2 activation",
+    "serving_fault_mounts_removed": true
+  },
+  "source_counts": {
+    "backend_py": 135,
+    "web_sources": 99
+  },
+  "changed_source_sha256": {
+    "apps/web/src/app/foundation.css": "5359a717aa1e441c2d1e746265645b8016373ae9cadcaa75e113725c445edb26",
+    "config/lab/recovery_app.py": "d463b506bbe63afefbe11d3dae32d439e7029c83178d0e7a2cc2cec77a30bab6",
+    "services/backend/tests/e07_live_worker.py": "76a47f99bdf025f9234a76a19336bfc868f4e66a3a51b9e03b90660ee3ad1422",
+    "services/backend/tests/test_e07_live_budget.py": "b9ab89ab86619601476acdaeab454922c3f0d71fbd2c18c9f02f57697a8eb30a",
+    "services/backend/src/cloudops/features/diagnosis/context.py": "bc7b647945da2accce397a9109d350aa0f0bb00d9848173c93ba1a3879e38f1f",
+    "services/backend/src/cloudops/features/diagnosis/versions.py": "1f4fe927cf75df95bba1a8779c0f877920791bfbaa45e4518655de166c9028c7"
+  },
+  "fingerprint_algorithm": "SHA256 of json.dumps(relative path to file SHA256,sort_keys=True); backend/src .py,web/src .ts/.tsx/.css plus the named sample and acceptance driver/tests",
+  "no_model_campaign_tested_head": "fd20b73d1e07cd3817874dac572611090a21acbf",
+  "candidate_source_fingerprint": "3815add2bdc1d47566a50f3ca1f9cee01087f63d16b982243ce50639f00b465f",
+  "context_v2_preflight": {
+    "diagnostic_only_no_send": true,
+    "schema": "PreparedContext/v1",
+    "source_run": "3699cac1-0577-47d7-ac1c-2e6b2c555557",
+    "message_bytes": 59357,
+    "input_bound": 65536,
+    "required_targets": 85,
+    "repair_available": true,
+    "context_version": "e06.context/v2",
+    "digest": "9beb3eb9c55844474c9bdff9093e6d39c5cfc52b1621007046a37e6d3ce45b2b",
+    "qualification_installed": false,
+    "source_sha256": {
+      "services/backend/src/cloudops/features/diagnosis/context.py": "bc7b647945da2accce397a9109d350aa0f0bb00d9848173c93ba1a3879e38f1f",
+      "services/backend/src/cloudops/features/diagnosis/versions.py": "1f4fe927cf75df95bba1a8779c0f877920791bfbaa45e4518655de166c9028c7"
+    },
+    "initial_unchanged_wire_64KiB_result": {
+      "schema": "ContextInsufficiency/v1",
+      "reason": "required_targets_exceed_budget",
+      "HTTP_model_requests": 0,
+      "original_input_and_outcome_retained": true
+    }
+  },
+  "candidate_local_checks": {
+    "context_v2_unit": 886,
+    "context_v2_diagnosis_and_budget_integration": 89,
+    "focused_review_and_context_regressions": 92,
+    "web": "259 tests/build unchanged since the tested layout fix",
+    "approved_budget_guard_regressions": 10,
+    "CI_checkpoint": {
+      "head": "a12f41d28a4dea9fcde15a6835a84b5d7739373b",
+      "run": 43957276743,
+      "backend": 2015,
+      "web": 259,
+      "migrations_contracts_drift_HTTPS": "passed"
+    },
+    "final_exact_head_CI": "See PR92 required checks; no self-referential CI success claim in this generated artifact."
+  },
+  "fresh_live_model_recovery": {
+    "restore": {
+      "incident_id": "61063463-75b0-47ff-bec1-b7611a7a9240",
+      "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+      "window": {
+        "start": "2026-11-17T02:11:44.091256Z",
+        "end": "2026-11-17T02:12:44.091273Z",
+        "source": "explicit"
+      },
+      "analysis_id": "5586279c-2eb7-4f71-a17a-5add16e66382",
+      "preflight_message_bytes": 47652,
+      "qualified_context_version": "e06.context/v2",
+      "analysis_status": "completed",
+      "diagnosis": {
+        "status": "supported",
+        "summary": "Captured telemetry supports a startup crash loop caused by configuration rejected by the running image version. Current and previous logs report the rejection; the container exits with code 1, has restarted three times, and is in CrashLoopBackOff. Startup probes receive connection refused and the Deployment lacks minimum availability. The exact incompatible configuration field is not established. restore_deployment_template is a family-matched advisory candidate only, not authorization to restore an unidentified baseline.",
+        "cause_category": "crashloop_startup",
+        "candidate_template_id": "restore_deployment_template",
+        "context_digest": "b69600e5fb8356f7516a8b20e17f97a5e6e2c283277624c150d7a0e4fe576776",
+        "context_version": "e06.context/v2",
+        "prompt_version": "e06.rca_prompt/v3",
+        "validator_version": "e06.validator/v1"
+      },
+      "exact_scoped_support": [
+        {
+          "source_key": "kubernetes.logs.current",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "c8a9f59b-b44b-42ee-8943-ab763c938175",
+            "locator": {
+              "kind": "log_segment",
+              "key": "v1_0cec75a57ad17b8b451059866f5548455a7ce05b1d73fdadd2b2c7b7f7613d30"
+            }
+          },
+          "evidence_sha256": "bd2d87db832a090b068230fdf3fc997d87f6671a5d1b5cf585f91de6476b86f0"
+        },
+        {
+          "source_key": "kubernetes.logs.previous",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "fb77e56e-a5f8-474f-a2d7-abb03358d0f8",
+            "locator": {
+              "kind": "log_segment",
+              "key": "v1_193138c2158504fba7a98a360db9b8b4e210d9c504b31aa3944dddb195601c36"
+            }
+          },
+          "evidence_sha256": "8e35ebb0644ca0f262ab02a87edad01bcf6ee73650c890be6835b47e0fdaf7d3"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "5fd88508-e41f-422e-ac76-5ab12726be58",
+            "locator": {
+              "kind": "field",
+              "key": "v1_2d03db2536326193f5a0ee42ced94868345e2138bfbdf4ef38cf813c4da0a91b"
+            }
+          },
+          "evidence_sha256": "3adf187615c5d09af74b02dfe60c4a3804060a927086c486336b861439a0d12b"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "5fd88508-e41f-422e-ac76-5ab12726be58",
+            "locator": {
+              "kind": "field",
+              "key": "v1_7012398d468a5c03189c6db8ff10fcb951c93274dfb3e84b772b69ec940738ee"
+            }
+          },
+          "evidence_sha256": "3adf187615c5d09af74b02dfe60c4a3804060a927086c486336b861439a0d12b"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "5fd88508-e41f-422e-ac76-5ab12726be58",
+            "locator": {
+              "kind": "field",
+              "key": "v1_ccdbfed6597f5a5cbb606ea6192f81a01ecd40d5027612efb920bee2337840ed"
+            }
+          },
+          "evidence_sha256": "3adf187615c5d09af74b02dfe60c4a3804060a927086c486336b861439a0d12b"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "5fd88508-e41f-422e-ac76-5ab12726be58",
+            "locator": {
+              "kind": "field",
+              "key": "v1_efc92d18e933d71ae1b8ddb8057c694bf8e4d9c35858dc34c44fb6d7eba33150"
+            }
+          },
+          "evidence_sha256": "3adf187615c5d09af74b02dfe60c4a3804060a927086c486336b861439a0d12b"
+        },
+        {
+          "source_key": "kubernetes.events",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "327f1a3a-5b51-4808-8e7e-64dd52600935",
+            "locator": {
+              "kind": "event",
+              "key": "v1_29d0d53288c1f18c648816b2a0ad99d1345c6bcf623777bd7e56a3587f7528f0"
+            }
+          },
+          "evidence_sha256": "7332c41284f254525d4dc84330d582b5719f5307d57b8d70aa1a42fc64b43066"
+        },
+        {
+          "source_key": "kubernetes.events",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "327f1a3a-5b51-4808-8e7e-64dd52600935",
+            "locator": {
+              "kind": "event",
+              "key": "v1_a6b1cd8db1c328ff2701991f14459d8d56934ad4c5567d14f4ae0672bcef4bc6"
+            }
+          },
+          "evidence_sha256": "7332c41284f254525d4dc84330d582b5719f5307d57b8d70aa1a42fc64b43066"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "5fd88508-e41f-422e-ac76-5ab12726be58",
+            "locator": {
+              "kind": "field",
+              "key": "v1_08e37b6dd10392874f01d6842f231305903716228f5271055ec8976b1307ebaf"
+            }
+          },
+          "evidence_sha256": "3adf187615c5d09af74b02dfe60c4a3804060a927086c486336b861439a0d12b"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "04d31ff9-5693-44d2-b8ff-e00b4085775d",
+            "evidence_id": "5fd88508-e41f-422e-ac76-5ab12726be58",
+            "locator": {
+              "kind": "field",
+              "key": "v1_0995dccb86f6d5186632757d899fab564c6bbc0df6e3d667cbe9efaf7d8861e0"
+            }
+          },
+          "evidence_sha256": "3adf187615c5d09af74b02dfe60c4a3804060a927086c486336b861439a0d12b"
+        }
+      ],
+      "calls": [
+        {
+          "repair": false,
+          "request_digest": "6c2804c8460c2249b15bd48c23432ced10f8f3dcb00f72528291c7df74b55d2f",
+          "served_model": "gpt-6.1-sol",
+          "usage": {
+            "prompt_tokens": 11687,
+            "completion_tokens": 513,
+            "total_tokens": 12200
+          },
+          "HTTP_status": 200
+        }
+      ],
+      "operation": {
+        "plan_id": "b48090f6-3845-45e8-a981-cefc80421766",
+        "plan_digest": "64c4565324bec8b8f7785fd82526bd3121e6c98651b027112b130b3a908ce5a4",
+        "template": "restore_deployment_template",
+        "origin": "analysis_advice",
+        "execution_id": "d7408128-a0de-479a-b595-b80d9656010b",
+        "state": "succeeded",
+        "outcome": {
+          "schema_version": "RecoveryOutcome/v1",
+          "operation_id": "d7408128-a0de-479a-b595-b80d9656010b",
+          "attribution": "acknowledged",
+          "verification": "passed",
+          "future_authority": "fresh_preflight_required",
+          "reason": "Qualified post-change checks passed; inspect the independent observations.",
+          "reconciliation": {
+            "attempts": 0,
+            "maximum_attempts": 6,
+            "deadline": "2026-11-17T02:16:56.371449Z"
+          }
+        },
+        "before": {
+          "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+          "replicas": 1,
+          "containers": [
+            {
+              "name": "app",
+              "image": "cloudops-e07-recovery:b5ea56c203d0770c-bad-image",
+              "resources": {
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "192Mi"
+                },
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "256Mi"
+                }
+              }
+            }
+          ]
+        },
+        "desired": {
+          "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+          "replicas": 1,
+          "containers": [
+            {
+              "name": "app",
+              "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+              "resources": {
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "192Mi"
+                },
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "256Mi"
+                }
+              }
+            }
+          ]
+        },
+        "policy": {
+          "id": "e07-local-recovery",
+          "version": "r7-integrated-1",
+          "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+        },
+        "verification_profile_digest": "552956bd6743541e88b15538edbecfd78452bd890c7270715cd67698bd4a2821",
+        "acknowledged_at": "2026-11-17T02:14:56.492516Z",
+        "fixed_deadline": "2026-11-17T02:19:56.492516Z",
+        "finalized_at": "2026-11-17T02:19:56.854868Z",
+        "qualified_rollout_samples": 9,
+        "expected_rollout_samples": 9,
+        "application": {
+          "state": "passed",
+          "coverage": 1.0,
+          "pod_uids": [
+            "9d37516e-9128-43aa-8bb4-29caefb8eff3"
+          ],
+          "offered_rps": 8.0,
+          "reason_codes": [],
+          "valid_samples": 9,
+          "failed_samples": [],
+          "expected_samples": 9
+        },
+        "reason_codes": []
+      },
+      "approval": {
+        "state": "approved",
+        "actor_user_id": "74733ec9-e076-4f65-9521-bac55c296525",
+        "decided_at": "2026-11-17T02:14:50.175804Z",
+        "review_valid": true
+      },
+      "generation_delta_for_product_operation": 1,
+      "missing_baseline_or_profile_control": {
+        "state": "manual_only",
+        "reason": "A confirmed baseline for the original target is required.",
+        "next_step": "Inspect fresh scoped evidence and qualified server policy; use a deployment operator for unsupported changes."
+      },
+      "unsafe_inverse_API": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "inverse_unavailable",
+            "message": "No current original rollback window exists; inspect history or use manual handoff."
+          }
+        }
+      },
+      "captured_old_state_policy_denial": {
+        "HTTP_equivalent": 409,
+        "code": "inverse_unavailable",
+        "reason": "The captured old template/resources lack independent inverse qualification."
+      },
+      "rollback_contract_was_not_armed": true,
+      "load_summary_limit": "Root stopped finite900s load after the verified window, before natural end-of-run stdout summary. Independent observed request metrics and actual source/profile prove offered load."
+    },
+    "memory": {
+      "incident_id": "7e5cc131-c02e-4db8-afdb-94d1f3124778",
+      "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+      "window": {
+        "start": "2026-11-17T02:26:02.034755Z",
+        "end": "2026-11-17T02:27:02.034768Z",
+        "source": "explicit"
+      },
+      "analysis_id": "be5be29e-02e7-4a32-b319-1677c0742336",
+      "preflight_message_bytes": 51318,
+      "qualified_context_version": "e06.context/v2",
+      "analysis_status": "completed",
+      "diagnosis": {
+        "status": "supported",
+        "summary": "The captured app container termination is explicitly OOMKilled with exit code 137, and the container has restarted three times. Current and previous logs report allocation of a bounded 160 MiB resident working set, exceeding the deployment template's 128Mi memory limit. These observations support OOM-related restarts and a memory-profile mismatch as the likely immediate cause. Restart back-off, failed startup probes, and unavailable readiness accompany the failures. set_memory_profile is an advisory mitigation candidate, not an authorized change or a demonstrated repair.",
+        "cause_category": "oom_restarts",
+        "candidate_template_id": "set_memory_profile",
+        "context_digest": "34c9dad5d20e865ffdff1d9002b0d594f8492551d9c7ebb20b920190c0384259",
+        "context_version": "e06.context/v2",
+        "prompt_version": "e06.rca_prompt/v3",
+        "validator_version": "e06.validator/v1"
+      },
+      "exact_scoped_support": [
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "eadfad1a-5f72-45b7-828c-7b354518174e",
+            "locator": {
+              "kind": "field",
+              "key": "v1_d3c86905ead05cd7a0833315f4c1cee9516bf6983507ac0b8119db113f54283f"
+            }
+          },
+          "evidence_sha256": "66820ef56fe629ae799a0eefb238cb30f9c57e182f66752c38beb91b63be4d59"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "eadfad1a-5f72-45b7-828c-7b354518174e",
+            "locator": {
+              "kind": "field",
+              "key": "v1_9ca17cc8595b634def8565dd9ac12689aa4f91daad8a6b6fb22688a35ecba3dd"
+            }
+          },
+          "evidence_sha256": "66820ef56fe629ae799a0eefb238cb30f9c57e182f66752c38beb91b63be4d59"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "eadfad1a-5f72-45b7-828c-7b354518174e",
+            "locator": {
+              "kind": "field",
+              "key": "v1_a273bf5f11dd2c58945efbbb912dc732d58625a6385117e02cc254a5b3b58c31"
+            }
+          },
+          "evidence_sha256": "66820ef56fe629ae799a0eefb238cb30f9c57e182f66752c38beb91b63be4d59"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "eadfad1a-5f72-45b7-828c-7b354518174e",
+            "locator": {
+              "kind": "field",
+              "key": "v1_d26be248e8a937e21ad3c41222619e0ab5641245d4e50c04ef7cd77b2405259a"
+            }
+          },
+          "evidence_sha256": "66820ef56fe629ae799a0eefb238cb30f9c57e182f66752c38beb91b63be4d59"
+        },
+        {
+          "source_key": "kubernetes.logs.current",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "2b8c9b37-fc2c-487f-9fdc-7d8fc8082f17",
+            "locator": {
+              "kind": "log_segment",
+              "key": "v1_d8184b272fc520147cd8bbf879fbb5318919da69509ee2ac069d49ce00e808dd"
+            }
+          },
+          "evidence_sha256": "b06e44725aa640248dd4c609a4dfbfd34a223f037b82825cee4b83ac29f889e0"
+        },
+        {
+          "source_key": "kubernetes.logs.previous",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "253ac006-0e0c-40d4-868e-6a0665900a38",
+            "locator": {
+              "kind": "log_segment",
+              "key": "v1_014f3f986fd039131abf72cdf790f03569607a1dc2446d165f9ac43ae09b0c89"
+            }
+          },
+          "evidence_sha256": "0163e018614eb336f3138cb2930c437e34c78ce4c9bea13a7fd70cdd2db12a94"
+        },
+        {
+          "source_key": "kubernetes.events",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "b4ff84d0-4b00-4bcd-a74a-322898781941",
+            "locator": {
+              "kind": "event",
+              "key": "v1_2dadbe9d5866ac45603443a1feb16c58dd6984dbd48b31bf9c4511030b456879"
+            }
+          },
+          "evidence_sha256": "6fe826e15ffa5666ff831864a8eeac7d01207b85ce518f1b312e0f87b4ed5279"
+        },
+        {
+          "source_key": "kubernetes.events",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "b4ff84d0-4b00-4bcd-a74a-322898781941",
+            "locator": {
+              "kind": "event",
+              "key": "v1_e95ae93bf51148d7c08419afb4f64c095a9e1171d6494d704cc9041f0d434ff4"
+            }
+          },
+          "evidence_sha256": "6fe826e15ffa5666ff831864a8eeac7d01207b85ce518f1b312e0f87b4ed5279"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "eadfad1a-5f72-45b7-828c-7b354518174e",
+            "locator": {
+              "kind": "field",
+              "key": "v1_2f66c9242ebf98586a1723753a93e827220ca46e9fc3ea8fbc8040b88a444caf"
+            }
+          },
+          "evidence_sha256": "66820ef56fe629ae799a0eefb238cb30f9c57e182f66752c38beb91b63be4d59"
+        },
+        {
+          "source_key": "kubernetes.state",
+          "citation": {
+            "run_id": "0c9abc8e-5015-4df9-befc-26007fcd2f7e",
+            "evidence_id": "eadfad1a-5f72-45b7-828c-7b354518174e",
+            "locator": {
+              "kind": "field",
+              "key": "v1_0995dccb86f6d5186632757d899fab564c6bbc0df6e3d667cbe9efaf7d8861e0"
+            }
+          },
+          "evidence_sha256": "66820ef56fe629ae799a0eefb238cb30f9c57e182f66752c38beb91b63be4d59"
+        }
+      ],
+      "calls": [
+        {
+          "repair": false,
+          "request_digest": "fca474dab19b74c444053b9214d3653c6832973ee1c1103f7b5dfde8a4f86318",
+          "served_model": "gpt-6.1-sol",
+          "usage": {
+            "prompt_tokens": 13002,
+            "completion_tokens": 538,
+            "total_tokens": 13540
+          },
+          "HTTP_status": 200
+        }
+      ],
+      "operation": {
+        "plan_id": "49f0e0e6-6210-47a2-8d12-04d3b404944d",
+        "plan_digest": "652f9f2865049aefd25e37565e92e077013d816049b64504c62c57dfaa7ab2da",
+        "template": "set_memory_profile",
+        "origin": "analysis_advice",
+        "execution_id": "51e17800-751f-464e-a626-9bf4ce7cbf49",
+        "state": "succeeded",
+        "outcome": {
+          "schema_version": "RecoveryOutcome/v1",
+          "operation_id": "51e17800-751f-464e-a626-9bf4ce7cbf49",
+          "attribution": "acknowledged",
+          "verification": "passed",
+          "future_authority": "fresh_preflight_required",
+          "reason": "Qualified post-change checks passed; inspect the independent observations.",
+          "reconciliation": {
+            "attempts": 0,
+            "maximum_attempts": 6,
+            "deadline": "2026-11-17T02:31:13.739089Z"
+          }
+        },
+        "before": {
+          "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+          "replicas": 1,
+          "containers": [
+            {
+              "name": "app",
+              "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+              "resources": {
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "64Mi"
+                },
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "128Mi"
+                }
+              }
+            }
+          ]
+        },
+        "desired": {
+          "uid": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+          "replicas": 1,
+          "containers": [
+            {
+              "name": "app",
+              "image": "cloudops-e07-recovery:b5ea56c203d0770c-healthy",
+              "resources": {
+                "requests": {
+                  "cpu": "50m",
+                  "memory": "192Mi"
+                },
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "256Mi"
+                }
+              }
+            }
+          ]
+        },
+        "policy": {
+          "id": "e07-local-recovery",
+          "version": "r7-integrated-1",
+          "digest": "fbb9ac4f26a7e85b85c6f0e41ab5954b9a00f80e71223378c19672f5f7c04ddd"
+        },
+        "verification_profile_digest": "82ce65520b1d1ccc92bbb7096d7aa26bc4d8f6380af80829a32a6c5e5433637a",
+        "acknowledged_at": "2026-11-17T02:29:13.853949Z",
+        "fixed_deadline": "2026-11-17T02:34:13.853949Z",
+        "finalized_at": "2026-11-17T02:34:14.979991Z",
+        "qualified_rollout_samples": 9,
+        "expected_rollout_samples": 9,
+        "application": {
+          "state": "passed",
+          "coverage": 1.0,
+          "pod_uids": [
+            "2b653368-efd6-4450-8b3e-b410b57ccbef"
+          ],
+          "offered_rps": 8.0,
+          "reason_codes": [],
+          "valid_samples": 9,
+          "failed_samples": [],
+          "expected_samples": 9
+        },
+        "reason_codes": []
+      },
+      "approval": {
+        "state": "approved",
+        "actor_user_id": "74733ec9-e076-4f65-9521-bac55c296525",
+        "decided_at": "2026-11-17T02:29:07.689507Z",
+        "review_valid": true
+      },
+      "generation_delta_for_product_operation": 1,
+      "missing_baseline_or_profile_control": {
+        "state": "manual_only",
+        "reason": "Select an immutable qualified memory profile for this UID.",
+        "next_step": "Inspect fresh scoped evidence and qualified server policy; use a deployment operator for unsupported changes."
+      },
+      "unsafe_inverse_API": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "inverse_unavailable",
+            "message": "No current original rollback window exists; inspect history or use manual handoff."
+          }
+        }
+      },
+      "captured_old_state_policy_denial": {
+        "HTTP_equivalent": 409,
+        "code": "inverse_unavailable",
+        "reason": "The captured old template/resources lack independent inverse qualification."
+      },
+      "rollback_contract_was_not_armed": true,
+      "load_summary_limit": "Root stopped finite load after the verified window before its natural900s summary; retained independent request metrics establish offered traffic, not stdout."
+    }
+  },
+  "cleanup": {
+    "state": "passed",
+    "original_UID": "a8c64be4-4fb0-4066-9485-0673bf0b99aa",
+    "original_strategy_restored": {
+      "rollingUpdate": {
+        "maxSurge": 1,
+        "maxUnavailable": 0
+      },
+      "type": "RollingUpdate"
+    },
+    "original_workload_healthy_before_stop": true,
+    "host_classes_denied": true,
+    "all_configured_UIDs_quarantined": true,
+    "owned_running_containers_stopped": [
+      "cloudops-e07-acceptance-gateway-1",
+      "cloudops-e07-acceptance-metrics-1",
+      "cloudops-e07-acceptance-prometheus-1",
+      "cloudops-e07-acceptance-k3s-1",
+      "cloudops-e07-behavior-db"
+    ],
+    "owned_API_worker_stopped_before_authority_transition": true,
+    "owned_Vite_stopped": true,
+    "owned_Edge_tab_closed": true,
+    "temporary_viewport_reset": true,
+    "temporary_credentials_and_dumps_removed": [
+      "worker.env",
+      "client.json",
+      "token",
+      "r7-local-operator.json",
+      "r7-local-viewer.json",
+      "r7-before-approval.dump",
+      "r7-after-approval-before-call.dump",
+      "r7-after-dispatch.dump",
+      "writer/client.json"
+    ],
+    "retained": "Original PG/K3s volumes, SQLite journal, admission flock, independent identity pin, host dispatch permit and retained attempt/receipt histories; no volume or unrelated resource deletion.",
+    "unrelated_running_containers_unchanged": 0,
+    "source_receipt_sha256": "432931ad4b8e0e3d295738926575c6641408ff359eb842766f8bfd961363b353"
+  },
+  "no_model_checkpoint_checks": {
+    "backend_integration": 1124,
+    "backend_unit": 885,
+    "backend_combined": 2009,
+    "web": 259,
+    "web_files": 26,
+    "build": "passed; existing >500KB chunk advisory",
+    "contracts": "match",
+    "drift": "pass",
+    "ruff": "pass",
+    "format_files": 305,
+    "source_head": "fd20b73d1e07cd3817874dac572611090a21acbf"
+  },
+  "acceptance_coverage": {
+    "AC1": {
+      "state": "demonstrated",
+      "proof": [
+        "negative_controls.empty_restore_diff",
+        "negative_controls.configuration_only",
+        "fresh_live_model_recovery.restore.missing_baseline_or_profile_control",
+        "fresh_live_model_recovery.memory.missing_baseline_or_profile_control",
+        "test_recovery_plans.py"
+      ]
+    },
+    "AC2": {
+      "state": "demonstrated",
+      "proof": [
+        "fresh_post_restore_verified_scale",
+        "fresh_live_model_recovery.restore",
+        "fresh_live_model_recovery.memory"
+      ]
+    },
+    "AC3": {
+      "state": "demonstrated",
+      "proof": [
+        "negative_controls.viewer",
+        "negative_controls.real401_no_replay",
+        "negative_controls.old_session_receipt",
+        "negative_controls.controller_conflict",
+        "negative_controls.capacity_conflict",
+        "test_recovery_races.py",
+        "test_recovery_plans.py",
+        "test_recovery_gateway_v2.py"
+      ]
+    },
+    "AC4": {
+      "state": "demonstrated",
+      "proof": [
+        "lost_acknowledgement",
+        "late_forward",
+        "late_inverse",
+        "test_recovery_processes.py",
+        "test_recovery_lifecycle.py"
+      ]
+    },
+    "AC5": {
+      "state": "demonstrated",
+      "proof": [
+        "initial_outcomes_retained",
+        "negative_controls.already_current_no_op",
+        "fresh_live_model_recovery",
+        "e07-r4-verification.json",
+        "test_recovery_verification.py"
+      ]
+    },
+    "AC6": {
+      "state": "demonstrated",
+      "proof": [
+        "fresh_safe_inverse",
+        "fresh_live_model_recovery.restore.unsafe_inverse_API",
+        "fresh_live_model_recovery.memory.unsafe_inverse_API",
+        "e07-r5-inverse.json",
+        "test_recovery_inverse.py"
+      ]
+    },
+    "AC7": {
+      "state": "demonstrated",
+      "proof": [
+        "lost_acknowledgement.real_Edge_resolution",
+        "UI.frozen_export_after_new_qualified_live_operations",
+        "e07-r6-journeys.json",
+        "test_recovery_journeys.py"
+      ]
+    },
+    "AC8": {
+      "state": "demonstrated",
+      "proof": [
+        "application_restore_cuts",
+        "fresh_post_restore_verified_scale",
+        "verified_after_inverse_exclusion",
+        "late_forward",
+        "late_inverse"
+      ]
+    },
+    "AC9": {
+      "state": "demonstrated",
+      "proof": [
+        "negative_controls.real401_no_replay",
+        "negative_controls.old_session_receipt",
+        "test_recovery_races.py",
+        "test_recovery_lifecycle.py",
+        "controlled provider quota/unavailable tests in exact a12f41d CI; no real quota abuse"
+      ]
+    },
+    "AC10": {
+      "state": "demonstrated",
+      "proof": [
+        "UI",
+        "initial_outcomes_retained.wrong_immutable_image_binding",
+        "e07-r6-journeys.json",
+        "test_recovery_journeys.py"
+      ]
+    },
+    "AC11": {
+      "state": "demonstrated",
+      "proof": [
+        "application_restore_cuts",
+        "late_forward",
+        "late_inverse",
+        "test_recovery_restore.py",
+        "cleanup"
+      ]
+    }
+  }
+}
