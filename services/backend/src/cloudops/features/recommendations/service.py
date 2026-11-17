@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -11,6 +12,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 
 from cloudops.features.recommendations.models import RecommendationReport
+from cloudops.features.recommendations.krr_protocol import SOURCE_TREE_SHA256, UPSTREAM_COMMIT
 from cloudops.features.recommendations.schemas import (
     Applicability,
     AttemptView,
@@ -31,6 +33,16 @@ from cloudops.shared.jobs import Job, JobAttempt
 REPORT_JOB = "recommendation_report_v1"
 _dispatch_status = None
 PUBLIC_REASONS = {
+    "qualified_advice": "Resource advice passed the pinned tool and independent source checks. Review each resource before any external change.",
+    "resource_evidence_incomplete": "The observed history or tool data is insufficient. Inspect the per-resource coverage and reasons; no suppressed numeric advice is available.",
+    "resource_policy_excluded": "Resource policy requires manual review. Inspect controller and memory-safety exclusions.",
+    "history_window_unqualified": "Only the six-hour profile is qualified for this release. This requested duration produced no tool invocation or numeric advice.",
+    "runner_unavailable": "The configured KRR runner is unavailable. Saved reports remain readable; request a new report after its connection is restored.",
+    "runner_timeout": "The bounded KRR invocation timed out. No numeric advice was qualified.",
+    "runner_request_invalid": "The pinned image, profile or admitted source identity is incomplete. Configure the trusted source and request a new report.",
+    "runner_configuration_invalid": "The trusted KRR connection or immutable image configuration is invalid. No tool invocation was started.",
+    "runner_target_changed": "The workload or its template/resources changed during collection. No advice from the changed target was qualified.",
+    "runner_contract_unavailable": "The runner response could not be verified. No numeric advice was qualified.",
     "producer_contract_unavailable": "Resource advice is unavailable until trusted usage history and KRR results are qualified.",
     "representative_history_unqualified": "KRR ran, but representative usage history is not qualified; no numeric advice is available.",
     "runner_failed": "The KRR invocation failed. Inspect its retained tool receipt before requesting another report.",
@@ -110,13 +122,26 @@ def capture_identity(db, workload):
 
 def prepare_report(db, workload, actor_id, hours=6):
     identity = capture_identity(db, workload)
+    try:
+        profile = ReportProfile(
+            history_hours=hours,
+            max_workers=2,
+            upstream_commit=UPSTREAM_COMMIT,
+            source_tree_sha256=SOURCE_TREE_SHA256,
+            embedded_version="dev",
+            image_digest=os.environ.get("KRR_RUNNER_IMAGE_DIGEST") or None,
+        )
+    except ValidationError:
+        raise DomainError(
+            503, "runner_configuration_invalid", "The pinned KRR image configuration is invalid."
+        ) from None
     return RecommendationReport(
         workload_id=workload.id,
         created_by=actor_id,
         requested_hours=hours,
         schema_version=2,
         input_identity=identity.model_dump(mode="json"),
-        profile=ReportProfile(history_hours=hours).model_dump(mode="json"),
+        profile=profile.model_dump(mode="json"),
     )
 
 
@@ -148,6 +173,13 @@ def applicability(db, row, now):
         )
     result = ReportResult.model_validate(row.result_v2)
     reasons = []
+    image = os.environ.get("KRR_RUNNER_IMAGE_DIGEST", "")
+    if (
+        result.profile.image_digest
+        and re.fullmatch(r"sha256:[a-f0-9]{64}", image)
+        and image != result.profile.image_digest
+    ):
+        reasons.append("tool_profile_changed")
     if result.window:
         end = (
             result.window.end

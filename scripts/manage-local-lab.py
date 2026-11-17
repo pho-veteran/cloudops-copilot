@@ -540,6 +540,7 @@ class Lab:
             "writer",
             "dispatcher",
             "krr",
+            "recommendations",
             "intake-api",
             "intake-sender",
             "prometheus",

@@ -17,7 +17,7 @@ from test_permissions import permission_context as _permission_context
 from cloudops.entrypoints import worker
 from cloudops.entrypoints.dispatch import GATE, PERMIT_CLASSES
 from cloudops.features.investigations import collector
-from cloudops.features.recommendations import worker as reports
+from cloudops.features.recommendations import producer as reports
 from cloudops.features.recovery import service as recovery
 from cloudops.features.recovery.models import ActionPlan, Execution
 from cloudops.shared import jobs
@@ -112,26 +112,28 @@ def test_recovery_during_report_preparation_denies_actual_transport(
     permission_context, dispatch_permit, monkeypatch
 ):
     claim = claim_for("recommendation_report_v1", UUID(permission_context.consumer.report_id))
-    original_request = reports.Request
     sent = []
 
-    def prepare(*args, **kwargs):
-        request = original_request(*args, **kwargs)
-        change(dispatch_permit, "enter_recovery")
-        return request
-
     class Transport:
-        def open(self, *args, **kwargs):
+        async def __aenter__(self):
+            change(dispatch_permit, "enter_recovery")
+            return self
+
+        async def __aexit__(self, *_args):
+            return False
+
+        def stream(self, *args, **kwargs):
             sent.append(True)
             raise AssertionError("A denied request must not reach transport")
 
+    key = dispatch_permit / "controlled-krr-key"
+    key.write_text("local-call-boundary-fixture")
     monkeypatch.setenv("KRR_RUNNER_URL", "http://127.0.0.1:1")
-    monkeypatch.delenv("KRR_RUNNER_KEY", raising=False)
-    monkeypatch.setattr(reports, "Request", prepare)
-    monkeypatch.setattr(reports, "build_opener", lambda *_args: Transport())
+    monkeypatch.setenv("KRR_RUNNER_KEY", str(key))
+    monkeypatch.setattr(reports.httpx, "AsyncClient", lambda **_kwargs: Transport())
     with pytest.raises(collector.Interrupted):
-        reports.generate(
-            claim.subject_id,
+        reports.call_runner(
+            {"proof": "controlled call boundary; no request is sent"},
             before_call=lambda: worker._require_dispatch(claim, threading.Event()),
         )
     assert sent == []

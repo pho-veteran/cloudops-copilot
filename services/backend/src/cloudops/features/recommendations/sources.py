@@ -15,6 +15,7 @@ import httpx
 from pydantic import Field
 
 from cloudops.features.investigations.prometheus_config import escape_promql, load_config
+from cloudops.features.recommendations.krr_protocol import metrics_binding
 from cloudops.features.recommendations.schemas import (
     Digest,
     Name,
@@ -86,6 +87,7 @@ class SourceData:
     query_digest: str
     config_digest: str
     collected_at: datetime
+    metrics_source_sha256: str | None = None
 
 
 def parse_matrix(payload, namespace, start, end, budget):
@@ -225,6 +227,7 @@ class SourceReader:
             kube = json.loads(kube_path.read_text())
             prom_path = Path(os.environ["PROMETHEUS_READ_CONFIG"])
             prom = load_config(prom_path)
+            metrics_source_sha256 = metrics_binding(prom.model_dump(by_alias=True))
             policy = OwnershipPolicy.model_validate_json(
                 Path(os.environ["RECOMMENDATION_SOURCE_POLICY"]).read_text()
             )
@@ -388,8 +391,8 @@ class SourceReader:
                     raise SourceFailure("controllers_changed")
             if (
                 binding(json.loads(kube_path.read_text())) != original_binding
-                or load_config(prom_path).model_dump(exclude={"token"})
-                != prom.model_dump(exclude={"token"})
+                or metrics_binding(load_config(prom_path).model_dump(by_alias=True))
+                != metrics_source_sha256
                 or OwnershipPolicy.model_validate_json(
                     Path(os.environ["RECOMMENDATION_SOURCE_POLICY"]).read_text()
                 )
@@ -410,6 +413,7 @@ class SourceReader:
                     }
                 ),
                 datetime.now(timezone.utc),
+                metrics_source_sha256,
             )
         except SourceFailure:
             raise

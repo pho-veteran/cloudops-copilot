@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, HTTPSHandler, ProxyHandler, Request, build_opener
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
@@ -18,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 from cloudops.features.workloads.kubernetes import Kubernetes
 from cloudops.features.workloads.schemas import DevelopmentWorkload
 from cloudops.shared.errors import DomainError
+from cloudops.shared.cluster_identity import cluster_fingerprint, server_identity
 
 
 class Target(BaseModel):
@@ -76,52 +76,6 @@ def load_scope(path: Path):
     else:
         scope = LiveScope.model_validate(value)
     return scope, hashlib.sha256(raw).hexdigest()
-
-
-def server_identity(server: str) -> str:
-    if not isinstance(server, str) or any(ord(c) <= 32 or ord(c) == 127 for c in server):
-        raise ValueError
-    parsed = urlsplit(server)
-    host, port = parsed.hostname, parsed.port
-    if (
-        parsed.scheme != "https"
-        or not host
-        or parsed.username is not None
-        or parsed.password is not None
-        or parsed.path not in {"", "/"}
-        or "?" in server
-        or "#" in server
-        or "\\" in server
-        or "%" in host
-        or parsed.netloc.endswith(":")
-    ):
-        raise ValueError
-    host = host.encode("idna").decode("ascii").lower()
-    if ":" in host:
-        import ipaddress
-
-        host = f"[{ipaddress.IPv6Address(host).compressed}]"
-    elif len(host) > 253 or any(
-        not re.fullmatch(r"[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?", label)
-        for label in host.split(".")
-    ):
-        raise ValueError
-    if port is not None and not 1 <= port <= 65535:
-        raise ValueError
-    return f"https://{host}:{port or 443}"
-
-
-def cluster_fingerprint(config: dict) -> str:
-    server = server_identity(config["server"])
-    pem = base64.b64decode(config["ca_data"], validate=True).decode("ascii")
-    if not re.fullmatch(
-        r"\s*-----BEGIN CERTIFICATE-----\s+[A-Za-z0-9+/=\r\n]+-----END CERTIFICATE-----\s*", pem
-    ):
-        raise ValueError
-    # SSL validates the certificate, while hashing DER ignores PEM line wrapping.
-    ssl.create_default_context(cadata=pem)
-    der = ssl.PEM_cert_to_DER_cert(pem.strip())
-    return hashlib.sha256(f"{server}\n{hashlib.sha256(der).hexdigest()}".encode()).hexdigest()
 
 
 class NoRedirect(HTTPRedirectHandler):

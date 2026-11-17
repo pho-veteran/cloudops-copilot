@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 
 from cloudops.features.recommendations.coverage import assess, cpu_points
-from cloudops.features.recommendations.evidence_schemas import (
+from cloudops.features.recommendations.schemas import (
     PodEvidence,
     QualifiedEvidence,
     ResourceEligibility,
