@@ -45,10 +45,10 @@ def require_qualification(budget, profile=None):
     deployment = load()
     if (
         deployment.denied()
-        or deployment.identity() != budget.data["accepted_E06_identity_unchanged"]
+        or deployment.identity() != budget.data.get("qualified_operational_identity")
         or (profile is not None and profile.identity() != deployment.profile.identity())
     ):
-        raise ValueError("The exact retained E06 operational qualification is required")
+        raise ValueError("The exact qualified E07 operational deployment is required")
 
 
 def reserve_send(budget, profile, repair, before_send, request):
@@ -68,7 +68,7 @@ class Budget:
         if (
             model != "gpt-6.1-sol"
             or self.data["request_limit"] != 50
-            or self.data["observed_token_stop"] != 60000
+            or self.data["observed_token_stop"] != 150000
             or self.data["model_requests_total"] != len(self.data["calls"])
         ):
             raise ValueError("Unexpected E07 authorization or ledger identity")
@@ -76,7 +76,7 @@ class Budget:
             raise ValueError("Unsettled request requires explicit reconciliation")
         if self.sent >= self.allowance or self.data["model_requests_total"] >= 50:
             raise ValueError("Finite inference allowance exhausted")
-        if self.data["observed_tokens"] >= 60000:
+        if self.data["observed_tokens"] >= 150000:
             raise ValueError("Observed token stop reached")
         if repair and any(call.get("repair") for call in self.data["calls"]):
             raise ValueError("Shared structural repair reserve exhausted")

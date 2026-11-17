@@ -5,10 +5,14 @@ production cluster, Kubernetes datastore restore, replacement of an executor
 journal, cloud deployment or E10 release qualification. The campaign ledger
 records actual outcomes and remaining acceptance gates in [the integrated receipt](evidence/e07-integrated.json).
 
-The recorded campaign is incomplete. Real three-cut PostgreSQL restore, delayed
-forward/inverse exclusion, lost acknowledgement, approved verified scale and
-separate safe inverse have passed. The live model memory/image positives, final
-qualification, delivery and cleanup remain open; this guide does not certify E07.
+The ledger demonstrates real three-cut PostgreSQL restore, delayed forward/inverse
+exclusion, lost acknowledgement, approved verified scale, a separate safe inverse
+and two newly collected qualified live-model memory/image recoveries. Each live
+memory/image operation passed its complete300-second window with9/9 rollout and
+application samples. The original12-case requalification is recorded separately
+in [the model rubric](evidence/e07-model-requalification.json). Final confirmation,
+exact-head CI and delivery are recorded on PR92; this local campaign does not
+certify E10 release or production behavior.
 
 ## Bind the lab before any fault
 
@@ -36,8 +40,10 @@ inconclusive outcome.
 
 The integrated one-Pod memory/image scenarios use the supported `Recreate`
 strategy. Record this fixture choice and restore the original strategy during
-cleanup. An input exceeding the qualified model's32KB bound must abstain before
-HTTP. In an owned lab, prune only original-UID-owned obsolete ReplicaSets with
+cleanup. Inputs exceeding the exact qualified deployment's bound abstain before
+HTTP. The retained32KiB tuple did so; the context-v2 campaign uses a separately
+authorized and requalified64KiB tuple. In an owned lab, prune only
+original-UID-owned obsolete ReplicaSets with
 zero desired/current replicas and no Pods, using UID/resourceVersion deletion
 preconditions. Recollect a fresh bounded window; never remove required evidence
 from a stored Run or silently enlarge the qualified profile.
@@ -47,7 +53,7 @@ from a stored Run or silently enlarge the qualified profile.
 `services/backend/tests/e07_live_worker.py` runs only against the explicitly named
 `cloudops_e07_integrated_test` database. It is not collected by pytest or CI. Mount
 its ledger outside PostgreSQL and preserve it across every restore. The existing
-E07 ledger includes the preflight probe and has a50-request ceiling and60,000
+E07 ledger includes the preflight probe and has a50-request ceiling and150,000
 observed-token stop. Unknown usage stays recorded. Unsettled requests require
 explicit reconciliation; provider failures stop the worker instead of silently
 retrying. One structural repair is shared across cases. Every reservation records
@@ -57,13 +63,15 @@ atomic ledger replacement cannot move the lock to a different inode.
 
 Use `--collect-only --requests 0` to finish real collection and admit Analysis
 without sending it. Inspect the assembled context, required source eligibility
-and byte bound before permitting inference. The draft worker requires the exact
-retained E06 tuple at startup and again at the actual send boundary, including
-the client profile. Context v2 changes that tuple and intentionally invalidates
-the old qualification. A new complete owning-rubric qualification and the pending
-input/token-budget authorization are required before installing its operational
-identity; do not edit an old qualification to bypass this gate. Provider output,
-validation and citations are never substituted.
+and byte bound before permitting inference. The worker requires the exact
+qualified operational tuple at startup and again at the actual send boundary,
+including the client profile. Context v2 changes that tuple and intentionally
+invalidates the old qualification. The owner authorized64KiB/150,000tokens, and
+the original12-case owning rubric passed for the exact new deployment before
+operational installation. The external ledger keeps the original E06 tuple as
+history and a separate newly qualified operational identity. Do not edit an old
+qualification to bypass this gate. Provider output, validation and citations are
+never substituted.
 `--case`, `--seconds` (maximum900) and `--requests` (maximum3 per invocation) make
 the selected attempt finite. Non-model verification uses `--requests 0` and no
 model credential/configuration. Save actual responses in the application history;
@@ -116,3 +124,13 @@ healthy. Deny host classes and quarantine every configured target before stoppin
 the remaining owned containers. Retain history, journals and pins; remove owned
 credential copies and private backup copies only after required receipts are
 saved. Preserve unrelated containers, volumes, browser tabs and host contexts.
+
+The accepted campaign restored the captured original images/resources, replicas
+and RollingUpdate strategy and confirmed the original Deployment was healthy.
+All configured UIDs and host dispatch classes were closed before the owned API,
+worker, gateway, metrics, K3s, PostgreSQL and Vite processes were stopped. Private
+injected model/reader/writer/monitoring credential copies and the three temporary
+application backups were removed. Original data/authority volumes, independent
+pins, locks and receipt history remain. A later lab restart must reprovision its
+scoped credential files and perform the documented proof-backed resume; it must
+not bootstrap replacement authority to bypass missing credentials or quarantine.

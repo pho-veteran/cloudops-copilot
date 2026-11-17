@@ -31,7 +31,7 @@ def finite_budget(tmp_path):
         json.dumps(
             {
                 "request_limit": 50,
-                "observed_token_stop": 60000,
+                "observed_token_stop": 150000,
                 "model_requests_total": 0,
                 "observed_tokens": 0,
                 "missing_usage_calls": 0,
@@ -59,7 +59,7 @@ def test_e07_rechecks_actual_send_identity_after_startup(monkeypatch, finite_bud
         )
 
     current = [qualified(original)]
-    finite_budget.data["accepted_E06_identity_unchanged"] = current[0].identity()
+    finite_budget.data["qualified_operational_identity"] = current[0].identity()
     monkeypatch.setattr(e07_live_worker, "load", lambda: current[0])
     require_qualification(finite_budget)
     changed = profile(mode="operational", model="gpt-6.1-sol", base_url="http://127.0.0.1:18081/v1")
@@ -76,7 +76,7 @@ def test_e07_rechecks_actual_send_identity_after_startup(monkeypatch, finite_bud
         environ={"DIAGNOSIS_TEST_TOKEN": "controlled-test-only"},
     )
     before = finite_budget.path.read_bytes()
-    with pytest.raises(ValueError, match="exact retained"):
+    with pytest.raises(ValueError, match="exact qualified"):
         client.send(
             [Message("user", "Controlled identity check")],
             before_send=lambda: reserve_send(
@@ -125,7 +125,7 @@ def test_e07_reservation_survives_reopen_and_blocks_unknown_retry(tmp_path):
         json.dumps(
             {
                 "request_limit": 50,
-                "observed_token_stop": 60000,
+                "observed_token_stop": 150000,
                 "model_requests_total": 1,
                 "observed_tokens": 72,
                 "calls": [{"outcome": {"kind": "text"}}],
@@ -142,13 +142,14 @@ def test_e07_reservation_survives_reopen_and_blocks_unknown_retry(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "field,value", [("model_requests_total", 50), ("observed_tokens", 60000), ("request_limit", 51)]
+    "field,value",
+    [("model_requests_total", 50), ("observed_tokens", 150000), ("request_limit", 51)],
 )
 def test_e07_never_extends_authorized_budget(tmp_path, field, value):
     path = tmp_path / "ledger.json"
     data = {
         "request_limit": 50,
-        "observed_token_stop": 60000,
+        "observed_token_stop": 150000,
         "model_requests_total": 1,
         "observed_tokens": 72,
         "calls": [{"outcome": {"kind": "text"}}],
@@ -167,7 +168,7 @@ def test_e07_settlement_retains_usage_and_one_shared_repair(tmp_path):
         json.dumps(
             {
                 "request_limit": 50,
-                "observed_token_stop": 60000,
+                "observed_token_stop": 150000,
                 "model_requests_total": 0,
                 "observed_tokens": 0,
                 "missing_usage_calls": 0,
