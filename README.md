@@ -6,6 +6,10 @@ Kubernetes incident investigation and bounded recovery for a small operations te
 
 Active scope and feature acceptance live in the [system tracker](https://github.com/pho-veteran/cloudops-copilot/issues/3) and [Foundation E00](https://github.com/pho-veteran/cloudops-copilot/issues/15). This implementation does not complete the full operational release. The foundation consumer integration exercise is self-verified in PR #16; it does not require a second contributor.
 
+[Versioned resource reports](docs/resource-reports.md) add typed advisory contracts,
+bounded report history and immutable terminal exports. Actual representative-history
+qualification and usable numeric recommendations remain E08 acceptance gates.
+
 The optional [workload observer](docs/workload-observation.md) adds persisted UID-owned Kubernetes rollout health, freshness, Pod/restart context and exact related incidents. [Versioned healthy baselines](docs/workload-baselines.md) retain two fresh observations and feed an exact, read-only recovery context. [Integrated local verification](docs/e02-local-acceptance.md) keeps API receipts and the trusted-browser gate explicit. Application recovery needs separately qualified request-derived post-checks; unqualified restore/memory profiles remain manual.
 
 [Stored Run comparison and citations](docs/investigation-comparison.md) add explicit two-Run selection, source/coverage differences and exact historical evidence targets. Both application roles can inspect/export comparisons; provider collection and AI findings retain their owning feature boundaries.

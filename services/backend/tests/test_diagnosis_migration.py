@@ -35,6 +35,12 @@ def fingerprint():
                     text(
                         "SELECT (to_jsonb(t)"
                         + ("-'due_at'" if table == "jobs" else "")
+                        + (
+                            "-ARRAY['schema_version','input_identity','profile','result_v2',"
+                            "'export_text','export_sha256','migration_disposition']"
+                            if table == "recommendation_reports"
+                            else ""
+                        )
                         + ")::text FROM "
                         + table
                         + " t"

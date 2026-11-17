@@ -1263,26 +1263,20 @@ export interface components {
             /** Wait Mode */
             wait_mode?: string | null;
         };
-        /** AttemptView */
-        AttemptView: {
-            /** Error */
-            error: string | null;
-            /** Finished At */
-            finished_at: string | null;
-            /** Number */
-            number: number;
-            /** Sources Committed */
-            sources_committed: number | null;
+        /** Applicability */
+        Applicability: {
             /**
-             * Started At
+             * Assessed At
              * Format: date-time
              */
-            started_at: string;
+            assessed_at: string;
+            /** Reasons */
+            reasons: string[];
             /**
              * State
              * @enum {string}
              */
-            state: "running" | "expired" | "succeeded" | "failed";
+            state: "current" | "stale" | "unknown";
         };
         /** AvailabilityExecution */
         AvailabilityExecution: {
@@ -1647,16 +1641,6 @@ export interface components {
             limits: components["schemas"]["Resources"];
             requests: components["schemas"]["Resources"];
         };
-        /** Coverage */
-        Coverage: {
-            /** Reason Codes */
-            reason_codes: string[];
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "available" | "partial" | "unavailable" | "not_applicable";
-        };
         /** CreationAnchor */
         CreationAnchor: {
             /**
@@ -1773,7 +1757,7 @@ export interface components {
              * @enum {string}
              */
             content_status: "available" | "unavailable" | "expired";
-            coverage: components["schemas"]["Coverage"];
+            coverage: components["schemas"]["cloudops__features__investigations__schemas__Coverage"];
             /** Expires At */
             expires_at: string | null;
             /**
@@ -2912,6 +2896,21 @@ export interface components {
             /** Unrelated Pods */
             unrelated_pods: number;
         };
+        /** Quantity */
+        Quantity: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "quantity";
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "cores" | "bytes";
+            /** Value */
+            value: string;
+        };
         /** QuerySpec */
         QuerySpec: {
             /** Query */
@@ -2994,6 +2993,34 @@ export interface components {
             unverified_checks: components["schemas"]["UnverifiedCheck"][];
             /** Validator Version */
             validator_version: string;
+        };
+        /** RecommendationObservation */
+        RecommendationObservation: {
+            /**
+             * Component
+             * @default recommendations
+             * @constant
+             */
+            component: "recommendations";
+            /** Last Success At */
+            last_success_at: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Source Kind
+             * @enum {string}
+             */
+            source_kind: "live_krr" | "unconfigured";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "unavailable" | "stale";
         };
         /** Reconciliation */
         Reconciliation: {
@@ -3117,8 +3144,154 @@ export interface components {
              */
             workload_id: string;
         };
+        /** ReportIdentity */
+        ReportIdentity: {
+            /** Cluster */
+            cluster: string;
+            /** Cluster Fingerprint */
+            cluster_fingerprint?: string | null;
+            /** Containers */
+            containers?: string[];
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Observation Id */
+            observation_id?: string | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Resources Digest */
+            resources_digest?: string | null;
+            /** Template Digest */
+            template_digest?: string | null;
+            /** Uid */
+            uid: string;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
+        };
+        /** ReportPage */
+        ReportPage: {
+            /** Items */
+            items: components["schemas"]["ReportView"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            observation: components["schemas"]["RecommendationObservation"];
+        };
+        /** ReportProfile */
+        ReportProfile: {
+            /**
+             * Allow Hpa
+             * @default false
+             * @constant
+             */
+            allow_hpa: false;
+            /**
+             * Cpu Percentile
+             * @default 95
+             * @constant
+             */
+            cpu_percentile: 95;
+            /** History Hours */
+            history_hours: number;
+            /** Image Digest */
+            image_digest?: string | null;
+            /**
+             * Memory Buffer Percent
+             * @default 15
+             * @constant
+             */
+            memory_buffer_percent: 15;
+            /**
+             * Minimum Cpu Millicores
+             * @default 10
+             * @constant
+             */
+            minimum_cpu_millicores: 10;
+            /**
+             * Minimum Memory Bytes
+             * @default 104857600
+             * @constant
+             */
+            minimum_memory_bytes: 104857600;
+            /**
+             * Points Required
+             * @default 100
+             * @constant
+             */
+            points_required: 100;
+            /**
+             * Policy Version
+             * @default e08-coverage-v1
+             * @constant
+             */
+            policy_version: "e08-coverage-v1";
+            /**
+             * Strategy
+             * @default simple
+             * @constant
+             */
+            strategy: "simple";
+            /**
+             * Timeframe Minutes
+             * @default 1.25
+             * @constant
+             */
+            timeframe_minutes: 1.25;
+            /**
+             * Tool Version
+             * @default 1.31.1
+             * @constant
+             */
+            tool_version: "1.31.1";
+            /**
+             * Use Oomkill Data
+             * @default false
+             * @constant
+             */
+            use_oomkill_data: false;
+        };
+        /** ReportResult */
+        ReportResult: {
+            identity: components["schemas"]["ReportIdentity"];
+            /** Limitations */
+            limitations?: string[];
+            /** Output Sha256 */
+            output_sha256?: string | null;
+            profile: components["schemas"]["ReportProfile"];
+            /** Query Digest */
+            query_digest?: string | null;
+            /** Reason */
+            reason: string;
+            /** Resources */
+            resources?: components["schemas"]["ResourceAdvice"][];
+            /**
+             * Schema Version
+             * @default 2
+             * @constant
+             */
+            schema_version: 2;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "live_krr" | "unconfigured";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "available" | "insufficient_data" | "excluded" | "unavailable";
+            /** Tool Exit Code */
+            tool_exit_code?: number | null;
+            window?: components["schemas"]["ReportWindow"] | null;
+        };
         /** ReportView */
         ReportView: {
+            applicability: components["schemas"]["Applicability"];
+            /** Attempts */
+            attempts: components["schemas"]["cloudops__features__recommendations__schemas__AttemptView"][];
             /**
              * Created At
              * Format: date-time
@@ -3129,6 +3302,14 @@ export interface components {
              * Format: uuid
              */
             created_by: string;
+            /** Dispatch Paused */
+            dispatch_paused: boolean;
+            /** Dispatch Reason */
+            dispatch_reason: string | null;
+            /** Export Ready */
+            export_ready: boolean;
+            /** Export Sha256 */
+            export_sha256: string | null;
             /** Finished At */
             finished_at: string | null;
             /**
@@ -3136,6 +3317,15 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            input_identity: components["schemas"]["ReportIdentity"] | null;
+            /**
+             * Job Phase
+             * @enum {string}
+             */
+            job_phase: "queued" | "running" | "finished" | "failed";
+            /** Migration Disposition */
+            migration_disposition: string | null;
+            profile: components["schemas"]["ReportProfile"] | null;
             /** Reason */
             reason: string;
             /** Requested Hours */
@@ -3144,11 +3334,13 @@ export interface components {
             result: {
                 [key: string]: unknown;
             };
-            /**
-             * State
-             * @enum {string}
-             */
-            state: "queued" | "running" | "available" | "insufficient_data" | "unavailable";
+            /** Result State */
+            result_state: ("available" | "insufficient_data" | "excluded" | "unavailable") | null;
+            result_v2: components["schemas"]["ReportResult"] | null;
+            /** Schema Version */
+            schema_version: number;
+            /** State */
+            state: string;
             /** Tool Version */
             tool_version: string;
             /**
@@ -3156,6 +3348,34 @@ export interface components {
              * Format: uuid
              */
             workload_id: string;
+        };
+        /** ReportWindow */
+        ReportWindow: {
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "exact" | "query_envelope";
+            /**
+             * Raw Input End
+             * Format: date-time
+             */
+            raw_input_end: string;
+            /**
+             * Raw Input Start
+             * Format: date-time
+             */
+            raw_input_start: string;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
         };
         /** RequestWindow */
         RequestWindow: {
@@ -3221,6 +3441,40 @@ export interface components {
              * Format: uuid
              */
             selection_id: string;
+        };
+        /** ResourceAdvice */
+        ResourceAdvice: {
+            /** Buffer Percent */
+            buffer_percent?: number | null;
+            /** Container */
+            container: string;
+            coverage?: components["schemas"]["cloudops__features__recommendations__schemas__Coverage"] | null;
+            /** Current Limit */
+            current_limit: components["schemas"]["Quantity"] | components["schemas"]["Unset"] | components["schemas"]["Unavailable"];
+            /** Current Request */
+            current_request: components["schemas"]["Quantity"] | components["schemas"]["Unset"] | components["schemas"]["Unavailable"];
+            minimum?: components["schemas"]["Quantity"] | null;
+            observed?: components["schemas"]["Quantity"] | null;
+            /** Reasons */
+            reasons?: string[];
+            /** Recommended Limit */
+            recommended_limit: components["schemas"]["Quantity"] | components["schemas"]["Unset"] | components["schemas"]["Unavailable"];
+            /** Recommended Request */
+            recommended_request: components["schemas"]["Quantity"] | components["schemas"]["Unset"] | components["schemas"]["Unavailable"];
+            /**
+             * Resource
+             * @enum {string}
+             */
+            resource: "cpu" | "memory";
+            /** Rounding */
+            rounding?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "available" | "insufficient_data" | "excluded" | "unavailable";
+            /** Statistic */
+            statistic?: ("percentile_95" | "maximum") | null;
         };
         /** Resources */
         Resources: {
@@ -3415,7 +3669,7 @@ export interface components {
         RunView: {
             analysis?: components["schemas"]["AnalysisProjection"] | null;
             /** Attempts */
-            attempts: components["schemas"]["AttemptView"][];
+            attempts: components["schemas"]["cloudops__features__investigations__schemas__AttemptView"][];
             cancel: components["schemas"]["CancelState"];
             /**
              * Created At
@@ -3615,6 +3869,24 @@ export interface components {
             action: "acknowledge" | "resolve" | "reopen";
             /** Reason */
             reason: string;
+        };
+        /** Unavailable */
+        Unavailable: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "unavailable";
+            /** Reason */
+            reason: string;
+        };
+        /** Unset */
+        Unset: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "unset";
         };
         /** UnverifiedCheck */
         UnverifiedCheck: {
@@ -3976,6 +4248,70 @@ export interface components {
             } | null;
             /** State */
             state: string;
+        };
+        /** AttemptView */
+        cloudops__features__investigations__schemas__AttemptView: {
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Number */
+            number: number;
+            /** Sources Committed */
+            sources_committed: number | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "running" | "expired" | "succeeded" | "failed";
+        };
+        /** Coverage */
+        cloudops__features__investigations__schemas__Coverage: {
+            /** Reason Codes */
+            reason_codes: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "partial" | "unavailable" | "not_applicable";
+        };
+        /** AttemptView */
+        cloudops__features__recommendations__schemas__AttemptView: {
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Number */
+            number: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** State */
+            state: string;
+        };
+        /** Coverage */
+        cloudops__features__recommendations__schemas__Coverage: {
+            /** Covered Bins */
+            covered_bins: number;
+            /** Expected Bins */
+            expected_bins: number;
+            /** First Sample At */
+            first_sample_at?: string | null;
+            /** Last Sample At */
+            last_sample_at?: string | null;
+            /** Longest Gap Seconds */
+            longest_gap_seconds: number;
+            /** Ratio */
+            ratio: number;
+            /** Reasons */
+            reasons?: string[];
         };
     };
     responses: never;
@@ -7798,7 +8134,11 @@ export interface operations {
     };
     list_recommendation_reports: {
         parameters: {
-            query?: never;
+            query?: {
+                workload_id?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -7811,7 +8151,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportView"][];
+                    "application/json": components["schemas"]["ReportPage"];
                 };
             };
             /** @description Unauthorized */
@@ -8042,9 +8382,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": unknown;
-                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

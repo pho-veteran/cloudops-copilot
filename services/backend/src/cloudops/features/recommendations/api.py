@@ -1,23 +1,28 @@
-from datetime import datetime
-from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import func, select
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
 from cloudops.features.incidents.coordination import lock_admission
 from cloudops.features.recommendations.models import RecommendationReport
+from cloudops.features.recommendations.schemas import ReportPage, ReportView
+from cloudops.features.recommendations.service import (
+    REPORT_JOB,
+    decode_cursor,
+    encode_cursor,
+    feature_observation,
+    prepare_report,
+    report_view,
+)
 from cloudops.features.workloads.service import require_active
 from cloudops.shared.config import settings
 from cloudops.shared.database import get_db
 from cloudops.shared.errors import ERROR_RESPONSES, DomainError
 from cloudops.shared.jobs import Job
-from cloudops.shared.schemas import View
 
 router = APIRouter(
     prefix="/api/recommendation-reports", tags=["recommendations"], responses=ERROR_RESPONSES
@@ -28,19 +33,6 @@ class ReportBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     workload_id: UUID
     requested_hours: int = Field(default=6, ge=6, le=24)
-
-
-class ReportView(View):
-    id: UUID
-    workload_id: UUID
-    state: Literal["queued", "running", "available", "insufficient_data", "unavailable"]
-    requested_hours: int
-    tool_version: str
-    result: dict
-    reason: str
-    created_by: UUID
-    created_at: datetime
-    finished_at: datetime | None
 
 
 @router.post(
@@ -59,6 +51,7 @@ def create(body: ReportBody, actor: Principal = Depends(operator), db: Session =
         if db.scalar(
             select(RecommendationReport.id).where(
                 RecommendationReport.workload_id == workload.id,
+                RecommendationReport.schema_version == 2,
                 RecommendationReport.state.in_(["queued", "running"]),
             )
         ):
@@ -72,13 +65,11 @@ def create(body: ReportBody, actor: Principal = Depends(operator), db: Session =
             >= settings().queue_limit
         ):
             raise DomainError(409, "queue_full", "The bounded work queue is full.")
-        report = RecommendationReport(
-            workload_id=body.workload_id, requested_hours=body.requested_hours, created_by=actor.id
-        )
+        report = prepare_report(db, workload, actor.id, body.requested_hours)
         db.add(report)
         db.flush()
-        db.add(Job(kind="recommendation_report_v1", subject_id=report.id))
-        return ReportView.model_validate(report)
+        db.add(Job(kind=REPORT_JOB, subject_id=report.id))
+        return report_view(db, report)
 
 
 def get_report(db, report_id):
@@ -91,13 +82,35 @@ def get_report(db, report_id):
 @router.get(
     "",
     operation_id="list_recommendation_reports",
-    response_model=list[ReportView],
+    response_model=ReportPage,
     dependencies=[Depends(current_session)],
 )
-def reports(db: Session = Depends(get_db)):
-    return db.scalars(
-        select(RecommendationReport).order_by(RecommendationReport.created_at.desc()).limit(50)
+def reports(
+    workload_id: UUID | None = None,
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = Query(default=None, max_length=512),
+    db: Session = Depends(get_db),
+):
+    query = select(RecommendationReport)
+    if workload_id:
+        query = query.where(RecommendationReport.workload_id == workload_id)
+    if cursor:
+        anchor = decode_cursor(cursor, workload_id)
+        query = query.where(
+            tuple_(RecommendationReport.created_at, RecommendationReport.id) < anchor
+        )
+    rows = db.scalars(
+        query.order_by(
+            RecommendationReport.created_at.desc(), RecommendationReport.id.desc()
+        ).limit(limit + 1)
     ).all()
+    more = len(rows) > limit
+    rows = rows[:limit]
+    return ReportPage(
+        items=[report_view(db, row) for row in rows],
+        next_cursor=encode_cursor(rows[-1], workload_id) if more else None,
+        observation=feature_observation(db),
+    )
 
 
 @router.get(
@@ -107,18 +120,21 @@ def reports(db: Session = Depends(get_db)):
     dependencies=[Depends(current_session)],
 )
 def report(report_id: UUID, db: Session = Depends(get_db)):
-    return get_report(db, report_id)
+    return report_view(db, get_report(db, report_id))
 
 
 @router.get(
     "/{report_id}/export",
     operation_id="export_recommendation_report",
-    response_class=JSONResponse,
+    response_class=Response,
     dependencies=[Depends(current_session)],
 )
 def export(report_id: UUID, db: Session = Depends(get_db)):
-    value = ReportView.model_validate(get_report(db, report_id)).model_dump(mode="json")
-    return JSONResponse(
-        value,
+    row = get_report(db, report_id)
+    if row.export_text is None:
+        raise DomainError(409, "report_not_final", "This report has no finalized export yet.")
+    return Response(
+        row.export_text,
+        media_type="application/json",
         headers={"Content-Disposition": f'attachment; filename="resource-report-{report_id}.json"'},
     )

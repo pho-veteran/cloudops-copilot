@@ -1,6 +1,7 @@
 """Exercise actual local E01 consumers over HTTPS; creates labeled application records."""
 
 import argparse
+import hashlib
 import json
 import ssl
 import sys
@@ -17,6 +18,22 @@ def baseline_history(client, workload_id):
     return [
         {key: value for key, value in row.items() if key != "age_seconds"} for row in page["items"]
     ]
+
+
+def verify_report_export(client, report):
+    path = f"/api/recommendation-reports/{report['id']}/export"
+    exported = client.get(path)
+    assert exported.status_code == 200, exported.text
+    dynamic = {
+        "applicability",
+        "dispatch_paused",
+        "dispatch_reason",
+        "export_ready",
+        "export_sha256",
+    }
+    assert exported.json() == {key: value for key, value in report.items() if key not in dynamic}
+    assert hashlib.sha256(exported.content).hexdigest() == report["export_sha256"]
+    assert client.get(path).content == exported.content
 
 
 def main():
@@ -169,7 +186,7 @@ def main():
         assert report["result"].get("source") == "live_krr", report
         assert report["result"].get("tool_exit_code") is not None, "KRR invocation did not finish"
         assert report["result"]["recommendations"] is None and report["result"]["coverage"] is None
-        assert viewer.get(f"/api/recommendation-reports/{report_id}/export").json() == report
+        verify_report_export(viewer, report)
         print(
             f"Pinned KRR invocation and actual persisted Viewer export: {report['state']} (tool exit {report['result']['tool_exit_code']}); no qualified recommendations claimed."
         )

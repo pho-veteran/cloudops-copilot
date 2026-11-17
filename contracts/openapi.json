@@ -730,71 +730,39 @@
         "title": "AnalysisView",
         "type": "object"
       },
-      "AttemptView": {
+      "Applicability": {
+        "additionalProperties": false,
         "properties": {
-          "error": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Error"
-          },
-          "finished_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Finished At"
-          },
-          "number": {
-            "title": "Number",
-            "type": "integer"
-          },
-          "sources_committed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sources Committed"
-          },
-          "started_at": {
+          "assessed_at": {
             "format": "date-time",
-            "title": "Started At",
+            "title": "Assessed At",
             "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Reasons",
+            "type": "array"
           },
           "state": {
             "enum": [
-              "running",
-              "expired",
-              "succeeded",
-              "failed"
+              "current",
+              "stale",
+              "unknown"
             ],
             "title": "State",
             "type": "string"
           }
         },
         "required": [
-          "number",
           "state",
-          "started_at",
-          "finished_at",
-          "error",
-          "sources_committed"
+          "assessed_at",
+          "reasons"
         ],
-        "title": "AttemptView",
+        "title": "Applicability",
         "type": "object"
       },
       "AvailabilityExecution": {
@@ -1812,35 +1780,6 @@
         "title": "ContainerResources",
         "type": "object"
       },
-      "Coverage": {
-        "additionalProperties": false,
-        "properties": {
-          "reason_codes": {
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 16,
-            "title": "Reason Codes",
-            "type": "array"
-          },
-          "status": {
-            "enum": [
-              "available",
-              "partial",
-              "unavailable",
-              "not_applicable"
-            ],
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "status",
-          "reason_codes"
-        ],
-        "title": "Coverage",
-        "type": "object"
-      },
       "CreationAnchor": {
         "properties": {
           "created_at": {
@@ -2155,7 +2094,7 @@
             "type": "string"
           },
           "coverage": {
-            "$ref": "#/components/schemas/Coverage"
+            "$ref": "#/components/schemas/cloudops__features__investigations__schemas__Coverage"
           },
           "expires_at": {
             "anyOf": [
@@ -5296,6 +5235,37 @@
         "title": "PublicObservation",
         "type": "object"
       },
+      "Quantity": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "quantity",
+            "default": "quantity",
+            "title": "Kind",
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "cores",
+              "bytes"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 40,
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "title": "Quantity",
+        "type": "object"
+      },
       "QuerySpec": {
         "additionalProperties": false,
         "properties": {
@@ -5498,6 +5468,65 @@
           "candidate_template_id"
         ],
         "title": "RCAResult",
+        "type": "object"
+      },
+      "RecommendationObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "component": {
+            "const": "recommendations",
+            "default": "recommendations",
+            "title": "Component",
+            "type": "string"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "reason": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Reason",
+            "type": "string"
+          },
+          "source_kind": {
+            "enum": [
+              "live_krr",
+              "unconfigured"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unavailable",
+              "stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "observed_at",
+          "last_success_at",
+          "reason",
+          "source_kind"
+        ],
+        "title": "RecommendationObservation",
         "type": "object"
       },
       "Reconciliation": {
@@ -5780,8 +5809,368 @@
         "title": "ReportBody",
         "type": "object"
       },
+      "ReportIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cluster": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Cluster",
+            "type": "string"
+          },
+          "cluster_fingerprint": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cluster Fingerprint"
+          },
+          "containers": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 32,
+            "title": "Containers",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "namespace": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Namespace",
+            "type": "string"
+          },
+          "observation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Id"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "resources_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resources Digest"
+          },
+          "template_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Digest"
+          },
+          "uid": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Uid",
+            "type": "string"
+          },
+          "workload_id": {
+            "format": "uuid",
+            "title": "Workload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workload_id",
+          "cluster",
+          "namespace",
+          "name",
+          "uid"
+        ],
+        "title": "ReportIdentity",
+        "type": "object"
+      },
+      "ReportPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/RecommendationObservation"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "observation"
+        ],
+        "title": "ReportPage",
+        "type": "object"
+      },
+      "ReportProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_hpa": {
+            "const": false,
+            "default": false,
+            "title": "Allow Hpa",
+            "type": "boolean"
+          },
+          "cpu_percentile": {
+            "const": 95,
+            "default": 95,
+            "title": "Cpu Percentile",
+            "type": "integer"
+          },
+          "history_hours": {
+            "maximum": 24.0,
+            "minimum": 6.0,
+            "title": "History Hours",
+            "type": "integer"
+          },
+          "image_digest": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Digest"
+          },
+          "memory_buffer_percent": {
+            "const": 15,
+            "default": 15,
+            "title": "Memory Buffer Percent",
+            "type": "integer"
+          },
+          "minimum_cpu_millicores": {
+            "const": 10,
+            "default": 10,
+            "title": "Minimum Cpu Millicores",
+            "type": "integer"
+          },
+          "minimum_memory_bytes": {
+            "const": 104857600,
+            "default": 104857600,
+            "title": "Minimum Memory Bytes",
+            "type": "integer"
+          },
+          "points_required": {
+            "const": 100,
+            "default": 100,
+            "title": "Points Required",
+            "type": "integer"
+          },
+          "policy_version": {
+            "const": "e08-coverage-v1",
+            "default": "e08-coverage-v1",
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "strategy": {
+            "const": "simple",
+            "default": "simple",
+            "title": "Strategy",
+            "type": "string"
+          },
+          "timeframe_minutes": {
+            "const": 1.25,
+            "default": 1.25,
+            "title": "Timeframe Minutes",
+            "type": "number"
+          },
+          "tool_version": {
+            "const": "1.31.1",
+            "default": "1.31.1",
+            "title": "Tool Version",
+            "type": "string"
+          },
+          "use_oomkill_data": {
+            "const": false,
+            "default": false,
+            "title": "Use Oomkill Data",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "history_hours"
+        ],
+        "title": "ReportProfile",
+        "type": "object"
+      },
+      "ReportResult": {
+        "additionalProperties": false,
+        "properties": {
+          "identity": {
+            "$ref": "#/components/schemas/ReportIdentity"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Limitations",
+            "type": "array"
+          },
+          "output_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Sha256"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ReportProfile"
+          },
+          "query_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query Digest"
+          },
+          "reason": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Reason",
+            "type": "string"
+          },
+          "resources": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceAdvice"
+            },
+            "maxItems": 64,
+            "title": "Resources",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 2,
+            "default": 2,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source": {
+            "enum": [
+              "live_krr",
+              "unconfigured"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "insufficient_data",
+              "excluded",
+              "unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "tool_exit_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Exit Code"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "source",
+          "identity",
+          "profile"
+        ],
+        "title": "ReportResult",
+        "type": "object"
+      },
       "ReportView": {
         "properties": {
+          "applicability": {
+            "$ref": "#/components/schemas/Applicability"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/cloudops__features__recommendations__schemas__AttemptView"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -5791,6 +6180,36 @@
             "format": "uuid",
             "title": "Created By",
             "type": "string"
+          },
+          "dispatch_paused": {
+            "title": "Dispatch Paused",
+            "type": "boolean"
+          },
+          "dispatch_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dispatch Reason"
+          },
+          "export_ready": {
+            "title": "Export Ready",
+            "type": "boolean"
+          },
+          "export_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Export Sha256"
           },
           "finished_at": {
             "anyOf": [
@@ -5809,6 +6228,47 @@
             "title": "Id",
             "type": "string"
           },
+          "input_identity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportIdentity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "job_phase": {
+            "enum": [
+              "queued",
+              "running",
+              "finished",
+              "failed"
+            ],
+            "title": "Job Phase",
+            "type": "string"
+          },
+          "migration_disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Disposition"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "reason": {
             "title": "Reason",
             "type": "string"
@@ -5822,14 +6282,38 @@
             "title": "Result",
             "type": "object"
           },
-          "state": {
-            "enum": [
-              "queued",
-              "running",
-              "available",
-              "insufficient_data",
-              "unavailable"
+          "result_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "available",
+                  "insufficient_data",
+                  "excluded",
+                  "unavailable"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
+            "title": "Result State"
+          },
+          "result_v2": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "state": {
             "title": "State",
             "type": "string"
           },
@@ -5853,9 +6337,64 @@
           "reason",
           "created_by",
           "created_at",
-          "finished_at"
+          "finished_at",
+          "schema_version",
+          "input_identity",
+          "profile",
+          "result_v2",
+          "migration_disposition",
+          "job_phase",
+          "result_state",
+          "attempts",
+          "dispatch_paused",
+          "dispatch_reason",
+          "applicability",
+          "export_ready",
+          "export_sha256"
         ],
         "title": "ReportView",
+        "type": "object"
+      },
+      "ReportWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "exact",
+              "query_envelope"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "raw_input_end": {
+            "format": "date-time",
+            "title": "Raw Input End",
+            "type": "string"
+          },
+          "raw_input_start": {
+            "format": "date-time",
+            "title": "Raw Input Start",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "start",
+          "end",
+          "raw_input_start",
+          "raw_input_end"
+        ],
+        "title": "ReportWindow",
         "type": "object"
       },
       "RequestWindow": {
@@ -6017,6 +6556,213 @@
           "reference"
         ],
         "title": "ResolvedRunbook",
+        "type": "object"
+      },
+      "ResourceAdvice": {
+        "additionalProperties": false,
+        "properties": {
+          "buffer_percent": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buffer Percent"
+          },
+          "container": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Container",
+            "type": "string"
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/cloudops__features__recommendations__schemas__Coverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_limit": {
+            "discriminator": {
+              "mapping": {
+                "quantity": "#/components/schemas/Quantity",
+                "unavailable": "#/components/schemas/Unavailable",
+                "unset": "#/components/schemas/Unset"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Quantity"
+              },
+              {
+                "$ref": "#/components/schemas/Unset"
+              },
+              {
+                "$ref": "#/components/schemas/Unavailable"
+              }
+            ],
+            "title": "Current Limit"
+          },
+          "current_request": {
+            "discriminator": {
+              "mapping": {
+                "quantity": "#/components/schemas/Quantity",
+                "unavailable": "#/components/schemas/Unavailable",
+                "unset": "#/components/schemas/Unset"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Quantity"
+              },
+              {
+                "$ref": "#/components/schemas/Unset"
+              },
+              {
+                "$ref": "#/components/schemas/Unavailable"
+              }
+            ],
+            "title": "Current Request"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Quantity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Quantity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Reasons",
+            "type": "array"
+          },
+          "recommended_limit": {
+            "discriminator": {
+              "mapping": {
+                "quantity": "#/components/schemas/Quantity",
+                "unavailable": "#/components/schemas/Unavailable",
+                "unset": "#/components/schemas/Unset"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Quantity"
+              },
+              {
+                "$ref": "#/components/schemas/Unset"
+              },
+              {
+                "$ref": "#/components/schemas/Unavailable"
+              }
+            ],
+            "title": "Recommended Limit"
+          },
+          "recommended_request": {
+            "discriminator": {
+              "mapping": {
+                "quantity": "#/components/schemas/Quantity",
+                "unavailable": "#/components/schemas/Unavailable",
+                "unset": "#/components/schemas/Unset"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Quantity"
+              },
+              {
+                "$ref": "#/components/schemas/Unset"
+              },
+              {
+                "$ref": "#/components/schemas/Unavailable"
+              }
+            ],
+            "title": "Recommended Request"
+          },
+          "resource": {
+            "enum": [
+              "cpu",
+              "memory"
+            ],
+            "title": "Resource",
+            "type": "string"
+          },
+          "rounding": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rounding"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "insufficient_data",
+              "excluded",
+              "unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "statistic": {
+            "anyOf": [
+              {
+                "enum": [
+                  "percentile_95",
+                  "maximum"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statistic"
+          }
+        },
+        "required": [
+          "container",
+          "resource",
+          "state",
+          "current_request",
+          "current_limit",
+          "recommended_request",
+          "recommended_limit"
+        ],
+        "title": "ResourceAdvice",
         "type": "object"
       },
       "Resources": {
@@ -6557,7 +7303,7 @@
           },
           "attempts": {
             "items": {
-              "$ref": "#/components/schemas/AttemptView"
+              "$ref": "#/components/schemas/cloudops__features__investigations__schemas__AttemptView"
             },
             "title": "Attempts",
             "type": "array"
@@ -7189,6 +7935,40 @@
           "reason"
         ],
         "title": "TransitionBody",
+        "type": "object"
+      },
+      "Unavailable": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "unavailable",
+            "default": "unavailable",
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "Unavailable",
+        "type": "object"
+      },
+      "Unset": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "unset",
+            "default": "unset",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "title": "Unset",
         "type": "object"
       },
       "UnverifiedCheck": {
@@ -8075,6 +8855,220 @@
           "receipt"
         ],
         "title": "CheckView",
+        "type": "object"
+      },
+      "cloudops__features__investigations__schemas__AttemptView": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "sources_committed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sources Committed"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "expired",
+              "succeeded",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "state",
+          "started_at",
+          "finished_at",
+          "error",
+          "sources_committed"
+        ],
+        "title": "AttemptView",
+        "type": "object"
+      },
+      "cloudops__features__investigations__schemas__Coverage": {
+        "additionalProperties": false,
+        "properties": {
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "partial",
+              "unavailable",
+              "not_applicable"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason_codes"
+        ],
+        "title": "Coverage",
+        "type": "object"
+      },
+      "cloudops__features__recommendations__schemas__AttemptView": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "state",
+          "started_at",
+          "finished_at",
+          "error"
+        ],
+        "title": "AttemptView",
+        "type": "object"
+      },
+      "cloudops__features__recommendations__schemas__Coverage": {
+        "additionalProperties": false,
+        "properties": {
+          "covered_bins": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Covered Bins",
+            "type": "integer"
+          },
+          "expected_bins": {
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Expected Bins",
+            "type": "integer"
+          },
+          "first_sample_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Sample At"
+          },
+          "last_sample_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sample At"
+          },
+          "longest_gap_seconds": {
+            "minimum": 0.0,
+            "title": "Longest Gap Seconds",
+            "type": "number"
+          },
+          "ratio": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ratio",
+            "type": "number"
+          },
+          "reasons": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expected_bins",
+          "covered_bins",
+          "ratio",
+          "longest_gap_seconds"
+        ],
+        "title": "Coverage",
         "type": "object"
       }
     },
@@ -13988,16 +14982,60 @@
     "/api/recommendation-reports": {
       "get": {
         "operationId": "list_recommendation_reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workload_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workload Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ReportView"
-                  },
-                  "title": "Response List Recommendation Reports",
-                  "type": "array"
+                  "$ref": "#/components/schemas/ReportPage"
                 }
               }
             },
@@ -14302,11 +15340,6 @@
         ],
         "responses": {
           "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
             "description": "Successful Response"
           },
           "401": {

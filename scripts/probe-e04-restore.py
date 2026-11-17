@@ -24,7 +24,7 @@ def inside(stage, retired):
     from cloudops.shared.database import sessions
     from cloudops.shared.jobs import Job
     from cloudops.features.investigations.models import InvestigationRun
-    from cloudops.features.recommendations.models import RecommendationReport
+    from cloudops.features.recommendations.service import prepare_report
     from cloudops.features.recovery.models import ActionPlan, Execution
 
     def snapshot():
@@ -90,7 +90,7 @@ def inside(stage, retired):
                 window_end=now,
                 window_source="explicit",
             )
-            report = RecommendationReport(workload_id=workload.id, created_by=actor)
+            report = prepare_report(db, workload, actor)
             plan = ActionPlan(
                 incident_id=b.id,
                 workload_id=target.id,
