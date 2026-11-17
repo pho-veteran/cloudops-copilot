@@ -19,6 +19,7 @@ from cloudops.features.workloads.observation_models import (
     ObservationState,
     WorkloadObservation,
 )
+from cloudops.features.workloads.observation_settings import POLICY
 from cloudops.features.workloads.observation_service import (
     claim,
     cleanup,
@@ -88,6 +89,85 @@ def test_direct_read_uses_new_producer_and_no_open_database_transaction(live_wor
         assert len(page.items) == len(next_page.items) == 1
         assert page.items[0].observation_id != next_page.items[0].observation_id
         assert next_page.next_cursor is None
+
+
+def test_cleanup_retains_six_hour_envelope_and_failed_gaps_with_finite_bounds(live_workloads):
+    value = succeed(live_workloads[0])
+    with sessions()() as db, db.begin():
+        now = database_now(db)
+        for index in range(POLICY.history_count + 32):
+            moment = now - timedelta(seconds=index * 30)
+            if index % 20:
+                historical = value.model_copy(
+                    update={"observation_id": uuid4(), "started_at": moment, "observed_at": moment}
+                )
+                db.add(
+                    WorkloadObservation(
+                        id=historical.observation_id,
+                        workload_id=live_workloads[0],
+                        epoch=value.identity.epoch,
+                        observed_at=moment,
+                        payload=historical.model_dump(mode="json"),
+                        comparison={},
+                    )
+                )
+            db.add(
+                ObservationAttempt(
+                    id=uuid4(),
+                    workload_id=live_workloads[0],
+                    sequence=index,
+                    started_at=moment,
+                    outcome="complete" if index % 20 else "failed",
+                    reason=None if index % 20 else "permission_denied",
+                )
+            )
+        db.flush()
+        cleanup(db, live_workloads[0], now)
+        required_start = now - timedelta(hours=6, minutes=8)
+        for model, time_column in (
+            (WorkloadObservation, WorkloadObservation.observed_at),
+            (ObservationAttempt, ObservationAttempt.started_at),
+        ):
+            assert (
+                db.scalar(
+                    select(func.min(time_column)).where(model.workload_id == live_workloads[0])
+                )
+                <= required_start
+            )
+            assert (
+                db.scalar(
+                    select(func.count())
+                    .select_from(model)
+                    .where(model.workload_id == live_workloads[0])
+                )
+                <= POLICY.history_count
+            )
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(ObservationAttempt)
+                .where(
+                    ObservationAttempt.workload_id == live_workloads[0],
+                    ObservationAttempt.started_at >= required_start,
+                    ObservationAttempt.outcome == "failed",
+                )
+            )
+            > 0
+        )
+        row = db.scalar(
+            select(WorkloadObservation)
+            .where(WorkloadObservation.workload_id == live_workloads[0])
+            .order_by(WorkloadObservation.observed_at)
+            .limit(1)
+        )
+        row.observed_at = now - timedelta(days=8)
+        expired_id = row.id
+        db.flush()
+        cleanup(db, live_workloads[0], now)
+        assert (
+            db.scalar(select(WorkloadObservation.id).where(WorkloadObservation.id == expired_id))
+            is None
+        )
 
 
 def test_global_multi_connection_cap_reserves_a_direct_slot(live_workloads):
@@ -186,7 +266,7 @@ def test_retention_bounds_failure_only_history_and_dead_observer(live_workloads)
     value = succeed(live_workloads[0])
     with sessions()() as db, db.begin():
         now = database_now(db)
-        for index in range(110):
+        for index in range(POLICY.history_count + 10):
             moment = now - timedelta(seconds=index + 1)
             historical = value.model_copy(
                 update={
@@ -233,7 +313,7 @@ def test_retention_bounds_failure_only_history_and_dead_observer(live_workloads)
                 .select_from(WorkloadObservation)
                 .where(WorkloadObservation.workload_id == live_workloads[0])
             )
-            == 100
+            == POLICY.history_count
         )
         assert (
             db.scalar(
@@ -241,7 +321,7 @@ def test_retention_bounds_failure_only_history_and_dead_observer(live_workloads)
                 .select_from(ObservationAttempt)
                 .where(ObservationAttempt.workload_id == live_workloads[0])
             )
-            == 100
+            == POLICY.history_count
         )
         db.get(WorkloadObservation, value.observation_id).observed_at = now - timedelta(days=8)
     dead = claim(live_workloads[2], "scheduled")

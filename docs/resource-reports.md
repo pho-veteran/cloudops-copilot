@@ -71,9 +71,9 @@ older download of a report that was still running. Existing snapshots are never
 reinterpreted as qualified versioned advice. Downgrade refuses to discard any
 version-two report; preserve the schema/data rather than forcing a downgrade.
 
-The coverage/ownership-history producer, actual pinned-tool normalization, measured
-six-hour cohort and complete report UI/export journey retain their E08 acceptance
-gates. Source inspection or a successful CLI invocation does not complete them.
+The source qualification seam below is implemented independently from numeric KRR
+publication. Actual pinned-tool normalization, the measured six-hour cohort and
+complete report UI/export journey retain their E08 acceptance gates.
 
 ## Contract-slice evidence
 
@@ -84,3 +84,85 @@ and Viewer reads at [320px light](images/e08-r1-viewer-320-light.png) and
 [390px dark](images/e08-r1-viewer-390-dark.png). Native download completion remains
 unproven; partial browser-file bytes or a successful API export do not satisfy it.
 No fixture result is a live KRR or six-hour history qualification.
+
+## UID-bound source qualification
+
+`SourceReader.read` and `qualify` provide R3 a typed eligibility receipt, not numeric
+recommendations. They reuse `KUBE_READ_CONFIG`, `PROMETHEUS_READ_CONFIG` and E02's
+retained `WorkloadObservation`/`ObservationAttempt` records. No model, writer,
+second history store, caller-supplied query or Kubernetes mutation is involved.
+
+Set `RECOMMENDATION_SOURCE_POLICY` to a trusted private JSON file:
+
+```json
+{
+  "schema_version": 1,
+  "cluster_fingerprint": "<the committed 64-character cluster fingerprint>",
+  "operator_managed_uids": ["<exact Deployment UID>"],
+  "resource_managers": ["<reviewed manual resource-field manager>"]
+}
+```
+
+This is an operator assertion about resource automation for these exact UIDs,
+separate from ordinary managedFields. Review the actual deployment's management
+before setting it. Unknown resource managers, VPA or unsupported HPA metrics require
+manual review; CPU/memory HPA Resource/ContainerResource targets exclude their
+corresponding resource. GET `/apis` must establish VPA API absence; forbidden reads
+and arbitrary 404s never mean absent. Before/after controller checks also inspect
+the namespace's Deployment selectors and selected Pod shapes. Overlap, unsupported
+selectors, init/ephemeral/Pod-level resources or differing Pod resource/image fields
+prevent usable advice. No new Kubernetes permission beyond the existing scoped
+reader is required: get the exact Deployment, list namespace Deployments/Pods/HPA,
+read API discovery, and list namespace VPA if its v1 API is discovered.
+
+The fixed metric catalog is `container_cpu_usage_seconds_total`,
+`container_memory_working_set_bytes`, `kube_pod_info`, `kube_pod_owner`,
+`kube_pod_created`, `kube_pod_completion_time`,
+`kube_pod_container_state_started`,
+`kube_pod_container_status_restarts_total`,
+`kube_pod_container_status_last_terminated_reason`,
+`kube_pod_container_status_last_terminated_timestamp` and
+`kube_replicaset_owner`. Each query is an instant GET to `/api/v1/query` containing
+`METRIC{namespace="<escaped configured namespace>"}[<raw-window-seconds>s]`, evaluated
+at the recorded raw-input end. A one-second overfetch is discarded before coverage.
+These raw range vectors retain actual scrape timestamps; `query_range` lookback
+repetition cannot manufacture covered bins. The native UID shapes are documented
+in [KSM v2.20.0](https://github.com/kubernetes/kube-state-metrics/blob/v2.20.0/docs/metrics/workload/pod-metrics.md).
+KSM ReplicaSet names alone do not establish Deployment UID: the retained E02 chain
+must independently bind each Pod UID and ReplicaSet UID to the exact target.
+
+The collector has a 45-second total deadline, per-phase 5/8-second timeouts, no
+redirects/proxy inheritance, trusted HTTPS CAs, at most 23 GETs, 8 MiB per response,
+256 series per metric and 200,000 raw samples in total. It supports the qualified
+six-hour profile plus a bounded input/envelope margin, not 24-hour qualification.
+Oversized, malformed, nonfinite, negative, empty, duplicate-attribution or denied
+inputs remain nonavailable. Credentials and raw provider bodies are never part of
+the receipt. Relevant configuration/query/history digests bind its provenance;
+credential rotation alone does not change the source binding.
+
+Coverage uses distinct one-minute bins for **each** independently established
+Pod UID/container lifetime: ratio at least 95%, longest gap at most 300 seconds
+including edges, and newest sample within 120 seconds of that lifetime's end.
+CPU additionally needs real 75-second rate support; a newly created container's
+unsupported opening bins remain uncovered. Unknown lifetime edges retain the full
+denominator and explicit reasons. Pod creation/completion and container start data
+are independent of usage presence. One replica cannot compensate for another.
+Memory also requires covered restart samples and matching successful E02 attempts;
+failed/missing attempts, resets, unexplained in-window increments and unknown
+container lifetime suppress it. Proven in-window OOM suppresses all numeric memory
+advice. An OOM reason without trustworthy timing remains insufficient rather than
+being labeled a proven recent event. Sampled evidence cannot prove every event was
+observed.
+
+E02 retention now keeps at most 1,024 observations and 1,024 attempts per workload,
+still bounded by seven days. At nominal 30-second cadence this covers more than
+the 6h08m lab cap, but dense manual reads can evict the required window: readiness
+must inspect actual rows and failed-attempt gaps. The history API page limit stays
+100. Worst-case full observation payloads are 64 MiB per workload (6.25 GiB over
+100 identities), excluding database/index overhead; actual lab storage/headroom
+must be measured before a cohort. Cleanup remains active and finite.
+
+The deterministic fixture matrix and PostgreSQL cleanup checks prove these policy
+branches. The [R2 scoped source-smoke receipt](evidence/e08-r2-source-smoke.json) exercises the installed reader against
+the owned K3s/Prometheus; its short history remains insufficient. It is not a
+numeric recommendation, representative six-hour run or integrated E08 pass.

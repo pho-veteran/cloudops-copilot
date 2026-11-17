@@ -44,7 +44,7 @@ Last attempt, success and failure are separate timestamps. `permission_denied`, 
 | Collection | Page size 100, at most 200 ReplicaSets and 500 Pods per namespace/read window; at most 9 GETs |
 | Payload | 2 MB per response, no compressed responses; sanitized observation <=64 KiB; at most 100 owned Pods/32 containers each |
 | Failure retry | 30, 60, 120 seconds plus at most 3 seconds jitter; no recurring product Job |
-| Retention | At most 100 complete observations and 100 attempt records per workload, also limited to 7 days; one bounded latest partial payload |
+| Retention | At most 1,024 complete observations and 1,024 attempt records per workload, also limited to 7 days; one bounded latest partial payload |
 | Database | Separate observer pool of 2, no overflow; 3-second connect, 2-second pool/statement and 1-second lock timeout |
 
 These are policy settings, not measured availability SLOs. Namespace lists that exceed the bounds produce incomplete coverage. Overdue scheduling is visible as poll lag/budget exhaustion. The scheduler does not stamp unattempted workloads fresh. Startup spreads initial due times within 30 seconds and subsequent selection favors oldest due identities.
