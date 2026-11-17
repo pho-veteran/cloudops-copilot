@@ -21,7 +21,7 @@
   "controlled_native_library": {
     "proof": "controlled pinned KRR library + candidate capture/normalization; CLI run/network replaced with controlled data; no live/history qualification",
     "captured": {
-      "request_sha256": "7ad197ad47a67aa7b76e6528c8132dc7066ca722faf9a1c0953160fc61b3f7fc",
+      "request_sha256": "426a1deb9f9543ed0e403f5e18ee41a7ed40d1a6c3889eaca0b9972680e337a7",
       "parameters": {
         "cpu_min": 10,
         "mem_min": 100,
@@ -90,11 +90,19 @@
       }
     ],
     "state": "passed",
-    "network_requests": 0
+    "network_requests": 0,
+    "trusted_metrics_transport": {
+      "same_endpoint": true,
+      "private_ca_verified": true,
+      "no_kube_auth_fallback": true,
+      "no_redirects_or_proxy": true,
+      "fixed_timeouts": true,
+      "foreign_and_admin_requests_denied": true
+    }
   },
   "actual_short_pipeline": {
     "proof": "actual Operator HTTP -> durable worker -> pinned KRR RPC -> real scoped history/metrics -> typed persisted report and Viewer immutable export; short history, not six-hour qualification",
-    "report_id": "4dfbf9c9-f0e3-48f1-8540-ea3d7931003c",
+    "report_id": "5a9d5a73-c479-48e4-b7d2-b6452a20e74a",
     "workload_id": "1d200d5b-e6e3-4eb5-bb51-92f80a32bbe9",
     "deployment_uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
     "job_phase": "finished",
@@ -102,13 +110,13 @@
     "reason": "resource_evidence_incomplete",
     "source_evidence_present": true,
     "tool_exit_code": 0,
-    "export_sha256": "c754562a4bc6fd0e41a60206df8b7285615befb898fcd48668fdbb595a5f728f",
-    "export_bytes": 9973,
+    "export_sha256": "4a9cce192b2bdbded77e13a99f857fe33c0cb2a93c910b05da7539bbe6adc164",
+    "export_bytes": 10065,
     "model_requests": 0,
     "cluster_writes": 0,
-    "backend_image_id": "sha256:50694146eecc8884eb1ceac564add0b3873c2a81c9d2181b5f1d164ad583d84a",
-    "gateway_image_id": "sha256:d074734e6881d5b4c4a4028fccaec5a9fd2f40620a904623a1f27cc3289c86e1",
-    "observed_at": "2026-11-17T13:31:13.237919+00:00"
+    "backend_image_id": "sha256:1d167a450521bf46ee615e706ca8962fad56901890b12b153b2fa4fbc9f73608",
+    "gateway_image_id": "sha256:8e2322b0f1a787f8b827b2674e5feb7ca792c400520ba9c61c85c6e15e5ed9a7",
+    "observed_at": "2026-11-17T14:14:33.578802+00:00"
   },
   "actual_short_result": {
     "schema_version": 2,
@@ -122,8 +130,8 @@
       "namespace": "demo",
       "name": "checkout",
       "uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
-      "observation_id": "38916dd4-70ed-46a7-aa1d-11887f09873b",
-      "observed_at": "2026-11-17T13:31:04.380484Z",
+      "observation_id": "5aaed3b5-6e88-4d2a-8872-b14b675cd98c",
+      "observed_at": "2026-11-17T14:13:56.308703Z",
       "template_digest": "2940675e7ad4ca8acd6a0053efada5bd0a5291295f1208beb666e3899c720915",
       "pod_template_digest": "c1f8daa668a8e0a4cc87e11ac22eb7b803966547abef778810e95976ba1ff0fe",
       "resources_digest": "67491960f33ae60244c7793bdf6020769eff642f717484ddd4720b865f8ff6b9",
@@ -148,14 +156,14 @@
       "allow_hpa": false,
       "use_oomkill_data": false,
       "policy_version": "e08-coverage-v1",
-      "image_digest": "sha256:d074734e6881d5b4c4a4028fccaec5a9fd2f40620a904623a1f27cc3289c86e1"
+      "image_digest": "sha256:8e2322b0f1a787f8b827b2674e5feb7ca792c400520ba9c61c85c6e15e5ed9a7"
     },
     "window": {
       "kind": "query_envelope",
-      "start": "2026-11-17T07:31:00Z",
-      "end": "2026-11-17T13:31:12.749940Z",
-      "raw_input_start": "2026-11-17T07:29:45Z",
-      "raw_input_end": "2026-11-17T13:31:12.749940Z"
+      "start": "2026-11-17T08:14:00Z",
+      "end": "2026-11-17T14:14:32.211875Z",
+      "raw_input_start": "2026-11-17T08:12:45Z",
+      "raw_input_end": "2026-11-17T14:14:32.211875Z"
     },
     "resources": [
       {
@@ -192,11 +200,11 @@
         "rounding": "Upward to 1 millicore",
         "coverage": {
           "expected_bins": 361,
-          "covered_bins": 135,
-          "ratio": 0.3739612188365651,
-          "longest_gap_seconds": 13545.55999994278,
+          "covered_bins": 179,
+          "ratio": 0.49584487534626037,
+          "longest_gap_seconds": 10965.55999994278,
           "first_sample_at": "2026-11-17T11:16:45.560000Z",
-          "last_sample_at": "2026-11-17T13:30:55.654000Z",
+          "last_sample_at": "2026-11-17T14:14:13.364000Z",
           "reasons": [
             "coverage_below_threshold",
             "coverage_gap"
@@ -243,11 +251,11 @@
         "rounding": "Upward to 1 MiB",
         "coverage": {
           "expected_bins": 361,
-          "covered_bins": 136,
-          "ratio": 0.3767313019390582,
-          "longest_gap_seconds": 13476.140000104904,
+          "covered_bins": 180,
+          "ratio": 0.4986149584487535,
+          "longest_gap_seconds": 10896.140000104904,
           "first_sample_at": "2026-11-17T11:15:36.140000Z",
-          "last_sample_at": "2026-11-17T13:30:55.654000Z",
+          "last_sample_at": "2026-11-17T14:14:13.364000Z",
           "reasons": [
             "coverage_below_threshold",
             "coverage_gap"
@@ -264,8 +272,8 @@
       }
     ],
     "tool_exit_code": 0,
-    "output_sha256": "051c0d26b4ca3152834ef8d15acfac55a99cc003776453ce10eecf5551d71c7d",
-    "query_digest": "d87c9fe3094aa53c16934db1c2b830651d163b8dbdbdc0af5244c18d2691c20f",
+    "output_sha256": "fb8fc2bb1cdeff08f30cba5b8aa46b9f2c535dcac258825dc61437fca070c449",
+    "query_digest": "2380916d52e6cc0c28bdcb6143db480866779bc12cb09fac1f89b64984450b29",
     "source_evidence": {
       "policy_version": "e08-coverage-v1",
       "identity": {
@@ -275,8 +283,8 @@
         "namespace": "demo",
         "name": "checkout",
         "uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
-        "observation_id": "38916dd4-70ed-46a7-aa1d-11887f09873b",
-        "observed_at": "2026-11-17T13:31:04.380484Z",
+        "observation_id": "5aaed3b5-6e88-4d2a-8872-b14b675cd98c",
+        "observed_at": "2026-11-17T14:13:56.308703Z",
         "template_digest": "2940675e7ad4ca8acd6a0053efada5bd0a5291295f1208beb666e3899c720915",
         "pod_template_digest": "c1f8daa668a8e0a4cc87e11ac22eb7b803966547abef778810e95976ba1ff0fe",
         "resources_digest": "67491960f33ae60244c7793bdf6020769eff642f717484ddd4720b865f8ff6b9",
@@ -286,31 +294,31 @@
       },
       "window": {
         "kind": "query_envelope",
-        "start": "2026-11-17T07:31:00Z",
-        "end": "2026-11-17T13:31:12.749940Z",
-        "raw_input_start": "2026-11-17T07:29:45Z",
-        "raw_input_end": "2026-11-17T13:31:12.749940Z"
+        "start": "2026-11-17T08:14:00Z",
+        "end": "2026-11-17T14:14:32.211875Z",
+        "raw_input_start": "2026-11-17T08:12:45Z",
+        "raw_input_end": "2026-11-17T14:14:32.211875Z"
       },
-      "query_digest": "d87c9fe3094aa53c16934db1c2b830651d163b8dbdbdc0af5244c18d2691c20f",
+      "query_digest": "2380916d52e6cc0c28bdcb6143db480866779bc12cb09fac1f89b64984450b29",
       "config_digest": "59e089cb61a49ae4bb80cb85987c099a6286c069463ab43a33a84193f3bdeb43",
-      "history_digest": "3a521275280c269ed3d74805d17d802ab473e6247fbeb9e82313e034e1ec0c56",
-      "collected_at": "2026-11-17T13:31:12.981804Z",
+      "history_digest": "acd81d2eaad8db51b1cfbc20f385885e1317aec0a5de6b85dddd7b17a3f840ae",
+      "collected_at": "2026-11-17T14:14:32.577930Z",
       "pods": [
         {
           "pod": "checkout-6b874f8d54-m7jx6",
           "uid": "43af5016-4bf8-49b9-8c3f-254ceacd3695",
           "replicaset_uid": "90000c43-9a21-400b-87e8-6818517fc745",
           "container": "app",
-          "start": "2026-11-17T07:31:00Z",
-          "end": "2026-11-17T13:31:12.749940Z",
+          "start": "2026-11-17T08:14:00Z",
+          "end": "2026-11-17T14:14:32.211875Z",
           "lifetime": "current",
           "cpu": {
             "expected_bins": 361,
-            "covered_bins": 135,
-            "ratio": 0.3739612188365651,
-            "longest_gap_seconds": 13545.55999994278,
+            "covered_bins": 179,
+            "ratio": 0.49584487534626037,
+            "longest_gap_seconds": 10965.55999994278,
             "first_sample_at": "2026-11-17T11:16:45.560000Z",
-            "last_sample_at": "2026-11-17T13:30:55.654000Z",
+            "last_sample_at": "2026-11-17T14:14:13.364000Z",
             "reasons": [
               "coverage_below_threshold",
               "coverage_gap"
@@ -318,11 +326,11 @@
           },
           "memory": {
             "expected_bins": 361,
-            "covered_bins": 136,
-            "ratio": 0.3767313019390582,
-            "longest_gap_seconds": 13476.140000104904,
+            "covered_bins": 180,
+            "ratio": 0.4986149584487535,
+            "longest_gap_seconds": 10896.140000104904,
             "first_sample_at": "2026-11-17T11:15:36.140000Z",
-            "last_sample_at": "2026-11-17T13:30:55.654000Z",
+            "last_sample_at": "2026-11-17T14:14:13.364000Z",
             "reasons": [
               "coverage_below_threshold",
               "coverage_gap"
@@ -330,18 +338,18 @@
           },
           "restarts": {
             "expected_bins": 361,
-            "covered_bins": 137,
-            "ratio": 0.37950138504155123,
-            "longest_gap_seconds": 13492.96499991417,
+            "covered_bins": 180,
+            "ratio": 0.4986149584487535,
+            "longest_gap_seconds": 10912.96499991417,
             "first_sample_at": "2026-11-17T11:15:52.965000Z",
-            "last_sample_at": "2026-11-17T13:31:07.965000Z",
+            "last_sample_at": "2026-11-17T14:14:27.965000Z",
             "reasons": [
               "coverage_below_threshold",
               "coverage_gap"
             ]
           },
-          "cpu_raw_samples": 539,
-          "memory_raw_samples": 539,
+          "cpu_raw_samples": 713,
+          "memory_raw_samples": 713,
           "reasons": [
             "ownership_history_incomplete",
             "pod_lifetime_unproven"
@@ -387,9 +395,10 @@
       ]
     },
     "tool_invocation": {
-      "request_sha256": "3d9e83b4c1f45db4eca678fec38e14ed5576e2a3540842a77764a4e486a2563b",
-      "started_at": "2026-11-17T13:31:07.877826Z",
-      "finished_at": "2026-11-17T13:31:12.749940Z",
+      "metrics_source_sha256": "f8a49ed024bfde0b85ea26cca9e5c6956dbd74a314423d689e6361c83c48bb69",
+      "request_sha256": "fdbc7e3aa0f35e4ab8c3a16974171b9c9e8c1d2572dcf024b4516762e9ae2d76",
+      "started_at": "2026-11-17T14:14:27.772679Z",
+      "finished_at": "2026-11-17T14:14:32.211875Z",
       "timed_out": false,
       "target_before_sha256": "df44a7c35d68dca70fc88b5ed78408f41b708a19f70136adf6078348c8f15745",
       "target_after_sha256": "df44a7c35d68dca70fc88b5ed78408f41b708a19f70136adf6078348c8f15745"
@@ -405,47 +414,48 @@
   },
   "worker_crash_restart": {
     "proof": "Actual owned Docker worker SIGKILL, PostgreSQL lease expiry/reclaim, second real KRR/source attempt, rejected obsolete claim and API/worker restarts; short history remains insufficient",
-    "report_id": "a83859aa-d866-4dc0-aafd-1ed45fb3fa0c",
+    "report_id": "b8c3666c-ff27-47fc-b0a4-d1924682bd26",
     "attempt_states": [
       "expired",
       "succeeded"
     ],
     "result_state": "insufficient_data",
     "tool_invocation": {
-      "request_sha256": "d597840fb820565a75db6fc4983d7b471a189e93f280b676187764141b7575f0",
-      "started_at": "2026-11-17T13:49:35.346494Z",
-      "finished_at": "2026-11-17T13:49:40.119639Z",
+      "metrics_source_sha256": "f8a49ed024bfde0b85ea26cca9e5c6956dbd74a314423d689e6361c83c48bb69",
+      "request_sha256": "3d6f51403065439ef39d6fcfde06e50bc864ae5a148adfb7e5ca0155bff974fe",
+      "started_at": "2026-11-17T14:16:11.792896Z",
+      "finished_at": "2026-11-17T14:16:16.210103Z",
       "timed_out": false,
       "target_before_sha256": "df44a7c35d68dca70fc88b5ed78408f41b708a19f70136adf6078348c8f15745",
       "target_after_sha256": "df44a7c35d68dca70fc88b5ed78408f41b708a19f70136adf6078348c8f15745"
     },
     "late_publication_accepted": false,
-    "export_sha256": "eb521b337ce8372eeca7cd85948c9c9ae4349008a07da397ceadf6dab7a85b0f",
+    "export_sha256": "4b11425799892f1fe70eaf7c7e02a8c8f1a74b8c677c3e335c31eb3b794c86b0",
     "old_export_unchanged": true,
     "old_export_sha256": "c754562a4bc6fd0e41a60206df8b7285615befb898fcd48668fdbb595a5f728f",
     "model_requests": 0,
     "cluster_writes": 0,
-    "backend_image_id": "sha256:799fca386bd516b67bd37f88c55cfb04a6635f9b62b7cc881cfc6e748941afc4",
-    "gateway_image_id": "sha256:d074734e6881d5b4c4a4028fccaec5a9fd2f40620a904623a1f27cc3289c86e1",
-    "observed_at": "2026-11-17T13:50:04.404054+00:00"
+    "backend_image_id": "sha256:1d167a450521bf46ee615e706ca8962fad56901890b12b153b2fa4fbc9f73608",
+    "gateway_image_id": "sha256:8e2322b0f1a787f8b827b2674e5feb7ca792c400520ba9c61c85c6e15e5ed9a7",
+    "observed_at": "2026-11-17T14:16:40.709921+00:00"
   },
   "dispatch_and_runner_outage": {
     "proof": "Actual host permit pause before claim (zero attempts; pending export409), recommendation-only resume with owned KRR stopped, sanitized unavailable publication, old Viewer export unchanged; no model configured",
-    "report_id": "dada8042-bab6-4916-92da-5196afc47180",
+    "report_id": "5c518d7e-15ba-46c1-a78a-0b497783aaa6",
     "paused_attempt_count": 0,
     "terminal_attempt_count": 1,
     "job_phase": "finished",
     "result_state": "unavailable",
     "reason": "runner_contract_unavailable",
-    "export_sha256": "e8244a3eed4f44244eaa4020ef3c16e56c68a1cf950999072838675dc3599bbc",
+    "export_sha256": "25802e031968c53625c535e94eeeefd2f38b07b31e568c597d0733e2c503ef51",
     "old_export_unchanged": true,
     "model_requests": 0,
     "cluster_writes": 0
   },
   "updated_restore_consumer": {
     "proof": "Actual pg_dump/pg_restore, host permit CLI, real current handlers and HTTP transports; DB-seeded current records and controlled loopback KRR/gateway fixtures. No Kubernetes writer, actual KRR or E07/E10 executor restore qualification.",
-    "dump_sha256": "9744e04bd3c1d783a293b9ecb4b7398b96a16fb718b1f62bfb774df90a24e3b4",
-    "driver_sha256": "7d35a81789b4e9e3cb0da1f55c6751e5b23e5148734e0e551733976ff3be83cc",
+    "dump_sha256": "2710be277f672d1a6f2c06b5852042e087d80880c600b7fc1930a77a3a04a62d",
+    "driver_sha256": "0a623b0f0425522289f314bbfe0e018b4e879d16085fcee975c4ea956f531881",
     "snapshot_classes": [
       "development_collection_v1",
       "recommendation_report_v1",
@@ -474,5 +484,45 @@
     "Complete report UI and native completed download: R5/R6"
   ],
   "model_requests": 0,
-  "cluster_writes": 0
+  "cluster_writes": 0,
+  "installed_and_source_bindings": {
+    "proof": "Actual installed API/runner source hashes matched candidate; stored real invocation source attestation matched current private configuration; old Viewer export unchanged and read-time stale after known image change",
+    "source_attestation_matched": true,
+    "old_export_sha256": "c754562a4bc6fd0e41a60206df8b7285615befb898fcd48668fdbb595a5f728f",
+    "old_export_unchanged": true,
+    "old_applicability": {
+      "state": "stale",
+      "assessed_at": "2026-11-17T14:17:48.663057Z",
+      "reasons": [
+        "tool_profile_changed"
+      ]
+    },
+    "backend_source_hashes": {
+      "producer": "6546f25bdecf70e2257d69b99b1e0751b8cb2b0722b1d71c2eb79bae2f81fe48",
+      "krr_protocol": "93ec3d157de128c188b78687bb9d3dad36ac5b1698126698b89e015551f02465",
+      "sources": "911fb743f2761126167a0dddf2360e8bbc5d6ce51075965854764fdad2c5c2fc",
+      "schemas": "db90a433cb10f1981b155f7f38d6a38a41a857902ac9eb45dca82cb476a5a279",
+      "service": "ba1ea644583ac7e4807807f5fad47db92a51c78234f28982b0ae84092a59d536",
+      "worker": "2e58f4d007484f5a34ce8c159a4ee1ca77beedf15cfbc9473107146d0a34a979",
+      "qualification": "b35078bdf6fc2313f81a54d3f91099833b42af16e9e14cfa95abd935b8e97d28"
+    },
+    "runner_source_hashes": {
+      "services/krr/runner.py": "b353846caf1d19f5aa722740030b7eb3b907d0cb3d577297d316bd671b5defa2",
+      "services/krr/entry.py": "aa5a7f34fe9730449e329da16308bcefa160d80fb7039325d1aaf7a53e1c7fd8",
+      "services/backend/src/cloudops/features/recommendations/krr_protocol.py": "93ec3d157de128c188b78687bb9d3dad36ac5b1698126698b89e015551f02465",
+      "services/backend/src/cloudops/shared/cluster_identity.py": "f5f2c8ddb1b6bb53bc80a8eaae6cec901f0964bee91ab590b4c573aced831f26"
+    },
+    "backend_image_id": "sha256:1d167a450521bf46ee615e706ca8962fad56901890b12b153b2fa4fbc9f73608",
+    "gateway_image_id": "sha256:8e2322b0f1a787f8b827b2674e5feb7ca792c400520ba9c61c85c6e15e5ed9a7",
+    "model_requests": 0,
+    "cluster_writes": 0
+  },
+  "controlled_regressions": {
+    "result": "143 passed",
+    "scope": "protocol/numeric/UID ambiguity/source binding/absolute deadline, qualification, actual PostgreSQL dispatch and sanitized failure publication; controlled provider transports",
+    "same_name_wrong_or_missing_uid": "rejected for CPU and memory",
+    "different_metrics_endpoint_or_authentication_configuration": "mismatched runner/source attestation cannot publish numeric advice",
+    "slow_continuous_stream": "absolute deadline interrupts and closes response before per-read timeout",
+    "failure_provenance": "allowlisted target/output/payload/source reasons retained through generate, shared fenced finish and exact export; unknown reason sanitized"
+  }
 }

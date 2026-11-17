@@ -115,11 +115,11 @@ def test_recovery_during_report_preparation_denies_actual_transport(
     sent = []
 
     class Transport:
-        def __enter__(self):
+        async def __aenter__(self):
             change(dispatch_permit, "enter_recovery")
             return self
 
-        def __exit__(self, *_args):
+        async def __aexit__(self, *_args):
             return False
 
         def stream(self, *args, **kwargs):
@@ -130,7 +130,7 @@ def test_recovery_during_report_preparation_denies_actual_transport(
     key.write_text("local-call-boundary-fixture")
     monkeypatch.setenv("KRR_RUNNER_URL", "http://127.0.0.1:1")
     monkeypatch.setenv("KRR_RUNNER_KEY", str(key))
-    monkeypatch.setattr(reports.httpx, "Client", lambda **_kwargs: Transport())
+    monkeypatch.setattr(reports.httpx, "AsyncClient", lambda **_kwargs: Transport())
     with pytest.raises(collector.Interrupted):
         reports.call_runner(
             {"proof": "controlled call boundary; no request is sent"},

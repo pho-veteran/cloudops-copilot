@@ -200,6 +200,7 @@ class ResourceAdvice(SafeModel):
 
 
 class ToolInvocation(SafeModel):
+    metrics_source_sha256: Digest | None = None
     request_sha256: Digest
     started_at: datetime | None = None
     finished_at: datetime | None = None

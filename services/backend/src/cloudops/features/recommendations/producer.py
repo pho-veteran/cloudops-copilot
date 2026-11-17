@@ -19,10 +19,13 @@ from cloudops.features.recommendations.krr_protocol import (
     bound_snapshot,
     digest,
     number,
+    metrics_binding,
+    metrics_attestation,
     parse_json,
     snapshot,
     validate_request,
 )
+from cloudops.features.investigations.prometheus_config import load_config
 from cloudops.features.recommendations.models import RecommendationReport
 from cloudops.features.recommendations.qualification import load_history, qualify
 from cloudops.features.recommendations.schemas import (
@@ -43,6 +46,35 @@ from cloudops.shared.database import sessions
 from cloudops.shared.errors import DomainError
 
 
+RUNNER_DEADLINE_SECONDS = 150
+RUNNER_REASONS = {
+    "runner_failed",
+    "runner_timeout",
+    "runner_target_changed",
+    "runner_target_unproven",
+    "runner_source_unavailable",
+    "runner_configuration_invalid",
+    "runner_cluster_mismatch",
+    "runner_payload_limit",
+    "tool_output_invalid",
+    "tool_scope_mismatch",
+    "tool_profile_mismatch",
+    "runner_metrics_configuration_invalid",
+    "runner_metrics_source_changed",
+}
+
+
+def runner_key():
+    try:
+        key = Path(os.environ["KRR_RUNNER_KEY"]).read_text().strip()
+    except (OSError, KeyError):
+        raise ContractError("runner_configuration_invalid") from None
+    if not key or len(key) > 4096:
+        raise ContractError("runner_configuration_invalid")
+
+    return key
+
+
 def call_runner(body, *, before_call):
     url = os.environ.get("KRR_RUNNER_URL", "").rstrip("/")
     parsed = urlsplit(url)
@@ -57,36 +89,42 @@ def call_runner(body, *, before_call):
         or "\\" in url
     ):
         raise ContractError("runner_configuration_invalid")
-    try:
-        key = Path(os.environ["KRR_RUNNER_KEY"]).read_text().strip()
-    except (OSError, KeyError):
-        raise ContractError("runner_configuration_invalid") from None
-    if not key or len(key) > 4096:
-        raise ContractError("runner_configuration_invalid")
-    with httpx.Client(trust_env=False, follow_redirects=False, timeout=150) as client:
-        before_call()
-        with client.stream(
-            "POST",
-            url + "/report",
-            json=body,
-            headers={"Authorization": "Bearer " + key, "Accept-Encoding": "identity"},
-        ) as response:
-            if response.status_code != 200:
-                raise ContractError("runner_unavailable")
-            if response.headers.get("content-encoding", "identity") != "identity":
-                raise ContractError("runner_payload_limit")
-            raw = bytearray()
-            for chunk in response.iter_raw():
-                raw.extend(chunk)
-                if len(raw) > 262_144:
-                    raise ContractError("runner_payload_limit")
-    return parse_json(raw)
+    key = runner_key()
+
+    async def request():
+        try:
+            async with (
+                asyncio.timeout(RUNNER_DEADLINE_SECONDS),
+                httpx.AsyncClient(trust_env=False, follow_redirects=False, timeout=150) as client,
+            ):
+                before_call()
+                async with client.stream(
+                    "POST",
+                    url + "/report",
+                    json=body,
+                    headers={"Authorization": "Bearer " + key, "Accept-Encoding": "identity"},
+                ) as response:
+                    if response.status_code != 200:
+                        raise ContractError("runner_unavailable")
+                    if response.headers.get("content-encoding", "identity") != "identity":
+                        raise ContractError("runner_payload_limit")
+                    raw = bytearray()
+                    async for chunk in response.aiter_raw():
+                        raw.extend(chunk)
+                        if len(raw) > 262_144:
+                            raise ContractError("runner_payload_limit")
+            return parse_json(raw)
+        except TimeoutError:
+            raise ContractError("runner_timeout") from None
+
+    return asyncio.run(request())
 
 
 def envelope(value, body, sent_at):
     keys = {
         "protocol_version",
         "request_sha256",
+        "metrics_source_sha256",
         "state",
         "reason",
         "tool_version",
@@ -106,6 +144,7 @@ def envelope(value, body, sent_at):
             or value["protocol_version"] != 1
             or type(value["protocol_version"]) is not int
             or value["request_sha256"] != digest(body)
+            or value["metrics_source_sha256"] != body["metrics_source_sha256"]
             or value["tool_version"] != PROFILE["tool_version"]
             or value["image_digest"] != body["profile"]["image_digest"]
             or value["state"] not in {"completed", "unavailable"}
@@ -158,6 +197,7 @@ def envelope(value, body, sent_at):
             raise ContractError()
         invocation = ToolInvocation(
             request_sha256=digest(body),
+            metrics_source_sha256=value["metrics_source_sha256"],
             started_at=started,
             finished_at=finished,
             timed_out=value["timed_out"],
@@ -206,6 +246,17 @@ def advice(identity, source, evidence, containers):
         scan = scans[container]
         pods = [p for p in evidence.pods if p.container == container]
         expected_pods = {p.pod for p in pods}
+        identities = {(p.pod, p.uid) for p in pods}
+        if len(identities) != len(expected_pods):
+            raise ContractError("tool_metric_identity_ambiguous")
+        for metric in ("container_cpu_usage_seconds_total", "container_memory_working_set_bytes"):
+            for series in source.series.get(metric, []):
+                if (
+                    series.labels.get("pod") in expected_pods
+                    and series.labels.get("container") == container
+                    and (series.labels.get("pod"), series.labels.get("pod_uid")) not in identities
+                ):
+                    raise ContractError("tool_metric_identity_ambiguous")
         tool_pods = {p["name"] for p in scan["pods"]}
         if len(tool_pods) != len(scan["pods"]) or tool_pods - expected_pods:
             raise ContractError("tool_scope_mismatch")
@@ -323,6 +374,10 @@ def generate(report_id, *, before_call):
         "profile": profile.model_dump(mode="json"),
     }
     try:
+        prom = load_config(os.environ["PROMETHEUS_READ_CONFIG"])
+        body["metrics_source_sha256"] = metrics_attestation(
+            metrics_binding(prom.model_dump(by_alias=True)), runner_key()
+        )
         validate_request(body, os.environ.get("KRR_RUNNER_IMAGE_DIGEST", ""))
         sent_at = datetime.now(timezone.utc)
         result = call_runner(body, before_call=before_call)
@@ -338,12 +393,23 @@ def generate(report_id, *, before_call):
         )
         if result["state"] != "completed":
             return base.model_copy(
-                update={"reason": "runner_timeout" if invocation.timed_out else "runner_failed"}
+                update={
+                    "reason": "runner_timeout"
+                    if invocation.timed_out
+                    else result["reason"]
+                    if isinstance(result["reason"], str) and result["reason"] in RUNNER_REASONS
+                    else "runner_failed"
+                }
             )
         with sessions()() as db:
             history = load_history(db, identity, window)
         before_call()
         source = asyncio.run(SourceReader().read(identity, window))
+        if (
+            metrics_attestation(source.metrics_source_sha256, runner_key())
+            != body["metrics_source_sha256"]
+        ):
+            raise ContractError("runner_metrics_source_changed")
         if snapshot(source.before) != result["scope_before"]:
             raise ContractError("runner_target_changed")
         evidence = qualify(identity, window, history, source)

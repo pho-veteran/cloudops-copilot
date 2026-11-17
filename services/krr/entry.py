@@ -1,5 +1,6 @@
 """Pinned integration seam: exact object selection and pre-rounding observed statistics."""
 
+import base64
 import json
 import math
 import runpy
@@ -7,18 +8,75 @@ import sys
 import threading
 from pathlib import Path
 
-from krr_protocol import SOURCE_TREE_SHA256, digest, parse_json
+from krr_protocol import (
+    SOURCE_TREE_SHA256,
+    digest,
+    parse_json,
+    metrics_binding,
+    metrics_attestation,
+)
 
 
-def run(request_path, observations_path, arguments):
+def run(request_path, observations_path, metrics_path, arguments):
     body = parse_json(Path(request_path).read_bytes())
     target = body["identity"]
+    prom = parse_json(Path(metrics_path).read_bytes())
+    if (
+        metrics_attestation(
+            metrics_binding(prom), Path("/run/cloudops-krr/key").read_text().strip()
+        )
+        != body["metrics_source_sha256"]
+    ):
+        raise ValueError("Metrics configuration changed.")
+    ca_path = Path(metrics_path).with_suffix(".crt")
+    ca_path.write_bytes(base64.b64decode(prom["ca_data"], validate=True))
     sys.path.insert(0, "/app")
     import robusta_krr
     from kubernetes import client
     from robusta_krr.core import runner
     from robusta_krr.core.models.config import settings
     from robusta_krr.strategies.simple import SimpleStrategy
+    from robusta_krr.core.integrations.prometheus.metrics_service import prometheus_metrics_service
+
+    original_connect = prometheus_metrics_service.get_custom_prometheus_connect
+
+    def trusted_connect(config):
+        server = prom["server"].rstrip("/")
+        if config.url.rstrip("/") != server:
+            raise ValueError("KRR attempted a different metrics source.")
+        headers = {"Authorization": "Bearer " + prom["token"]} if prom.get("token") else {}
+        config.headers = headers.copy()
+        config.disable_ssl = False
+        config.prometheus_auth = None
+        config.prometheus_url_query_string = None
+        value = original_connect(config)
+        value.headers = headers.copy()
+        value.ssl_verification = str(ca_path)
+        value._session.trust_env = False
+        original_request = value._session.request
+
+        def request(method, url, **kwargs):
+            if not (
+                method.upper() == "GET"
+                and url.startswith(server + "/api/v1/")
+                or method.upper() == "POST"
+                and url
+                in {
+                    server + "/api/v1/query",
+                    server + "/api/v1/query_range",
+                    server + "/api/v1/series",
+                }
+            ):
+                raise ValueError("KRR attempted an unbound metrics request.")
+            kwargs.update(
+                verify=str(ca_path), allow_redirects=False, timeout=(4, 8), headers=headers.copy()
+            )
+            return original_request(method, url, **kwargs)
+
+        value._session.request = request
+        return value
+
+    prometheus_metrics_service.get_custom_prometheus_connect = trusted_connect
 
     root = Path("/app")
     files = [root / "krr.py", *(root / "robusta_krr").rglob("*.py")]
@@ -112,4 +170,4 @@ def run(request_path, observations_path, arguments):
 
 
 if __name__ == "__main__":
-    run(sys.argv[1], sys.argv[2], sys.argv[3:])
+    run(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:])

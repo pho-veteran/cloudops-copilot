@@ -99,6 +99,7 @@ services:
     volumes:
       - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
       - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/krr:/run/cloudops-krr:ro
+      - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/prometheus:/run/cloudops-prometheus:ro
     depends_on: [prometheus, k3s]
 volumes:
   k3s_data:

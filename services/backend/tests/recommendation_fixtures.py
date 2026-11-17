@@ -66,7 +66,7 @@ def six_hour_case():
         "container_cpu_usage_seconds_total": [
             row("cpu", lambda t: t - times[0], pod_uid="pod-uid")
         ],
-        "container_memory_working_set_bytes": [row("memory", 0)],
+        "container_memory_working_set_bytes": [row("memory", 0, pod_uid="pod-uid")],
         "kube_pod_info": [row("info", created_by_kind="ReplicaSet", created_by_name="checkout-rs")],
         "kube_pod_owner": [
             row(
@@ -113,6 +113,7 @@ def runner_case():
     body = {
         "protocol_version": 1,
         "request_id": str(uuid4()),
+        "metrics_source_sha256": "a" * 64,
         "identity": case[0].model_dump(mode="json"),
         "profile": {**PROFILE, "image_digest": "sha256:" + "b" * 64},
     }

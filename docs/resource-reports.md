@@ -149,7 +149,9 @@ six-hour profile plus a bounded input/envelope margin, not 24-hour qualification
 Oversized, malformed, nonfinite, negative, empty, duplicate-attribution or denied
 inputs remain nonavailable. Credentials and raw provider bodies are never part of
 the receipt. Relevant configuration/query/history digests bind its provenance;
-credential rotation alone does not change the source binding.
+credential rotation alone does not change that retained configuration digest.
+R3 additionally requires matching private authentication configuration within each
+invocation; a mid-invocation rotation fails closed.
 
 Coverage uses distinct one-minute bins for **each** independently established
 Pod UID/container lifetime: ratio at least 95%, longest gap at most 300 seconds
@@ -235,7 +237,8 @@ profile invokes the tool; other accepted durations remain insufficient.
 
 Runner limits are one concurrent invocation, 16 KiB request, 120-second process,
 2 MB raw report, 256 KiB normalized response and a 32 MiB writable tmpfs on the
-read-only container. The worker HTTP call is bounded at 150 seconds, then the
+read-only container. The worker HTTP call has a 150-second absolute asynchronous deadline across
+connection, headers and the entire response stream, then the
 source collector has its separate 45-second budget. SDK Deployment calls use
 4/8-second connect/read timeouts. A worker loss can repeat a read-only invocation;
 shared leases, bounded attempts and the dispatch permit fence publication, not
@@ -246,3 +249,23 @@ scope changes publish sanitized nonavailable outcomes; saved exports stay readab
 The [R3 receipt](evidence/e08-r3-producer.json) separates controlled numeric proof
 from the real short-history pipeline and restart/fencing checks. It does not
 satisfy the representative six-hour positive-report gate.
+
+KRR and coverage now read the same `PrometheusReadConfig/v1` destination, CA and
+private authentication configuration. Mount the private Prometheus directory at
+`/run/cloudops-prometheus:ro` in the runner as well as configuring
+`PROMETHEUS_READ_CONFIG` in the worker. The runner uses that HTTPS URL, with its
+private CA, no inherited proxy/redirects and fixed 4/8-second request timeouts.
+Only GET reads and POST query/query_range/series reads are allowed. It never falls
+back to the Kubernetes token for metrics authentication. A keyed source attestation
+is compared at RPC admission, before/after KRR and during independent coverage;
+only the opaque attestation is exported, never a public credential verifier.
+Different destinations or authentication views cannot supply one another's proof.
+The source is rechecked if configuration changes during collection.
+
+Pinned native queries aggregate by Pod name and drop UID. Before accepting any
+native number, the producer therefore rejects same-name/container usage series
+with missing or unexpected `pod_uid`, and multiple UIDs for a contributing name.
+Expected-UID coverage alone cannot hide another series that influenced KRR.
+The normalized protocol retains allowlisted target/source/configuration/output
+failure reasons in the immutable report; unknown provider reasons use the generic
+fallback and never reach a report verbatim.

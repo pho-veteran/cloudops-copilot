@@ -23,6 +23,8 @@ from krr_protocol import (
     bound_snapshot,
     digest,
     normalize,
+    metrics_binding,
+    metrics_attestation,
     parse_json,
     snapshot,
     validate_request,
@@ -105,12 +107,13 @@ def connection(identity):
     return current
 
 
-def command(folder, body):
+def command(folder, body, prom):
     return [
         sys.executable,
         "/cloudops-krr-entry.py",
         str(folder / "request.json"),
         str(folder / "observations.json"),
+        str(folder / "metrics.json"),
         "simple",
         "--kubeconfig",
         str(READER / "kubeconfig.json"),
@@ -119,7 +122,8 @@ def command(folder, body):
         "--resource",
         "Deployment",
         "--prometheus-url",
-        "http://prometheus:9090",
+        prom["server"].rstrip("/"),
+        "--prometheus-ssl-enabled",
         "--history_duration",
         "6",
         "--timeframe_duration",
@@ -148,6 +152,7 @@ def invoke(body):
     result = {
         "protocol_version": 1,
         "request_sha256": digest(body),
+        "metrics_source_sha256": body["metrics_source_sha256"],
         "state": "unavailable",
         "reason": "runner_failed",
         "tool_version": VERSION,
@@ -162,11 +167,21 @@ def invoke(body):
         "containers": [],
     }
     try:
+        prom_path = Path("/run/cloudops-prometheus/read.json")
+        prom = read_json(prom_path)
+        if (
+            metrics_attestation(
+                metrics_binding(prom), Path("/run/cloudops-krr/key").read_text().strip()
+            )
+            != body["metrics_source_sha256"]
+        ):
+            raise ContractError("runner_metrics_source_changed")
         before = connection(body["identity"])
         result["scope_before"] = before
         with tempfile.TemporaryDirectory(prefix="cloudops-krr-") as temporary:
             folder = Path(temporary)
             (folder / "request.json").write_text(json.dumps(body, allow_nan=False))
+            (folder / "metrics.json").write_text(json.dumps(prom, allow_nan=False))
             env = {key: os.environ[key] for key in ("PATH", "HOME", "LANG") if key in os.environ}
             env.update(
                 MPLCONFIGDIR=str(folder / "mpl"), OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1"
@@ -174,7 +189,7 @@ def invoke(body):
             result["invocation_started_at"] = datetime.now(timezone.utc).isoformat()
             try:
                 finished = subprocess.run(
-                    command(folder, body),
+                    command(folder, body, prom),
                     env=env,
                     timeout=120,
                     stdout=subprocess.DEVNULL,
@@ -186,6 +201,14 @@ def invoke(body):
                 result["timed_out"] = True
             finally:
                 result["invocation_finished_at"] = datetime.now(timezone.utc).isoformat()
+            if (
+                metrics_attestation(
+                    metrics_binding(read_json(prom_path)),
+                    Path("/run/cloudops-krr/key").read_text().strip(),
+                )
+                != body["metrics_source_sha256"]
+            ):
+                raise ContractError("runner_metrics_source_changed")
             after = connection(body["identity"])
             result["scope_after"] = after
             if before != after:

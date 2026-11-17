@@ -159,6 +159,7 @@ def inside(stage, retired):
                         "state": "unavailable",
                         "protocol_version": 1,
                         "request_sha256": digest(body),
+                        "metrics_source_sha256": body["metrics_source_sha256"],
                         "reason": "runner_source_unavailable",
                         "tool_version": "1.31.1",
                         "image_digest": body["profile"]["image_digest"],
@@ -197,7 +198,32 @@ def inside(stage, retired):
         with tempfile.TemporaryDirectory() as folder:
             key = Path(folder) / "key"
             key.write_text("local-restore-fixture")
+            import base64
+            from cloudops.features.investigations.prometheus_config import QUERY_IDS
+
+            prom = Path(folder) / "prometheus.json"
+            prom.write_text(
+                json.dumps(
+                    {
+                        "schema": "PrometheusReadConfig/v1",
+                        "endpoint_id": "restore-fixture",
+                        "producer_version": "controlled",
+                        "server": "https://metrics.test",
+                        "ca_data": base64.b64encode(
+                            Path("/restore-fixture-ca.crt").read_bytes()
+                        ).decode(),
+                        "queries": {
+                            k: {
+                                "query": 'fixture{namespace="{{namespace}}",deployment_uid="{{workload_uid}}"}',
+                                "unit": "fixture",
+                            }
+                            for k in QUERY_IDS
+                        },
+                    }
+                )
+            )
             os.environ.update(
+                PROMETHEUS_READ_CONFIG=str(prom),
                 KRR_RUNNER_URL=f"http://127.0.0.1:{server.server_port}",
                 EXECUTOR_URL=f"http://127.0.0.1:{server.server_port}",
                 KRR_RUNNER_KEY=str(key),
@@ -316,6 +342,9 @@ def main():
                 f"{args.project}_job_dispatch:/run/cloudops-job-permit:ro",
                 "-v",
                 str(ROOT / "scripts") + ":/review:ro",
+                "-v",
+                str(ROOT / "services/backend/tests/fixtures/scope-ca.crt")
+                + ":/restore-fixture-ca.crt:ro",
                 image_id,
                 "python",
                 "/review/probe-e04-restore.py",

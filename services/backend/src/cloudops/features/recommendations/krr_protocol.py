@@ -1,9 +1,13 @@
 """Dependency-free allowlist shared with the separately pinned KRR image."""
 
+import base64
 import hashlib
+import hmac
 import json
 import math
 import re
+import ssl
+from urllib.parse import urlsplit
 from uuid import UUID
 
 VERSION = "1.31.1"
@@ -61,6 +65,61 @@ def digest(value):
     return hashlib.sha256(canonical(value).encode()).hexdigest()
 
 
+def metrics_binding(config):
+    try:
+        server = config["server"].rstrip("/")
+        url = urlsplit(server)
+        if (
+            url.scheme != "https"
+            or not url.hostname
+            or url.username
+            or url.password
+            or any(c in server for c in "\\?#@%")
+            or not server.isascii()
+            or any(ord(c) <= 32 or ord(c) == 127 for c in server)
+            or (url.path and not re.fullmatch(r"/[A-Za-z0-9._~/-]+", url.path))
+            or ".." in url.path.split("/")
+            or (url.port is not None and not 1 <= url.port <= 65535)
+            or config["schema"] != "PrometheusReadConfig/v1"
+        ):
+            raise ValueError
+        pem = base64.b64decode(config["ca_data"], validate=True).decode("ascii")
+        if not ssl.create_default_context(cadata=pem).get_ca_certs():
+            raise ValueError
+        token = config.get("token")
+        if token is not None and (
+            not isinstance(token, str)
+            or len(token) > 4096
+            or any(ord(c) < 32 or ord(c) == 127 for c in token)
+        ):
+            raise ValueError
+        return digest(
+            {
+                "server": server,
+                "ca_data": config["ca_data"],
+                "endpoint_id": config["endpoint_id"],
+                "producer_version": config["producer_version"],
+                "credential_sha256": digest(token),
+                "step_seconds": config.get("step_seconds", 30),
+                "binding": {
+                    "deployment_uid_label": "deployment_uid",
+                    "namespace_label": "namespace",
+                    **config.get("binding", {}),
+                },
+            }
+        )
+    except (KeyError, ValueError, TypeError, AttributeError):
+        raise ContractError("runner_metrics_configuration_invalid") from None
+
+
+def metrics_attestation(binding, key):
+    if not isinstance(binding, str) or not re.fullmatch(r"[a-f0-9]{64}", binding) or not key:
+        raise ContractError("runner_metrics_configuration_invalid")
+    return hmac.new(
+        key.encode(), ("CloudOpsKRRMetricsSource/v1\n" + binding).encode(), hashlib.sha256
+    ).hexdigest()
+
+
 def parse_json(raw):
     def pairs(items):
         result = {}
@@ -82,12 +141,17 @@ def parse_json(raw):
 def validate_request(body, image_digest):
     try:
         if (
-            set(body) != {"protocol_version", "request_id", "identity", "profile"}
+            set(body)
+            != {"protocol_version", "request_id", "identity", "profile", "metrics_source_sha256"}
             or type(body["protocol_version"]) is not int
             or body["protocol_version"] != 1
         ):
             raise ValueError
         UUID(body["request_id"])
+        if not isinstance(body["metrics_source_sha256"], str) or not re.fullmatch(
+            r"[a-f0-9]{64}", body["metrics_source_sha256"]
+        ):
+            raise ValueError
         identity, profile = body["identity"], body["profile"]
         if (
             set(identity) != IDENTITY_FIELDS

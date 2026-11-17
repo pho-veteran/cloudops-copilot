@@ -156,6 +156,7 @@ def completed_envelope():
     result = {
         "protocol_version": 1,
         "request_sha256": digest(body),
+        "metrics_source_sha256": body["metrics_source_sha256"],
         "state": "completed",
         "reason": "tool_completed",
         "tool_version": "1.31.1",
@@ -259,10 +260,10 @@ def test_runner_transport_is_bounded_and_never_follows_redirects(monkeypatch, tm
             raise httpx.ReadTimeout("controlled timeout")
         return httpx.Response(200, stream=httpx.ByteStream(b'{"state":"unavailable"}'))
 
-    original = httpx.Client
+    original = httpx.AsyncClient
     monkeypatch.setattr(
         producer.httpx,
-        "Client",
+        "AsyncClient",
         lambda **kwargs: original(transport=httpx.MockTransport(handle), **kwargs),
     )
     admitted = []
@@ -293,3 +294,77 @@ def test_invalid_source_quantity_is_nonavailable_contract_failure():
     )
     with pytest.raises(ContractError, match="tool_current_mismatch"):
         advice(case[0], case[3], evidence, normalized)
+
+
+@pytest.mark.parametrize(
+    "metric", ["container_cpu_usage_seconds_total", "container_memory_working_set_bytes"]
+)
+@pytest.mark.parametrize("uid", [None, "foreign-uid"])
+def test_same_name_unproven_uid_series_cannot_influence_qualified_native_numbers(metric, uid):
+    case, body, raw, observed = runner_case()
+    original = case[3].series[metric][0]
+    labels = {**original.labels, "uid": uid or "pod-uid"}
+    if uid:
+        labels["pod_uid"] = uid
+    else:
+        labels.pop("pod_uid", None)
+    case[3].series[metric].append(Series(labels, original.samples))
+    with pytest.raises(ContractError, match="tool_metric_identity_ambiguous"):
+        advice(case[0], case[3], qualify(*case), normalize(raw, observed, body))
+
+
+def test_metrics_binding_matches_validated_defaults_and_changes_for_another_source():
+    from test_prometheus_config import config
+    from cloudops.features.investigations.prometheus_config import PrometheusConfig
+    from cloudops.features.recommendations.krr_protocol import metrics_binding
+    from cloudops.features.recommendations.producer import envelope
+
+    raw = config()
+    raw.pop("step_seconds")
+    raw["binding"] = {}
+    bound = metrics_binding(raw)
+    assert bound == metrics_binding(PrometheusConfig.model_validate(raw).model_dump(by_alias=True))
+    raw["server"] = "https://another-metrics.test"
+    assert metrics_binding(raw) != bound
+    body, result, sent = completed_envelope()
+    body["metrics_source_sha256"] = bound
+    result["metrics_source_sha256"] = metrics_binding(raw)
+    with pytest.raises(ContractError):
+        envelope(result, body, sent)
+
+
+def test_slow_stream_cannot_renew_the_overall_http_deadline(monkeypatch, tmp_path):
+    import asyncio
+    import time
+    import httpx
+    from cloudops.features.recommendations import producer
+
+    key = tmp_path / "key"
+    key.write_text("controlled-deadline-key")
+    monkeypatch.setenv("KRR_RUNNER_KEY", str(key))
+    monkeypatch.setenv("KRR_RUNNER_URL", "http://runner.test")
+    monkeypatch.setattr(producer, "RUNNER_DEADLINE_SECONDS", 0.05)
+    closed = []
+
+    class SlowStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            for _ in range(100):
+                await asyncio.sleep(0.01)
+                yield b" "
+
+        async def aclose(self):
+            closed.append(True)
+
+    original = httpx.AsyncClient
+    monkeypatch.setattr(
+        producer.httpx,
+        "AsyncClient",
+        lambda **kwargs: original(
+            transport=httpx.MockTransport(lambda request: httpx.Response(200, stream=SlowStream())),
+            **kwargs,
+        ),
+    )
+    started = time.monotonic()
+    with pytest.raises(ContractError, match="runner_timeout"):
+        producer.call_runner({}, before_call=lambda: None)
+    assert time.monotonic() - started < 0.5 and closed == [True]

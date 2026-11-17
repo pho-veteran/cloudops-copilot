@@ -3962,6 +3962,8 @@ export interface components {
         ToolInvocation: {
             /** Finished At */
             finished_at?: string | null;
+            /** Metrics Source Sha256 */
+            metrics_source_sha256?: string | null;
             /** Request Sha256 */
             request_sha256: string;
             /** Started At */
