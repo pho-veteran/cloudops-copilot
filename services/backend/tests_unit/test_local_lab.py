@@ -316,14 +316,20 @@ def test_reader_scope_cannot_replace_existing_fingerprint_when_marker_is_unpinne
     assert "cluster_fingerprint" not in lab.marker
 
 
-@pytest.mark.parametrize("mismatch", ["names", "uid", "fingerprint"])
-def test_credential_validation_checks_v2_policy_and_legacy_uid_lists(lab, mismatch):
+@pytest.mark.parametrize("read_only", [False, True])
+@pytest.mark.parametrize(
+    "mismatch", ["names", "uid", "fingerprint", "reader_expiry", "monitoring_expiry"]
+)
+def test_credential_validation_checks_v2_policy_and_legacy_uid_lists(lab, mismatch, read_only):
     config = reader_connection()
     policy = lab.reader_scope(config)
     for kind in ["reader", "writer", "monitoring"]:
         folder = lab.directory / kind
         folder.mkdir()
-        (folder / "expiry.json").write_text(json.dumps({"expires_at": "2099-01-01T00:00:00Z"}))
+        expiry = (
+            "2000-01-01T00:00:00Z" if read_only and kind == "writer" else "2099-01-01T00:00:00Z"
+        )
+        (folder / "expiry.json").write_text(json.dumps({"expires_at": expiry}))
         if kind != "monitoring":
             rows = [
                 {
@@ -339,7 +345,18 @@ def test_credential_validation_checks_v2_policy_and_legacy_uid_lists(lab, mismat
             (folder / "workloads.json").write_text(json.dumps(rows))
     (lab.directory / "reader/client.json").write_text(json.dumps(config))
     (lab.directory / "reader/scope.json").write_text(json.dumps(policy))
-    lab.credentials_valid()
+    lab.credentials_valid(read_only=read_only)
+    if read_only:
+        with pytest.raises(RuntimeError, match="writer credential expired"):
+            lab.credentials_valid()
+    if mismatch.endswith("_expiry"):
+        kind = mismatch.removesuffix("_expiry")
+        (lab.directory / kind / "expiry.json").write_text(
+            json.dumps({"expires_at": "2000-01-01T00:00:00Z"})
+        )
+        with pytest.raises(RuntimeError, match=f"{kind} credential expired"):
+            lab.credentials_valid(read_only=read_only)
+        return
     if mismatch == "uid":
         path = lab.directory / "reader/workloads.json"
         rows = json.loads(path.read_text())
@@ -352,7 +369,7 @@ def test_credential_validation_checks_v2_policy_and_legacy_uid_lists(lab, mismat
             policy["cluster"]["expected_fingerprint"] = "0" * 64
         (lab.directory / "reader/scope.json").write_text(json.dumps(policy))
     with pytest.raises(RuntimeError, match="scope differs"):
-        lab.credentials_valid()
+        lab.credentials_valid(read_only=read_only)
 
 
 def test_node_bounds_are_reapplied_and_effectively_checked(lab, driver, monkeypatch):
@@ -1197,3 +1214,70 @@ def test_history_replacement_compares_one_exact_query_time_and_syncs_only_reader
     assert commands.index(("run", "--rm", "-T", "--no-deps", "migrate")) < commands.index(
         ("restart", "api", "worker", "observer")
     )
+
+
+def test_http_load_requires_read_only_containment_before_dispatch(lab, monkeypatch):
+    calls = []
+
+    def containment(*, read_only=False):
+        assert read_only
+        raise RuntimeError("expired reader; load blocked")
+
+    monkeypatch.setattr(lab, "containment", containment)
+    monkeypatch.setattr(lab, "dc", lambda *args, **kwargs: calls.append(args))
+    with pytest.raises(RuntimeError, match="load blocked"):
+        lab.load("checkout", 2, 5)
+    assert calls == []
+
+
+def test_read_only_renewal_never_starts_services_or_touches_writer(lab, monkeypatch):
+    calls = []
+    monkeypatch.setattr(lab, "service", lambda name: {"State": {"Running": True}})
+    monkeypatch.setattr(lab, "deployment", lambda name: None)
+    monkeypatch.setattr(lab, "credential", lambda kind: calls.append(kind))
+    monkeypatch.setattr(lab, "receipt", lambda *args: None)
+    monkeypatch.setattr(
+        lab,
+        "dc",
+        lambda *args, **kwargs: pytest.fail("No startup or restart during read-only renewal"),
+    )
+    lab.renew_readers()
+    assert calls == ["reader", "monitoring"]
+
+
+def test_expired_absolute_load_deadline_cannot_send_requests_after_late_launch(monkeypatch):
+    load = module(ROOT / "config/lab/load.py", "expired_load_test")
+
+    class Opener:
+        def open(self, *args, **kwargs):
+            pytest.fail("No request may start after the absolute deadline")
+
+    monkeypatch.setattr(load, "build_opener", lambda *args: Opener())
+    result = load.run("checkout", 15, 25, deadline=load.time.time() - 1)
+    assert result["responses"] == {} and not result["completed_nominal_load"]
+
+
+def test_load_request_timeout_cannot_exceed_remaining_absolute_budget(monkeypatch):
+    load = module(ROOT / "config/lab/load.py", "deadline_timeout_test")
+    timeouts = []
+
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def read(self, size):
+            return b"completed"
+
+    class Opener:
+        def open(self, url, timeout):
+            timeouts.append(timeout)
+            return Response()
+
+    monkeypatch.setattr(load, "build_opener", lambda *args: Opener())
+    load.run("checkout", 1, 1, deadline=load.time.time() + 0.5)
+    assert len(timeouts) == 1 and 0 < timeouts[0] <= 0.5
