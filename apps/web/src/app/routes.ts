@@ -241,8 +241,8 @@ export interface ReportRoute {
 
 export function buildReportHash(route: ReportRoute = {}): string {
   const params = new URLSearchParams();
-  if (route.workload) params.set("workload", route.workload);
-  if (route.report) params.set("report", route.report);
+  if (route.workload) params.set("workload", route.workload.toLowerCase());
+  if (route.report) params.set("report", route.report.toLowerCase());
   if (route.hours && route.hours !== 6) params.set("hours", String(route.hours));
   if (route.cursor) params.set("cursor", route.cursor);
   return `#/reports${params.size ? `?${params}` : ""}`;
@@ -258,7 +258,7 @@ function parseReportHash(hash: string): ReportRoute | null {
     const value = params.get(key);
     if (value !== null) {
       if (!uuid.test(value)) return null;
-      result[key] = value;
+      result[key] = value.toLowerCase();
     }
   }
   const hours = params.get("hours");

@@ -68,7 +68,7 @@ beforeEach(() => {
     }
     if (url.pathname.startsWith("/api/recommendation-reports/")) {
       if (detailFailure) return Response.json({ error: { code: "source_unavailable", message: "Controlled refresh failure" } }, { status: 503 });
-      const row = records.find(r => r.id === url.pathname.split("/").pop());
+      const row = records.find(r => r.id === url.pathname.split("/").pop()?.toLowerCase());
       return row ? Response.json(row) : Response.json({ error: { code: "report_not_found", message: "Selected report not found" } }, { status: 404 });
     }
     if (url.pathname === "/api/workloads") return Response.json({ items: workloadRecords.filter(w => w.active), next_offset: null });
@@ -76,6 +76,14 @@ beforeEach(() => {
   });
 });
 afterEach(() => { cleanup(); cache.clear(); });
+
+it("exports a selected report from a valid uppercase UUID deep link", async () => {
+  const id = "abcdefab-cdef-4000-8000-abcdefabcdef";
+  records = [{ ...reportFixture(), id }];
+  mount({ report: id.toUpperCase() });
+  await userEvent.click(await screen.findByRole("button", { name: /Export selected report/ }));
+  await vi.waitFor(() => expect(http.download).toHaveBeenCalledWith(exactExport, `resource-report-${id}.json`, "application/json"));
+});
 
 it("renders mixed advice, zero, unset, excluded memory, envelope and stale applicability independently", async () => {
   mount({ report: reportId(99) });

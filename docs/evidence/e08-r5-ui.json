@@ -4,7 +4,7 @@
   "status": "Implementation and focused browser checks complete; new-UI native download completion remains pending",
   "source_base": "29f02f9630f21dc54900f528e3ef1b18dc6d738d",
   "checks": {
-    "focused_web_tests": 76,
+    "focused_web_tests": 78,
     "production_build": "passed",
     "browser": "User running Microsoft Edge, separate owned localhost:5177 lab tab",
     "history": "76 distinct reports over pages 25/25/25/1, padded real API cursors, selected exact report retained over pagination/reload/Back",
@@ -27,8 +27,9 @@
       }
     ],
     "restoration": "Theme restored to light and temporary viewport override reset",
-    "full_web_tests": 279,
-    "review_fix_regressions": "Legacy terminal history/detail labels agree; exact decimal millicore conversion preserves positive values down to the contract decimal bound without floating-point rounding."
+    "full_web_tests": 281,
+    "review_fix_regressions": "Legacy terminal history/detail labels agree; exact decimal millicore conversion preserves positive values down to the contract decimal bound without floating-point rounding.",
+    "uuid_route_case": "A valid uppercase UUID previously suppressed export after the API returned its lowercase ID. Parser/builder now canonicalize UUID fields; opaque cursor casing is preserved. Focused export regression and actual Edge uppercase URL -> lowercase exact selection passed, without another native export click."
   },
   "native_download": {
     "original_completed_export": {

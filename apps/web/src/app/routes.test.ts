@@ -248,6 +248,14 @@ describe("Resource report route identity", () => {
     expect(readRoute()).toMatchObject({ page: "reports", reports });
     expect(window.location.hash).toBe(buildReportHash(reports));
   });
+  it("canonicalizes UUID casing without changing the opaque history cursor", () => {
+    const mixed = "ABCDEFAB-CDEF-4000-8000-ABCDEFABCDEF";
+    const cursor = "AbCd+/==";
+    window.history.replaceState(null, "", `/#/reports?workload=${mixed}&report=${mixed}&cursor=${encodeURIComponent(cursor)}`);
+    const reports = { workload: mixed.toLowerCase(), report: mixed.toLowerCase(), cursor };
+    expect(readRoute()).toMatchObject({ page: "reports", reports });
+    expect(window.location.hash).toBe(buildReportHash(reports));
+  });
   it.each(["report=raw", `report=${id}&report=${id}`, "hours=5", "hours=25", "cursor=", "cursor=" + "a".repeat(513), "token=private"])("rejects invalid report selection: %s", query => {
     expect(safeRoute(`#/reports?${query}`).page).toBe("queue");
   });
