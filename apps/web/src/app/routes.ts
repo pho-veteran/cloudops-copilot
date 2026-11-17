@@ -232,10 +232,53 @@ function parseKnowledgeHash(hash: string): KnowledgeRoute | null {
   return route;
 }
 
+export interface ReportRoute {
+  workload?: string;
+  report?: string;
+  hours?: number;
+  cursor?: string;
+}
+
+export function buildReportHash(route: ReportRoute = {}): string {
+  const params = new URLSearchParams();
+  if (route.workload) params.set("workload", route.workload);
+  if (route.report) params.set("report", route.report);
+  if (route.hours && route.hours !== 6) params.set("hours", String(route.hours));
+  if (route.cursor) params.set("cursor", route.cursor);
+  return `#/reports${params.size ? `?${params}` : ""}`;
+}
+
+function parseReportHash(hash: string): ReportRoute | null {
+  const match = /^#\/reports(?:\?([^#]*))?$/.exec(hash);
+  if (!match) return null;
+  const params = new URLSearchParams(match[1] ?? "");
+  if ([...params.keys()].some(key => !["workload", "report", "hours", "cursor"].includes(key) || params.getAll(key).length !== 1)) return null;
+  const result: ReportRoute = {};
+  for (const key of ["workload", "report"] as const) {
+    const value = params.get(key);
+    if (value !== null) {
+      if (!uuid.test(value)) return null;
+      result[key] = value;
+    }
+  }
+  const hours = params.get("hours");
+  if (hours !== null) {
+    if (!/^\d{1,2}$/.test(hours) || Number(hours) < 6 || Number(hours) > 24) return null;
+    result.hours = Number(hours);
+  }
+  const cursor = params.get("cursor");
+  if (cursor !== null) {
+    if (!cursor || cursor.length > 512) return null;
+    result.cursor = cursor;
+  }
+  return result;
+}
+
 interface SafeRoute {
   page: string; id: string; run: string; evidence: string; resolution: string; baseline: string;
   selection?: EvidenceSelection;
   knowledge?: KnowledgeRoute;
+  reports?: ReportRoute;
 }
 
 export function safeRoute(hash: string): SafeRoute {
@@ -243,7 +286,9 @@ export function safeRoute(hash: string): SafeRoute {
   if (/^#\/queue(?:\?[^#]*)?$/.test(hash)) return { ...fallback, page: "queue" };
   const knowledge = parseKnowledgeHash(hash);
   if (knowledge) return { ...fallback, page: "knowledge", knowledge };
-  const match = /^#\/(workloads|connections|reports)$/.exec(hash);
+  const reports = parseReportHash(hash);
+  if (reports) return { ...fallback, page: "reports", reports };
+  const match = /^#\/(workloads|connections)$/.exec(hash);
   if (match) return { ...fallback, page: match[1] };
   const workload = /^#\/workloads\?workload=([^&#]+)(?:&baseline=([^&#]+))?$/.exec(hash);
   if (workload && uuid.test(workload[1]) && (!workload[2] || uuid.test(workload[2])))
@@ -295,6 +340,8 @@ export function readRoute() {
       ? buildIncidentHash(route.id, route.run, incidentReturnHash(window.location.hash), route.resolution, route.evidence, route.selection)
       : route.page === "knowledge"
         ? buildKnowledgeHash(route.knowledge)
+      : route.page === "reports"
+        ? buildReportHash(route.reports)
       : route.page === "queue"
         ? buildWorkQueueHash(parseWorkQueueHash(window.location.hash))
         : `#/${route.page}${route.page === "workloads" && route.id ? `?workload=${route.id}${route.baseline ? `&baseline=${route.baseline}` : ""}` : ""}`;

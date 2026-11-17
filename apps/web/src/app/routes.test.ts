@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { buildIncidentHash, buildWorkQueueHash, buildKnowledgeHash, incidentReturnHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
+import { buildIncidentHash, buildWorkQueueHash, buildKnowledgeHash, buildReportHash, incidentReturnHash, parseWorkQueueHash, readRoute, safeRoute } from "./routes";
 
 describe("Knowledge route identity and return context", () => {
   const id = "10000000-0000-4000-8000-000000000001";
@@ -236,5 +236,19 @@ describe("work queue URL state", () => {
     window.history.replaceState(null, "", "/#/queue?state=bogus");
     readRoute();
     expect(window.location.hash).toBe("#/queue");
+  });
+});
+
+
+describe("Resource report route identity", () => {
+  const id = "10000000-0000-4000-8000-000000000001";
+  it("round-trips selected report, workload, duration and bounded history cursor", () => {
+    const reports = { workload: id, report: id, hours: 12, cursor: btoa(JSON.stringify({ at: "2026-11-17T00:00:00+00:00", id, workload: id })) };
+    window.history.replaceState(null, "", "/" + buildReportHash(reports));
+    expect(readRoute()).toMatchObject({ page: "reports", reports });
+    expect(window.location.hash).toBe(buildReportHash(reports));
+  });
+  it.each(["report=raw", `report=${id}&report=${id}`, "hours=5", "hours=25", "cursor=", "cursor=" + "a".repeat(513), "token=private"])("rejects invalid report selection: %s", query => {
+    expect(safeRoute(`#/reports?${query}`).page).toBe("queue");
   });
 });
