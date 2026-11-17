@@ -54,6 +54,9 @@ class ReportIdentity(SafeModel):
 
 class ReportProfile(SafeModel):
     tool_version: Literal["1.31.1"] = "1.31.1"
+    upstream_commit: str | None = Field(default=None, pattern=r"^[a-f0-9]{40}$")
+    source_tree_sha256: Digest | None = None
+    embedded_version: str | None = Field(default=None, max_length=64)
     strategy: Literal["simple"] = "simple"
     history_hours: int = Field(ge=6, le=24)
     timeframe_minutes: Literal[1.25] = 1.25
@@ -62,6 +65,7 @@ class ReportProfile(SafeModel):
     minimum_cpu_millicores: Literal[10] = 10
     minimum_memory_bytes: Literal[104857600] = 104857600
     points_required: Literal[100] = 100
+    max_workers: Literal[2] | None = None
     allow_hpa: Literal[False] = False
     use_oomkill_data: Literal[False] = False
     policy_version: Literal["e08-coverage-v1"] = "e08-coverage-v1"
@@ -104,6 +108,50 @@ class Coverage(SafeModel):
         return self
 
 
+class PodEvidence(SafeModel):
+    pod: Name
+    uid: Name
+    replicaset_uid: Name
+    container: Name
+    start: datetime
+    end: datetime
+    lifetime: Literal["current", "completed", "unknown"]
+    cpu: Coverage
+    memory: Coverage
+    restarts: Coverage
+    cpu_raw_samples: int = Field(ge=0, le=100_000)
+    memory_raw_samples: int = Field(ge=0, le=100_000)
+    reasons: list[Reason] = Field(default_factory=list, max_length=16)
+    memory_reasons: list[Reason] = Field(default_factory=list, max_length=16)
+
+
+class ResourceEligibility(SafeModel):
+    container: Name
+    resource: Literal["cpu", "memory"]
+    state: Literal["eligible", "insufficient_data", "excluded", "unavailable"]
+    reasons: list[Reason] = Field(max_length=16)
+
+
+class QualifiedEvidence(SafeModel):
+    policy_version: Literal["e08-coverage-v1"] = "e08-coverage-v1"
+    identity: ReportIdentity
+    window: ReportWindow
+    query_digest: Digest
+    config_digest: Digest
+    history_digest: Digest
+    collected_at: datetime
+    pods: list[PodEvidence] = Field(max_length=100)
+    resources: list[ResourceEligibility] = Field(max_length=64)
+    reasons: list[Reason] = Field(default_factory=list, max_length=16)
+    limitations: list[str] = Field(
+        default_factory=lambda: [
+            "Five-second metric scraping and thirty-second ownership polling are sampled evidence; unobserved events remain possible.",
+            "Eligibility alone supplies no KRR recommendation and authorizes no cluster write.",
+        ],
+        max_length=8,
+    )
+
+
 class ResourceAdvice(SafeModel):
     container: Name
     resource: Literal["cpu", "memory"]
@@ -112,6 +160,7 @@ class ResourceAdvice(SafeModel):
     current_limit: Value
     observed: Quantity | None = None
     statistic: Literal["percentile_95", "maximum"] | None = None
+    statistic_definition: str | None = Field(default=None, max_length=240)
     recommended_request: Value
     recommended_limit: Value
     buffer_percent: float | None = Field(default=None, ge=0, le=100)
@@ -150,6 +199,15 @@ class ResourceAdvice(SafeModel):
         return self
 
 
+class ToolInvocation(SafeModel):
+    request_sha256: Digest
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    timed_out: bool = False
+    target_before_sha256: Digest | None = None
+    target_after_sha256: Digest | None = None
+
+
 class ReportResult(SafeModel):
     schema_version: Literal[2] = 2
     state: ResultState
@@ -162,10 +220,20 @@ class ReportResult(SafeModel):
     tool_exit_code: int | None = None
     output_sha256: Digest | None = None
     query_digest: Digest | None = None
+    source_evidence: QualifiedEvidence | None = None
+    tool_invocation: ToolInvocation | None = None
     limitations: list[str] = Field(default_factory=list, max_length=16)
 
     @model_validator(mode="after")
     def complete(self):
+        if self.source_evidence and (
+            self.source_evidence.identity != self.identity
+            or self.source_evidence.window != self.window
+            or self.source_evidence.query_digest != self.query_digest
+        ):
+            raise ValueError(
+                "Source evidence must bind the same report identity, interval and queries."
+            )
         keys = [(x.container, x.resource) for x in self.resources]
         if len(set(keys)) != len(keys):
             raise ValueError("A container/resource may occur only once.")

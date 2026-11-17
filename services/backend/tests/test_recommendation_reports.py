@@ -627,6 +627,25 @@ def test_missing_full_template_hash_is_unknown_and_preserves_export(permission_c
     assert viewer.get(f"{PATH}/{identifier}/export").content == frozen
 
 
+def test_known_tool_image_drift_is_stale_without_rewriting_export(permission_context, monkeypatch):
+    c = permission_context
+    monkeypatch.setenv("KRR_RUNNER_IMAGE_DIGEST", "sha256:" + "b" * 64)
+    identifier = UUID(create(c).json()["id"])
+    claim = claim_next({service.REPORT_JOB: ReportHandler()}, GATE)
+    with sessions()() as db:
+        value = service.unavailable(db.get(RecommendationReport, identifier))
+    assert finish(claim, ReportHandler(), result=value, gate=GATE)
+    viewer = c.actors["viewer"].client
+    frozen = viewer.get(f"{PATH}/{identifier}/export").content
+    monkeypatch.setenv("KRR_RUNNER_IMAGE_DIGEST", "sha256:" + "c" * 64)
+    detail = viewer.get(f"{PATH}/{identifier}").json()
+    assert (
+        detail["applicability"]["state"] == "stale"
+        and "tool_profile_changed" in detail["applicability"]["reasons"]
+    )
+    assert viewer.get(f"{PATH}/{identifier}/export").content == frozen
+
+
 def suppressed_result(row, cpu_state, aggregate):
     identity = service.ReportIdentity.model_validate(row.input_identity).model_copy(
         update={"containers": ["app"]}

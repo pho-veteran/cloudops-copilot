@@ -185,10 +185,12 @@ def main():
             time.sleep(1)
         assert report["result"].get("source") == "live_krr", report
         assert report["result"].get("tool_exit_code") is not None, "KRR invocation did not finish"
-        assert report["result"]["recommendations"] is None and report["result"]["coverage"] is None
+        typed = report["result_v2"]
+        assert typed["source"] == "live_krr" and typed["tool_invocation"]["finished_at"]
+        assert typed["window"]["kind"] == "query_envelope"
         verify_report_export(viewer, report)
         print(
-            f"Pinned KRR invocation and actual persisted Viewer export: {report['state']} (tool exit {report['result']['tool_exit_code']}); no qualified recommendations claimed."
+            f"Pinned KRR invocation and actual persisted Viewer export: {report['state']} (tool exit {report['result']['tool_exit_code']}); typed result {typed['state']}."
         )
         desired = (
             2

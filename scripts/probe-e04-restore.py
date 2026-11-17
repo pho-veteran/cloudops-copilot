@@ -25,6 +25,7 @@ def inside(stage, retired):
     from cloudops.shared.jobs import Job
     from cloudops.features.investigations.models import InvestigationRun
     from cloudops.features.recommendations.service import prepare_report
+    from cloudops.features.recommendations.krr_protocol import digest
     from cloudops.features.recovery.models import ActionPlan, Execution
 
     def snapshot():
@@ -38,6 +39,8 @@ def inside(stage, retired):
                 }
                 for j in db.scalars(select(Job).order_by(Job.kind))
             }
+
+    os.environ["KRR_RUNNER_IMAGE_DIGEST"] = "sha256:" + "f" * 64
 
     if stage == "seed":
         from alembic import command
@@ -91,6 +94,14 @@ def inside(stage, retired):
                 window_source="explicit",
             )
             report = prepare_report(db, workload, actor)
+            report.input_identity = {
+                **report.input_identity,
+                "cluster_fingerprint": "a" * 64,
+                "template_digest": "b" * 64,
+                "resources_digest": "c" * 64,
+                "pod_template_digest": "d" * 64,
+                "containers": ["app"],
+            }
             plan = ActionPlan(
                 incident_id=b.id,
                 workload_id=target.id,
@@ -146,8 +157,19 @@ def inside(stage, retired):
                     200,
                     {
                         "state": "unavailable",
-                        "reason": "Controlled KRR transport fixture",
-                        "result": {"source": "restore-fixture", "recommendations": None},
+                        "protocol_version": 1,
+                        "request_sha256": digest(body),
+                        "reason": "runner_source_unavailable",
+                        "tool_version": "1.31.1",
+                        "image_digest": body["profile"]["image_digest"],
+                        "invocation_started_at": None,
+                        "invocation_finished_at": None,
+                        "tool_exit_code": None,
+                        "timed_out": False,
+                        "output_sha256": None,
+                        "scope_before": None,
+                        "scope_after": None,
+                        "containers": [],
                     },
                 )
             elif self.path == "/dispatch":
@@ -366,14 +388,21 @@ def main():
         assert result["calls"] == [job_class]
         assert result["jobs"][kind]["state"] == "completed"
         resumed.add(kind)
-        for other, row in result["jobs"].items():
+        for other in steps["snapshot"]["jobs"]:
+            row = result["jobs"][other]
             assert row["id"] == steps["snapshot"]["jobs"][other]["id"]
             assert row["subject_id"] == steps["snapshot"]["jobs"][other]["subject_id"]
             assert row["state"] == ("completed" if other in resumed else "queued")
             assert row["attempts"] == (1 if other in resumed else 0)
+        followups = set(result["jobs"]) - set(steps["snapshot"]["jobs"])
+        assert followups <= {"recovery_reconciliation_v1"}
+        if followups:
+            assert job_class == "recovery_execution"
+            followup = result["jobs"]["recovery_reconciliation_v1"]
+            assert followup["state"] == "queued" and followup["attempts"] == 1
         steps["after_" + job_class] = result
     final = steps["after_recovery_execution"]["execution"]
-    assert final == {"state": "outcome_unknown", "holds_lock": True, "maintenance_released": False}
+    assert final == {"state": "reconciling", "holds_lock": True, "maintenance_released": False}
     steps["exit_recovery"] = admin("exit-recovery")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8", newline="\n")

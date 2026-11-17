@@ -10,6 +10,7 @@ x-app-env: &app-env
   COLLECTION_SOURCE_MODE: live_kubernetes,prometheus
   WORKLOADS_FILE: /run/cloudops-reader/scope.json
   PROMETHEUS_READ_CONFIG: /run/cloudops-prometheus/read.json
+  RECOMMENDATION_SOURCE_POLICY: /run/cloudops-recommendations/policy.json
   COLLECTOR_DELAY_SECONDS: '0'
 services:
   db:
@@ -62,6 +63,7 @@ services:
     cpus: 0.5
     volumes:
       - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/prometheus:/run/cloudops-prometheus:ro
+      - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recommendations:/run/cloudops-recommendations:ro
   worker:
     <<: *lab
     image: cloudops-local-testing-lab-backend
@@ -71,6 +73,7 @@ services:
     cpus: 0.5
     volumes:
       - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/prometheus:/run/cloudops-prometheus:ro
+      - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recommendations:/run/cloudops-recommendations:ro
   observer:
     <<: *lab
     image: cloudops-local-testing-lab-backend

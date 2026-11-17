@@ -1,55 +1,10 @@
-import json
-import os
 import re
-from pathlib import Path
-from urllib.error import URLError
-from urllib.request import ProxyHandler, Request, build_opener
 
 from cloudops.features.recommendations.models import RecommendationReport
+from cloudops.features.recommendations.producer import generate as generate
 from cloudops.features.recommendations import service
 from cloudops.features.recommendations.schemas import ReportResult
-from cloudops.features.workloads.models import Workload
-from cloudops.shared.database import database_now, sessions
-
-
-def generate(report_id, *, before_call):
-    with sessions()() as db:
-        report = db.get(RecommendationReport, report_id)
-        workload = db.get(Workload, report.workload_id)
-        body = {
-            "namespace": workload.namespace,
-            "name": workload.name,
-            "uid": workload.uid,
-            "requested_hours": report.requested_hours,
-        }
-    server = os.environ.get("KRR_RUNNER_URL")
-    if server:
-        try:
-            key = Path(os.environ["KRR_RUNNER_KEY"]).read_text().strip()
-        except (OSError, KeyError):
-            key = ""
-        request = Request(
-            server.rstrip("/") + "/report",
-            data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
-        )
-        opener = build_opener(ProxyHandler({}))
-        try:
-            before_call()
-            with opener.open(request, timeout=150) as response:
-                payload = response.read(262145)
-                if len(payload) > 262144:
-                    raise ValueError("KRR response exceeds its bound.")
-                result = json.loads(payload)
-                if result["state"] in {"insufficient_data", "unavailable", "available"}:
-                    return result
-        except (OSError, URLError, ValueError, KeyError):
-            pass
-    return {
-        "state": "unavailable",
-        "reason": "The configured KRR runner is unavailable; no recommendations were fabricated.",
-        "result": {"source": "krr-v1.31.1", "coverage": None, "recommendations": None},
-    }
+from cloudops.shared.database import database_now
 
 
 class ReportHandler:

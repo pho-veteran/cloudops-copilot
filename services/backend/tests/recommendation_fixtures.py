@@ -1,6 +1,7 @@
 """Controlled source histories for qualification/runner tests; never live evidence."""
 
 import copy
+from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 
 from observation_fixtures import objects, observed
@@ -8,6 +9,7 @@ from cloudops.features.recommendations.qualification import History
 from cloudops.features.recommendations.schemas import ReportIdentity, ReportWindow
 from cloudops.features.recommendations.service import digest
 from cloudops.features.recommendations.sources import OwnershipPolicy, Series, SourceData
+from cloudops.features.recommendations.krr_protocol import PROFILE, digest as protocol_digest
 
 
 def six_hour_case():
@@ -104,3 +106,63 @@ def six_hour_case():
         end,
     )
     return identity, window, history, source
+
+
+def runner_case():
+    case = six_hour_case()
+    body = {
+        "protocol_version": 1,
+        "request_id": str(uuid4()),
+        "identity": case[0].model_dump(mode="json"),
+        "profile": {**PROFILE, "image_digest": "sha256:" + "b" * 64},
+    }
+    raw = {
+        "strategy": {
+            "name": "simple",
+            "settings": {
+                "history_duration": 6,
+                "timeframe_duration": 1.25,
+                "cpu_percentile": 95,
+                "memory_buffer_percentage": 15,
+                "points_required": 100,
+                "allow_hpa": False,
+                "use_oomkill_data": False,
+            },
+        },
+        "config": {"token": "private-config-sentinel"},
+        "scans": [
+            {
+                "object": {
+                    "namespace": "demo",
+                    "name": "checkout",
+                    "kind": "Deployment",
+                    "container": "app",
+                    "pods": [{"name": "checkout-pod", "deleted": False}],
+                    "allocations": {
+                        "requests": {"cpu": 0.1, "memory": None},
+                        "limits": {"cpu": None, "memory": None},
+                    },
+                    "annotations": {"secret": "private-annotation-sentinel"},
+                },
+                "recommended": {
+                    "requests": {"cpu": {"value": 0.025}, "memory": {"value": 104857600.0}},
+                    "limits": {"cpu": {"value": None}, "memory": {"value": 104857600.0}},
+                },
+            }
+        ],
+    }
+    observed = {
+        "request_sha256": protocol_digest(body),
+        "parameters": {"cpu_min": 10, "mem_min": 100, "max_workers": 2},
+        "observations": [
+            {
+                "namespace": "demo",
+                "name": "checkout",
+                "kind": "Deployment",
+                "container": "app",
+                "cpu": {"observed": 0.025, "pods": ["checkout-pod"]},
+                "memory": {"observed": 25165824.0, "pods": ["checkout-pod"]},
+            }
+        ],
+    }
+    return case, body, raw, observed

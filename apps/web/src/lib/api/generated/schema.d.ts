@@ -2784,6 +2784,43 @@ export interface components {
              */
             workload_id: string;
         };
+        /** PodEvidence */
+        PodEvidence: {
+            /** Container */
+            container: string;
+            cpu: components["schemas"]["cloudops__features__recommendations__schemas__Coverage"];
+            /** Cpu Raw Samples */
+            cpu_raw_samples: number;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Lifetime
+             * @enum {string}
+             */
+            lifetime: "current" | "completed" | "unknown";
+            memory: components["schemas"]["cloudops__features__recommendations__schemas__Coverage"];
+            /** Memory Raw Samples */
+            memory_raw_samples: number;
+            /** Memory Reasons */
+            memory_reasons?: string[];
+            /** Pod */
+            pod: string;
+            /** Reasons */
+            reasons?: string[];
+            /** Replicaset Uid */
+            replicaset_uid: string;
+            restarts: components["schemas"]["cloudops__features__recommendations__schemas__Coverage"];
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /** Uid */
+            uid: string;
+        };
         /** PodObservation */
         PodObservation: {
             /** Containers */
@@ -2895,6 +2932,36 @@ export interface components {
             started_at: string;
             /** Unrelated Pods */
             unrelated_pods: number;
+        };
+        /** QualifiedEvidence */
+        QualifiedEvidence: {
+            /**
+             * Collected At
+             * Format: date-time
+             */
+            collected_at: string;
+            /** Config Digest */
+            config_digest: string;
+            /** History Digest */
+            history_digest: string;
+            identity: components["schemas"]["ReportIdentity"];
+            /** Limitations */
+            limitations?: string[];
+            /** Pods */
+            pods: components["schemas"]["PodEvidence"][];
+            /**
+             * Policy Version
+             * @default e08-coverage-v1
+             * @constant
+             */
+            policy_version: "e08-coverage-v1";
+            /** Query Digest */
+            query_digest: string;
+            /** Reasons */
+            reasons?: string[];
+            /** Resources */
+            resources: components["schemas"]["ResourceEligibility"][];
+            window: components["schemas"]["ReportWindow"];
         };
         /** Quantity */
         Quantity: {
@@ -3196,10 +3263,14 @@ export interface components {
              * @constant
              */
             cpu_percentile: 95;
+            /** Embedded Version */
+            embedded_version?: string | null;
             /** History Hours */
             history_hours: number;
             /** Image Digest */
             image_digest?: string | null;
+            /** Max Workers */
+            max_workers?: 2 | null;
             /**
              * Memory Buffer Percent
              * @default 15
@@ -3230,6 +3301,8 @@ export interface components {
              * @constant
              */
             policy_version: "e08-coverage-v1";
+            /** Source Tree Sha256 */
+            source_tree_sha256?: string | null;
             /**
              * Strategy
              * @default simple
@@ -3248,6 +3321,8 @@ export interface components {
              * @constant
              */
             tool_version: "1.31.1";
+            /** Upstream Commit */
+            upstream_commit?: string | null;
             /**
              * Use Oomkill Data
              * @default false
@@ -3280,6 +3355,7 @@ export interface components {
              * @enum {string}
              */
             source: "live_krr" | "unconfigured";
+            source_evidence?: components["schemas"]["QualifiedEvidence"] | null;
             /**
              * State
              * @enum {string}
@@ -3287,6 +3363,7 @@ export interface components {
             state: "available" | "insufficient_data" | "excluded" | "unavailable";
             /** Tool Exit Code */
             tool_exit_code?: number | null;
+            tool_invocation?: components["schemas"]["ToolInvocation"] | null;
             window?: components["schemas"]["ReportWindow"] | null;
         };
         /** ReportView */
@@ -3477,6 +3554,25 @@ export interface components {
             state: "available" | "insufficient_data" | "excluded" | "unavailable";
             /** Statistic */
             statistic?: ("percentile_95" | "maximum") | null;
+            /** Statistic Definition */
+            statistic_definition?: string | null;
+        };
+        /** ResourceEligibility */
+        ResourceEligibility: {
+            /** Container */
+            container: string;
+            /** Reasons */
+            reasons: string[];
+            /**
+             * Resource
+             * @enum {string}
+             */
+            resource: "cpu" | "memory";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "eligible" | "insufficient_data" | "excluded" | "unavailable";
         };
         /** Resources */
         Resources: {
@@ -3861,6 +3957,24 @@ export interface components {
             kind: "window_start" | "window_end" | "rollout_observation" | "incident_activity" | "execution_created" | "execution_finished";
             /** Label */
             label: string;
+        };
+        /** ToolInvocation */
+        ToolInvocation: {
+            /** Finished At */
+            finished_at?: string | null;
+            /** Request Sha256 */
+            request_sha256: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Target After Sha256 */
+            target_after_sha256?: string | null;
+            /** Target Before Sha256 */
+            target_before_sha256?: string | null;
+            /**
+             * Timed Out
+             * @default false
+             */
+            timed_out: boolean;
         };
         /** TransitionBody */
         TransitionBody: {

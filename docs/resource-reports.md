@@ -71,9 +71,9 @@ older download of a report that was still running. Existing snapshots are never
 reinterpreted as qualified versioned advice. Downgrade refuses to discard any
 version-two report; preserve the schema/data rather than forcing a downgrade.
 
-The source qualification seam below is implemented independently from numeric KRR
-publication. Actual pinned-tool normalization, the measured six-hour cohort and
-complete report UI/export journey retain their E08 acceptance gates.
+The pinned producer below combines source qualification with actual KRR output.
+The measured six-hour cohort and complete report UI/native export journey retain
+their separate E08 acceptance gates.
 
 ## Contract-slice evidence
 
@@ -181,3 +181,68 @@ The deterministic fixture matrix and PostgreSQL cleanup checks prove these polic
 branches. The [R2 scoped source-smoke receipt](evidence/e08-r2-source-smoke.json) exercises the installed reader against
 the owned K3s/Prometheus; its short history remains insufficient. It is not a
 numeric recommendation, representative six-hour run or integrated E08 pass.
+
+## Pinned KRR producer
+
+Build `services/krr/Dockerfile` and set `CLOUDOPS_KRR_IMAGE_DIGEST` to the resulting
+immutable image ID (`docker image inspect --format '{{.Id}}' <built-image>`)
+before starting the integration Compose services. Compose passes this value as
+`KRR_RUNNER_IMAGE_DIGEST` to API, worker and runner. Recreate all three together
+when that image changes. A known changed image makes saved advice stale without
+rewriting its export. A missing/invalid pin cannot produce qualified advice.
+The worker alone needs `KRR_RUNNER_KEY`; the runner mounts the same private key at
+`/run/cloudops-krr/key`. `KRR_RUNNER_URL` is a trusted root HTTP(S) address, with no
+credentials, path, query, redirects or inherited proxy. Never expose this internal
+endpoint publicly. The runner has no model or writer credentials.
+
+For the retained lab, place the reviewed policy at
+`$CLOUDOPS_LAB_DIR/recommendations/policy.json`; the API/worker mount that directory
+read-only. Existing retained labs need this private directory created before the
+Compose upgrade. Missing policy remains unavailable, never assumed operator-owned.
+KRR remains optional and is not started by `resume`.
+
+The base digest is
+`sha256:835bf3b6fec4d8f27d96d236a36542bd87bfcb4f12f3537f8dce7f886916ed9c`.
+Its embedded version is **dev**, as is the release source initializer; there is
+no version rewrite. All 52 installed Python source paths/bytes match release
+1.31.1 commit `f21d482d6974699ccd5bb07ef9e208430fbcafeb`. Each invocation checks
+the complete canonical source-manifest SHA-256
+`cb1a4ba977fe49accee4b7a2bab1e3ef25fbf8501b3f739ac49653b61a61540b`.
+`ReportProfile` records source release, commit, source hash, embedded metadata and
+wrapper image separately. Older reports do not gain invented provenance.
+
+The fixed CLI is `simple`, six-hour history, 1.25-minute timeframe, CPU percentile
+95, memory buffer 15%, 100 required points, `--cpu-min 10 --mem-min 100` and
+`--max-workers 2`, JSON file output and stderr logging. The source uses MiB for the
+memory minimum despite its help's MB wording: the exact minimum is 104857600 bytes.
+HPA override, experimental OOM data, output sinks and arbitrary flags are disabled.
+The integration seam restricts Deployment discovery by namespace and exact
+`metadata.name`, captures loader statistics before native minima/rounding, and
+disables the remote version advertisement check. It does not alter upstream advice.
+CPU observation is the maximum of per-Pod 95th percentiles of 75-second rates;
+memory is the maximum working set on the pinned 75-second subquery grid. Native
+rounding is upward to one millicore / one MiB, then the fixed minimum. CPU limit
+is deliberately unset. R2's per-resource eligibility always wins, including all
+numeric memory suppression for proven/unknown OOM or restart evidence.
+
+Actual subprocess start/finish timestamps define a conservative query envelope:
+start is the invocation's UTC minute floor minus six hours; end is process finish.
+Raw CPU input begins another 75 seconds earlier. This contains mixed rolling and
+minute-aligned native queries; it is not a claim that every native query has equal
+bounds. Coverage is independently recomputed over this envelope on each attempt.
+Admission time is never substituted for actual query time. Only the six-hour
+profile invokes the tool; other accepted durations remain insufficient.
+
+Runner limits are one concurrent invocation, 16 KiB request, 120-second process,
+2 MB raw report, 256 KiB normalized response and a 32 MiB writable tmpfs on the
+read-only container. The worker HTTP call is bounded at 150 seconds, then the
+source collector has its separate 45-second budget. SDK Deployment calls use
+4/8-second connect/read timeouts. A worker loss can repeat a read-only invocation;
+shared leases, bounded attempts and the dispatch permit fence publication, not
+exactly-once external reads. No raw KRR config, labels/annotations, source bodies,
+credentials or stderr are stored in the report. Outage, malformed output and
+scope changes publish sanitized nonavailable outcomes; saved exports stay readable.
+
+The [R3 receipt](evidence/e08-r3-producer.json) separates controlled numeric proof
+from the real short-history pipeline and restart/fencing checks. It does not
+satisfy the representative six-hour positive-report gate.

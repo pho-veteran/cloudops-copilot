@@ -17,6 +17,7 @@ services:
       KUBE_READ_CONFIG: /run/cloudops-reader/client.json
       EXECUTOR_URL: http://executor:8081
       KRR_RUNNER_URL: http://krr:8082
+      KRR_RUNNER_IMAGE_DIGEST: ${CLOUDOPS_KRR_IMAGE_DIGEST:-}
     volumes:
       - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/reader:/run/cloudops-reader:ro
   api:
@@ -87,6 +88,11 @@ services:
     volumes:
       - ./config/lab/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
   krr:
+    environment:
+      KRR_RUNNER_IMAGE_DIGEST: ${CLOUDOPS_KRR_IMAGE_DIGEST:-}
+    read_only: true
+    cap_drop: [ALL]
+    tmpfs: [/tmp:size=32m,mode=1777]
     build:
       context: .
       dockerfile: services/krr/Dockerfile
