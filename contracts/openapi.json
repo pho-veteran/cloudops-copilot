@@ -1123,6 +1123,11 @@
       },
       "CheckPage": {
         "properties": {
+          "assessed_at": {
+            "format": "date-time",
+            "title": "Assessed At",
+            "type": "string"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/cloudops__features__diagnosis__api_schemas__CheckView"
@@ -1144,7 +1149,8 @@
         },
         "required": [
           "items",
-          "next_offset"
+          "next_offset",
+          "assessed_at"
         ],
         "title": "CheckPage",
         "type": "object"

@@ -1441,6 +1441,11 @@ export interface components {
         };
         /** CheckPage */
         CheckPage: {
+            /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
             /** Items */
             items: components["schemas"]["cloudops__features__diagnosis__api_schemas__CheckView"][];
             /** Next Offset */

@@ -4,7 +4,7 @@ import os
 import re
 from datetime import datetime, timedelta
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import DateTime, and_, case, cast, func, or_, select
 
 from cloudops.features.diagnosis.api_schemas import (
     CheckView,
@@ -178,17 +178,28 @@ def _retained_evidence(db, identity, now):
             now,
         )
 
-    success_probe = db.execute(
-        admitted_checks.where(ModelCheck.receipt["http_status"].astext.regexp_match(r"^2[0-9]{2}$"))
-        .with_only_columns(ModelCheck.admitted_at, ModelCheck.receipt["observed_at"].astext)
+    raw_probe_time = ModelCheck.receipt["observed_at"].astext
+    probe_time = case(
+        (
+            and_(
+                raw_probe_time.regexp_match(r"^[0-9]{4}-.*T.*(Z|[+-][0-9]{2}:[0-9]{2})$"),
+                func.pg_input_is_valid(raw_probe_time, "timestamptz"),
+            ),
+            cast(raw_probe_time, DateTime(timezone=True)),
+        ),
+        else_=None,
+    )
+    probe_success_at = db.scalar(
+        admitted_checks.where(
+            ModelCheck.receipt["http_status"].astext.regexp_match(r"^2[0-9]{2}$"),
+            probe_time >= ModelCheck.admitted_at,
+            probe_time <= now,
+        )
+        .with_only_columns(probe_time)
+        .order_by(None)
+        .order_by(probe_time.desc(), ModelCheck.id.desc())
         .limit(1)
-    ).first()
-    probe_success_at = None
-    if success_probe:
-        admitted_at, raw_observed_at = success_probe
-        observed_at = _timestamp(raw_observed_at)
-        if observed_at is not None and admitted_at <= observed_at <= now:
-            probe_success_at = observed_at
+    )
     success_analysis = db.scalar(
         calls.where(
             AnalysisCall.receipt["http_status"].astext.regexp_match(r"^2[0-9]{2}$"),

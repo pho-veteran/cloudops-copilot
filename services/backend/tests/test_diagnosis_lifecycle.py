@@ -4,7 +4,7 @@ import json
 import os
 import threading
 from pathlib import Path
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
@@ -541,6 +541,20 @@ def test_current_probe_does_not_promote_an_impossible_receipt_time(client, db, d
         assert created.status_code == 201
         assert run_once()
         check = db.get(ModelCheck, UUID(created.json()["id"]))
+        previous = check.admitted_at - timedelta(minutes=10)
+        db.add(
+            ModelCheck(
+                actor_id=check.actor_id,
+                idempotency_key=uuid4(),
+                identity=check.identity,
+                dispatch_epoch=check.dispatch_epoch,
+                state="completed",
+                created_at=previous,
+                admitted_at=previous,
+                deadline=previous + timedelta(minutes=1),
+                receipt=check.receipt | {"observed_at": previous.isoformat()},
+            )
+        )
         check.receipt = check.receipt | {
             "observed_at": (check.admitted_at + timedelta(seconds=offset)).isoformat()
         }
@@ -549,7 +563,7 @@ def test_current_probe_does_not_promote_an_impossible_receipt_time(client, db, d
         status = client.get("/api/diagnosis/status").json()
         assert status["last_attempt"]["transport"] == "unknown"
         assert status["last_attempt"]["observed_at"] is None
-        assert status["last_success_at"] is None
+        assert datetime.fromisoformat(status["last_success_at"]) == previous
         assert status["last_check"]["receipt"] is None
         history = client.get("/api/diagnosis/checks").json()["items"][0]
         assert history["receipt"]["schema_success"] is True

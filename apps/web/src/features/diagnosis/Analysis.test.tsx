@@ -28,10 +28,12 @@ vi.mock("@/lib/api/client", async (original) => {
   };
 });
 const caches: QueryClient[] = [];
-function mount(node: React.ReactNode) {
-  const cache = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: 3 } },
-  });
+function mount(node: React.ReactNode, existing?: QueryClient) {
+  const cache =
+    existing ??
+    new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: 3 } },
+    });
   caches.push(cache);
   return render(
     <QueryClientProvider client={cache}>{node}</QueryClientProvider>,
@@ -138,6 +140,7 @@ it("separates transport, schema and quality and preserves missing usage for View
             },
           }
         : {
+            assessed_at: "2026-11-17T00:00:00Z",
             items: [
               {
                 id: "probe",
@@ -182,7 +185,9 @@ it("separates transport, schema and quality and preserves missing usage for View
 });
 
 it("ages cached model evidence during a failed refresh", async () => {
-  vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "performance"] });
+  vi.useFakeTimers({
+    toFake: ["Date", "setInterval", "clearInterval", "performance"],
+  });
   let available = true;
   const observed = "2026-11-16T00:00:05Z";
   http.fetch.mockImplementation(async (r) => {
@@ -235,7 +240,8 @@ it("ages cached model evidence during a failed refresh", async () => {
       },
     });
   });
-  mount(<ModelConnection canMutate={false} />);
+  const initial = mount(<ModelConnection canMutate={false} />);
+  const cache = caches.at(-1)!;
   await screen.findByText(/succeeded · HTTP 200/);
   expect(screen.queryAllByText(/Historical/)).toHaveLength(0);
   available = false;
@@ -255,6 +261,12 @@ it("ages cached model evidence during a failed refresh", async () => {
     screen.getByText("Observed usage for latest attempt").nextElementSibling
       ?.textContent,
   ).toContain("Total 0");
+  initial.unmount();
+  mount(<ModelConnection canMutate={false} />, cache);
+  await screen.findByText("Status temporarily unavailable.");
+  expect(
+    screen.getByText("Transport").nextElementSibling?.textContent,
+  ).toContain("Historical");
   expect(posts()).toHaveLength(0);
 });
 
@@ -290,10 +302,40 @@ it("guides configuration drift after a newer check stops before the provider cal
     screen.getByText("Last attempt outcome").nextElementSibling?.textContent,
   ).toContain("rate limited");
   expect(
-    screen.queryByText(
-      "Wait for the provider limit to clear before starting another check.",
-    ),
-  ).toBeNull();
+    screen.getByText("Latest configured probe").nextElementSibling?.textContent,
+  ).toContain("Inspect the current profile");
+  expect(
+    screen.getByText("Last attempt outcome").nextElementSibling?.textContent,
+  ).toContain("Wait for the provider limit");
+});
+
+it("rejects future receipt evidence when only history loads", async () => {
+  http.fetch.mockImplementation(async (r) =>
+    (r as Request).url.endsWith("/status")
+      ? Response.json(
+          { error: { code: "unavailable", message: "Status offline" } },
+          { status: 503 },
+        )
+      : Response.json({
+          assessed_at: "2026-11-17T00:00:00Z",
+          items: [
+            {
+              id: "future-check",
+              state: "completed",
+              created_at: "2026-11-16T23:59:59Z",
+              receipt: {
+                observed_at: "2026-11-17T00:01:00Z",
+                schema_success: true,
+                transport_success: true,
+                http_status: 200,
+              },
+            },
+          ],
+        }),
+  );
+  mount(<ModelConnection canMutate={false} />);
+  await screen.findByText(/Receipt time unavailable or inconsistent/);
+  expect(screen.queryByText(/Probe marker: Valid marker/)).toBeNull();
 });
 
 it("sends a model check only for an explicit Operator action and does not replay after expiry", async () => {

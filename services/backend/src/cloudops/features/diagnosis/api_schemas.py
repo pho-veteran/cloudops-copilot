@@ -97,6 +97,7 @@ class CheckView(BaseModel):
 class CheckPage(BaseModel):
     items: list[CheckView]
     next_offset: int | None
+    assessed_at: datetime
 
 
 class ProviderAttemptView(BaseModel):

@@ -83,8 +83,11 @@ function ModelEvidence({
     !["queued", "in_flight"].includes(check.state)
       ? (receipt?.kind ?? check.state)
       : null;
-  const reason = localOutcome ?? status.last_error ?? status.availability;
-  const next = guidance[reason] ?? guidance[status.availability];
+  const probeGuidance = localOutcome ? guidance[localOutcome] : undefined;
+  const attemptGuidance = status.last_error
+    ? guidance[status.last_error]
+    : undefined;
+  const setupGuidance = guidance[status.availability];
   return (
     <>
       <Badge variant="outline">{label(status.availability)}</Badge>
@@ -116,7 +119,10 @@ function ModelEvidence({
           {isHistorical(status.last_success_at) && " · Historical"}
         </dd>
         <dt>Last attempt outcome</dt>
-        <dd>{label(attempt?.outcome)}</dd>
+        <dd>
+          {label(attempt?.outcome)}
+          {attemptGuidance && <p className="muted">{attemptGuidance}</p>}
+        </dd>
         <dt>Latest configured probe</dt>
         <dd>
           {check ? (
@@ -128,6 +134,7 @@ function ModelEvidence({
           ) : (
             "Not recorded"
           )}
+          {probeGuidance && <p className="muted">{probeGuidance}</p>}
         </dd>
         <dt>Probe marker</dt>
         <dd>{probeMarker(receipt)}</dd>
@@ -179,7 +186,7 @@ function ModelEvidence({
         <dt>Remaining provider quota</dt>
         <dd>Unavailable</dd>
       </dl>
-      {next && <p>{next}</p>}
+      {setupGuidance && <p>{setupGuidance}</p>}
       {probeMarker(receipt) === "Not validated" && (
         <p>
           Check that the configured model returns the expected marker in a
@@ -288,7 +295,13 @@ export function ModelConnection({ canMutate }: { canMutate: boolean }) {
     },
   });
   const latest = status.data?.last_check;
-  const received = useMemo(() => performance.now(), [status.dataUpdatedAt]);
+  const received = useMemo(
+    () => ({
+      clock: performance.now(),
+      elapsed: Math.max(0, Date.now() - status.dataUpdatedAt),
+    }),
+    [status.dataUpdatedAt],
+  );
   const [, tick] = useState(0);
   useEffect(() => {
     const timer = window.setInterval(() => tick((value) => value + 1), 1000);
@@ -296,7 +309,8 @@ export function ModelConnection({ canMutate }: { canMutate: boolean }) {
   }, []);
   const assessed = status.data
     ? Date.parse(status.data.assessed_at) +
-      Math.max(0, performance.now() - received)
+      received.elapsed +
+      Math.max(0, performance.now() - received.clock)
     : 0;
   const active =
     latest &&
@@ -361,11 +375,13 @@ export function ModelConnection({ canMutate }: { canMutate: boolean }) {
               {checks.data.items.map((item) => {
                 const recordedAt = Date.parse(item.receipt?.observed_at ?? "");
                 const start = Date.parse(item.admitted_at ?? item.created_at);
+                const historyAssessed = Date.parse(checks.data.assessed_at);
                 const invalidTime =
                   item.receipt &&
                   (!Number.isFinite(recordedAt) ||
                     recordedAt < start ||
-                    (status.data && recordedAt > assessed));
+                    !Number.isFinite(historyAssessed) ||
+                    recordedAt > historyAssessed);
                 const receipt = invalidTime ? null : item.receipt;
                 const identity = status.data?.identity;
                 const previousConfig =
