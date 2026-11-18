@@ -91,7 +91,11 @@ All reads require a session and return `Cache-Control: no-store`. Mutations requ
 | `GET /api/diagnosis/checks` | Bounded history pagination: default25, maximum100, offset≤100000 |
 | `POST /api/diagnosis/checks` | Queue one fixed harmless probe; one call, same slot/permit, 60-second producer cooldown and at most one active check |
 
-Probe receipts separate transport success, fixed-marker schema success and quality. Missing usage is null/unavailable. Raw provider text, headers, request IDs and exception bodies are not copied to receipts. A probe creates no Run findings. `RunView.analysis` is a small availability/progress projection; its collection attempts/checkpoints retain their original semantics. The full AnalysisView owns model attempt/call history.
+Connections reads the latest retained provider attempt for the current profile and egress identity across explicit probe, analysis and evaluation calls. A successful HTTP response, the fixed probe marker, an authoritative RCA validator result, a matching qualification and the dispatch permit are separate facts. RCA evidence identifies its operational or evaluation origin. The 24-hour display policy marks old evidence historical without changing stored results. Changing the profile or policy clears current evidence while old checks remain in history.
+
+Token counts belong to the selected attempt and retain their observation time. Missing or invalid counts are unavailable, and an observed zero remains zero. The setup panel shows the configured request and context byte caps, output limit, deadline and call limits. Remaining provider quota stays unavailable. A provider credential denial is stored as a check outcome and does not expire the browser session. Reading status and history makes no provider requests.
+
+Use the deployment profile's versioned API root (the worker appends `/chat/completions`), model ID, egress policy and budget limits. Provide credentials through the worker's environment reference. Knowledge uses full-text retrieval. A future embedding connection would have its own configuration and status. Public check receipts expose typed, classified metadata. A probe creates no Run findings. The full AnalysisView retains model attempts and validated results for the selected Run.
 
 `contracts/fixtures/diagnosis/*.json` are serialized by the real AnalysisView producer during owned PostgreSQL/loopback behavioral tests. They are test inputs for #71, never product findings. Regenerate using:
 

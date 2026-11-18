@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from cloudops.features.access.dependencies import current_session, operator
 from cloudops.features.access.schemas import Principal
 from cloudops.features.diagnosis import service
+from cloudops.features.diagnosis.settings import load
 from cloudops.features.diagnosis.api_schemas import (
     AnalysisView,
     CheckPage,
@@ -72,8 +73,9 @@ def read_checks(
         .limit(limit + 1)
         .offset(offset)
     ).all()
+    deployment = load()
     return CheckPage(
-        items=[service.check_view(row) for row in rows[:limit]],
+        items=[service.check_view(row, deployment) for row in rows[:limit]],
         next_offset=offset + limit if len(rows) > limit else None,
     )
 

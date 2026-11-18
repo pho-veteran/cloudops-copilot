@@ -5,7 +5,7 @@ import os
 import threading
 from pathlib import Path
 from datetime import timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from diagnosis_fake import respond, serve
@@ -23,6 +23,7 @@ from cloudops.features.diagnosis.models import (
     AnalysisContext,
     AnalysisResult,
     AnalysisCall,
+    ModelCheck,
 )
 from cloudops.features.diagnosis.service import analysis_view, model_status
 from cloudops.features.diagnosis.settings import Deployment, load
@@ -69,8 +70,8 @@ def test_analysis_rejects_worker_credential_in_advice(client, db, context, deplo
 
 @pytest.fixture
 def deployment(tmp_path, monkeypatch):
-    def install(url, *, qualified=True, mode="operational"):
-        model = profile(base_url=url + "/v1", mode=mode)
+    def install(url, *, qualified=True, mode="operational", **profile_options):
+        model = profile(base_url=url + "/v1", mode=mode, **profile_options)
         egress = policy()
         p, e, q = (
             tmp_path / name for name in ("profile.json", "egress.json", "qualification.json")
@@ -389,6 +390,10 @@ def test_recovery_epoch_quarantines_preexisting_pending(db, context, deployment,
                 evidence=["pytest"],
                 actor={},
             )
+            if operation == "enter_recovery":
+                status = model_status(db)
+                assert status.quality == "qualified"
+                assert not status.dispatch_allowed and not status.probe_dispatch_allowed
         run_once()
         assert refresh(db, identifier).reason == "restore_quarantined"
         assert not server.requests
@@ -428,6 +433,103 @@ def test_protected_reads_empty_body_and_bounded_probe(client, db, context, deplo
         assert receipt["served_model"] == "fixture-served"
         assert receipt["response_sha256"] and receipt["finish_reason"] == "stop"
         assert len(server.requests) == 1
+
+
+@pytest.mark.parametrize(
+    ("wire_status", "transport", "outcome"),
+    [
+        (200, "succeeded", "invalid_envelope"),
+        (401, "rejected", "auth_denied"),
+        (429, "rejected", "rate_limited"),
+        (None, "unknown", "timeout"),
+    ],
+)
+def test_model_connection_preserves_independent_evidence(
+    client, deployment, wire_status, transport, outcome
+):
+    def handler(request):
+        if wire_status is None:
+            threading.Event().wait(0.7)
+        else:
+            respond(request, {"secret": "upstream-response-sentinel"}, status=wire_status)
+
+    with serve(handler) as server:
+        deployment(server.url, qualified=False, limits={"read_timeout_seconds": 0.2})
+        headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=headers, json={}).status_code == 201
+        assert not server.requests
+        assert run_once()
+        response = client.get("/api/diagnosis/status")
+        assert response.status_code == 200
+        result = response.json()
+        assert result["last_attempt"]["transport"] == transport
+        assert result["last_attempt"]["outcome"] == outcome
+        assert result["last_attempt"]["usage"] is None
+        assert result["last_attempt"]["observed_at"]
+        assert bool(result["last_success_at"]) == (wire_status == 200)
+        assert result["last_check"]["receipt"]["schema_success"] is False
+        assert result["rca_validation"] is None
+        assert result["quality"] == "not_established"
+        assert "upstream-response-sentinel" not in response.text
+        assert len(server.requests) == 1
+
+
+def test_model_connection_keeps_zero_and_ages_or_clears_current_evidence(client, db, deployment):
+    def handler(request):
+        if len(request.server.requests) == 1:
+            respond(request, text_payload("OK", usage={"total_tokens": 0}))
+        else:
+            respond(request, {}, status=429)
+
+    with serve(handler) as server:
+        deployment(server.url, qualified=False)
+        headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=headers, json={}).status_code == 201
+        assert run_once()
+        status = client.get("/api/diagnosis/status").json()
+        assert status["last_attempt"]["usage"] == {
+            "prompt_tokens": None,
+            "completion_tokens": None,
+            "total_tokens": 0,
+        }
+        assert status["last_check"]["receipt"]["schema_success"] is True
+        assert status["rca_validation"] is None
+        assert status["limits"]["max_output_tokens"] == 32
+        check = db.get(ModelCheck, UUID(status["last_check"]["id"]))
+        # Age only the disposable fixture records so this test does not wait a day.
+        offset = timedelta(hours=25)
+        check.created_at -= offset
+        check.admitted_at -= offset
+        check.receipt = check.receipt | {
+            "observed_at": (database_now(db) - offset).isoformat(),
+            "raw_provider_body": "legacy-private-sentinel",
+        }
+        check.identity = check.identity | {"private_path": "/legacy-private-sentinel"}
+        db.commit()
+        history = client.get("/api/diagnosis/checks")
+        assert "legacy-private-sentinel" not in history.text
+        check.identity = load().identity()
+        db.commit()
+        assert client.get("/api/diagnosis/status").json()["last_attempt"]["stale"] is True
+        retry = headers | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=retry, json={}).status_code == 201
+        assert run_once()
+        latest = client.get("/api/diagnosis/status").json()
+        assert latest["last_attempt"]["outcome"] == "rate_limited"
+        assert latest["last_attempt"]["usage"] is None
+        assert latest["last_success_at"]
+
+        deployment(server.url, qualified=False, config_version="changed")
+        result = client.get("/api/diagnosis/status").json()
+        assert result["last_attempt"] is None and result["last_check"] is None
+        assert result["last_success_at"] is None
+        assert (
+            client.get("/api/diagnosis/checks").json()["items"][1]["receipt"]["usage"][
+                "total_tokens"
+            ]
+            == 0
+        )
+        assert len(server.requests) == 2
 
 
 def test_probe_metadata_excludes_credential_and_error_body(client, deployment):
@@ -497,6 +599,12 @@ def test_evaluation_uses_real_pipeline_but_public_selection_cannot_adopt_it(
         sign_in(client)
         response = client.get(f"/api/incidents/{context[0]}/runs/{context[1]}/analysis")
         assert response.json()["result"] is None
+        status = client.get("/api/diagnosis/status").json()
+        assert status["quality"] == "not_established"
+        assert status["rca_validation"]["outcome"] == "validated"
+        assert status["rca_validation"]["purpose"] == "evaluation"
+        assert status["last_attempt"]["source"] == "evaluation"
+        assert status["last_attempt"]["usage"]["total_tokens"] == 12
         chunk = next(
             item
             for item in selection.payload["chunks"]

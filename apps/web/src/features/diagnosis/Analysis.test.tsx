@@ -119,7 +119,22 @@ it("separates transport, schema and quality and preserves missing usage for View
   http.fetch.mockImplementation(async (r) =>
     Response.json(
       (r as Request).url.endsWith("/status")
-        ? supported.model_status
+        ? {
+            ...supported.model_status,
+            availability: "unqualified",
+            quality: "not_established",
+            qualification_cohort: null,
+            assessed_at: "2026-11-17T00:00:00Z",
+            stale_after_seconds: 86400,
+            probe_dispatch_allowed: true,
+            last_attempt: {
+              source: "probe",
+              transport: "succeeded",
+              http_status: 200,
+              outcome: "invalid_envelope",
+              usage: null,
+            },
+          }
         : {
             items: [
               {
@@ -128,6 +143,7 @@ it("separates transport, schema and quality and preserves missing usage for View
                 created_at: "2026-11-15",
                 receipt: {
                   transport_success: true,
+                  http_status: 200,
                   schema_success: false,
                   usage: { total_tokens: null },
                 },
@@ -139,7 +155,7 @@ it("separates transport, schema and quality and preserves missing usage for View
   mount(<ModelConnection canMutate={false} />);
   expect(
     await screen.findByText(
-      /Transport: Succeeded · Schema: Not validated · Observed total tokens: Unavailable/,
+      /Transport: Succeeded · Probe marker: Not validated · Observed total tokens: Unavailable/,
     ),
   ).toBeTruthy();
   expect(
@@ -148,7 +164,50 @@ it("separates transport, schema and quality and preserves missing usage for View
   expect(
     screen.queryByRole("button", { name: "Check configured model" }),
   ).toBeNull();
+  expect(
+    screen.getByText("RCA validation").nextElementSibling?.textContent,
+  ).toBe("Not established");
+  expect(
+    screen.getByText("Quality qualification").nextElementSibling?.textContent,
+  ).toBe("not established");
   expect(posts()).toHaveLength(0);
+});
+
+it("sends a model check only for an explicit Operator action and does not replay after expiry", async () => {
+  http.fetch.mockImplementation(async (r) => {
+    const request = r as Request;
+    if (request.method === "POST") {
+      return Response.json(
+        { error: { code: "session_expired", message: "Sign in again." } },
+        { status: 401 },
+      );
+    }
+    return Response.json(
+      request.url.endsWith("/status")
+        ? {
+            ...supported.model_status,
+            assessed_at: "2026-11-17T00:00:00Z",
+            stale_after_seconds: 86400,
+            probe_dispatch_allowed: true,
+            last_check: null,
+          }
+        : { items: [] },
+    );
+  });
+  const view = mount(<ModelConnection canMutate />);
+  const button = await screen.findByRole<HTMLButtonElement>("button", {
+    name: "Check configured model",
+  });
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+  await screen.findByText("Sign in again.");
+  const request = posts()[0][0] as Request;
+  expect(await request.clone().json()).toEqual({});
+  expect(request.headers.get("idempotency-key")).toMatch(/^[a-f0-9-]{36}$/);
+  view.unmount();
+  mount(<ModelConnection canMutate />);
+  await screen.findByRole("button", { name: "Check configured model" });
+  expect(posts()).toHaveLength(1);
 });
 
 it.each([false, true])(
