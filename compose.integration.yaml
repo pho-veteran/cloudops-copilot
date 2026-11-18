@@ -91,8 +91,9 @@ services:
     environment:
       KRR_RUNNER_IMAGE_DIGEST: ${CLOUDOPS_KRR_IMAGE_DIGEST:-}
     read_only: true
+    user: "${CLOUDOPS_KRR_RUN_AS:-0:0}"
     cap_drop: [ALL]
-    tmpfs: [/tmp:size=32m,mode=1777]
+    tmpfs: ["/tmp:size=32m,mode=1777"]
     build:
       context: .
       dockerfile: services/krr/Dockerfile

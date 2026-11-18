@@ -236,7 +236,12 @@ endpoint publicly. The runner has no model or writer credentials.
 
 For the retained lab, place the reviewed policy at
 `$CLOUDOPS_LAB_DIR/recommendations/policy.json`; the API/worker mount that directory
-read-only. Existing retained labs need this private directory created before the
+read-only. For mode-0600 credentials, set `CLOUDOPS_KRR_RUN_AS` to their numeric
+owner UID:GID before running Compose. For example, run
+`export CLOUDOPS_KRR_RUN_AS="$(stat -c '%u:%g' "$CLOUDOPS_LAB_DIR/krr/key")"`
+and verify that the reader and Prometheus files share that owner. The runner
+retains its read-only mounts and dropped capabilities.
+Existing retained labs need this private directory created before the
 Compose upgrade. Missing policy remains unavailable, never assumed operator-owned.
 KRR remains optional and is not started by `resume`.
 

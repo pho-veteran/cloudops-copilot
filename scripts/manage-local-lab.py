@@ -940,14 +940,14 @@ class Lab:
             )
         private_write(folder / "expiry.json", json.dumps({"expires_at": expiry}))
 
-    def credentials_valid(self):
-        for kind in ("reader", "writer", "monitoring"):
+    def credentials_valid(self, *, read_only=False):
+        for kind in ("reader", "monitoring") if read_only else ("reader", "writer", "monitoring"):
             expiry = json.loads((self.directory / kind / "expiry.json").read_text())["expires_at"]
             require(
                 datetime.fromisoformat(expiry.replace("Z", "+00:00")) > datetime.now(timezone.utc),
                 f"{kind} credential expired; renew explicitly.",
             )
-        for kind in ("reader", "writer"):
+        for kind in ("reader",) if read_only else ("reader", "writer"):
             scope = json.loads((self.directory / kind / "workloads.json").read_text())
             expected = {
                 name: uid
@@ -1777,8 +1777,11 @@ class Lab:
         )
         return {"k3s_id": node["Id"], "prometheus_id": prom["Id"], "attached": True}
 
-    def containment(self):
-        self.credentials_valid()
+    def containment(self, *, read_only=False):
+        if read_only:
+            self.credentials_valid(read_only=True)
+        else:
+            self.credentials_valid()
         node = self.service("k3s")
         config = node["HostConfig"]
         require(
@@ -2078,7 +2081,7 @@ class Lab:
         )
 
     def load(self, target, seconds, rate):
-        proof = self.containment()
+        proof = self.containment(read_only=True)
         result = json.loads(
             self.dc(
                 "run",
@@ -2343,6 +2346,22 @@ class Lab:
             },
         )
 
+    def renew_readers(self):
+        for name in ("k3s", "prometheus"):
+            require(
+                self.service(name)["State"]["Running"],
+                "Read-only renewal needs the owned source services already running.",
+            )
+        for name in self.marker["deployments"]:
+            self.deployment(name)
+        for kind in ("reader", "monitoring"):
+            self.credential(kind)
+        return {
+            "identities": ["reader", "monitoring"],
+            "services_restarted": False,
+            "writer_authority_changed": False,
+        }
+
     def renew(self, kind):
         self.volume_guard()
         self.dc(
@@ -2425,15 +2444,17 @@ def main():
         "resume",
         "status",
         "verify",
-        "containment",
         "denials",
         "observe",
         "reset",
         "stop",
         "recreate",
         "replace-history",
+        "renew-readers",
     ):
         sub.add_parser(name)
+    containment = sub.add_parser("containment")
+    containment.add_argument("--read-only", action="store_true")
     for name in ("collect", "stored"):
         product = sub.add_parser(name)
         product.add_argument("--password-stdin", action="store_true", required=True)
@@ -2498,10 +2519,12 @@ def main():
             lab.fault(args.scenario)
         elif args.operation == "renew":
             lab.renew(args.identity)
+        elif args.operation == "renew-readers":
+            lab.receipt("renew-readers", lab.renew_readers())
         elif args.operation == "cleanup":
             lab.cleanup(args.confirm_owner)
         elif args.operation == "containment":
-            lab.receipt("containment", lab.containment())
+            lab.receipt("containment", lab.containment(read_only=args.read_only))
         elif args.operation in {"collect", "stored"}:
             password = sys.stdin.readline().rstrip("\r\n")
             require(
