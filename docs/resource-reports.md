@@ -71,12 +71,12 @@ positive sub-millicore observations. Memory shows MiB together with exact stored
 for UID/lifetime, scrape gaps and restart coverage. Legacy results remain visibly
 unqualified preserved output.
 
-**Export selected report** follows a same-origin link to the exact terminal
-report's export endpoint. The browser receives the API response directly, so the
-download keeps the stored JSON bytes and the server's attachment filename. Queued
-or running reports cannot be exported. The export link remains tied to the
-selected report; use the browser's Downloads list to confirm completion or retry
-the download. After session expiry, sign in again; generation is never replayed
+**Export selected report** checks that the exact selected report can be exported.
+If the API rejects the request, the page keeps the selection and lets you retry.
+Queued or running reports cannot be exported. When the check passes, the browser
+downloads the stored JSON directly from the API using its attachment filename.
+Check the browser's Downloads list for completion or transfer errors.
+After session expiry, sign in again. Generation is never replayed
 automatically.
 
 The [UI receipt](evidence/e08-r5-ui.json) distinguishes controlled display/role

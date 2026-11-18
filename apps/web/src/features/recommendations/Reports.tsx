@@ -54,15 +54,33 @@ export function Reports({ canMutate, route = {} }: { canMutate: boolean; route?:
       }
     },
   });
+  const exporting = useMutation({
+    mutationFn: async (request: { id: string; hash: string; revision: number }) => {
+      const body = unwrap(await api.GET("/api/recommendation-reports/{report_id}/export", {
+        params: { path: { report_id: request.id } }, parseAs: "stream", cache: "no-store",
+      }));
+      // Validate the exact export through the session-aware client before handing
+      // the immutable attachment to the browser's native download manager.
+      if (body) void body.cancel().catch(() => {});
+      if (!mounted.current || current.current.revision !== request.revision || window.location.hash !== request.hash) return;
+      const link = document.createElement("a");
+      link.href = `/api/recommendation-reports/${encodeURIComponent(request.id)}/export`;
+      link.download = `resource-report-${request.id}.json`;
+      link.click();
+    },
+  });
   const hours = route.hours ?? 6;
   const selectedIdentity = selected.data?.input_identity ?? selected.data?.result_v2?.identity;
   const workloadOnPage = workloads.data?.items.some(w => w.id === route.workload);
   const activeReport = [selected.data, ...(reports.data?.items ?? [])].some(report => report?.schema_version === 2 && report.workload_id === route.workload && ["queued", "running"].includes(report.job_phase));
   const generationAllowed = canMutate && !!selectedWorkload.data?.active && selectedWorkload.data.source === "live_kubernetes";
-  const selectedReportIsCurrent = selected.data?.id === route.report;
-  const exportHref = selectedReportIsCurrent && selected.data?.export_ready
-    ? `/api/recommendation-reports/${encodeURIComponent(selected.data.id)}/export`
-    : undefined;
+  const canExport = selected.data?.id === route.report && selected.data?.export_ready;
+  const exportIsCurrent = exporting.variables?.revision === current.current.revision;
+  const exportPending = exportIsCurrent && exporting.isPending;
+  const startExport = () => {
+    if (!canExport || !selected.data) return;
+    exporting.mutate({ id: selected.data.id, hash, revision: current.current.revision });
+  };
   return <section className="foundation-stack">
     <h1>Resource recommendations</h1>
     <p>Advisory KRR reports for one saved workload identity. Review each resource and its evidence before making any external change.</p>
@@ -130,10 +148,12 @@ export function Reports({ canMutate, route = {} }: { canMutate: boolean; route?:
       {selected.data && <>
         {route.workload && selectedIdentity && selectedIdentity.workload_id !== route.workload && <p>This report belongs to a different saved workload identity. <a href={buildReportHash({ ...route, workload: selectedIdentity.workload_id, cursor: undefined })}>Filter to this report’s workload</a></p>}
         <ReportDetails report={selected.data} historyHref={buildReportHash({ ...route, workload: selected.data.workload_id, cursor: undefined })} />
-        {exportHref ? <Button asChild variant="outline" aria-describedby="report-export-help">
-          <a href={exportHref} download={`resource-report-${selected.data.id}.json`} aria-label={`Export selected report ${selected.data.id.slice(0, 8)}`}>Export selected report</a>
-        </Button> : <Button variant="outline" disabled aria-describedby="report-export-help" aria-label={`Export selected report ${selected.data.id.slice(0, 8)}`}>Export selected report</Button>}
-        <p id="report-export-help">{exportHref ? "Downloads the exact stored JSON for this report. Check the browser Downloads list for completion." : "The export becomes available when this report finishes. Queued and running reports cannot be exported."}</p>
+        <Button variant="outline" disabled={!canExport || exportPending} aria-describedby="report-export-help"
+          aria-label={`Export selected report ${selected.data.id.slice(0, 8)}`} onClick={startExport}>
+          {exportPending ? "Checking export…" : "Export selected report"}
+        </Button>
+        <p id="report-export-help">{canExport ? "Downloads the exact stored JSON for this report. Check the browser Downloads list for completion." : "The export becomes available when this report finishes. Queued and running reports cannot be exported."}</p>
+        {exportIsCurrent && exporting.isError && <Failure error={exporting.error} retry={canExport ? startExport : undefined} />}
       </>}
     </section>}
   </section>;
