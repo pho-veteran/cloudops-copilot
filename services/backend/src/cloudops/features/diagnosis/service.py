@@ -2,12 +2,13 @@ from datetime import timedelta
 
 from sqlalchemy import select, text
 
-from cloudops.features.diagnosis.api_schemas import AnalysisView, CheckView, ModelStatus
+from cloudops.features.diagnosis.api_schemas import AnalysisView
+from cloudops.features.diagnosis.connection_status import check_view
+from cloudops.features.diagnosis.connection_status import model_status as model_status
 from cloudops.features.diagnosis.lifecycle import (
     ANALYSIS_JOB,
     PROBE_JOB,
     dispatch_epoch,
-    dispatch_status,
 )
 from cloudops.features.diagnosis.models import (
     Analysis,
@@ -24,17 +25,6 @@ from cloudops.features.investigations.service import dispatch_blocker
 from cloudops.shared.database import database_now
 from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job, JobAttempt
-
-
-def check_view(check):
-    return CheckView(
-        id=check.id,
-        state=check.state,
-        created_at=check.created_at,
-        deadline=check.deadline,
-        identity=check.identity,
-        receipt=check.receipt,
-    )
 
 
 def resume_denial(db, analysis, job):
@@ -172,7 +162,7 @@ def enqueue_check(db, actor_id, key):
         if prior:
             if prior.actor_id != actor_id:
                 raise DomainError(409, "idempotency_conflict", "Key belongs to another operator.")
-            return check_view(prior)
+            return check_view(prior, load())
         deployment = load()
         if (
             deployment.profile is None
@@ -201,48 +191,4 @@ def enqueue_check(db, actor_id, key):
         db.add(check)
         db.flush()
         db.add(Job(kind=PROBE_JOB, subject_id=check.id, max_attempts=1))
-        return check_view(check)
-
-
-def model_status(db):
-    deployment = load()
-    denied = deployment.denied()
-    allowed, reason = dispatch_status(ANALYSIS_JOB)
-    matching = select(ModelCheck).where(ModelCheck.identity == deployment.identity())
-    last = db.scalar(matching.order_by(ModelCheck.created_at.desc()).limit(1))
-    attempted = db.scalar(
-        matching.where(ModelCheck.admitted_at.is_not(None))
-        .order_by(ModelCheck.admitted_at.desc())
-        .limit(1)
-    )
-    success = db.scalar(
-        matching.where(ModelCheck.receipt["transport_success"].as_boolean().is_(True))
-        .order_by(ModelCheck.created_at.desc())
-        .limit(1)
-    )
-    return ModelStatus(
-        availability=denied or "available",
-        identity=deployment.identity(),
-        quality="qualified" if denied is None else "not_established",
-        qualification_cohort=deployment.qualification.cohort_id if denied is None else None,
-        dispatch_allowed=allowed,
-        dispatch_reason=reason,
-        last_check=check_view(last) if last else None,
-        last_attempt_at=attempted.admitted_at if attempted else None,
-        last_success_at=success.receipt.get("observed_at") if success else None,
-        last_error=(
-            last.receipt.get("kind")
-            if last and last.receipt and not last.receipt.get("transport_success")
-            else last.state
-            if last
-            and last.state
-            in {
-                "provider_outcome_unknown",
-                "configuration_changed",
-                "restore_quarantined",
-                "expired",
-                "failed",
-            }
-            else None
-        ),
-    )
+        return check_view(check, deployment)
