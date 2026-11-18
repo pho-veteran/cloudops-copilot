@@ -118,6 +118,82 @@ load, with a 20-GiB disk budget, rotated logs and bounded Prometheus retention.
 These are configured ceilings, not measured footprint or runtime qualification.
 The disk budget requires monitoring available space; retention is not a filesystem quota.
 
+For read-only resource-history preparation, use `containment --read-only`.
+This retains the same effective cgroup, UID, node and headroom checks, but needs
+only the reader and monitoring credentials. The HTTP `load` command uses this
+read-only check too; an expired writer credential does not require renewing or
+enabling write authority. Fault and recovery preparation keep their original
+writer checks. Expired reader/monitoring credentials still block load.
+
+### Finite resource-history recipe
+
+`scripts/probe-resource-history.py` reuses the owned sample, load driver and
+read-only report producer. It never starts the executor, renews a writer or
+changes workload resources. Setup must first provide healthy zero-restart Pods
+under the original Deployment UID/template, current reader/monitoring credentials,
+the pinned KRR producer, effective observation retention and bounded runtime
+containers. Fixture preparation is separate from the read-only recipe.
+Readiness requires fresh unambiguous KSM metadata for each current Pod UID and
+container, including ownership, creation, start and restart inputs. Missing
+termination metrics are valid for zero-restart Pods. Source policy/configuration
+digests remain bound across checkpoints and the final stored report; both live
+Deployment reads must match the admitted UID/name/namespace.
+
+Create a private mode-0600 JSON file with these fields:
+
+| Field | Required value |
+|---|---|
+| `lab_root`, `owner` | Exact existing checkout path and UUID from its private `tmp/local-testing-lab/owner.json`; no resource adoption. |
+| `worker_container` | Full 64-character ID of the owned worker with the actual reader, Prometheus and KRR configuration. |
+| `runtime_containers` | Full IDs of the API, worker, observer, KRR and database used for the report; include any separately owned feature runtime. |
+| `api_url`, `web_origin` | Actual loopback API origin and its configured web origin, without paths or credentials. |
+| `operator`, `workload_id` | Existing Operator username and exact active saved workload UUID for the owned `demo/checkout` Deployment. |
+| `ca_file` | Copied local CA path for HTTPS, or `null` for an explicitly owned loopback HTTP runtime. TLS verification is never disabled. |
+
+```sh
+uv run --project services/backend python scripts/probe-resource-history.py --config /private/history-lab.json
+uv run --project services/backend python scripts/probe-resource-history.py --config /private/history-lab.json --short
+```
+
+The default is readiness only: no load or report admission. `--short` uses three
+seconds of warmup, fifteen-second idle/steady/peak phases and at most ninety seconds
+for checkpoint overhead and final peak hold/report handoff. Its 138-second cap begins after preflight.
+The existing Operator password is prompted without echo; automation may supply
+one stdin line with `--password-stdin`. A short result is always marked
+`short_harness_only`, even if unrelated retained history happens to produce advice.
+
+Only after the owning acceptance scope and runtime budget are settled, replace
+`--short` with `--run` for the fixed real recipe: three minutes of warmup, nominal
+two-hour idle/steady/peak phases and at most five minutes of final peak hold/report
+handoff, capped at 6h08m. The recipe records actual phase times and query-window
+intersections; it does not manufacture timestamps, replay arbitrary old history
+or lower product coverage thresholds. Credential expiry must cover the whole cap
+before starting. An invalid/missing source, changed UID/template/producer, restart,
+budget failure or late/nonavailable report fails that cohort rather than extending
+it or retrying admission. A queued report can finish later, but does not qualify
+an expired cohort.
+
+Before readiness or a fresh full run, add `--renew-readers` to the configured
+`probe-resource-history.py` command (or use `manage-local-lab.py renew-readers`
+from the updated owning checkout). This renews
+only the existing reader and monitoring identities for their existing eight-hour
+lifetime. It requires the owned source services already running, does not restart
+services, and does not touch writer credentials or executor authority. Readers use
+the renewed directory-mounted files on subsequent calls. Renew before the cohort;
+the operation lock prevents overlapping lab operations during a run.
+
+Receipts, raw timestamped measurements and the exact terminal export are private
+under `tmp/local-testing-lab/resource-history/<cohort-id>/`. Each run takes the
+existing operation lock. It removes only its own labelled temporary load container;
+history, exports, database volumes, other containers and writer authority remain
+intact. Retained sample images can be reused: the current bounded load source is
+mounted read-only into the temporary load container and its hash is recorded.
+The recipe reserves twenty seconds inside the cap for cleanup. The load process
+receives an absolute deadline five seconds before the working deadline, so a
+delayed container launch cannot start a new load after expiry.
+Cleanup locates its cohort-labelled container even if launch acknowledgement was
+lost. Read-only checkpoints have their own process, connection and statement bounds.
+
 Faults affect only the recorded `demo/checkout` UID and condition every patch on its
 current UID/resourceVersion. Run one fixed scenario, observe it, optionally collect
 its evidence, then reset before another scenario:

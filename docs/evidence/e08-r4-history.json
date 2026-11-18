@@ -1,0 +1,188 @@
+{
+  "issue": 96,
+  "scope": "Finite history recipe/readiness and actual scaled handoff only; full six-hour qualification belongs to R6",
+  "full_recipe": {
+    "warmup_seconds": 180,
+    "phase_seconds": 7200,
+    "phase_rps": {
+      "idle": 0,
+      "steady": 5,
+      "peak": 25
+    },
+    "final_hold_and_handoff_seconds": 300,
+    "cap_seconds": 22080,
+    "cleanup_reserved_seconds": 20
+  },
+  "short_proof": {
+    "cohort_id": "805bdc3d-36d9-4c58-8d89-5b20f31ec023",
+    "started_at": "2026-11-17T17:29:53.960447+00:00",
+    "finished_at": "2026-11-17T17:31:44.721256+00:00",
+    "cleanup_finished_at": "2026-11-17T17:31:44.980343+00:00",
+    "elapsed_total_seconds": 111.01989558299829,
+    "cap_seconds": 138,
+    "short_harness_only": true,
+    "qualified": false,
+    "phases": [
+      {
+        "name": "warmup",
+        "started_at": "2026-11-17T17:29:53.960510+00:00",
+        "nominal_seconds": 3,
+        "requested_rps": 0,
+        "finished_at": "2026-11-17T17:29:56.963082+00:00"
+      },
+      {
+        "name": "idle",
+        "started_at": "2026-11-17T17:30:06.308850+00:00",
+        "nominal_seconds": 15,
+        "requested_rps": 0,
+        "finished_at": "2026-11-17T17:30:21.313136+00:00"
+      },
+      {
+        "name": "steady",
+        "started_at": "2026-11-17T17:30:30.708353+00:00",
+        "nominal_seconds": 15,
+        "requested_rps": 5,
+        "measured_load": {
+          "started_at": "2026-11-17T17:30:35.700222+00:00",
+          "finished_at": "2026-11-17T17:30:50.518305+00:00",
+          "target": "checkout",
+          "seconds": 15,
+          "rate": 5,
+          "responses": {
+            "200": 75
+          },
+          "deadline": 1794936706.9604652,
+          "completed_nominal_load": true
+        },
+        "finished_at": "2026-11-17T17:30:50.768635+00:00"
+      },
+      {
+        "name": "peak",
+        "started_at": "2026-11-17T17:30:59.830806+00:00",
+        "nominal_seconds": 15,
+        "requested_rps": 25,
+        "measured_load": {
+          "started_at": "2026-11-17T17:31:02.093447+00:00",
+          "finished_at": "2026-11-17T17:31:17.070924+00:00",
+          "target": "checkout",
+          "seconds": 15,
+          "rate": 25,
+          "responses": {
+            "200": 375
+          },
+          "deadline": 1794936706.9604652,
+          "completed_nominal_load": true
+        },
+        "finished_at": "2026-11-17T17:31:17.310747+00:00"
+      }
+    ],
+    "report_id": "dd620803-154b-4efb-966c-86853be6443f",
+    "result_state": "insufficient_data",
+    "tool_exit_code": 0,
+    "export_bytes": 11265,
+    "export_sha256": "5edef0031c56de3bbba75a46b23df35bc1e472f179c8aec47d4fb7bce9acc998",
+    "query_window": {
+      "kind": "query_envelope",
+      "start": "2026-11-17T11:31:00Z",
+      "end": "2026-11-17T17:31:33.165613Z",
+      "raw_input_start": "2026-11-17T11:29:45Z",
+      "raw_input_end": "2026-11-17T17:31:33.165613Z"
+    },
+    "temporary_load_removed": true
+  },
+  "bindings": {
+    "deployment_uid": "d116a56d-0dbd-4c62-ad46-146facf29011",
+    "pod_template_digest": "c1f8daa668a8e0a4cc87e11ac22eb7b803966547abef778810e95976ba1ff0fe",
+    "pod_uids": [
+      "946bfcef-5b5f-42bd-9cb2-ed0a919d9d78"
+    ],
+    "profile": {
+      "tool_version": "1.31.1",
+      "upstream_commit": "f21d482d6974699ccd5bb07ef9e208430fbcafeb",
+      "source_tree_sha256": "cb1a4ba977fe49accee4b7a2bab1e3ef25fbf8501b3f739ac49653b61a61540b",
+      "embedded_version": "dev",
+      "strategy": "simple",
+      "history_hours": 6,
+      "timeframe_minutes": 1.25,
+      "cpu_percentile": 95,
+      "memory_buffer_percent": 15,
+      "minimum_cpu_millicores": 10,
+      "minimum_memory_bytes": 104857600,
+      "points_required": 100,
+      "max_workers": 2,
+      "allow_hpa": false,
+      "use_oomkill_data": false,
+      "policy_version": "e08-coverage-v1",
+      "image_digest": "sha256:8e2322b0f1a787f8b827b2674e5feb7ca792c400520ba9c61c85c6e15e5ed9a7"
+    },
+    "source_sha256": {
+      "scripts/probe-resource-history.py": "242f50a05bfbcb9745e20aeb193850a68c305646a6c389568973179e785cbf5c",
+      "scripts/resource_history_source.py": "9643750855c5f40bce5ceb45a4fdcca94f7a9e56201ff067950dd9827694e1ec",
+      "scripts/manage-local-lab.py": "22124382161dde42d7695b051eb3ffa2a06858c3f29b56ef3b08c5196c634d34",
+      "scripts/local_lab.py": "3e6e210fc35770049d5182e0042cf78f9dacc76a74790d1f3a1edbbd3f723461",
+      "config/lab/load.py": "d047da29d84149a6e1f49fd2c104602b34ac324ceddab015e93db5265270e9cb"
+    },
+    "checkpoints": 6,
+    "config_digest": "59e089cb61a49ae4bb80cb85987c099a6286c069463ab43a33a84193f3bdeb43",
+    "required_current_uid_metadata": {
+      "kube_pod_info": {
+        "series": 2,
+        "samples": 72
+      },
+      "kube_pod_owner": {
+        "series": 2,
+        "samples": 72
+      },
+      "kube_pod_created": {
+        "series": 2,
+        "samples": 72
+      },
+      "kube_pod_container_state_started": {
+        "series": 2,
+        "samples": 72
+      },
+      "kube_pod_container_status_restarts_total": {
+        "series": 2,
+        "samples": 72
+      },
+      "kube_replicaset_owner": {
+        "series": 10,
+        "samples": 360
+      }
+    }
+  },
+  "footprint": {
+    "maximum_measured_disk_upper_bound_bytes": 4726907366,
+    "disk_limit_bytes": 21474836480,
+    "configured_memory_limit_gib": 8.5,
+    "configured_cpu_limit": 8,
+    "host_free_disk_min_gib": 5,
+    "host_available_memory_min_gib": 2,
+    "basis": "Measured owned image/writable-layer/volume/bind/evidence bytes plus bounded log reserve; effective K3s/Pod cgroups and per-service configured caps; raw Docker stats retained privately"
+  },
+  "verification": {
+    "focused_unit_tests": 132,
+    "lint_and_format": "passed",
+    "negative_proofs": [
+      "Old restarted Pod rejected before a cohort; replaced only under exact Pod UID/resourceVersion guard while Deployment UID/template stayed unchanged.",
+      "An early scaled attempt stopped at its fixed 108-second deadline and removed its load. Duplicate boundary checkpoint calls were corrected; the final separately identified short recipe has a fixed 138-second cap.",
+      "Controlled checks cover source/producer drift, raw measurement freshness/reset/UID scope, expired load/source deadlines, blocked phase interruption, lost launch acknowledgement and cleanup failure."
+    ],
+    "readiness": "Actual source/controller/retention/producer and owned footprint readiness passed; readiness does not establish six hours of existing history.",
+    "reader_renewal": "Only same-scope reader/monitoring identities refreshed for their existing eight-hour lifetime; original E07 services stayed stopped and writer authority was unchanged.",
+    "review_fix_regressions": [
+      "Fresh unambiguous current-UID KSM ownership/lifecycle/container-start/restart inputs required at every checkpoint; absent termination metrics remain valid for zero-restart Pods.",
+      "Source policy/configuration digest is checked across the cohort and against terminal independent source evidence.",
+      "Both live Deployment snapshots must match the admitted identity, including the final UID."
+    ]
+  },
+  "setup": "One guarded fixture Pod replacement; preserving E08 database recreation added 1 GiB/0.5 CPU caps and 5m x2 log rotation. Existing report documents matched before/after and original database volume was retained.",
+  "limits": [
+    "No six-hour live cohort has run or qualified.",
+    "Short report correctly remains insufficient data; it supplies no qualified numeric recommendation.",
+    "Native browser export/UI are R5/R6 gates, not inferred from this API export comparison.",
+    "Readiness/short proof is local K3s/Prometheus only; no cloud/release or second-operator claim."
+  ],
+  "model_requests": 0,
+  "recommendation_cluster_writes": 0
+}
