@@ -46,6 +46,43 @@ Current identity checks read recent retained observations, never run KRR or chan
 the cluster. Feature health separately describes the latest qualified report,
 worker freshness and configuration; historical success alone is not current health.
 
+## Inspect and export in the web app
+
+Open **Workloads**, then **Recommendations** for the intended saved identity.
+Operators choose a history window and explicitly **Generate resource report**.
+Generation analyzes existing history; it does not collect six new hours before
+returning. Only six hours is currently qualified. Other allowed durations finish
+with insufficient data and no tool invocation. Viewers can inspect and export,
+but do not have generation controls.
+
+The report, workload filter, window and history cursor are retained in the URL.
+Use **Next report page** to inspect older results and **First report page** to
+return. Pagination preserves the exact selected report. **Workload report
+history** also opens an inactive identity's history; a same-name replacement is
+a separate identity. Refresh and browser Back retain the selection. A missing
+report shows an error rather than selecting the newest report.
+
+Read **Job**, **Stored outcome** and **Applicability** separately. An available
+stored result can now be stale, and a paused service does not erase saved reports.
+Each container has separate CPU and memory quantities, exclusions and coverage.
+Zero is a measured quantity; **Unset** is deliberate; **Unavailable** supplies no
+number. CPU displays millicores together with exact stored cores, including
+positive sub-millicore observations. Memory shows MiB together with exact stored bytes. Expand per-Pod evidence
+for UID/lifetime, scrape gaps and restart coverage. Legacy results remain visibly
+unqualified preserved output.
+
+**Export selected report** checks that the exact selected report can be exported.
+If the API rejects the request, the page keeps the selection and lets you retry.
+Queued or running reports cannot be exported. When the check passes, the browser
+downloads the stored JSON directly from the API using its attachment filename.
+Check the browser's Downloads list for completion or transfer errors.
+After session expiry, sign in again. Generation is never replayed
+automatically.
+
+The [UI receipt](evidence/e08-r5-ui.json) distinguishes controlled display/role
+checks from live recommendation qualification and records the native download
+gate separately.
+
 ## Migration cutover
 
 Upgrade API, worker and web together. Rolling old/new report producers are not a

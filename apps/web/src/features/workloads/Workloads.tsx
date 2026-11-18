@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useWorkloads, useWorkload } from "./queries";
+import { buildReportHash } from "@/app/routes";
 import { WorkloadIdentity } from "./WorkloadIdentity";
 import { Baselines } from "./Baselines";
 import { ScopeStatus } from "./ScopeStatus";
@@ -59,6 +60,9 @@ export function Workloads({
                 <WorkloadHealth summary={w.observation} />
                 <WorkloadIdentity workload={w} />
                 <Button variant="outline" onClick={event => { detailTrigger.current = event.currentTarget; window.location.hash = `#/workloads?workload=${w.id}`; }}>View workload context</Button>
+                {w.source === "live_kubernetes" && <Button variant="outline" asChild>
+                  <a href={buildReportHash({ workload: w.id })}>Recommendations</a>
+                </Button>}
                 {canMutate ? (
                   <Button onClick={() => onInvestigate(w.id)}>
                     Investigate workload

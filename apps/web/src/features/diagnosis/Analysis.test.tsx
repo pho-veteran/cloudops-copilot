@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -27,10 +28,12 @@ vi.mock("@/lib/api/client", async (original) => {
   };
 });
 const caches: QueryClient[] = [];
-function mount(node: React.ReactNode) {
-  const cache = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: 3 } },
-  });
+function mount(node: React.ReactNode, existing?: QueryClient) {
+  const cache =
+    existing ??
+    new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: 3 } },
+    });
   caches.push(cache);
   return render(
     <QueryClientProvider client={cache}>{node}</QueryClientProvider>,
@@ -38,6 +41,7 @@ function mount(node: React.ReactNode) {
 }
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   caches.splice(0).forEach((c) => c.clear());
   http.fetch.mockReset();
   window.history.replaceState(null, "", "/");
@@ -121,47 +125,36 @@ it("separates transport, schema and quality and preserves missing usage for View
       (r as Request).url.endsWith("/status")
         ? {
             ...supported.model_status,
-            configuration: {
-              mode: "operational",
-              api_root: "https://gateway.example/v1",
-              credential_reference: "MODEL_TOKEN",
-              timeout_seconds: 30,
-              max_input_bytes: 65536,
-              max_response_bytes: 262144,
-              output_limit_parameter: "max_tokens",
-              output_limit: 512,
-              policy_id: "fixture-policy",
-              policy_version: "2",
-              policy_digest: "safe-policy-digest",
-              max_request_bytes: 64000,
-              max_target_bytes: 32000,
-            },
-            latest_usage: null,
-            validated_rca: null,
-            last_check: {
-              id: "probe",
-              state: "completed",
-              created_at: "2026-11-15T00:00:00Z",
-              deadline: "2026-11-15T00:15:00Z",
-              identity: supported.model_status.identity,
-              receipt: {
-                transport_success: true,
-                schema_success: false,
-                observed_at: "2026-11-15T00:00:00Z",
-              },
+            availability: "unqualified",
+            quality: "not_established",
+            qualification_cohort: null,
+            assessed_at: "2026-11-17T00:00:00Z",
+            stale_after_seconds: 86400,
+            probe_dispatch_allowed: true,
+            last_attempt: {
+              source: "probe",
+              transport: "succeeded",
+              http_status: 200,
+              outcome: "invalid_envelope",
+              usage: null,
             },
           }
         : {
+            assessed_at: "2026-11-17T00:00:00Z",
             items: [
               {
                 id: "probe",
+                identity: {
+                  ...supported.model_status.identity,
+                  validator_version: "older-validator",
+                },
                 state: "completed",
                 created_at: "2026-11-15",
                 receipt: {
                   transport_success: true,
+                  observed_at: "2026-11-15T00:00:01Z",
+                  http_status: 200,
                   schema_success: false,
-                  observed_at: "2026-11-15T00:00:00Z",
-                  usage_status: "observed",
                   usage: { total_tokens: null },
                 },
               },
@@ -171,103 +164,215 @@ it("separates transport, schema and quality and preserves missing usage for View
   );
   mount(<ModelConnection canMutate={false} />);
   expect(
-    await screen.findByText(/Transport: Succeeded · Probe marker: Invalid · Usage: Unavailable/),
+    await screen.findByText(
+      /Transport: Succeeded · Probe marker: Not validated · Observed total tokens: Unavailable/,
+    ),
   ).toBeTruthy();
-  expect(screen.getByText(/No matching validated operational RCA/)).toBeTruthy();
-  expect(screen.getByText(/Probe marker validation failed/)).toBeTruthy();
-  expect(screen.getByText(/Diagnosis quality: qualified/)).toBeTruthy();
-  expect(screen.getByText(/API root: https:\/\/gateway.example\/v1/)).toBeTruthy();
-  expect(screen.getByText(/remaining provider quota is inferred/)).toBeTruthy();
+  expect(
+    screen.getByText(/probe does not establish diagnostic quality/),
+  ).toBeTruthy();
   expect(
     screen.queryByRole("button", { name: "Check configured model" }),
   ).toBeNull();
+  expect(
+    screen.getByText("RCA validation").nextElementSibling?.textContent,
+  ).toBe("Not established");
+  expect(
+    screen.getByText("Quality qualification").nextElementSibling?.textContent,
+  ).toBe("not established");
+  expect(screen.getByText(/Previous configuration/)).toBeTruthy();
   expect(posts()).toHaveLength(0);
 });
 
-it("keeps valid probe, unqualified RCA, paused dispatch, zero usage and provider guidance distinct", async () => {
+it("ages cached model evidence during a failed refresh", async () => {
+  vi.useFakeTimers({
+    toFake: ["Date", "setInterval", "clearInterval", "performance"],
+  });
+  let available = true;
+  const observed = "2026-11-16T00:00:05Z";
+  http.fetch.mockImplementation(async (r) => {
+    if (!(r as Request).url.endsWith("/status"))
+      return Response.json({ items: [] });
+    if (!available)
+      return Response.json(
+        {
+          error: {
+            code: "unavailable",
+            message: "Status temporarily unavailable.",
+          },
+        },
+        { status: 503 },
+      );
+    return Response.json({
+      ...supported.model_status,
+      assessed_at: "2026-11-17T00:00:00Z",
+      stale_after_seconds: 86400,
+      last_success_at: observed,
+      last_attempt: {
+        source: "probe",
+        transport: "succeeded",
+        http_status: 200,
+        observed_at: observed,
+        admitted_at: observed,
+        stale: false,
+        outcome: "text",
+        usage: {
+          prompt_tokens: null,
+          completion_tokens: null,
+          total_tokens: 0,
+        },
+      },
+      last_check: {
+        state: "completed",
+        created_at: observed,
+        admitted_at: observed,
+        receipt: {
+          observed_at: observed,
+          http_status: 200,
+          schema_success: true,
+        },
+      },
+      rca_validation: {
+        purpose: "evaluation",
+        outcome: "validated",
+        observed_at: observed,
+        stale: false,
+      },
+    });
+  });
+  const initial = mount(<ModelConnection canMutate={false} />);
+  const cache = caches.at(-1)!;
+  await screen.findByText(/succeeded · HTTP 200/);
+  expect(screen.queryAllByText(/Historical/)).toHaveLength(0);
+  available = false;
+  await act(async () => vi.advanceTimersByTimeAsync(10_000));
+  await screen.findByText("Status temporarily unavailable.");
+  for (const label of [
+    "Transport",
+    "Latest configured probe",
+    "RCA validation",
+    "Observed usage for latest attempt",
+  ]) {
+    expect(screen.getByText(label).nextElementSibling?.textContent).toContain(
+      "Historical",
+    );
+  }
+  expect(
+    screen.getByText("Observed usage for latest attempt").nextElementSibling
+      ?.textContent,
+  ).toContain("Total 0");
+  initial.unmount();
+  mount(<ModelConnection canMutate={false} />, cache);
+  await screen.findByText("Status temporarily unavailable.");
+  expect(
+    screen.getByText("Transport").nextElementSibling?.textContent,
+  ).toContain("Historical");
+  expect(posts()).toHaveLength(0);
+});
+
+it("guides configuration drift after a newer check stops before the provider call", async () => {
   http.fetch.mockImplementation(async (r) =>
     Response.json(
       (r as Request).url.endsWith("/status")
         ? {
             ...supported.model_status,
-            availability: "available",
-            quality: "not_established",
-            qualification_cohort: null,
-            dispatch_allowed: false,
-            dispatch_reason: "dispatch_paused",
-            latest_usage: {
+            assessed_at: "2026-11-17T00:00:00Z",
+            stale_after_seconds: 86400,
+            last_error: "rate_limited",
+            last_attempt: {
               source: "analysis",
-              observed_at: "2026-11-16T12:00:00Z",
-              status: "observed",
-              prompt_tokens: 0,
-              completion_tokens: 0,
-              total_tokens: 0,
+              outcome: "rate_limited",
+              transport: "rejected",
+              http_status: 429,
             },
-            latest_call: {
-              source: "analysis",
-              observed_at: "2026-11-16T12:00:00Z",
-              kind: "text",
-              http_status: 200,
-            },
-            validated_rca: null,
             last_check: {
-              id: "probe",
-              state: "completed",
-              created_at: "2026-11-16T12:00:00Z",
-              deadline: "2026-11-16T12:15:00Z",
-              identity: supported.model_status.identity,
-              receipt: {
-                transport_success: true,
-                schema_success: true,
-                observed_at: "2026-11-16T12:00:00Z",
-              },
-            },
-            configuration: {
-              mode: "operational",
-              api_root: "https://gateway.example/v1",
-              credential_reference: "MODEL_TOKEN",
-              timeout_seconds: 12,
-              max_input_bytes: 40000,
-              max_response_bytes: 8000,
-              output_limit_parameter: "max_completion_tokens",
-              output_limit: 600,
-              policy_id: "egress-policy",
-              policy_version: "3",
-              policy_digest: "digest",
-              max_request_bytes: 38000,
-              max_target_bytes: 30000,
+              state: "configuration_changed",
+              admitted_at: null,
+              receipt: null,
             },
           }
-        : {
-            items: [
-              {
-                id: "probe",
-                state: "completed",
-                created_at: "2026-11-16T12:00:00Z",
-                receipt: {
-                  transport_success: true,
-                  schema_success: true,
-                  observed_at: "2026-11-16T12:00:00Z",
-                  usage_status: "observed",
-                  usage: { total_tokens: 0 },
-                },
-              },
-            ],
-          },
+        : { items: [] },
     ),
   );
   mount(<ModelConnection canMutate={false} />);
-  expect(await screen.findByText(/Transport availability: available/)).toBeTruthy();
-  expect(screen.getByText(/Diagnosis quality: not established/)).toBeTruthy();
-  expect(screen.getByText(/Valid harmless probe marker/)).toBeTruthy();
-  expect(screen.getByText(/No matching validated operational RCA/)).toBeTruthy();
-  expect(screen.getByText(/Paused · dispatch paused/)).toBeTruthy();
-  expect(screen.getByText(/0 total tokens · analysis/)).toBeTruthy();
-  expect(screen.getByText(/Latest provider call: text · analysis/)).toBeTruthy();
-  expect(screen.getByText(/Usage: 0 total tokens/)).toBeTruthy();
-  expect(screen.getByText(/Credential reference: MODEL_TOKEN/)).toBeTruthy();
-  expect(screen.getByText(/Provider quota and remaining balance are unavailable/)).toBeTruthy();
-  expect(posts()).toHaveLength(0);
+  await screen.findByText(
+    "Inspect the current profile and egress policy before checking again.",
+  );
+  expect(
+    screen.getByText("Last attempt outcome").nextElementSibling?.textContent,
+  ).toContain("rate limited");
+  expect(
+    screen.getByText("Latest configured probe").nextElementSibling?.textContent,
+  ).toContain("Inspect the current profile");
+  expect(
+    screen.getByText("Last attempt outcome").nextElementSibling?.textContent,
+  ).toContain("Wait for the provider limit");
+});
+
+it("rejects future receipt evidence when only history loads", async () => {
+  http.fetch.mockImplementation(async (r) =>
+    (r as Request).url.endsWith("/status")
+      ? Response.json(
+          { error: { code: "unavailable", message: "Status offline" } },
+          { status: 503 },
+        )
+      : Response.json({
+          assessed_at: "2026-11-17T00:00:00Z",
+          items: [
+            {
+              id: "future-check",
+              state: "completed",
+              created_at: "2026-11-16T23:59:59Z",
+              receipt: {
+                observed_at: "2026-11-17T00:01:00Z",
+                schema_success: true,
+                transport_success: true,
+                http_status: 200,
+              },
+            },
+          ],
+        }),
+  );
+  mount(<ModelConnection canMutate={false} />);
+  await screen.findByText(/Receipt time unavailable or inconsistent/);
+  expect(screen.queryByText(/Probe marker: Valid marker/)).toBeNull();
+});
+
+it("sends a model check only for an explicit Operator action and does not replay after expiry", async () => {
+  http.fetch.mockImplementation(async (r) => {
+    const request = r as Request;
+    if (request.method === "POST") {
+      return Response.json(
+        { error: { code: "session_expired", message: "Sign in again." } },
+        { status: 401 },
+      );
+    }
+    return Response.json(
+      request.url.endsWith("/status")
+        ? {
+            ...supported.model_status,
+            assessed_at: "2026-11-17T00:00:00Z",
+            stale_after_seconds: 86400,
+            probe_dispatch_allowed: true,
+            last_check: null,
+          }
+        : { items: [] },
+    );
+  });
+  const view = mount(<ModelConnection canMutate />);
+  const button = await screen.findByRole<HTMLButtonElement>("button", {
+    name: "Check configured model",
+  });
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+  await screen.findByText("Sign in again.");
+  const request = posts()[0][0] as Request;
+  expect(await request.clone().json()).toEqual({});
+  expect(request.headers.get("idempotency-key")).toMatch(/^[a-f0-9-]{36}$/);
+  view.unmount();
+  mount(<ModelConnection canMutate />);
+  await screen.findByRole("button", { name: "Check configured model" });
+  expect(posts()).toHaveLength(1);
 });
 
 it.each([false, true])(

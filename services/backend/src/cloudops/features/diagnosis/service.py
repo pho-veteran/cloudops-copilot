@@ -1,21 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import select, text
 
-from cloudops.features.diagnosis.api_schemas import (
-    AnalysisView,
-    CheckView,
-    ModelConfiguration,
-    ModelCallEvidence,
-    ModelRcaEvidence,
-    ModelStatus,
-    ModelUsage,
-)
+from cloudops.features.diagnosis.api_schemas import AnalysisView
+from cloudops.features.diagnosis.connection_status import check_view
+from cloudops.features.diagnosis.connection_status import model_status as model_status
 from cloudops.features.diagnosis.lifecycle import (
     ANALYSIS_JOB,
     PROBE_JOB,
     dispatch_epoch,
-    dispatch_status,
 )
 from cloudops.features.diagnosis.models import (
     Analysis,
@@ -25,7 +18,6 @@ from cloudops.features.diagnosis.models import (
     ModelCheck,
     ResumeReceipt,
 )
-from cloudops.features.diagnosis.schemas import CallKind
 from cloudops.features.diagnosis.settings import load
 from cloudops.features.diagnosis.slot import lock_present
 from cloudops.features.investigations.models import InvestigationRun
@@ -33,17 +25,6 @@ from cloudops.features.investigations.service import dispatch_blocker
 from cloudops.shared.database import database_now
 from cloudops.shared.errors import DomainError
 from cloudops.shared.jobs import Job, JobAttempt
-
-
-def check_view(check):
-    return CheckView(
-        id=check.id,
-        state=check.state,
-        created_at=check.created_at,
-        deadline=check.deadline,
-        identity=check.identity,
-        receipt=check.receipt,
-    )
 
 
 def resume_denial(db, analysis, job):
@@ -181,7 +162,7 @@ def enqueue_check(db, actor_id, key):
         if prior:
             if prior.actor_id != actor_id:
                 raise DomainError(409, "idempotency_conflict", "Key belongs to another operator.")
-            return check_view(prior)
+            return check_view(prior, load())
         deployment = load()
         if (
             deployment.profile is None
@@ -210,166 +191,4 @@ def enqueue_check(db, actor_id, key):
         db.add(check)
         db.flush()
         db.add(Job(kind=PROBE_JOB, subject_id=check.id, max_attempts=1))
-        return check_view(check)
-
-
-def model_status(db):
-    deployment = load()
-    denied = deployment.denied()
-    allowed, reason = dispatch_status(ANALYSIS_JOB)
-    identity = deployment.identity()
-    matching = select(ModelCheck).where(ModelCheck.identity == identity)
-    last = db.scalar(matching.order_by(ModelCheck.created_at.desc()).limit(1))
-    attempted = db.scalar(
-        matching.where(ModelCheck.admitted_at.is_not(None))
-        .order_by(ModelCheck.admitted_at.desc())
-        .limit(1)
-    )
-    success = db.scalar(
-        matching.where(ModelCheck.receipt["transport_success"].as_boolean().is_(True))
-        .order_by(ModelCheck.created_at.desc())
-        .limit(1)
-    )
-
-    # The newest matching provider receipt owns the usage state. In particular,
-    # a receipt with missing/invalid usage must not inherit an older call's value.
-    check_usage = db.scalar(
-        matching.where(ModelCheck.receipt.is_not(None))
-        .order_by(ModelCheck.admitted_at.desc().nullslast(), ModelCheck.created_at.desc())
-        .limit(1)
-    )
-    analysis_call = db.execute(
-        select(AnalysisCall, Analysis)
-        .join(Analysis, Analysis.id == AnalysisCall.analysis_id)
-        .where(
-            Analysis.identity == identity,
-            Analysis.purpose == "operational",
-            AnalysisCall.receipt.is_not(None),
-        )
-        .order_by(AnalysisCall.settled_at.desc().nullslast(), AnalysisCall.admitted_at.desc())
-        .limit(1)
-    ).first()
-
-    usage_candidates = []
-    if check_usage:
-        observed = (check_usage.receipt or {}).get("observed_at")
-        try:
-            observed_at = datetime.fromisoformat(observed) if isinstance(observed, str) else None
-        except ValueError:
-            observed_at = None
-        usage_candidates.append(
-            (
-                observed_at or check_usage.admitted_at or check_usage.created_at,
-                "check",
-                check_usage.receipt,
-            )
-        )
-    if analysis_call:
-        call, _analysis = analysis_call
-        usage_candidates.append((call.settled_at or call.admitted_at, "analysis", call.receipt))
-    latest_usage = None
-    latest_call = None
-    if usage_candidates:
-        observed_at, source, receipt = max(usage_candidates, key=lambda item: item[0])
-        receipt = receipt if isinstance(receipt, dict) else {}
-        kind = receipt.get("kind")
-        if kind not in {item.value for item in CallKind}:
-            kind = None
-        http_status = receipt.get("http_status")
-        if type(http_status) is not int or not 100 <= http_status <= 599:
-            http_status = None
-        latest_call = ModelCallEvidence(
-            source=source,
-            observed_at=observed_at,
-            kind=kind,
-            http_status=http_status,
-        )
-        usage = receipt.get("usage") if isinstance(receipt, dict) else None
-        usage = usage if isinstance(usage, dict) else {}
-        usage_status = receipt.get("usage_status") if isinstance(receipt, dict) else None
-        if usage_status not in {"observed", "unavailable", "invalid"}:
-            usage_status = "unavailable"
-        token_counts = {
-            key: value if type(value) is int and value >= 0 else None
-            for key, value in usage.items()
-            if key in {"prompt_tokens", "completion_tokens", "total_tokens"}
-        }
-        if usage_status != "observed":
-            token_counts = {}
-        latest_usage = ModelUsage(
-            source=source,
-            observed_at=observed_at,
-            status=usage_status,
-            prompt_tokens=token_counts.get("prompt_tokens"),
-            completion_tokens=token_counts.get("completion_tokens"),
-            total_tokens=token_counts.get("total_tokens"),
-        )
-
-    validated = db.execute(
-        select(AnalysisResult, Analysis)
-        .join(Analysis, Analysis.id == AnalysisResult.analysis_id)
-        .where(Analysis.identity == identity, Analysis.purpose == "operational")
-        .order_by(Analysis.finished_at.desc().nullslast(), Analysis.created_at.desc())
-        .limit(1)
-    ).first()
-    validated_rca = None
-    if validated:
-        result, analysis = validated
-        validated_rca = ModelRcaEvidence(
-            status=(
-                "validated_abstention"
-                if result.payload.get("status") == "insufficient_evidence"
-                else "validated_advice"
-            ),
-            observed_at=analysis.finished_at or analysis.created_at,
-            analysis_id=analysis.id,
-        )
-
-    profile, policy = deployment.profile, deployment.policy
-    configuration = ModelConfiguration(
-        mode=profile.mode.value if profile else None,
-        api_root=profile.base_url if profile else None,
-        credential_reference=profile.credential.name if profile and profile.credential else None,
-        timeout_seconds=profile.limits.deadline_seconds if profile else None,
-        max_input_bytes=profile.limits.max_input_bytes if profile else None,
-        max_response_bytes=profile.limits.max_response_bytes if profile else None,
-        output_limit_parameter=(
-            profile.output_limit.param.value if profile and profile.output_limit else None
-        ),
-        output_limit=(profile.output_limit.value if profile and profile.output_limit else None),
-        policy_id=policy.policy_id if policy else None,
-        policy_version=policy.policy_version if policy else None,
-        policy_digest=policy.digest() if policy else None,
-        max_request_bytes=policy.max_message_bytes if policy else None,
-        max_target_bytes=policy.max_target_bytes if policy else None,
-    )
-    return ModelStatus(
-        availability=denied or "available",
-        identity=identity,
-        quality="qualified" if denied is None else "not_established",
-        qualification_cohort=deployment.qualification.cohort_id if denied is None else None,
-        dispatch_allowed=allowed,
-        dispatch_reason=reason,
-        last_check=check_view(last) if last else None,
-        last_attempt_at=attempted.admitted_at if attempted else None,
-        last_success_at=success.receipt.get("observed_at") if success else None,
-        last_error=(
-            last.receipt.get("kind")
-            if last and last.receipt and not last.receipt.get("transport_success")
-            else last.state
-            if last
-            and last.state
-            in {
-                "provider_outcome_unknown",
-                "configuration_changed",
-                "restore_quarantined",
-                "expired",
-                "failed",
-            }
-            else None
-        ),
-        configuration=configuration,
-        latest_call=latest_call,
-        latest_usage=latest_usage,
-        validated_rca=validated_rca,
-    )
+        return check_view(check, deployment)

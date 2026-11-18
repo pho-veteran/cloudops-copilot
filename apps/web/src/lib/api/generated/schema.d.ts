@@ -1375,6 +1375,11 @@ export interface components {
              */
             workload_id: string;
         };
+        /**
+         * CallKind
+         * @enum {string}
+         */
+        CallKind: "text" | "truncated" | "refusal" | "tool_output" | "unsupported_finish" | "unsupported_shape" | "invalid_envelope" | "invalid_content_type" | "invalid_encoding" | "timeout" | "transport_error" | "auth_denied" | "rate_limited" | "upstream_error" | "request_rejected" | "unexpected_redirect" | "response_too_large" | "credential_unavailable" | "credential_invalid" | "input_rejected" | "config_invalid" | "not_configured";
         /** CancelRequest */
         CancelRequest: {
             /** Reason */
@@ -1436,6 +1441,11 @@ export interface components {
         };
         /** CheckPage */
         CheckPage: {
+            /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
             /** Items */
             items: components["schemas"]["cloudops__features__diagnosis__api_schemas__CheckView"][];
             /** Next Offset */
@@ -2540,75 +2550,56 @@ export interface components {
             /** Workload Uid */
             workload_uid: string;
         };
-        /** ModelCallEvidence */
-        ModelCallEvidence: {
-            /** Http Status */
-            http_status: number | null;
-            /** Kind */
-            kind: string | null;
-            /**
-             * Observed At
-             * Format: date-time
-             */
-            observed_at: string;
-            /**
-             * Source
-             * @enum {string}
-             */
-            source: "check" | "analysis";
-        };
-        /** ModelConfiguration */
-        ModelConfiguration: {
-            /** Api Root */
-            api_root?: string | null;
-            /** Credential Reference */
-            credential_reference?: string | null;
-            /** Max Input Bytes */
-            max_input_bytes?: number | null;
-            /** Max Request Bytes */
-            max_request_bytes?: number | null;
-            /** Max Response Bytes */
-            max_response_bytes?: number | null;
-            /** Max Target Bytes */
-            max_target_bytes?: number | null;
-            /** Mode */
-            mode?: string | null;
-            /** Output Limit */
-            output_limit?: number | null;
-            /** Output Limit Parameter */
-            output_limit_parameter?: string | null;
+        /** ModelIdentityView */
+        ModelIdentityView: {
+            /** Behavior Digest */
+            behavior_digest?: string | null;
+            /** Config Id */
+            config_id?: string | null;
+            /** Config Version */
+            config_version?: string | null;
+            /** Context Version */
+            context_version?: string | null;
+            /** Endpoint Label */
+            endpoint_label?: string | null;
+            /** Lifecycle Version */
+            lifecycle_version?: string | null;
+            /** Model */
+            model?: string | null;
             /** Policy Digest */
             policy_digest?: string | null;
-            /** Policy Id */
-            policy_id?: string | null;
-            /** Policy Version */
-            policy_version?: string | null;
-            /** Timeout Seconds */
-            timeout_seconds?: number | null;
+            /** Prompt Version */
+            prompt_version?: string | null;
+            /** Validator Version */
+            validator_version?: string | null;
         };
-        /** ModelRcaEvidence */
-        ModelRcaEvidence: {
-            /**
-             * Analysis Id
-             * Format: uuid
-             */
-            analysis_id: string;
-            /**
-             * Observed At
-             * Format: date-time
-             */
-            observed_at: string;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "validated_advice" | "validated_abstention";
+        /** ModelLimitsView */
+        ModelLimitsView: {
+            /** Max Analysis Calls */
+            max_analysis_calls: number;
+            /** Max Context Bytes */
+            max_context_bytes: number;
+            /** Max Message Bytes */
+            max_message_bytes: number;
+            /** Max Output Tokens */
+            max_output_tokens: number | null;
+            /** Max Probe Calls */
+            max_probe_calls: number;
+            /** Max Request Bytes */
+            max_request_bytes: number;
+            output_limit_param: components["schemas"]["OutputLimitParam"] | null;
+            /** Request Deadline Seconds */
+            request_deadline_seconds: number;
         };
         /** ModelStatus */
         ModelStatus: {
+            /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
             /** Availability */
             availability: string;
-            configuration: components["schemas"]["ModelConfiguration"];
             /**
              * Cooldown Seconds
              * @default 60
@@ -2618,10 +2609,8 @@ export interface components {
             dispatch_allowed: boolean;
             /** Dispatch Reason */
             dispatch_reason: string | null;
-            /** Identity */
-            identity: {
-                [key: string]: string;
-            };
+            identity: components["schemas"]["ModelIdentityView"];
+            last_attempt?: components["schemas"]["ProviderAttemptView"] | null;
             /** Last Attempt At */
             last_attempt_at?: string | null;
             last_check?: components["schemas"]["cloudops__features__diagnosis__api_schemas__CheckView"] | null;
@@ -2629,8 +2618,11 @@ export interface components {
             last_error?: string | null;
             /** Last Success At */
             last_success_at?: string | null;
-            latest_call?: components["schemas"]["ModelCallEvidence"] | null;
-            latest_usage?: components["schemas"]["ModelUsage"] | null;
+            limits: components["schemas"]["ModelLimitsView"] | null;
+            /** Probe Dispatch Allowed */
+            probe_dispatch_allowed: boolean;
+            /** Probe Dispatch Reason */
+            probe_dispatch_reason: string | null;
             /** Qualification Cohort */
             qualification_cohort: string | null;
             /**
@@ -2638,31 +2630,9 @@ export interface components {
              * @enum {string}
              */
             quality: "qualified" | "not_established";
-            validated_rca?: components["schemas"]["ModelRcaEvidence"] | null;
-        };
-        /** ModelUsage */
-        ModelUsage: {
-            /** Completion Tokens */
-            completion_tokens?: number | null;
-            /**
-             * Observed At
-             * Format: date-time
-             */
-            observed_at: string;
-            /** Prompt Tokens */
-            prompt_tokens?: number | null;
-            /**
-             * Source
-             * @enum {string}
-             */
-            source: "check" | "analysis";
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "observed" | "unavailable" | "invalid";
-            /** Total Tokens */
-            total_tokens?: number | null;
+            rca_validation?: components["schemas"]["RCAValidationView"] | null;
+            /** Stale After Seconds */
+            stale_after_seconds: number;
         };
         /** NoteBody */
         NoteBody: {
@@ -2784,6 +2754,11 @@ export interface components {
              */
             verification: "not_performed" | "pending" | "passed" | "failed" | "inconclusive";
         };
+        /**
+         * OutputLimitParam
+         * @enum {string}
+         */
+        OutputLimitParam: "max_tokens" | "max_completion_tokens" | "omit";
         /** PackCoverage */
         PackCoverage: {
             /** Missing Required */
@@ -2966,6 +2941,46 @@ export interface components {
             /** Username */
             username: string;
         };
+        /** ProbeReceiptView */
+        ProbeReceiptView: {
+            /** Elapsed Ms */
+            elapsed_ms: number | null;
+            /** Finish Reason */
+            finish_reason: string | null;
+            /** Http Status */
+            http_status: number | null;
+            kind: components["schemas"]["CallKind"] | null;
+            /** Observed At */
+            observed_at: string | null;
+            /**
+             * Quality
+             * @default not_established
+             * @constant
+             */
+            quality: "not_established";
+            /** Requested Model */
+            requested_model: string | null;
+            /** Response Bytes */
+            response_bytes: number | null;
+            /** Response Sha256 */
+            response_sha256: string | null;
+            /** Response Text Sha256 */
+            response_text_sha256: string | null;
+            /** Retry After Seconds */
+            retry_after_seconds: number | null;
+            /** Schema Success */
+            schema_success: boolean | null;
+            /** Served Model */
+            served_model: string | null;
+            /** Transport Success */
+            transport_success: boolean | null;
+            usage: components["schemas"]["TokenUsageView"] | null;
+            /**
+             * Usage Status
+             * @enum {string}
+             */
+            usage_status: "observed" | "unavailable" | "invalid";
+        };
         /** Provenance */
         Provenance: {
             first: components["schemas"]["PublicObservation"];
@@ -2981,6 +2996,38 @@ export interface components {
              */
             policy: "two-fresh-healthy/v1";
             second?: components["schemas"]["PublicObservation"] | null;
+        };
+        /** ProviderAttemptView */
+        ProviderAttemptView: {
+            /**
+             * Admitted At
+             * Format: date-time
+             */
+            admitted_at: string;
+            /** Http Status */
+            http_status: number | null;
+            /** Observed At */
+            observed_at: string | null;
+            /** Outcome */
+            outcome: components["schemas"]["CallKind"] | "provider_outcome_unknown" | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "probe" | "analysis" | "evaluation";
+            /** Stale */
+            stale: boolean;
+            /**
+             * Transport
+             * @enum {string}
+             */
+            transport: "succeeded" | "rejected" | "unknown";
+            usage: components["schemas"]["TokenUsageView"] | null;
+            /**
+             * Usage Status
+             * @enum {string}
+             */
+            usage_status: "observed" | "unavailable" | "invalid";
         };
         /**
          * PublicObservation
@@ -3152,6 +3199,26 @@ export interface components {
             unverified_checks: components["schemas"]["UnverifiedCheck"][];
             /** Validator Version */
             validator_version: string;
+        };
+        /** RCAValidationView */
+        RCAValidationView: {
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "validated" | "invalid";
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "operational" | "evaluation";
+            /** Stale */
+            stale: boolean;
         };
         /** RecommendationObservation */
         RecommendationObservation: {
@@ -4050,6 +4117,15 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** TokenUsageView */
+        TokenUsageView: {
+            /** Completion Tokens */
+            completion_tokens: number | null;
+            /** Prompt Tokens */
+            prompt_tokens: number | null;
+            /** Total Tokens */
+            total_tokens: number | null;
+        };
         /** ToolInvocation */
         ToolInvocation: {
             /** Finished At */
@@ -4433,6 +4509,8 @@ export interface components {
         };
         /** CheckView */
         cloudops__features__diagnosis__api_schemas__CheckView: {
+            /** Admitted At */
+            admitted_at: string | null;
             /**
              * Created At
              * Format: date-time
@@ -4448,14 +4526,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /** Identity */
-            identity: {
-                [key: string]: string;
-            };
-            /** Receipt */
-            receipt: {
-                [key: string]: unknown;
-            } | null;
+            identity: components["schemas"]["ModelIdentityView"];
+            receipt: components["schemas"]["ProbeReceiptView"] | null;
             /** State */
             state: string;
         };

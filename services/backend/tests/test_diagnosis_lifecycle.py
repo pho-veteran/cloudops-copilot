@@ -4,8 +4,8 @@ import json
 import os
 import threading
 from pathlib import Path
-from datetime import datetime, timedelta, timezone
-from uuid import uuid4
+from datetime import datetime, timedelta
+from uuid import UUID, uuid4
 
 import pytest
 from diagnosis_fake import respond, serve
@@ -25,7 +25,6 @@ from cloudops.features.diagnosis.models import (
     AnalysisCall,
     ModelCheck,
 )
-from cloudops.features.access.models import User
 from cloudops.features.diagnosis.service import analysis_view, model_status
 from cloudops.features.diagnosis.settings import Deployment, load
 from cloudops.features.diagnosis.slot import ModelSlot, GuardLost
@@ -71,8 +70,8 @@ def test_analysis_rejects_worker_credential_in_advice(client, db, context, deplo
 
 @pytest.fixture
 def deployment(tmp_path, monkeypatch):
-    def install(url, *, qualified=True, mode="operational"):
-        model = profile(base_url=url + "/v1", mode=mode)
+    def install(url, *, qualified=True, mode="operational", **profile_options):
+        model = profile(base_url=url + "/v1", mode=mode, **profile_options)
         egress = policy()
         p, e, q = (
             tmp_path / name for name in ("profile.json", "egress.json", "qualification.json")
@@ -391,6 +390,10 @@ def test_recovery_epoch_quarantines_preexisting_pending(db, context, deployment,
                 evidence=["pytest"],
                 actor={},
             )
+            if operation == "enter_recovery":
+                status = model_status(db)
+                assert status.quality == "qualified"
+                assert not status.dispatch_allowed and not status.probe_dispatch_allowed
         run_once()
         assert refresh(db, identifier).reason == "restore_quarantined"
         assert not server.requests
@@ -432,147 +435,165 @@ def test_protected_reads_empty_body_and_bounded_probe(client, db, context, deplo
         assert len(server.requests) == 1
 
 
-def test_model_status_uses_latest_matching_usage_and_validated_rca_only(
-    client, db, context, deployment
+@pytest.mark.parametrize(
+    ("wire_status", "transport", "outcome"),
+    [
+        (200, "succeeded", "invalid_envelope"),
+        (401, "rejected", "auth_denied"),
+        (429, "rejected", "rate_limited"),
+        (None, "unknown", "timeout"),
+    ],
+)
+def test_model_connection_preserves_independent_evidence(
+    client, deployment, wire_status, transport, outcome
 ):
-    deployment("http://127.0.0.1:18080", qualified=True)
-    identity = load().identity()
-    actor = db.scalar(select(User).where(User.username == "operator"))
-    now = datetime.now(timezone.utc)
-    older = ModelCheck(
-        actor_id=actor.id,
-        idempotency_key=uuid4(),
-        identity=identity,
-        dispatch_epoch={},
-        state="completed",
-        created_at=now - timedelta(minutes=2),
-        admitted_at=now - timedelta(minutes=2),
-        deadline=now + timedelta(minutes=1),
-        receipt={
-            "observed_at": (now - timedelta(minutes=2)).isoformat(),
-            "usage_status": "observed",
-            "usage": {"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5},
-        },
-    )
-    latest = ModelCheck(
-        actor_id=actor.id,
-        idempotency_key=uuid4(),
-        identity=identity,
-        dispatch_epoch={},
-        state="completed",
-        created_at=now - timedelta(minutes=1),
-        admitted_at=now - timedelta(minutes=1),
-        deadline=now + timedelta(minutes=1),
-        receipt={
-            "observed_at": (now - timedelta(minutes=1)).isoformat(),
-            "usage_status": "observed",
-            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
-        },
-    )
-    stale = ModelCheck(
-        actor_id=actor.id,
-        idempotency_key=uuid4(),
-        identity=identity | {"behavior_digest": "stale-profile"},
-        dispatch_epoch={},
-        state="completed",
-        created_at=now,
-        admitted_at=now,
-        deadline=now + timedelta(minutes=1),
-        receipt={"usage_status": "observed", "usage": {"total_tokens": 99}},
-    )
-    current_rca = Analysis(
-        run_id=context[1],
-        purpose="operational",
-        state="completed",
-        phase="initial",
-        identity=identity,
-        dispatch_epoch={},
-        deadline=now + timedelta(minutes=1),
-        finished_at=now - timedelta(seconds=30),
-    )
-    old_rca = Analysis(
-        run_id=context[1],
-        purpose="evaluation",
-        state="completed",
-        phase="initial",
-        identity=identity | {"behavior_digest": "stale-profile"},
-        dispatch_epoch={},
-        deadline=now + timedelta(minutes=1),
-        finished_at=now,
-    )
-    db.add_all([older, latest, stale, current_rca, old_rca])
-    db.flush()
-    db.add_all(
-        [
-            AnalysisResult(
-                analysis_id=current_rca.id,
-                payload={"status": "insufficient_evidence"},
-            ),
-            AnalysisResult(analysis_id=old_rca.id, payload={"status": "supported"}),
-        ]
-    )
-    db.commit()
+    def handler(request):
+        if wire_status is None:
+            threading.Event().wait(0.7)
+        else:
+            respond(request, {"secret": "upstream-response-sentinel"}, status=wire_status)
 
-    headers = sign_in(client, "viewer")
-    response = client.get("/api/diagnosis/status", headers=headers)
-    assert response.status_code == 200, response.text
-    status = response.json()
-    assert status["latest_usage"] | {"observed_at": None} == {
-        "source": "check",
-        "observed_at": None,
-        "status": "observed",
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "total_tokens": 0,
-    }
-    assert datetime.fromisoformat(status["latest_usage"]["observed_at"].replace("Z", "+00:00")) == (
-        now - timedelta(minutes=1)
-    )
-    assert status["validated_rca"]["status"] == "validated_abstention"
-    assert status["validated_rca"]["analysis_id"] == str(current_rca.id)
-    assert status["configuration"]["api_root"] == "http://127.0.0.1:18080/v1"
-    assert status["configuration"]["credential_reference"] == "DIAGNOSIS_TEST_TOKEN"
-    assert "owned-loopback-test-token" not in response.text
-
-    latest.receipt = {
-        "observed_at": (now + timedelta(seconds=1)).isoformat(),
-        "usage_status": "unavailable",
-        "usage": None,
-    }
-    db.commit()
-    response = client.get("/api/diagnosis/status", headers=headers)
-    assert response.status_code == 200
-    status = response.json()
-    assert status["latest_usage"]["status"] == "unavailable"
-    assert status["latest_usage"]["total_tokens"] is None
-    assert datetime.fromisoformat(status["latest_usage"]["observed_at"].replace("Z", "+00:00")) == (
-        now + timedelta(seconds=1)
-    )
-
-    deployment("http://127.0.0.1:18080", qualified=False)
-    response = client.get("/api/diagnosis/status", headers=headers)
-    status = response.json()
-    assert status["quality"] == "not_established"
-    assert status["validated_rca"]["status"] == "validated_abstention"
+    with serve(handler) as server:
+        deployment(server.url, qualified=False, limits={"read_timeout_seconds": 0.2})
+        headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=headers, json={}).status_code == 201
+        assert not server.requests
+        assert run_once()
+        response = client.get("/api/diagnosis/status")
+        assert response.status_code == 200
+        result = response.json()
+        assert result["last_attempt"]["transport"] == transport
+        assert result["last_attempt"]["outcome"] == outcome
+        assert result["last_attempt"]["usage"] is None
+        assert result["last_attempt"]["observed_at"]
+        assert bool(result["last_success_at"]) == (wire_status == 200)
+        assert result["last_check"]["receipt"]["schema_success"] is False
+        assert result["rca_validation"] is None
+        assert result["quality"] == "not_established"
+        assert "upstream-response-sentinel" not in response.text
+        assert len(server.requests) == 1
 
 
-def test_provider_auth_rejection_is_saved_without_expiring_app_session(client, deployment):
-    with serve(lambda h: respond(h, {"error": "credential rejected"}, status=401)) as server:
+def test_model_connection_keeps_zero_and_ages_or_clears_current_evidence(client, db, deployment):
+    def handler(request):
+        if len(request.server.requests) == 1:
+            respond(request, text_payload("OK", usage={"total_tokens": 0}))
+        else:
+            respond(request, {}, status=429)
+
+    with serve(handler) as server:
         deployment(server.url, qualified=False)
         headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
-        queued = client.post("/api/diagnosis/checks", headers=headers, json={})
-        assert queued.status_code == 201, queued.text
+        assert client.post("/api/diagnosis/checks", headers=headers, json={}).status_code == 201
+        assert run_once()
+        status = client.get("/api/diagnosis/status").json()
+        assert status["last_attempt"]["usage"] == {
+            "prompt_tokens": None,
+            "completion_tokens": None,
+            "total_tokens": 0,
+        }
+        assert status["last_check"]["receipt"]["schema_success"] is True
+        assert status["rca_validation"] is None
+        assert status["limits"]["max_output_tokens"] == 32
+        check = db.get(ModelCheck, UUID(status["last_check"]["id"]))
+        # Age only the disposable fixture records so this test does not wait a day.
+        offset = timedelta(hours=25)
+        check.created_at -= offset
+        check.admitted_at -= offset
+        check.receipt = check.receipt | {
+            "observed_at": (database_now(db) - offset).isoformat(),
+            "raw_provider_body": "legacy-private-sentinel",
+        }
+        check.identity = check.identity | {"private_path": "/legacy-private-sentinel"}
+        db.commit()
+        history = client.get("/api/diagnosis/checks")
+        assert "legacy-private-sentinel" not in history.text
+        check.identity = load().identity()
+        db.commit()
+        assert client.get("/api/diagnosis/status").json()["last_attempt"]["stale"] is True
+        retry = headers | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=retry, json={}).status_code == 201
+        assert run_once()
+        latest = client.get("/api/diagnosis/status").json()
+        assert latest["last_attempt"]["outcome"] == "rate_limited"
+        assert latest["last_attempt"]["usage"] is None
+        assert latest["last_success_at"]
+
+        deployment(server.url, qualified=False, config_version="changed")
+        result = client.get("/api/diagnosis/status").json()
+        assert result["last_attempt"] is None and result["last_check"] is None
+        assert result["last_success_at"] is None
+        assert (
+            client.get("/api/diagnosis/checks").json()["items"][1]["receipt"]["usage"][
+                "total_tokens"
+            ]
+            == 0
+        )
+        assert len(server.requests) == 2
+
+
+@pytest.mark.parametrize("offset", [-60, 60])
+def test_current_probe_does_not_promote_an_impossible_receipt_time(client, db, deployment, offset):
+    with serve(lambda h: respond(h, text_payload("OK"))) as server:
+        deployment(server.url, qualified=False)
+        headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        created = client.post("/api/diagnosis/checks", headers=headers, json={})
+        assert created.status_code == 201
+        assert run_once()
+        check = db.get(ModelCheck, UUID(created.json()["id"]))
+        previous = check.admitted_at - timedelta(minutes=10)
+        db.add(
+            ModelCheck(
+                actor_id=check.actor_id,
+                idempotency_key=uuid4(),
+                identity=check.identity,
+                dispatch_epoch=check.dispatch_epoch,
+                state="completed",
+                created_at=previous,
+                admitted_at=previous,
+                deadline=previous + timedelta(minutes=1),
+                receipt=check.receipt | {"observed_at": previous.isoformat()},
+            )
+        )
+        check.receipt = check.receipt | {
+            "observed_at": (check.admitted_at + timedelta(seconds=offset)).isoformat()
+        }
+        db.commit()
+
+        status = client.get("/api/diagnosis/status").json()
+        assert status["last_attempt"]["transport"] == "unknown"
+        assert status["last_attempt"]["observed_at"] is None
+        assert datetime.fromisoformat(status["last_success_at"]) == previous
+        assert status["last_check"]["receipt"] is None
+        history = client.get("/api/diagnosis/checks").json()["items"][0]
+        assert history["receipt"]["schema_success"] is True
+        assert len(server.requests) == 1
+
+
+def test_model_setup_and_unsent_check_remain_private_and_separate(client, deployment, monkeypatch):
+    with serve(lambda h: pytest.fail("Missing worker credential must not send")) as server:
+        deployment(
+            server.url + "/private-root-canary",
+            qualified=False,
+            limits={"max_input_bytes": 32768},
+        )
+        monkeypatch.delenv("DIAGNOSIS_TEST_TOKEN")
+        headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        assert client.post("/api/diagnosis/checks", headers=headers, json={}).status_code == 201
         assert run_once()
 
-        status = client.get("/api/diagnosis/status", headers=headers)
-        assert status.status_code == 200, status.text
-        assert status.json()["last_error"] == "auth_denied"
-        assert status.json()["latest_call"]["kind"] == "auth_denied"
-        assert status.json()["latest_call"]["http_status"] == 401
-        receipt = client.get("/api/diagnosis/checks", headers=headers).json()["items"][0]["receipt"]
-        assert receipt["http_status"] == 401
-        assert receipt["usage_status"] == "unavailable"
-        assert len(server.requests) == 1
+        response = client.get("/api/diagnosis/status")
+        assert "private-root-canary" not in response.text
+        assert "DIAGNOSIS_TEST_TOKEN" not in response.text
+        result = response.json()
+        assert result["last_attempt"] is None
+        assert result["last_success_at"] is None
+        assert result["last_check"]["admitted_at"] is None
+        assert result["last_check"]["receipt"]["kind"] == "credential_unavailable"
+        assert result["limits"]["max_request_bytes"] == 32768
+        assert result["limits"]["max_message_bytes"] == 65536
+        assert result["limits"]["max_context_bytes"] == 8192
+        assert not server.requests
 
 
 def test_probe_metadata_excludes_credential_and_error_body(client, deployment):
@@ -642,6 +663,12 @@ def test_evaluation_uses_real_pipeline_but_public_selection_cannot_adopt_it(
         sign_in(client)
         response = client.get(f"/api/incidents/{context[0]}/runs/{context[1]}/analysis")
         assert response.json()["result"] is None
+        status = client.get("/api/diagnosis/status").json()
+        assert status["quality"] == "not_established"
+        assert status["rca_validation"]["outcome"] == "validated"
+        assert status["rca_validation"]["purpose"] == "evaluation"
+        assert status["last_attempt"]["source"] == "evaluation"
+        assert status["last_attempt"]["usage"]["total_tokens"] == 12
         chunk = next(
             item
             for item in selection.payload["chunks"]
