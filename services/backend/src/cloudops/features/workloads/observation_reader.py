@@ -18,11 +18,22 @@ from cloudops.features.workloads.scope_config import cluster_fingerprint
 
 
 def reader_binding():
-    """Legacy connection continuity, never an operator-established v2 trust pin."""
+    """Local server/CA identity for continuity across observations."""
     try:
-        config = json.loads(Path(os.environ["KUBE_READ_CONFIG"]).read_text(encoding="utf-8"))
+        with Path(os.environ["KUBE_READ_CONFIG"]).open("rb") as stream:
+            raw = stream.read(100_001)
+        if len(raw) > 100_000:
+            return None
+        config = json.loads(raw)
+        token = config["token"]
+        if (
+            not isinstance(token, str)
+            or not token
+            or any(ord(c) <= 32 or ord(c) >= 127 for c in token)
+        ):
+            return None
         return binding(config)
-    except (KeyError, OSError, ValueError, TypeError):
+    except (AttributeError, KeyError, OSError, ValueError, TypeError):
         return None
 
 

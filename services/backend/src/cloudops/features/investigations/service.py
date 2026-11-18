@@ -167,6 +167,10 @@ def configure_dispatch_status(reader: Callable[[], tuple[bool, str | None]] | No
     _dispatch_status = reader
 
 
+def collection_dispatch_status() -> tuple[bool | None, str | None]:
+    return _dispatch_status() if _dispatch_status else (None, None)
+
+
 def cancel_state(row: InvestigationRun) -> CancelState:
     """The feature-declared cancellation boundary: only work with no call already sent."""
     if row.state == "cancelled":

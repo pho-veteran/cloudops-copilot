@@ -282,7 +282,11 @@ For interruption, set `COLLECTOR_DELAY_SECONDS=60` on the worker with the same e
 
 To pause all background jobs, run `docker compose run --rm dispatch-admin enter-recovery --reason ... --evidence ...`. Queued Runs then show **Dispatch is paused** and stay cancellable; resume with `resume --class ...` or `exit-recovery`. See [trusted job dispatch](job-dispatch.md#trusted-administration).
 
-**Connections** observes worker heartbeats with a 45-second freshness threshold. A stale worker is separate from database readiness. API readiness requires the current Alembic head; worker unavailability does not make saved reads unavailable. A database outage returns an actionable API error. A missing/failed schema prevents startup readiness; follow README migration recovery instructions instead of stamping a revision or deleting data.
+**Connections** polls the authenticated `GET /api/health` projection. Worker heartbeats are fresh through the configured threshold, 45 seconds by default. Collection dispatch has its own status, and collector setup describes configured adapters. The Kubernetes row identifies one deterministically selected scoped workload. Complete observations for its current UID and reader binding are fresh through 60 seconds, subject to the latest attempt. The assessment uses database time and preserves producer timestamps. After upgrading, an older E02 observation without a recorded reader binding stays historical until the observer publishes a new observation.
+
+Health polling reads local configuration and saved data. Open the exact workload in **Workloads** for recovery authority. **Resource reports** retains KRR evidence from completed reports. KRR connectivity remains unknown when the endpoint is configured and lacks a current observation.
+
+API liveness and readiness are public probes. Readiness requires the current Alembic head. Worker unavailability leaves saved reads available. A database outage returns an actionable API error. Follow the README migration recovery instructions if the schema is missing or a migration fails.
 
 ## Interfaces and module ownership
 

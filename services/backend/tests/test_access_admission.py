@@ -214,7 +214,7 @@ def test_health_distinguishes_stale_worker_from_available_database(client, db):
 
     sign_in(client)
     observations = client.get("/api/health").json()["observations"]
-    assert next(o for o in observations if o["component"] == "worker")["status"] == "stale"
+    assert next(o for o in observations if o["component"] == "worker")["status"] == "never_observed"
     heartbeat()
     assert (
         next(
@@ -222,7 +222,7 @@ def test_health_distinguishes_stale_worker_from_available_database(client, db):
             for o in client.get("/api/health").json()["observations"]
             if o["component"] == "worker"
         )["status"]
-        == "available"
+        == "fresh"
     )
     with db.begin():
         db.execute(

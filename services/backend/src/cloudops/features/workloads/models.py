@@ -6,9 +6,11 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -18,7 +20,18 @@ from cloudops.shared.database import Base
 
 class Workload(Base):
     __tablename__ = "workloads"
-    __table_args__ = (UniqueConstraint("cluster", "namespace", "name", "uid"),)
+    __table_args__ = (
+        UniqueConstraint("cluster", "namespace", "name", "uid"),
+        Index(
+            "ix_workloads_active_health_scope",
+            text("source DESC"),
+            "cluster",
+            "namespace",
+            "name",
+            "id",
+            postgresql_where=text("active"),
+        ),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     cluster: Mapped[str] = mapped_column(String(100))
     namespace: Mapped[str] = mapped_column(String(100))
@@ -44,7 +57,16 @@ class ScopeState(Base):
 
 class ScopeTarget(Base):
     __tablename__ = "workload_scope_targets"
-    __table_args__ = (UniqueConstraint("cluster", "namespace", "name"),)
+    __table_args__ = (
+        UniqueConstraint("cluster", "namespace", "name"),
+        Index(
+            "ix_scope_targets_configured_health",
+            "cluster",
+            "namespace",
+            "name",
+            postgresql_where=text("configured"),
+        ),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     cluster: Mapped[str] = mapped_column(String(100))
     namespace: Mapped[str] = mapped_column(String(100))

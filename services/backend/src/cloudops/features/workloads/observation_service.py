@@ -2,6 +2,7 @@
 
 import base64
 import asyncio
+import hashlib
 import json
 import random
 from concurrent.futures import ThreadPoolExecutor
@@ -55,12 +56,18 @@ class Claim:
     scope_fingerprint: str | None = None
 
 
+def observation_binding(reader: str | None, scope_digest: str | None, epoch: int) -> str | None:
+    if reader is None or scope_digest is None:
+        return None
+    return hashlib.sha256(f"{reader}:{scope_digest}:{epoch}".encode()).hexdigest()
+
+
 def transaction_limits(db):
     db.execute(text("SET LOCAL lock_timeout = '1s'"))
     db.execute(text("SET LOCAL statement_timeout = '2s'"))
 
 
-def claim(workload_id, purpose, factory=None):
+def claim(workload_id, purpose, factory=None, *, reader_identity=None):
     if purpose not in {"scheduled", "baseline_candidate", "baseline_confirm", "recovery_context"}:
         raise ValueError("Unknown observation purpose")
     with (factory or sessions())() as db, db.begin():
@@ -112,6 +119,9 @@ def claim(workload_id, purpose, factory=None):
         state.lease_until = now + timedelta(seconds=POLICY.lease_seconds)
         state.deadline_at = now + timedelta(seconds=POLICY.deadline_seconds)
         state.last_attempt_at, state.latest_outcome = now, "running"
+        state.attempt_binding = observation_binding(
+            reader_identity, scope.config_digest if scope else None, workload.observation_epoch
+        )
         state.next_due_at = now + timedelta(seconds=POLICY.poll_seconds)
         state.partial_payload = None
         db.add(
@@ -187,6 +197,7 @@ def finalize(captured, observation=None, reason=None, factory=None):
                 now,
                 "superseded",
             )
+            state.failure_binding = state.attempt_binding
             state.lease_token, state.lease_until = None, None
             cleanup(db, captured.identity.workload_id, now)
             return DirectOutcome(outcome="superseded", reason="superseded")
@@ -233,6 +244,7 @@ def finalize(captured, observation=None, reason=None, factory=None):
             )
             state.latest_outcome, state.failures, state.partial_payload = "complete", 0, None
             state.success_sequence = captured.sequence
+            state.success_binding = state.attempt_binding
             attempt.outcome = "complete"
             state.next_due_at = now + timedelta(seconds=POLICY.poll_seconds)
         else:
@@ -244,6 +256,7 @@ def finalize(captured, observation=None, reason=None, factory=None):
                 else "invalid_response"
             )
             state.last_failure_at, state.last_failure_reason = now, reason
+            state.failure_binding = state.attempt_binding
             state.partial_payload = observation.model_dump(mode="json") if observation else None
             state.next_due_at = now + timedelta(
                 seconds=min(120, 30 * 2 ** (state.failures - 1)) + random.uniform(0, 3)
@@ -259,7 +272,9 @@ def finalize(captured, observation=None, reason=None, factory=None):
 async def observe_direct(workload_id, purpose="baseline_candidate", *, factory=None, reader=None):
     captured_binding = reader_binding() if reader is None else None
     try:
-        captured = await database_call(claim, workload_id, purpose, factory)
+        captured = await database_call(
+            claim, workload_id, purpose, factory, reader_identity=captured_binding
+        )
     except ObservationError as error:
         return DirectOutcome(outcome="failed", reason=error.code)
     if captured is None:
