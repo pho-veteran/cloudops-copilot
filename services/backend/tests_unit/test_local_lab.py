@@ -763,7 +763,7 @@ def test_rendered_compose_is_bounded_and_does_not_mount_truth_or_cluster_into_pr
         pytest.skip("Compose rendering requires the host Docker CLI.")
     env = tmp_path / "lab.env"
     env.write_text(
-        f"POSTGRES_PASSWORD=syntheticOnly\nCLOUDOPS_LAB_OWNER={uuid4()}\nCLOUDOPS_LAB_DIR={tmp_path}\nLAB_SAMPLE_IMAGE=cloudops-local-testing-lab-sample:synthetic\nLAB_SYSTEM_CPU=8500m\nLAB_SYSTEM_MEMORY=12000000000\n"
+        f"POSTGRES_PASSWORD=syntheticOnly\nCLOUDOPS_LAB_OWNER={uuid4()}\nCLOUDOPS_LAB_DIR={tmp_path}\nLAB_SAMPLE_IMAGE=cloudops-local-testing-lab-sample:synthetic\nLAB_SYSTEM_CPU=8500m\nLAB_SYSTEM_MEMORY=12000000000\nCLOUDOPS_KRR_RUN_AS=12345:12346\n"
     )
     command = [
         "docker",
@@ -797,6 +797,10 @@ def test_rendered_compose_is_bounded_and_does_not_mount_truth_or_cluster_into_pr
     assert result.returncode == 0, result.stderr
     config = json.loads(result.stdout)
     services = config["services"]
+    runner = services["krr"]
+    assert runner["tmpfs"] == ["/tmp:size=32m,mode=1777"]
+    assert runner["user"] == "12345:12346"
+    assert runner["read_only"] and runner["cap_drop"] == ["ALL"]
     initializer = services["executor-init"]
     assert initializer["image"] == services["executor"]["image"]
     assert initializer["labels"]["io.cloudops.lab.owner"]
