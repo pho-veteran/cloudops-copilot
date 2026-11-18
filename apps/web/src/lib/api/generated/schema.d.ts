@@ -2540,10 +2540,75 @@ export interface components {
             /** Workload Uid */
             workload_uid: string;
         };
+        /** ModelCallEvidence */
+        ModelCallEvidence: {
+            /** Http Status */
+            http_status: number | null;
+            /** Kind */
+            kind: string | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "check" | "analysis";
+        };
+        /** ModelConfiguration */
+        ModelConfiguration: {
+            /** Api Root */
+            api_root?: string | null;
+            /** Credential Reference */
+            credential_reference?: string | null;
+            /** Max Input Bytes */
+            max_input_bytes?: number | null;
+            /** Max Request Bytes */
+            max_request_bytes?: number | null;
+            /** Max Response Bytes */
+            max_response_bytes?: number | null;
+            /** Max Target Bytes */
+            max_target_bytes?: number | null;
+            /** Mode */
+            mode?: string | null;
+            /** Output Limit */
+            output_limit?: number | null;
+            /** Output Limit Parameter */
+            output_limit_parameter?: string | null;
+            /** Policy Digest */
+            policy_digest?: string | null;
+            /** Policy Id */
+            policy_id?: string | null;
+            /** Policy Version */
+            policy_version?: string | null;
+            /** Timeout Seconds */
+            timeout_seconds?: number | null;
+        };
+        /** ModelRcaEvidence */
+        ModelRcaEvidence: {
+            /**
+             * Analysis Id
+             * Format: uuid
+             */
+            analysis_id: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "validated_advice" | "validated_abstention";
+        };
         /** ModelStatus */
         ModelStatus: {
             /** Availability */
             availability: string;
+            configuration: components["schemas"]["ModelConfiguration"];
             /**
              * Cooldown Seconds
              * @default 60
@@ -2564,6 +2629,8 @@ export interface components {
             last_error?: string | null;
             /** Last Success At */
             last_success_at?: string | null;
+            latest_call?: components["schemas"]["ModelCallEvidence"] | null;
+            latest_usage?: components["schemas"]["ModelUsage"] | null;
             /** Qualification Cohort */
             qualification_cohort: string | null;
             /**
@@ -2571,6 +2638,31 @@ export interface components {
              * @enum {string}
              */
             quality: "qualified" | "not_established";
+            validated_rca?: components["schemas"]["ModelRcaEvidence"] | null;
+        };
+        /** ModelUsage */
+        ModelUsage: {
+            /** Completion Tokens */
+            completion_tokens?: number | null;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Prompt Tokens */
+            prompt_tokens?: number | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "check" | "analysis";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "observed" | "unavailable" | "invalid";
+            /** Total Tokens */
+            total_tokens?: number | null;
         };
         /** NoteBody */
         NoteBody: {

@@ -58,6 +58,44 @@ class CheckPage(BaseModel):
     next_offset: int | None
 
 
+class ModelUsage(BaseModel):
+    source: Literal["check", "analysis"]
+    observed_at: datetime
+    status: Literal["observed", "unavailable", "invalid"]
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+
+
+class ModelCallEvidence(BaseModel):
+    source: Literal["check", "analysis"]
+    observed_at: datetime
+    kind: str | None
+    http_status: int | None
+
+
+class ModelRcaEvidence(BaseModel):
+    status: Literal["validated_advice", "validated_abstention"]
+    observed_at: datetime
+    analysis_id: UUID
+
+
+class ModelConfiguration(BaseModel):
+    mode: str | None = None
+    api_root: str | None = None
+    credential_reference: str | None = None
+    timeout_seconds: float | None = None
+    max_input_bytes: int | None = None
+    max_response_bytes: int | None = None
+    output_limit_parameter: str | None = None
+    output_limit: int | None = None
+    policy_id: str | None = None
+    policy_version: str | None = None
+    policy_digest: str | None = None
+    max_request_bytes: int | None = None
+    max_target_bytes: int | None = None
+
+
 class ModelStatus(BaseModel):
     availability: str
     identity: dict[str, str]
@@ -70,3 +108,7 @@ class ModelStatus(BaseModel):
     last_attempt_at: datetime | None = None
     last_success_at: datetime | None = None
     last_error: str | None = None
+    configuration: ModelConfiguration
+    latest_call: ModelCallEvidence | None = None
+    latest_usage: ModelUsage | None = None
+    validated_rca: ModelRcaEvidence | None = None

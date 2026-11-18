@@ -119,7 +119,38 @@ it("separates transport, schema and quality and preserves missing usage for View
   http.fetch.mockImplementation(async (r) =>
     Response.json(
       (r as Request).url.endsWith("/status")
-        ? supported.model_status
+        ? {
+            ...supported.model_status,
+            configuration: {
+              mode: "operational",
+              api_root: "https://gateway.example/v1",
+              credential_reference: "MODEL_TOKEN",
+              timeout_seconds: 30,
+              max_input_bytes: 65536,
+              max_response_bytes: 262144,
+              output_limit_parameter: "max_tokens",
+              output_limit: 512,
+              policy_id: "fixture-policy",
+              policy_version: "2",
+              policy_digest: "safe-policy-digest",
+              max_request_bytes: 64000,
+              max_target_bytes: 32000,
+            },
+            latest_usage: null,
+            validated_rca: null,
+            last_check: {
+              id: "probe",
+              state: "completed",
+              created_at: "2026-11-15T00:00:00Z",
+              deadline: "2026-11-15T00:15:00Z",
+              identity: supported.model_status.identity,
+              receipt: {
+                transport_success: true,
+                schema_success: false,
+                observed_at: "2026-11-15T00:00:00Z",
+              },
+            },
+          }
         : {
             items: [
               {
@@ -129,6 +160,8 @@ it("separates transport, schema and quality and preserves missing usage for View
                 receipt: {
                   transport_success: true,
                   schema_success: false,
+                  observed_at: "2026-11-15T00:00:00Z",
+                  usage_status: "observed",
                   usage: { total_tokens: null },
                 },
               },
@@ -138,16 +171,102 @@ it("separates transport, schema and quality and preserves missing usage for View
   );
   mount(<ModelConnection canMutate={false} />);
   expect(
-    await screen.findByText(
-      /Transport: Succeeded · Schema: Not validated · Observed total tokens: Unavailable/,
-    ),
+    await screen.findByText(/Transport: Succeeded · Probe marker: Invalid · Usage: Unavailable/),
   ).toBeTruthy();
-  expect(
-    screen.getByText(/probe does not establish diagnostic quality/),
-  ).toBeTruthy();
+  expect(screen.getByText(/No matching validated operational RCA/)).toBeTruthy();
+  expect(screen.getByText(/Probe marker validation failed/)).toBeTruthy();
+  expect(screen.getByText(/Diagnosis quality: qualified/)).toBeTruthy();
+  expect(screen.getByText(/API root: https:\/\/gateway.example\/v1/)).toBeTruthy();
+  expect(screen.getByText(/remaining provider quota is inferred/)).toBeTruthy();
   expect(
     screen.queryByRole("button", { name: "Check configured model" }),
   ).toBeNull();
+  expect(posts()).toHaveLength(0);
+});
+
+it("keeps valid probe, unqualified RCA, paused dispatch, zero usage and provider guidance distinct", async () => {
+  http.fetch.mockImplementation(async (r) =>
+    Response.json(
+      (r as Request).url.endsWith("/status")
+        ? {
+            ...supported.model_status,
+            availability: "available",
+            quality: "not_established",
+            qualification_cohort: null,
+            dispatch_allowed: false,
+            dispatch_reason: "dispatch_paused",
+            latest_usage: {
+              source: "analysis",
+              observed_at: "2026-11-16T12:00:00Z",
+              status: "observed",
+              prompt_tokens: 0,
+              completion_tokens: 0,
+              total_tokens: 0,
+            },
+            latest_call: {
+              source: "analysis",
+              observed_at: "2026-11-16T12:00:00Z",
+              kind: "text",
+              http_status: 200,
+            },
+            validated_rca: null,
+            last_check: {
+              id: "probe",
+              state: "completed",
+              created_at: "2026-11-16T12:00:00Z",
+              deadline: "2026-11-16T12:15:00Z",
+              identity: supported.model_status.identity,
+              receipt: {
+                transport_success: true,
+                schema_success: true,
+                observed_at: "2026-11-16T12:00:00Z",
+              },
+            },
+            configuration: {
+              mode: "operational",
+              api_root: "https://gateway.example/v1",
+              credential_reference: "MODEL_TOKEN",
+              timeout_seconds: 12,
+              max_input_bytes: 40000,
+              max_response_bytes: 8000,
+              output_limit_parameter: "max_completion_tokens",
+              output_limit: 600,
+              policy_id: "egress-policy",
+              policy_version: "3",
+              policy_digest: "digest",
+              max_request_bytes: 38000,
+              max_target_bytes: 30000,
+            },
+          }
+        : {
+            items: [
+              {
+                id: "probe",
+                state: "completed",
+                created_at: "2026-11-16T12:00:00Z",
+                receipt: {
+                  transport_success: true,
+                  schema_success: true,
+                  observed_at: "2026-11-16T12:00:00Z",
+                  usage_status: "observed",
+                  usage: { total_tokens: 0 },
+                },
+              },
+            ],
+          },
+    ),
+  );
+  mount(<ModelConnection canMutate={false} />);
+  expect(await screen.findByText(/Transport availability: available/)).toBeTruthy();
+  expect(screen.getByText(/Diagnosis quality: not established/)).toBeTruthy();
+  expect(screen.getByText(/Valid harmless probe marker/)).toBeTruthy();
+  expect(screen.getByText(/No matching validated operational RCA/)).toBeTruthy();
+  expect(screen.getByText(/Paused · dispatch paused/)).toBeTruthy();
+  expect(screen.getByText(/0 total tokens · analysis/)).toBeTruthy();
+  expect(screen.getByText(/Latest provider call: text · analysis/)).toBeTruthy();
+  expect(screen.getByText(/Usage: 0 total tokens/)).toBeTruthy();
+  expect(screen.getByText(/Credential reference: MODEL_TOKEN/)).toBeTruthy();
+  expect(screen.getByText(/Provider quota and remaining balance are unavailable/)).toBeTruthy();
   expect(posts()).toHaveLength(0);
 });
 

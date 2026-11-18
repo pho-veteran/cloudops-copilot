@@ -4152,11 +4152,239 @@
         "title": "MemoryProfile",
         "type": "object"
       },
+      "ModelCallEvidence": {
+        "properties": {
+          "http_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Status"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "check",
+              "analysis"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "observed_at",
+          "kind",
+          "http_status"
+        ],
+        "title": "ModelCallEvidence",
+        "type": "object"
+      },
+      "ModelConfiguration": {
+        "properties": {
+          "api_root": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Root"
+          },
+          "credential_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credential Reference"
+          },
+          "max_input_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Input Bytes"
+          },
+          "max_request_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Request Bytes"
+          },
+          "max_response_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Response Bytes"
+          },
+          "max_target_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Target Bytes"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "output_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Limit"
+          },
+          "output_limit_parameter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Limit Parameter"
+          },
+          "policy_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Digest"
+          },
+          "policy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Id"
+          },
+          "policy_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Version"
+          },
+          "timeout_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout Seconds"
+          }
+        },
+        "title": "ModelConfiguration",
+        "type": "object"
+      },
+      "ModelRcaEvidence": {
+        "properties": {
+          "analysis_id": {
+            "format": "uuid",
+            "title": "Analysis Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "validated_advice",
+              "validated_abstention"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "observed_at",
+          "analysis_id"
+        ],
+        "title": "ModelRcaEvidence",
+        "type": "object"
+      },
       "ModelStatus": {
         "properties": {
           "availability": {
             "title": "Availability",
             "type": "string"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/ModelConfiguration"
           },
           "cooldown_seconds": {
             "default": 60,
@@ -4230,6 +4458,26 @@
             ],
             "title": "Last Success At"
           },
+          "latest_call": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelCallEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "qualification_cohort": {
             "anyOf": [
               {
@@ -4248,6 +4496,16 @@
             ],
             "title": "Quality",
             "type": "string"
+          },
+          "validated_rca": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelRcaEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -4256,9 +4514,76 @@
           "quality",
           "qualification_cohort",
           "dispatch_allowed",
-          "dispatch_reason"
+          "dispatch_reason",
+          "configuration"
         ],
         "title": "ModelStatus",
+        "type": "object"
+      },
+      "ModelUsage": {
+        "properties": {
+          "completion_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completion Tokens"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "prompt_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Tokens"
+          },
+          "source": {
+            "enum": [
+              "check",
+              "analysis"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "observed",
+              "unavailable",
+              "invalid"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Tokens"
+          }
+        },
+        "required": [
+          "source",
+          "observed_at",
+          "status"
+        ],
+        "title": "ModelUsage",
         "type": "object"
       },
       "NoteBody": {
