@@ -1,0 +1,105 @@
+{
+  "issue": 97,
+  "scope": "R5 selected resource report UI; controlled persisted PostgreSQL/API fixtures, not real six-hour recommendation qualification",
+  "status": "R5 native export verified on the combined candidate in Microsoft Edge",
+  "source_base": "29f02f9630f21dc54900f528e3ef1b18dc6d738d",
+  "checks": {
+    "focused_web_tests": 78,
+    "production_build": "passed",
+    "browser": "User running Microsoft Edge, separate owned localhost:5177 lab tab",
+    "history": "76 distinct reports over pages 25/25/25/1, padded real API cursors, selected exact report retained over pagination/reload/Back",
+    "identity": "Active and inactive same-name UID histories remain separate; legacy outcome is labeled Legacy",
+    "operator": "Workloads entry; explicit 7-hour generation returns queued/paused, refresh preserves exact report, export disabled; recommendation-only dispatch restored and worker resumed, terminal insufficient data with no tool call",
+    "session": "Actual expired Operator fixture session returns 401, sign-in restores same selection; report count stays 77 and no POST replay",
+    "degraded": "Actual API invalid cursor 422 recovers to first page with legacy selection retained; empty inactive history disables generation; missing exact ID returns 404 with no latest fallback",
+    "display": "Controlled CPU 0m / 200m / 10m minimum with exact original cores, excluded OOM memory, exact bytes, stored available/current stale, query envelope and Pod UID/lifetime/restart details",
+    "keyboard": "Native disclosures opened using Enter, Tab advances to job-attempt disclosure; selected report receives focus without polling stealing focus",
+    "viewport": [
+      {
+        "width": 320,
+        "theme": "light",
+        "document_width": 305
+      },
+      {
+        "width": 390,
+        "theme": "dark",
+        "document_width": 375
+      }
+    ],
+    "restoration": "Theme restored to light and temporary viewport override reset",
+    "full_web_tests": 281,
+    "review_fix_regressions": "Legacy terminal history/detail labels agree; exact decimal millicore conversion preserves positive values down to the contract decimal bound without floating-point rounding.",
+    "uuid_route_case": "A valid uppercase UUID previously suppressed export after the API returned its lowercase ID. Parser/builder now canonicalize UUID fields; opaque cursor casing is preserved. Focused export regression and actual Edge uppercase URL -> lowercase exact selection passed, without another native export click."
+  },
+  "native_download": {
+    "original_completed_export": {
+      "report_id": "d3d750a9-a5c2-414a-a6d8-d791ad5c8bf2",
+      "bytes": 2343,
+      "sha256": "989e76a6cdcb1e9d8c093513f44ae52e60bba7d14e27b9c9d446373736d55787",
+      "result": "Completed original browser download matched retained API export"
+    },
+    "new_ui_reexport": "Earlier candidate produced a matching 2343-byte .json.crdownload. The combined candidate result below is from a separate run.",
+    "combined_candidate": {
+      "date": "2026-11-18",
+      "base": "f5df2d6791ebdc9c9b0c57832741f4140ec69ca8",
+      "r4_head_in_base": "53f232ba2fd5aef32180693116515d28272395ea",
+      "r5_head": "a5edff68b72ae688c56bd7dca859ef8188cc8b72",
+      "merge_commit_before_local_export_change": "85f8985a74737289837d42e30cd338d130294e0d",
+      "merge_tree_before_local_export_change": "52cd3e3cc7e1d13e37e918c35c9d5da01ce4c61d",
+      "tested_reports_component_git_blob": "9e2efd7cbe9ec2ec7c57367d82ae97b9e3eca737",
+      "tested_reports_tests_git_blob": "0e4c17a0d796d82cf148b838a31c9476d6666ab2",
+      "browser": "Microsoft Edge 157.0.4341.60",
+      "environment": "Isolated Docker Compose project e08r5 with persisted PostgreSQL fixtures and Viewer sign-in",
+      "browser_checks": [
+        "Uppercase report UUID canonicalized to lowercase and opened the exact report.",
+        "Legacy label agreed between the history row and selected detail. Viewer could inspect and export. Generation was reserved for Operators.",
+        "Selecting the pending report disabled Export. Browser Back restored the exact Legacy report. Workload report history retained the report ID in the URL.",
+        "Export selected report opened Edge Downloads. After choosing Save, Edge offered Open file and the completed JSON was present on disk."
+      ],
+      "report_id": "b75df005-2db8-4787-b11e-b84a0dee8b6c",
+      "filename": "resource-report-b75df005-2db8-4787-b11e-b84a0dee8b6c.json",
+      "download_status": "completed",
+      "download_bytes": 638,
+      "download_sha256": "425bb64dd80cd6e557eed69dde9f6eb015b2c2812d60f5e345748d5414adc87b",
+      "api_status": 200,
+      "api_session": "Independent sign-in as the same Viewer",
+      "api_bytes": 638,
+      "api_sha256": "425bb64dd80cd6e557eed69dde9f6eb015b2c2812d60f5e345748d5414adc87b",
+      "exact_byte_match": true,
+      "pending_export": {
+        "report_id": "b556be4a-bd36-4d26-bfc8-de68878297a8",
+        "browser_control": "disabled",
+        "api_status": 409,
+        "api_error": "report_not_final"
+      },
+      "cleanup": "Stopped the e08r5 Compose project and preserved its database volume."
+    },
+    "shared_download_helper": "unchanged"
+  },
+  "limitations": [
+    "Controlled coverage/counts/phase times are explicitly synthetic display fixtures.",
+    "Real positive KRR/history/browser composition remains R6.",
+    "Raced export 409, late responses and retained-data refresh errors are behavior-test evidence; not all were induced in Edge.",
+    "The combined candidate browser run used controlled persisted fixtures. CPU, memory and cursor coverage comes from the earlier browser receipt and focused tests.",
+    "Independent review and R6 integrated acceptance remain open."
+  ],
+  "model_requests": 0,
+  "cluster_writes": 0,
+  "qa_score": {
+    "score": 4,
+    "out_of": 5,
+    "reason": "The earlier candidate covered report, identity, pagination, session and narrow-layout flows. The combined candidate adds completed native export with an exact API byte match."
+  },
+  "screenshots": [
+    {
+      "path": "../images/e08-r5-cpu-320-light.jpg",
+      "sha256": "d2570fd069d2ced46220ac405971d50aed2b95308058f99e98db8091f7d73d9f",
+      "fixture": true
+    },
+    {
+      "path": "../images/e08-r5-memory-390-dark.jpg",
+      "sha256": "e4a60a8f4ec12574bdc7eccabf0f0c1953be96a2a1a7ebdf5379db84e51e7f25",
+      "fixture": true
+    }
+  ]
+}

@@ -307,7 +307,7 @@ export function Workspace() {
           ) : route.page === "connections" ? (
             <Connections canMutate={canMutate} />
           ) : route.page === "reports" ? (
-            <Reports canMutate={canMutate} />
+            <Reports canMutate={canMutate} route={route.reports ?? {}} />
           ) : route.page === "knowledge" ? (
             <Knowledge route={route.knowledge ?? {}} />
           ) : route.page === "incidents" && route.id ? (
