@@ -9,20 +9,17 @@ import { buildReportHash, safeRoute, type ReportRoute } from "@/app/routes";
 import { Reports } from "./Reports";
 import { reportFixture, reportId, reportWorkload } from "./fixtures";
 
-const http = vi.hoisted(() => ({ fetch: vi.fn<typeof globalThis.fetch>(), download: vi.fn() }));
-vi.mock("@/lib/download", () => ({ download: http.download }));
+const http = vi.hoisted(() => ({ fetch: vi.fn<typeof globalThis.fetch>() }));
 vi.mock("@/lib/api/client", async originalImport => {
   const original = await originalImport<typeof import("@/lib/api/client")>();
   return { ...original, api: original.createTransport({ baseUrl: "http://localhost", fetch: http.fetch }).client };
 });
 let cache: QueryClient;
 let records: components["schemas"]["ReportView"][];
-let exportResponse: () => Promise<Response>;
 let createResponse: () => Promise<Response>;
 let detailFailure = false;
 let workloadRecords: components["schemas"]["WorkloadView"][];
 const pageCursor = (offset: number) => btoa(JSON.stringify({ offset }));
-const exactExport = '{"stored":"exact selected terminal bytes"}';
 
 function Harness({ canMutate }: { canMutate: boolean }) {
   const [route, setRoute] = useState<ReportRoute>(() => safeRoute(window.location.hash).reports ?? {});
@@ -45,9 +42,8 @@ function deferred() {
 }
 
 beforeEach(() => {
-  http.fetch.mockReset(); http.download.mockReset(); records = [reportFixture()]; detailFailure = false; workloadRecords = [reportWorkload];
+  http.fetch.mockReset(); records = [reportFixture()]; detailFailure = false; workloadRecords = [reportWorkload];
   cache = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  exportResponse = async () => new Response(exactExport);
   createResponse = async () => {
     const row: components["schemas"]["ReportView"] = { ...reportFixture(101), state: "queued", job_phase: "queued", result_state: null, result_v2: null, export_ready: false, export_sha256: null, finished_at: null };
     records.unshift(row);
@@ -56,7 +52,6 @@ beforeEach(() => {
   http.fetch.mockImplementation(async input => {
     const request = input as Request;
     const url = new URL(request.url);
-    if (url.pathname.endsWith("/export")) return exportResponse();
     if (url.pathname === "/api/recommendation-reports") {
       if (request.method === "POST") return createResponse();
       const cursor = url.searchParams.get("cursor");
@@ -81,8 +76,10 @@ it("exports a selected report from a valid uppercase UUID deep link", async () =
   const id = "abcdefab-cdef-4000-8000-abcdefabcdef";
   records = [{ ...reportFixture(), id }];
   mount({ report: id.toUpperCase() });
-  await userEvent.click(await screen.findByRole("button", { name: /Export selected report/ }));
-  await vi.waitFor(() => expect(http.download).toHaveBeenCalledWith(exactExport, `resource-report-${id}.json`, "application/json"));
+  const link = await screen.findByRole("link", { name: /Export selected report/ });
+  expect(link.getAttribute("href")).toBe(`/api/recommendation-reports/${id}/export`);
+  expect(link.getAttribute("download")).toBe(`resource-report-${id}.json`);
+  expect(http.fetch.mock.calls.some(([request]) => (request as Request).url.endsWith("/export"))).toBe(false);
 });
 
 it("renders mixed advice, zero, unset, excluded memory, envelope and stale applicability independently", async () => {
@@ -105,36 +102,26 @@ it("renders mixed advice, zero, unset, excluded memory, envelope and stale appli
   expect(screen.queryByRole("button", { name: /Generate/ })).toBeNull();
 });
 
-it("denies pending export with an explanation and preserves selection after raced409", async () => {
+it("denies pending export with an explanation and preserves selection", async () => {
   records = [{ ...reportFixture(), state: "queued", job_phase: "queued", result_state: null, result_v2: null, export_ready: false, export_sha256: null, finished_at: null }];
   mount({ report: reportId(99) });
   const button = await screen.findByRole("button", { name: /Export selected report/ });
   expect((button as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByText(/Queued and running reports cannot be exported/)).toBeTruthy();
-  expect(http.download).not.toHaveBeenCalled();
-  records[0] = reportFixture();
-  exportResponse = async () => Response.json({ error: { code: "report_not_final", message: "This report has no finalized export yet." } }, { status: 409 });
-  await act(async () => { await cache.invalidateQueries({ queryKey: ["recommendation-report"] }); });
-  await userEvent.click(button);
-  expect(await screen.findByText(/no finalized export yet/)).toBeTruthy();
+  expect(screen.queryByRole("link", { name: /Export selected report/ })).toBeNull();
   expect(window.location.hash).toBe(buildReportHash({ report: reportId(99) }));
-  expect(http.download).not.toHaveBeenCalled();
 });
 
-it("exports exact stored text and suppresses a delayed export after another selection", async () => {
+it("keeps the native export link bound to the selected report after selection changes", async () => {
   records.push(reportFixture(100));
   mount({ report: reportId(99) });
-  await userEvent.click(await screen.findByRole("button", { name: /Export selected report/ }));
-  await vi.waitFor(() => expect(http.download).toHaveBeenCalledWith(exactExport, `resource-report-${reportId(99)}.json`, "application/json"));
-  http.download.mockClear();
-  const waiting = deferred(); exportResponse = () => waiting.promise;
-  await userEvent.click(screen.getByRole("button", { name: /Export selected report/ }));
+  const firstLink = await screen.findByRole("link", { name: /Export selected report/ });
+  expect(firstLink.getAttribute("href")).toBe(`/api/recommendation-reports/${reportId(99)}/export`);
   await userEvent.click(screen.getByRole("link", { name: new RegExp(reportId(100)) }));
   window.location.hash = buildReportHash({ report: reportId(100) });
   await act(async () => { window.dispatchEvent(new Event("hashchange")); });
   await vi.waitFor(() => expect(screen.getByRole("region", { name: "Selected resource report" }).textContent).toContain(reportId(100)));
-  await act(async () => { waiting.resolve(new Response(exactExport)); });
-  expect(http.download).not.toHaveBeenCalled();
+  expect((await screen.findByRole("link", { name: /Export selected report/ })).getAttribute("href")).toBe(`/api/recommendation-reports/${reportId(100)}/export`);
 });
 
 it("creates only on explicit Operator action and ignores a late response after navigation", async () => {
@@ -201,7 +188,7 @@ it("keeps empty and legacy histories readable without inventing versioned advice
   const history = screen.getByRole("list", { name: "Reports on this history page" });
   expect(within(history).getByRole("link").textContent).toContain("finished / Legacy");
   expect(history.textContent).not.toMatch(/pending/i);
-  expect((screen.getByRole("button", { name: /Export selected report/ }) as HTMLButtonElement).disabled).toBe(false);
+  expect(screen.getByRole("link", { name: /Export selected report/ })).toBeTruthy();
 });
 
 it("displays fractional millicores without rounding a positive observation to zero", async () => {
