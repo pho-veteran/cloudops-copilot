@@ -370,8 +370,9 @@ def test_unknown_inverse_is_receipt_only_and_keeps_original_authority(reversible
             service.execute(identifier, before_call=boundary)
         assert calls == []
     else:
-        assert service.execute(identifier, before_call=boundary)["outcome"] == "outcome_unknown"
-        assert len(calls) == 1 and calls[0][0] == "/dispatch"
+        first = service.execute(identifier, before_call=boundary)
+        assert [path for path, _ in calls] == ["/dispatch"], first.get("reason")
+        assert first["outcome"] == "outcome_unknown", first.get("reason")
     with sessions()() as db:
         row = db.get(Execution, identifier)
         request, started, deadline = (
