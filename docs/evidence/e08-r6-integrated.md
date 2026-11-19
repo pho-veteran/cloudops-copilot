@@ -12,10 +12,10 @@
 
 The controlled six-hour fixtures exercise numeric quantities and partial advice, identity and sample coverage, OOM and controller exclusions, and schema validation. Persistence tests exercise admission, authoritative publication, legacy cutover and immutable exports. Proof classes are recorded in [R1 contracts](e08-r1-contracts.json), [R2 source smoke](e08-r2-source-smoke.json), [R3 producer](e08-r3-producer.json), and [R5 UI](e08-r5-ui.json).
 
-| Check on the integrated baseline | Result |
+| Check on the integrated application source | Result |
 | --- | --- |
 | WSL focused units for local lab, resource history and recommendation qualification | 191 passed. A native Windows launch had 120 setup errors because Python on Windows lacks the Linux lab's `fcntl` dependency. |
-| Recommendation report and producer suites against a dedicated disposable PostgreSQL `cloudops_e08_test` | 39 passed, with a Starlette TestClient deprecation warning. The owned lab's persisted database was outside this test run. |
+| Recommendation report and producer suites against a dedicated disposable PostgreSQL `cloudops_e08_test` | 41 passed, including both outage-observation regression cases, with a Starlette TestClient deprecation warning. The owned lab's persisted database was outside this test run. |
 | Web report behavior and routes | 79 passed. The exact recommendation identifiers and cursors, pending export, raced 409, retry and stale results were exercised by behavior tests. |
 
 ## Owned lab preparation
@@ -42,7 +42,9 @@ The Operator admission on saved workload `7d6be67e-f622-4285-a62b-a29087bed619` 
 - The authorized HTTPS export of that selected ID was byte-identical before and after restarting the owned API and worker. The final export is **11,559 bytes**, SHA-256 `a0fbca0bc0b5ef272bf9bbdf5256ca009aea324f7f31c8047e14f9bb239f89d6`. Both processes had a new start timestamp with the same image.
 - Direct HTTPS checks returned 401 for anonymous POST and 403 for Viewer, wrong Origin and missing CSRF. The denied requests kept the pre-run report and job counts at 3 each. Recommendation OpenAPI exposes list/admission, detail and export. The Viewer has inspect/export access.
 - A controlled expiry of the dedicated Viewer fixture sessions returned 401 on HTTPS POST, with report and job counts remaining 4 each. The same report and job counts held after the Edge sign-in recovery.
-- During a controlled stop of the owned KRR and Prometheus services, both the new short report and the retained full report remained readable by exact ID with identical HTTPS export bytes. Model status was `not_configured`; the saved short report returned 200. The controlled producer tests cover new attempts during source or tool faults.
+- During a controlled stop of the owned KRR and Prometheus services, both the new short report and the retained full report remained readable by exact ID with identical HTTPS export bytes. The live lab also returned `not_configured` for model status and 200 for the saved short report.
+- In PostgreSQL, `test_latest_unavailable_report_updates_observation_and_preserves_saved_export` publishes controlled runner-source and metrics failures after a qualified success. The report list changes from `available / last_report_succeeded` to `unavailable / latest_report_unavailable`, keeps the prior success timestamp, and exposes the latest failure reason on the report. The previous report still returns its original result and exact export. This observation is based on report publication and collector freshness.
+- The [Recommendation API](../../services/backend/src/cloudops/features/recommendations/api.py) reads saved rows and stored export text. Its list uses the [Recommendation observation](../../services/backend/src/cloudops/features/recommendations/service.py), which reads report state and the worker heartbeat. Those paths have no model client or Diagnosis call. The live model check covers the unconfigured state, and the source inspection establishes independence from model availability.
 
 ## Persisted browser
 
@@ -63,7 +65,7 @@ The Viewer selected the new short report in the same persisted history. The exac
 | AC5 | Pass | Direct HTTPS denial/status and counts, Viewer export and Edge session recovery. R1/R3 controlled scope and sanitization tests plus the Recommendation OpenAPI surface constrain the system to advisory report operations. The read-only lab kept its executor stopped. |
 | AC6 | Pass | Exact short bytes survived restart, source stop and the native download. The earlier full report stayed byte-identical after the short report was created. Controlled R1 and PostgreSQL checks cover legacy cutover, pending export, identity replacement and applicability drift. |
 | AC7 | Pass | PostgreSQL tests cover duplicate admission, pause and lease/publication fencing. R1/R3 and green repository checks cover bounded parser/runner faults, dispatch revocation and authoritative attempts. Read-only producer retry may repeat work. |
-| AC8 | Pass | R5 has 76-report persisted history and separate same-name UID scopes. PostgreSQL tests cover historical reads and stale precedence; the new owned source stop preserved both exact saved exports with the model unconfigured. |
+| AC8 | Pass | R5 covers 76-report persisted history and separate same-name UID scopes. PostgreSQL tests cover historical reads, stale precedence, and unavailable observation with immutable older bytes under controlled runner-source and metrics failures. The owned source stop preserved both exact live exports. The saved routes and report-derived observation are independent of model availability, and the live lab confirmed the unconfigured case. |
 | AC9 | Pass | The actual new report was selected by ID in Edge, restored after reload/Back/expiry and downloaded byte-for-byte. R5 provides persisted active/inactive, invalid-cursor/missing-report recovery, history and narrow light/dark evidence. Pending and raced 409 behavior is covered by the earlier persisted and HTTP-fixture checks. |
 | AC10 | Pass | Final application baseline, exact CI link, focused and full suite scope, image/config/timing bindings, cleanup and E09/E10 handoff are recorded here. |
 
