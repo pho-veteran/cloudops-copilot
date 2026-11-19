@@ -195,6 +195,8 @@ def runtime_result(db, component, now):
 
 
 def create(db, actor_id, component: Component, key):
+    cutoff = monotonic() + DEADLINE_SECONDS
+    prepared = sources.prepare_config(component)
     with db.begin():
         lock_admission(db)
         if key is not None:
@@ -206,7 +208,7 @@ def create(db, actor_id, component: Component, key):
                     raise DomainError(
                         409, "idempotency_conflict", "The key belongs to a different check intent."
                     )
-                selection = sources.selected(db, component)
+                selection = sources.selected(db, component, prepared)
                 now = database_now(db)
                 if expired(original, now):
                     finish(original, sources.Result("timeout"), original.deadline_at)
@@ -223,9 +225,11 @@ def create(db, actor_id, component: Component, key):
         if recent and expired(recent, now):
             finish(recent, sources.Result("timeout"), recent.deadline_at)
 
-        selection = sources.selected(db, component, fence=True)
-        cutoff = monotonic() + DEADLINE_SECONDS
+        selection = sources.selected(db, component, prepared, fence=True)
         now = database_now(db)
+        remaining = (
+            DEADLINE_SECONDS if COMPONENTS[component] == "runtime" else max(0, cutoff - monotonic())
+        )
         row = ConnectionCheck(
             component=component,
             status="unavailable",
@@ -235,14 +239,16 @@ def create(db, actor_id, component: Component, key):
             created_by=actor_id,
             idempotency_key=key,
             attempted_at=now,
-            deadline_at=now + timedelta(seconds=DEADLINE_SECONDS),
+            deadline_at=now + timedelta(seconds=remaining),
             observed_at=now,
             binding_key=selection.key,
             config_id=selection.config_id,
             target=selection.target.model_dump(mode="json") if selection.target else None,
         )
         db.add(row)
-        if selection.issue:
+        if remaining == 0:
+            finish(row, sources.Result("timeout"), row.deadline_at)
+        elif selection.issue:
             finish(row, sources.Result(selection.issue), database_now(db))
         elif component in ("worker", "database"):
             result, evidence_at = runtime_result(db, component, now)
@@ -258,13 +264,14 @@ def create(db, actor_id, component: Component, key):
         if monotonic() < cutoff
         else sources.Result("timeout")
     )
+    prepared = sources.prepare_config(component)
     deadline_reached = monotonic() >= cutoff
 
     with db.begin():
         completed_at = database_now(db)
         lock_admission(db)
         row = db.get(ConnectionCheck, attempt_id, populate_existing=True)
-        current = sources.selected(db, component, fence=True)
+        current = sources.selected(db, component, prepared, fence=True)
         assessed_at = database_now(db)
         if row.finished_at is None:
             if deadline_reached or completed_at >= row.deadline_at or result.reason == "timeout":
@@ -285,7 +292,10 @@ def create(db, actor_id, component: Component, key):
 
 
 def history(db):
-    selections = {component: sources.selected(db, component) for component in COMPONENTS}
+    selections = {
+        component: sources.selected(db, component, sources.prepare_config(component))
+        for component in COMPONENTS
+    }
     now = database_now(db)
     rows = db.scalars(
         select(ConnectionCheck)
@@ -382,8 +392,16 @@ def status_for(db, component, selection, now):
 
 
 def statuses(db):
-    selections = {component: sources.selected(db, component) for component in COMPONENTS}
-    now = database_now(db)
-    return [
-        status_for(db, component, selection, now) for component, selection in selections.items()
-    ]
+    prepared = {component: sources.prepare_config(component) for component in COMPONENTS}
+    with db.begin():
+        # Selection and receipt queries share a read-only snapshot established before clock sampling.
+        db.connection(execution_options={"isolation_level": "REPEATABLE READ"})
+        db.execute(text("SET TRANSACTION READ ONLY"))
+        selections = {
+            component: sources.selected(db, component, config)
+            for component, config in prepared.items()
+        }
+        now = database_now(db)
+        return [
+            status_for(db, component, selection, now) for component, selection in selections.items()
+        ]

@@ -46,7 +46,17 @@ const status: components["schemas"]["CheckStatus"] = {
 
 function mount(canMutate: boolean) {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } } });
-  return render(<QueryClientProvider client={cache}><SourceChecks canMutate={canMutate} /></QueryClientProvider>);
+  const view = render(<QueryClientProvider client={cache}><SourceChecks canMutate={canMutate} /></QueryClientProvider>);
+  return { ...view, cache };
+}
+
+function completedCheck() {
+  const receipt: operations["create_connection_check"]["responses"][201]["content"]["application/json"] = {
+    id, component: "prometheus", status: "unavailable", source: "prometheus",
+    reason: "The source check reached its deadline.", reason_code: "timeout",
+    created_by: id, observed_at: date, historical: false,
+  };
+  return Response.json(receipt, { status: 201 });
 }
 
 afterEach(() => {
@@ -77,12 +87,7 @@ describe("configured source checks", () => {
       if (request.method === "GET") return Response.json(request.url.endsWith("/status") ? [status] : []);
       requests.push({ key: request.headers.get("idempotency-key"), body: await request.json() });
       if (requests.length === 1) throw new TypeError("Lost reply");
-      const receipt: operations["create_connection_check"]["responses"][201]["content"]["application/json"] = {
-        id, component: "prometheus", status: "unavailable", source: "prometheus",
-        reason: "The source check reached its deadline.", reason_code: "timeout",
-        created_by: id, observed_at: date, historical: false,
-      };
-      return Response.json(receipt, { status: 201 });
+      return completedCheck();
     });
     mount(true);
     const user = userEvent.setup();
@@ -97,5 +102,44 @@ describe("configured source checks", () => {
     expect(requests[0].key).toMatch(/^[0-9a-f-]{36}$/);
     expect(requests[0].body).toEqual({ component: "prometheus" });
     expect(requests[1]).toEqual(requests[0]);
+  });
+
+  it("keeps the new attempt's retry key when the original response arrives late", async () => {
+    let finishOriginal!: (response: Response) => void;
+    let loseNewReply!: (error: Error) => void;
+    const originalReply = new Promise<Response>((resolve) => { finishOriginal = resolve; });
+    const newReply = new Promise<Response>((_, reject) => { loseNewReply = reject; });
+    const keys: Array<string | null> = [];
+    http.fetch.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "GET") return Response.json(request.url.endsWith("/status") ? [status] : []);
+      keys.push(request.headers.get("idempotency-key"));
+      if (keys.length === 1) return originalReply;
+      if (keys.length === 3) return newReply;
+      return completedCheck();
+    });
+    const user = userEvent.setup();
+    const button = () => screen.getByRole("button", { name: "Check Prometheus connection" });
+    const original = mount(true);
+    await user.click(button());
+    await waitFor(() => expect(keys).toHaveLength(1));
+    original.unmount();
+    mount(true);
+    await user.click(button());
+    await screen.findByText("The source check reached its deadline.");
+    await user.click(button());
+    await waitFor(() => expect(keys).toHaveLength(3));
+
+    finishOriginal(completedCheck());
+    await waitFor(() => expect(original.cache.isMutating()).toBe(0));
+    loseNewReply(new TypeError("Lost reply"));
+    await screen.findByText(/Cannot reach the local API/);
+    await user.click(button());
+    await screen.findByText("The source check reached its deadline.");
+
+    expect(keys).toHaveLength(4);
+    expect(keys[1]).toBe(keys[0]);
+    expect(keys[2]).not.toBe(keys[0]);
+    expect(keys[3]).toBe(keys[2]);
   });
 });

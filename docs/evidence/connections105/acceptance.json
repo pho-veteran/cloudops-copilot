@@ -195,20 +195,53 @@
     }
   },
   "current_source_sha256": {
-    "apps/web/src/features/connections/Connections.tsx": "90a8ac88437f4df2b75548de59cc5066323b6f41c814b278133c3f131decf35e",
-    "apps/web/src/features/connections/SourceChecks.test.tsx": "eb04809012449e91336e2f3f95b1ecf6346d31d9f2b997373ad1a670d7eb0fe5",
-    "apps/web/src/features/connections/SourceChecks.tsx": "957e2d7a8d902f700069e623f310715a52c22bc0b2d65b9468a7046dba4ac25d",
+    "apps/web/src/features/connections/Connections.tsx": "3c1148344deec728d9ad64f67aef2726fb945b032f9898d5af2dd908b7cc5fdc",
+    "apps/web/src/features/connections/SourceChecks.test.tsx": "c1dfbd08ebc0ae0057a82679af7f77e602d649dfdca842ed59866dbebbe1f543",
+    "apps/web/src/features/connections/SourceChecks.tsx": "2da680f01e511ce7453ca9e4af6b10192b7cda809d67fe3bc7237c524815d2c7",
     "services/backend/migrations/versions/0018_connection_checks.py": "f5e801a6c64e63aa387cd350ee35826156fffc7b9b6f6a09ee911bbf1043064d",
-    "services/backend/src/cloudops/entrypoints/api.py": "2227ef93415e17fb11f3927b7f2912904d5bfd4794a724bc955f22cdd49afccc",
-    "services/backend/src/cloudops/features/connections/api.py": "dd5d37adf3e6a15f0904a7e111fea5493a1255c425b2c62aad9016098708e746",
-    "services/backend/src/cloudops/features/connections/models.py": "9dba964fbc0965dfb1c7e9f20f9a6fadbf520e5f3a4cf530353165a6da9484c8",
+    "services/backend/src/cloudops/entrypoints/api.py": "ee5a170808e0d66da8810a5127c95924e385240c98251a96089f4116ef86d131",
+    "services/backend/src/cloudops/features/connections/api.py": "e7933914a5646bafd89c283937ad002200f41256fb00e3f486570fcdbb041216",
+    "services/backend/src/cloudops/features/connections/models.py": "7743689d6be03c06320ec2bcb4118cfdf230425b5bd996eb7385c00d88fb3b10",
     "services/backend/src/cloudops/features/connections/schemas.py": "3634e3fdda07a2a1fff8e50e2ca931752287a4866cdf0d888997a12f1362d395",
-    "services/backend/src/cloudops/features/connections/service.py": "534ad75b670d0111a8f70a7c93826081d491b9df4310740d34e5143cb794c842",
-    "services/backend/src/cloudops/features/connections/sources.py": "c28ad03f9f69ae1c155391596442c763fe27481517d9e54ecdeee15356c43b12",
-    "services/backend/src/cloudops/features/health/api.py": "cf51916671788d2b6a943fc17659db534a9374224799475c16e80a70aa1c75e4",
-    "services/backend/src/cloudops/features/investigations/collector.py": "178c43271607bbce3a4dfed32d72bf8a1806c4e2c736b81de18d090fe9b5a516",
-    "services/backend/src/cloudops/features/investigations/prometheus.py": "d3899447a4ecdcd48c778ef55f685608bb6910d1b95adccfd311586bc401045b",
-    "services/backend/src/cloudops/features/workloads/observation_reader.py": "1b5ffde3141fe18ce27d80d1229fcf6cea83c815e338a26fc3804b22d7f6a155",
-    "services/backend/tests/test_connection_checks.py": "a8a6beea164cab44fae44e944e5e892dd97947a2e1fb2426b890b6979a369356"
+    "services/backend/src/cloudops/features/connections/service.py": "0b908b2938306fd1d8015c5228d32dc5514d6953483dd01139c1867dad054e4a",
+    "services/backend/src/cloudops/features/connections/sources.py": "333aef6e764cc0ff41abd184fdf2ea0b6dbd727bd4b16bccd564e2f78ce00c01",
+    "services/backend/src/cloudops/features/health/api.py": "291851d7df48a1a4552ecd0d1311266781ef19893862c0736801b21f0635b3bb",
+    "services/backend/src/cloudops/features/investigations/collector.py": "010823feace548102df2aad58cc5acc7067c6e7ee6ecd53f0d9b3135ec7ed62d",
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "82478857eeab4f1a96d6a49bfe0597f98618620d53618242033b925b024d8389",
+    "services/backend/src/cloudops/features/investigations/prometheus_config.py": "129a9e4f5397a3fc88d4ad346eb8b04f53001ac7c6caf235e7d2269575ac8551",
+    "services/backend/src/cloudops/features/workloads/observation_reader.py": "d2cea2ab1ad7f36700cfa232cf18ef2c3dc11c336a3c7bef1ffcd8baa602a957",
+    "services/backend/tests/test_connection_checks.py": "c2e80af0008b29d589d9650336d0312ece142fca21d861cdc41ce73502b41f2f",
+    "services/backend/tests_unit/test_prometheus_config.py": "8814aa6284d28931998ac7a187ff89e236a9a514d327b3630ca5fc49ba4d0c25"
+  },
+  "confirmation": {
+    "verified_on": "2026-11-19",
+    "head": "caa3ef41fc21fe791b4a96b5ce6feaf06a357624",
+    "final_candidate_diff_sha256": "55f80babc71cddf1e3e2db1c6860f464e6860c5cec888787f14330e9630a02cb",
+    "focused_backend_tests_passed": 71,
+    "web_tests_passed": 289,
+    "contract_drift_passed": true,
+    "runtime_lab": {
+      "environment": {
+        "kubernetes": "K3s v1.35.5+k3s1",
+        "prometheus": "v3.13.5",
+        "postgresql": "17.11"
+      },
+      "cluster_reason": "deployment_read",
+      "prometheus_reason": "query_succeeded",
+      "raw_sample_freshness": "unknown",
+      "same_key_receipts_preserved": true,
+      "viewer_mutation_denied": true,
+      "oversized_config_reason": "config_invalid",
+      "history_retained_on_oversized_config": true
+    },
+    "browser": {
+      "browser": "Microsoft Edge (isolated headless managed session)",
+      "version": "157.0.4341.60",
+      "original_and_retry_used_same_key": true,
+      "next_attempt_used_distinct_key": true,
+      "lost_reply_recovered_original_receipt": true,
+      "database_receipt_count": 2,
+      "real_api_and_postgresql": true
+    }
   }
 }

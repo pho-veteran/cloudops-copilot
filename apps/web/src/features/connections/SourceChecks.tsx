@@ -37,15 +37,15 @@ function CheckButton({ component }: { component: Component }) {
   const scope = `connection-check:${component}`;
   const check = useMutation({
     retry: false,
-    mutationFn: async () => unwrap(await api.POST("/api/connection-checks", {
+    mutationFn: async (key: string) => unwrap(await api.POST("/api/connection-checks", {
       body: { component },
-      params: { header: { "idempotency-key": requestKey(scope, {}) } },
+      params: { header: { "idempotency-key": key } },
     })),
-    onSuccess(receipt) {
-      if (receipt.reason_code !== "check_pending") settleKey(scope);
+    onSuccess(receipt, key) {
+      if (receipt.reason_code !== "check_pending") settleKey(scope, undefined, key);
     },
-    onError(error) {
-      settleKey(scope, error);
+    onError(error, key) {
+      settleKey(scope, error, key);
     },
     onSettled() {
       return cache.invalidateQueries({ queryKey: checksKey });
@@ -54,7 +54,7 @@ function CheckButton({ component }: { component: Component }) {
 
   return (
     <div>
-      <Button variant="outline" disabled={check.isPending} onClick={() => check.mutate()}>
+      <Button variant="outline" disabled={check.isPending} onClick={() => check.mutate(requestKey(scope, {}))}>
         {`Check ${labels[component]} connection`}
       </Button>
       {check.isPending && <p role="status">Checking {labels[component]}…</p>}

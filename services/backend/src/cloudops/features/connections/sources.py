@@ -52,6 +52,13 @@ class Selection:
 
 
 @dataclass(frozen=True)
+class PreparedConfig:
+    provider: dict | PrometheusConfig | None = field(default=None, repr=False)
+    issue: Reason | None = None
+    cluster_identity: str | None = None
+
+
+@dataclass(frozen=True)
 class MetricScope:
     namespace: str
     workload_uid: str
@@ -99,7 +106,22 @@ def provider_config(component):
         return None, "config_invalid"
 
 
-def selected(db, component: Component, *, fence=False) -> Selection:
+def prepare_config(component: Component) -> PreparedConfig:
+    if component in ("database", "worker"):
+        return PreparedConfig()
+
+    provider, issue = provider_config(component)
+    identity = None
+    if isinstance(provider, dict):
+        try:
+            identity = cluster_fingerprint(provider)
+        except (OSError, ValueError, TypeError):
+            # Legacy scope supports CA bundles. A v2 pin requires a single certificate.
+            pass
+    return PreparedConfig(provider, issue, identity)
+
+
+def selected(db, component: Component, prepared: PreparedConfig, *, fence=False) -> Selection:
     if component in ("database", "worker"):
         config_id = digest(
             [component, settings().worker_stale_seconds if component == "worker" else 1]
@@ -134,9 +156,8 @@ def selected(db, component: Component, *, fence=False) -> Selection:
         if workload
         else None
     )
-    config, issue = provider_config(component)
-    if issue:
-        return Selection(target=target, issue=issue)
+    if prepared.issue:
+        return Selection(target=target, issue=prepared.issue)
     if not target:
         return Selection(issue="scope_missing")
     if v2:
@@ -148,16 +169,16 @@ def selected(db, component: Component, *, fence=False) -> Selection:
         except OSError:
             return Selection(target=target, issue="scope_changed")
 
+    config = prepared.provider
     if isinstance(config, PrometheusConfig):
         public = [config.model_dump(exclude={"token"}), QUERY]
         credential = config.token
     else:
         if v2:
-            try:
-                if cluster_fingerprint(config) != scope.fingerprint:
-                    return Selection(target=target, issue="scope_changed")
-            except (OSError, ValueError, TypeError):
+            if not prepared.cluster_identity:
                 return Selection(target=target, issue="config_invalid")
+            if prepared.cluster_identity != scope.fingerprint:
+                return Selection(target=target, issue="scope_changed")
         public = [kube_binding(config)]
         credential = config["token"]
     config_id = digest([component, scope_digest, public])

@@ -448,6 +448,104 @@ def test_timeout_replay_and_response_bounds(configured, monkeypatch):
 
 
 @pytest.mark.parametrize("component", ["cluster", "prometheus"])
+@pytest.mark.parametrize(
+    ("delay", "expected_reason", "expected_requests"),
+    [(8.5, "timeout", 0), (3.0, "permission_denied", 1)],
+)
+def test_initial_config_consumes_deadline_without_holding_admission(
+    configured, monkeypatch, component, delay, expected_reason, expected_requests
+):
+    client, _, _ = configured
+    auth = sign_in(client)
+    other = TestClient(app)
+    other_auth = sign_in(other, "operator")
+    prepare = sources.provider_config
+    entered, release = Event(), Event()
+    requests = []
+    elapsed = 0.0
+
+    def slow_config(selected_component):
+        nonlocal elapsed
+        if selected_component == component and not entered.is_set():
+            entered.set()
+            assert release.wait(5)
+            elapsed = delay
+        return prepare(selected_component)
+
+    def serve(request):
+        requests.append(request)
+        return httpx.Response(403)
+
+    monkeypatch.setattr(sources, "provider_config", slow_config)
+    monkeypatch.setattr(service, "monotonic", lambda: monotonic() + elapsed)
+    route(monkeypatch, serve)
+    key = uuid4()
+    with ThreadPoolExecutor(max_workers=1) as executor, ThreadPoolExecutor(max_workers=2) as probe:
+        attempt = executor.submit(post, client, auth, component, key)
+        try:
+            assert entered.wait(5)
+            for runtime in ("database", "worker"):
+                admitted = probe.submit(post, other, other_auth, runtime).result(timeout=5)
+                assert admitted.status_code == 201, admitted.text
+        finally:
+            release.set()
+        result = attempt.result(timeout=6)
+    assert result.status_code == 201, result.text
+    receipt = result.json()
+    assert receipt["reason_code"] == expected_reason
+    if expected_reason == "timeout":
+        assert receipt["finished_at"] == receipt["attempted_at"]
+    assert post(client, auth, component, key).json() == receipt
+    assert len(requests) == expected_requests
+
+
+def test_status_uses_one_snapshot_across_a_concurrent_denial(configured, monkeypatch):
+    client, _, _ = configured
+    auth = sign_in(client)
+    other = TestClient(app)
+    other_auth = sign_in(other, "operator")
+    deny = False
+
+    def serve(request):
+        return httpx.Response(403) if deny else deployment(request)
+
+    route(monkeypatch, serve)
+    success = post(client, auth, "cluster").json()
+    assert success["reason_code"] == "deployment_read"
+    allow_next("cluster")
+    deny = True
+    assess = service.status_for
+    denied = None
+
+    def assess_with_concurrent_commit(db, component, selection, now):
+        nonlocal denied
+        if component == "cluster" and denied is None:
+            response = post(other, other_auth, "cluster")
+            assert response.status_code == 201, response.text
+            denied = response.json()
+        return assess(db, component, selection, now)
+
+    monkeypatch.setattr(service, "status_for", assess_with_concurrent_commit)
+    current = status(client, "cluster")
+    assert current["latest_check_id"] == success["id"]
+    assert current["status"] == "available"
+    assert current["last_failure_at"] is None
+    current = status(client, "cluster")
+    assert denied is not None and current["latest_check_id"] == denied["id"]
+    assert current["status"] == "denied"
+    assert current["last_success_at"] == success["evidence_at"]
+    assert current["last_failure_at"] == denied["finished_at"]
+
+    with sessions()() as db, db.begin():
+        db.execute(
+            update(ConnectionCheck)
+            .where(ConnectionCheck.id == UUID(denied["id"]))
+            .values(finished_at=database_now(db) + timedelta(minutes=1))
+        )
+    assert status(client, "cluster")["reason_code"] == "invalid_timestamp"
+
+
+@pytest.mark.parametrize("component", ["cluster", "prometheus"])
 @pytest.mark.parametrize(("tls_elapsed", "expected_requests"), [(8.5, 0), (7.0, 1)])
 def test_provider_deadline_includes_tls_setup(
     configured, monkeypatch, component, tls_elapsed, expected_requests
@@ -571,7 +669,7 @@ def test_abandoned_attempt_expires_without_network_or_timestamp_refresh(configur
     original = post(client, auth, "database").json()
     key = uuid4()
     with sessions()() as db, db.begin():
-        selection = sources.selected(db, "cluster")
+        selection = sources.selected(db, "cluster", sources.prepare_config("cluster"))
         deadline = database_now(db) - timedelta(seconds=1)
         row = ConnectionCheck(
             component="cluster",
