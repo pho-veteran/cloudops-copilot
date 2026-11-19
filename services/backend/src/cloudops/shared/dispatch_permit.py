@@ -14,7 +14,7 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterator, Literal, Mapping
+from typing import Iterable, Iterator, Literal, Mapping
 from uuid import UUID, uuid4
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, field_validator
@@ -160,12 +160,14 @@ class DispatchGate:
 
     def status(self, kind: str) -> tuple[bool, DenyReason | None]:
         """Display-only dispatch status from a lock-free read; it never grants publication."""
+        return self.statuses((kind,))[kind]
+
+    def statuses(self, job_kinds: Iterable[str]) -> dict[str, tuple[bool, DenyReason | None]]:
+        """Project several job kinds against the same permit observation."""
         permit, kinds, reason = self.current()
-        if kind in kinds:
-            return True, None
         if reason is None:
             reason = "recovery_mode" if permit and permit.mode == "recovery" else "class_denied"
-        return False, reason
+        return {kind: (True, None) if kind in kinds else (False, reason) for kind in job_kinds}
 
 
 # Trusted writer operations. Callers (the dispatch_admin entrypoint and tests) establish the

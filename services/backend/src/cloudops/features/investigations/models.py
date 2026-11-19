@@ -50,6 +50,12 @@ class InvestigationRun(Base):
             "id",
             postgresql_where=text("state = 'queued' AND queue_reason = 'capacity'"),
         ),
+        Index(
+            "ix_runs_quota_wait",
+            "created_at",
+            "id",
+            postgresql_where=text("state = 'waiting_for_quota'"),
+        ),
     )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     incident_id: Mapped[UUID] = mapped_column(ForeignKey("incidents.id"), index=True)

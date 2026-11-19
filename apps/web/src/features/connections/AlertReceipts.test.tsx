@@ -5,6 +5,12 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { components } from "@/lib/api/generated/schema";
 import { AlertReceipts } from "./AlertReceipts";
+import {
+  alertReceiptFixture,
+  alertReceiptsPageFixture,
+  capacityIncidentId as incident,
+  capacityRunId as run,
+} from "./fixtures";
 
 const http = vi.hoisted(() => ({ fetch: vi.fn<typeof globalThis.fetch>() }));
 vi.mock("@/lib/api/client", async (importOriginal) => {
@@ -16,28 +22,10 @@ vi.mock("@/lib/api/client", async (importOriginal) => {
 });
 
 type Receipt = components["schemas"]["AlertReceiptView"];
-const incident = "00000000-0000-4000-8000-000000000010";
-const run = "00000000-0000-4000-8000-000000000020";
-function receipt(overrides: Partial<Receipt> = {}): Receipt {
-  return {
-    id: crypto.randomUUID(),
-    delivery_id: "00000000-0000-4000-8000-000000000001",
-    received_at: "2026-11-01T10:00:00Z",
-    source_id: "lab-alertmanager",
-    alert_status: "firing",
-    fingerprint: "a1",
-    alertname: "CheckoutDown",
-    namespace: "demo",
-    target_kind: "deployment",
-    target_name: "checkout",
-    outcome: "accepted",
-    reason: null,
-    incident_id: incident,
-    run_id: run,
-    workload_id: "00000000-0000-4000-8000-000000000030",
-    ...overrides,
-  };
-}
+const receipt = (overrides: Partial<Receipt> = {}) => alertReceiptFixture({
+  outcome: "accepted",
+  ...overrides,
+});
 let cache: QueryClient;
 beforeEach(() => {
   http.fetch.mockReset();
@@ -55,12 +43,12 @@ function mount() {
   );
 }
 const page = (items: Receipt[], next_cursor: string | null = null, configured = true) =>
-  Response.json({
+  Response.json(alertReceiptsPageFixture({
     configured,
     source_id: configured ? "lab-alertmanager" : null,
     items,
     next_cursor,
-  });
+  }));
 
 it("shows each outcome with a readable reason and the exact incident link", async () => {
   http.fetch.mockResolvedValue(
@@ -76,20 +64,22 @@ it("shows each outcome with a readable reason and the exact incident link", asyn
       }),
       receipt({ outcome: "ignored", alert_status: "resolved", reason: "resolved_before_admission", incident_id: null, run_id: null }),
       receipt({ outcome: "retryable", reason: "capacity_exhausted", incident_id: null, run_id: null }),
-      receipt({ outcome: "resolved_signal", alert_status: "resolved" }),
+      receipt({ outcome: "resolved_signal", alert_status: "resolved", run_id: null }),
       receipt({ outcome: "duplicate", reason: "future_code", incident_id: null, run_id: null }),
     ]),
   );
   mount();
   expect(await screen.findByText("Intake configured · source lab-alertmanager")).toBeTruthy();
-  for (const label of ["Accepted", "Accepted · waiting for capacity", "Rejected", "Ignored", "Retry pending", "Alert resolved", "Duplicate"])
+  for (const label of ["Accepted", "Accepted · deferred at delivery", "Rejected", "Ignored", "Retry pending", "Alert resolved", "Duplicate"])
     expect(screen.getByText(label)).toBeTruthy();
-  expect(screen.getByText("The workload is not in the configured scope.")).toBeTruthy();
+  expect(screen.getByText(/Check the alert's cluster, namespace and workload/)).toBeTruthy();
   expect(screen.getByText("Investigation capacity is full; Alertmanager will retry.")).toBeTruthy();
-  expect(screen.getByText("Unrecognized reason: future_code")).toBeTruthy();
-  const links = screen.getAllByRole("link", { name: "Open incident" });
-  expect(links).toHaveLength(3);
-  expect(links[0].getAttribute("href")).toBe(`#/incidents/${incident}?run=${run}`);
+  expect(screen.getByText(/Reason unavailable/)).toBeTruthy();
+  const runLinks = screen.getAllByRole("link", { name: "Open Run" });
+  expect(runLinks).toHaveLength(2);
+  expect(runLinks[0].getAttribute("href")).toBe(`#/incidents/${incident}?run=${run}`);
+  expect(screen.getByRole("link", { name: "Open incident" }).getAttribute("href")).toBe(`#/incidents/${incident}`);
+  expect(screen.getByText("Rejected").closest("li")?.querySelector("a")).toBeNull();
   expect(screen.queryByRole("button", { name: /Check|Delete|Retry delivery/ })).toBeNull();
 });
 

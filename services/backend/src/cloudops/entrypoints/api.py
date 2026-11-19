@@ -64,6 +64,7 @@ def create_app():
     from cloudops.features.incidents.intake_api import router as intake
     from cloudops.features.connections.api import alert_receipts
     from cloudops.features.connections.api import router as connections
+    from cloudops.features.connections.operations_api import operations_router
     from cloudops.features.recommendations.api import router as recommendations
     from cloudops.features.recovery.api import router as recovery
     from cloudops.features.recovery.baseline_context import router as recovery_context
@@ -83,6 +84,7 @@ def create_app():
         intake,
         connections,
         alert_receipts,
+        operations_router(GATE),
         recommendations,
         recovery,
         recovery_context,

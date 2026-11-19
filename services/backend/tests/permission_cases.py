@@ -9,10 +9,12 @@ from typing import Callable
 from uuid import UUID, uuid4
 
 from cloudops.features.access.schemas import SessionView
+from cloudops.features.connections.operations_schemas import OperationsView
 from cloudops.features.health.schemas import HealthView
 from cloudops.features.incidents.intake_schemas import AlertReceiptPage
 from cloudops.features.incidents.schemas import AdmissionView, IncidentDetail, IncidentPage
 from cloudops.features.investigations.schemas import EvidenceContent, EvidenceView, RunPage, RunView
+from cloudops.features.investigations.states import COLLECTION_JOB
 from cloudops.features.investigations.citation_schemas import CitationResolution, CitationTargets
 from cloudops.features.investigations.comparison_schemas import RunComparison
 from cloudops.features.investigations.timeline_schemas import RunTimeline
@@ -235,6 +237,17 @@ def receipts_check(response, context, actor):
     assert page.items == [] and page.next_cursor is None
 
 
+def operations_check(response, context, actor):
+    result = validated(OperationsView, response)
+    assert not result.jobs_capped
+    collection = next(job for job in result.jobs if job.kind == COLLECTION_JOB)
+    assert collection.counts is not None
+    assert collection.counts.queued == collection.counts.running == collection.counts.held == 0
+    assert [(str(run.incident_id), str(run.run_id)) for run in result.capacity_deferred] == [
+        (context.consumer.pending_incident_id, context.consumer.pending_run_id)
+    ]
+
+
 def compare_request(context):
     return {
         **run_request(context),
@@ -294,6 +307,7 @@ CASES = {
     "readiness": RequestCase(session_request, probe_check),
     "receive_alertmanager_notification": RequestCase(intake_request, intake_check),
     "list_alert_receipts": RequestCase(session_request, receipts_check),
+    "read_connection_operations": RequestCase(session_request, operations_check),
 }
 
 from consumer_cases import CASES as CONSUMER_CASES  # noqa: E402

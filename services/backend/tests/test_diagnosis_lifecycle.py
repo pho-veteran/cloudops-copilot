@@ -263,15 +263,27 @@ def test_quota_hold_resume_keeps_budgets_and_deadline(client, db, context, deplo
         deadline = analysis.deadline
         assert not run_once()
         headers = sign_in(client) | {"Idempotency-Key": str(uuid4())}
+        operations_route = "/api/connections/operations"
+        waiting = client.get(operations_route).json()["quota_waiting"]
+        assert [(item["incident_id"], item["run_id"]) for item in waiting] == [
+            (str(context[0]), str(context[1]))
+        ]
+        assert waiting[0]["earliest_retry_at"] is not None
         route = f"/api/incidents/{context[0]}/runs/{context[1]}/analysis/resume"
         response = client.post(route, headers=headers, json={})
         assert response.status_code == 409 and response.json()["error"]["code"] == "retry_not_due"
         analysis.earliest_retry = database_now(db) - timedelta(seconds=1)
         db.commit()
+        still_waiting = client.get(operations_route).json()["quota_waiting"]
+        assert [item["run_id"] for item in still_waiting] == [str(context[1])]
         capture(db, context, "quota-eligible")
         db.commit()
         response = client.post(route, headers=headers, json={})
         assert response.status_code == 200, response.text
+        resumed = client.get(operations_route).json()
+        assert resumed["quota_waiting"] == []
+        diagnosis_jobs = next(job for job in resumed["jobs"] if job["kind"] == ANALYSIS_JOB)
+        assert diagnosis_jobs["counts"]["due_retry"] == 1
         assert client.post(route, headers=headers, json={}).status_code == 200
         analysis = refresh(db, identifier)
         assert analysis.calls == 1 and analysis.deadline == deadline
