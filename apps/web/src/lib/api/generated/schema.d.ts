@@ -42,6 +42,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/connection-checks/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["get_connection_check_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/diagnosis/checks": {
         parameters: {
             query?: never;
@@ -1437,7 +1454,7 @@ export interface components {
              * Component
              * @enum {string}
              */
-            component: "cluster" | "database" | "worker";
+            component: "cluster" | "prometheus" | "database" | "worker";
         };
         /** CheckPage */
         CheckPage: {
@@ -1450,6 +1467,68 @@ export interface components {
             items: components["schemas"]["cloudops__features__diagnosis__api_schemas__CheckView"][];
             /** Next Offset */
             next_offset: number | null;
+        };
+        /** CheckStatus */
+        CheckStatus: {
+            /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
+            /**
+             * Component
+             * @enum {string}
+             */
+            component: "cluster" | "prometheus" | "database" | "worker";
+            /** Config Id */
+            config_id: string | null;
+            /** Last Attempt At */
+            last_attempt_at: string | null;
+            /** Last Failure At */
+            last_failure_at: string | null;
+            /** Last Success At */
+            last_success_at: string | null;
+            /** Latest Check Id */
+            latest_check_id: string | null;
+            metrics: components["schemas"]["MetricsCheck"] | null;
+            /** Observed At */
+            observed_at: string | null;
+            /** Reason */
+            reason: string;
+            /**
+             * Reason Code
+             * @enum {string}
+             */
+            reason_code: "database_read" | "heartbeat_fresh" | "heartbeat_missing" | "heartbeat_stale" | "deployment_read" | "query_succeeded" | "metrics_missing" | "metrics_partial" | "metrics_stale" | "scope_missing" | "scope_changed" | "target_changed" | "config_disabled" | "config_missing" | "config_invalid" | "config_changed" | "permission_denied" | "redirect_refused" | "timeout" | "transport_unavailable" | "invalid_response" | "response_limit" | "check_pending" | "never_observed" | "binding_changed" | "evidence_stale" | "invalid_timestamp";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "live_kubernetes" | "prometheus" | "runtime";
+            /** Stale After Seconds */
+            stale_after_seconds: number | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "unavailable" | "partial" | "stale" | "unconfigured" | "never_observed" | "missing" | "denied" | "pending";
+            target: components["schemas"]["CheckTarget"] | null;
+        };
+        /** CheckTarget */
+        CheckTarget: {
+            /** Cluster */
+            cluster: string;
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Uid */
+            uid: string;
+            /**
+             * Workload Id
+             * Format: uuid
+             */
+            workload_id: string;
         };
         /** CitationRef */
         CitationRef: {
@@ -2549,6 +2628,35 @@ export interface components {
             version: string;
             /** Workload Uid */
             workload_uid: string;
+        };
+        /** MetricsCheck */
+        MetricsCheck: {
+            /**
+             * Coverage
+             * @enum {string}
+             */
+            coverage: "available" | "partial" | "missing";
+            /** Coverage Reasons */
+            coverage_reasons: ("no_samples" | "ownership_unproven" | "truncated" | "stale" | "invalid_samples")[];
+            /** Latest Evaluation At */
+            latest_evaluation_at: string | null;
+            /**
+             * Query
+             * @default memory_working_set
+             * @constant
+             */
+            query: "memory_working_set";
+            /**
+             * Query Succeeded At
+             * Format: date-time
+             */
+            query_succeeded_at: string;
+            /**
+             * Raw Freshness
+             * @default unknown
+             * @constant
+             */
+            raw_freshness: "unknown";
         };
         /** ModelIdentityView */
         ModelIdentityView: {
@@ -4478,20 +4586,40 @@ export interface components {
             /** Uid */
             uid: string;
         };
-        /** CheckView */
+        /**
+         * CheckView
+         * @description Preserve the published receipt schema name for existing clients.
+         */
         cloudops__features__connections__api__CheckView: {
-            /** Component */
-            component: string;
+            /** Attempted At */
+            attempted_at?: string | null;
+            /**
+             * Component
+             * @enum {string}
+             */
+            component: "cluster" | "prometheus" | "database" | "worker";
+            /** Config Id */
+            config_id?: string | null;
             /**
              * Created By
              * Format: uuid
              */
             created_by: string;
+            /** Evidence At */
+            evidence_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Historical
+             * @default true
+             */
+            historical: boolean;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            metrics?: components["schemas"]["MetricsCheck"] | null;
             /**
              * Observed At
              * Format: date-time
@@ -4499,13 +4627,19 @@ export interface components {
             observed_at: string;
             /** Reason */
             reason: string;
-            /** Source */
-            source: string;
+            /** Reason Code */
+            reason_code?: ("database_read" | "heartbeat_fresh" | "heartbeat_missing" | "heartbeat_stale" | "deployment_read" | "query_succeeded" | "metrics_missing" | "metrics_partial" | "metrics_stale" | "scope_missing" | "scope_changed" | "target_changed" | "config_disabled" | "config_missing" | "config_invalid" | "config_changed" | "permission_denied" | "redirect_refused" | "timeout" | "transport_unavailable" | "invalid_response" | "response_limit" | "check_pending" | "never_observed" | "binding_changed" | "evidence_stale" | "invalid_timestamp") | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "live_kubernetes" | "prometheus" | "runtime";
             /**
              * Status
              * @enum {string}
              */
-            status: "available" | "unavailable" | "stale";
+            status: "available" | "unavailable" | "partial" | "stale";
+            target?: components["schemas"]["CheckTarget"] | null;
         };
         /** CheckView */
         cloudops__features__diagnosis__api_schemas__CheckView: {
@@ -4759,6 +4893,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                "idempotency-key"?: string | null;
                 "x-csrf-token"?: string | null;
             };
             path?: never;
@@ -4777,6 +4912,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["cloudops__features__connections__api__CheckView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_connection_check_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckStatus"][];
                 };
             };
             /** @description Unauthorized */

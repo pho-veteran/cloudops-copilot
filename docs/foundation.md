@@ -284,6 +284,8 @@ To pause all background jobs, run `docker compose run --rm dispatch-admin enter-
 
 **Connections** observes worker heartbeats with a 45-second freshness threshold. A stale worker is separate from database readiness. API readiness requires the current Alembic head; worker unavailability does not make saved reads unavailable. A database outage returns an actionable API error. A missing/failed schema prevents startup readiness; follow README migration recovery instructions instead of stamping a revision or deleting data.
 
+[Configured source checks](connection-checks.md) describes the explicit Operator checks, saved receipts, freshness assessment, and local Kubernetes and Prometheus verification.
+
 ## Interfaces and module ownership
 
 | Owner | Implementation boundary | Consumers |

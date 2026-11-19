@@ -10,12 +10,17 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable
+from time import monotonic
+from typing import Iterable, Protocol
 
 import httpx
 
 from cloudops.features.investigations.catalog import CATALOG_VERSION
-from cloudops.features.investigations.collector import CollectionContext, SourceAdapter
+from cloudops.features.investigations.collector import (
+    CollectionContext,
+    SourceAdapter,
+    WindowSnapshot,
+)
 from cloudops.features.investigations.prometheus_config import (
     QUERY_IDS,
     PrometheusConfig,
@@ -47,6 +52,17 @@ class ReadFailure(Exception):
     def __init__(self, reason: str):
         super().__init__(reason)
         self.reason = reason
+
+
+class MatrixScope(Protocol):
+    @property
+    def namespace(self) -> str: ...
+
+    @property
+    def workload_uid(self) -> str: ...
+
+    @property
+    def immutable_window(self) -> WindowSnapshot | None: ...
 
 
 @dataclass(frozen=True)
@@ -148,21 +164,23 @@ def parse_response(
     payload,
     config: PrometheusConfig,
     spec: QuerySpec,
-    context: CollectionContext,
+    context: MatrixScope,
     window,
     query_id: str,
     *,
     include_pod_uid: bool = False,
 ) -> Parsed:
     """Validate one Prometheus matrix response and project only bound series."""
-    if not isinstance(payload, dict) or payload.get("status") != "success":
+    if isinstance(payload, dict) and payload.get("status") == "error":
         raise ReadFailure("source_unavailable")
+    if not isinstance(payload, dict) or payload.get("status") != "success":
+        raise ReadFailure("invalid_response")
     data = payload.get("data")
     if not isinstance(data, dict) or data.get("resultType") != "matrix":
-        raise ReadFailure("source_unavailable")
+        raise ReadFailure("invalid_response")
     result = data.get("result")
     if not isinstance(result, list):
-        raise ReadFailure("source_unavailable")
+        raise ReadFailure("invalid_response")
 
     remote_warnings = payload.get("warnings")
     warnings = (
@@ -326,7 +344,7 @@ def _failure(
     )
 
 
-def _coverage(parsed: Parsed, step_seconds: int, window) -> Coverage:
+def matrix_coverage(parsed: Parsed, step_seconds: int, window) -> Coverage:
     if not parsed.series:
         reason = "ownership_unproven" if parsed.foreign else "no_samples"
         return Coverage(status="unavailable", reason_codes=[reason])
@@ -352,15 +370,20 @@ async def read_matrix(
     config: PrometheusConfig,
     ssl_context: ssl.SSLContext,
     query_spec: QuerySpec,
-    context: CollectionContext,
+    context: MatrixScope,
     timeout_seconds: float,
     transport: httpx.AsyncBaseTransport | None = None,
+    *,
+    deadline_at: float | None = None,
 ) -> dict:
     window = context.immutable_window
     if window is None:
         raise ReadFailure("not_captured")
     if timeout_seconds <= 0:
         raise ReadFailure("timeout")
+    deadline = monotonic() + timeout_seconds
+    if deadline_at is not None:
+        deadline = min(deadline, deadline_at)
     query = substitute_query(query_spec.query, context.namespace, context.workload_uid)
     headers = {
         "Accept": "application/json",
@@ -374,32 +397,40 @@ async def read_matrix(
         "end": window.end.timestamp(),
         "step": config.step_seconds,
     }
-    async with asyncio.timeout(timeout_seconds):
+    url = config.query_url()
+    remaining = deadline - monotonic()
+    if remaining <= 0:
+        raise ReadFailure("timeout")
+    async with asyncio.timeout(remaining):
         async with httpx.AsyncClient(
             verify=ssl_context,
             trust_env=False,
             follow_redirects=False,
-            timeout=httpx.Timeout(min(4.0, timeout_seconds)),
+            timeout=httpx.Timeout(min(4.0, remaining)),
             limits=httpx.Limits(max_connections=1, max_keepalive_connections=1),
             headers=headers,
             transport=transport,
         ) as client:
-            async with client.stream("GET", config.query_url(), params=params) as response:
+            if monotonic() >= deadline:
+                raise ReadFailure("timeout")
+            async with client.stream("GET", url, params=params) as response:
                 if response.status_code in (401, 403):
                     raise ReadFailure("forbidden")
+                if response.is_redirect:
+                    raise ReadFailure("redirect_refused")
                 if response.status_code != 200:
                     raise ReadFailure("source_unavailable")
                 if response.headers.get("content-encoding", "identity") != "identity":
                     raise ReadFailure("truncated")
                 body = bytearray()
                 async for chunk in response.aiter_raw():
-                    body.extend(chunk)
-                    if len(body) > MAX_RESPONSE_BYTES:
+                    if len(body) + len(chunk) > MAX_RESPONSE_BYTES:
                         raise ReadFailure("truncated")
+                    body.extend(chunk)
     try:
         payload = json.loads(body)
-    except (UnicodeDecodeError, ValueError):
-        raise ReadFailure("source_unavailable") from None
+    except (UnicodeDecodeError, ValueError, RecursionError):
+        raise ReadFailure("invalid_response") from None
     return payload
 
 
@@ -427,9 +458,12 @@ async def read_query(
         )
         parsed = parse_response(payload, config, query_spec, context, window, query_id)
     except ReadFailure as error:
-        return _failure(
-            config, query_spec, context, query_id, query_spec.query, resolved, error.reason
+        reason = (
+            "source_unavailable"
+            if error.reason in ("invalid_response", "redirect_refused")
+            else error.reason
         )
+        return _failure(config, query_spec, context, query_id, query_spec.query, resolved, reason)
     except (TimeoutError, httpx.TimeoutException):
         return _failure(
             config, query_spec, context, query_id, query_spec.query, resolved, "timeout"
@@ -444,7 +478,7 @@ async def read_query(
             resolved,
             "source_unavailable",
         )
-    coverage = _coverage(parsed, config.step_seconds, window)
+    coverage = matrix_coverage(parsed, config.step_seconds, window)
     return _result(
         config,
         query_spec,

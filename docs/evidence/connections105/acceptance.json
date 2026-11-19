@@ -1,0 +1,214 @@
+{
+  "issue": 105,
+  "environment": {
+    "kubernetes": "K3s v1.35.5+k3s1",
+    "prometheus": "v3.13.5",
+    "postgresql": "17.11 (Debian 17.11-1.pgdg12+2)"
+  },
+  "scope": {
+    "cluster": "owned-connections-lab",
+    "namespace": "connections-lab",
+    "deployment": "check-target",
+    "uid": "cade3fac-377d-4bb5-a1ff-732f563bf21f"
+  },
+  "authority": {
+    "kubernetes": "ServiceAccount get on the one named Deployment, trusted server CA",
+    "prometheus": "Bearer credential for GET /api/v1/query_range over HTTPS with trusted lab CA"
+  },
+  "scoped_receipts": {
+    "cluster": {
+      "id": "6fb6f067-1966-45c7-80e0-fa8a8eb96e42",
+      "component": "cluster",
+      "status": "available",
+      "reason": "Read the exact configured Deployment. Inspect Workloads for rollout status.",
+      "source": "live_kubernetes",
+      "observed_at": "2026-11-18T14:44:29.981678Z",
+      "reason_code": "deployment_read",
+      "attempted_at": "2026-11-18T14:44:29.730362Z",
+      "finished_at": "2026-11-18T14:44:29.981678Z",
+      "evidence_at": "2026-11-18T14:44:29.981678Z",
+      "target": {
+        "workload_id": "1a473cf6-b3f2-4b11-98a5-741db4eac1f1",
+        "uid": "cade3fac-377d-4bb5-a1ff-732f563bf21f",
+        "cluster": "owned-connections-lab",
+        "namespace": "connections-lab",
+        "name": "check-target"
+      },
+      "config_id": "e37b21ecf4317005feee1d0c240ff1189ed64b243f6f18cbeeee9a0465c2e7c2",
+      "metrics": null,
+      "historical": false
+    },
+    "prometheus": {
+      "id": "ccb5b8ce-02c0-4550-9c1b-54bdaee01e95",
+      "component": "prometheus",
+      "status": "available",
+      "reason": "Prometheus returned scoped data for the current window.",
+      "source": "prometheus",
+      "observed_at": "2026-11-18T14:44:30.819607Z",
+      "reason_code": "query_succeeded",
+      "attempted_at": "2026-11-18T14:44:30.277244Z",
+      "finished_at": "2026-11-18T14:44:30.819607Z",
+      "evidence_at": "2026-11-18T14:44:30.819607Z",
+      "target": {
+        "workload_id": "1a473cf6-b3f2-4b11-98a5-741db4eac1f1",
+        "uid": "cade3fac-377d-4bb5-a1ff-732f563bf21f",
+        "cluster": "owned-connections-lab",
+        "namespace": "connections-lab",
+        "name": "check-target"
+      },
+      "config_id": "1ef86f7a693062da10dc045e2a661a640f8878fe7e50f60ec3c2d9d759c9b9a9",
+      "metrics": {
+        "query": "memory_working_set",
+        "query_succeeded_at": "2026-11-18T14:44:30.819607Z",
+        "coverage": "available",
+        "coverage_reasons": [],
+        "latest_evaluation_at": "2026-11-18T14:44:30.277000Z",
+        "raw_freshness": "unknown"
+      },
+      "historical": false
+    }
+  },
+  "stopped_scrapes": {
+    "active_scrape_targets": 0,
+    "evaluation_before_stop": "2026-11-18T14:32:35.384000Z",
+    "receipt": {
+      "id": "76c1aadd-9f54-463a-9081-6f34d338f9c7",
+      "component": "prometheus",
+      "status": "available",
+      "reason": "Prometheus returned scoped data for the current window.",
+      "source": "prometheus",
+      "observed_at": "2026-11-18T14:34:09.577877Z",
+      "reason_code": "query_succeeded",
+      "attempted_at": "2026-11-18T14:34:09.071334Z",
+      "finished_at": "2026-11-18T14:34:09.577877Z",
+      "evidence_at": "2026-11-18T14:34:09.577877Z",
+      "target": {
+        "workload_id": "1a473cf6-b3f2-4b11-98a5-741db4eac1f1",
+        "uid": "cade3fac-377d-4bb5-a1ff-732f563bf21f",
+        "cluster": "owned-connections-lab",
+        "namespace": "connections-lab",
+        "name": "check-target"
+      },
+      "config_id": "1ef86f7a693062da10dc045e2a661a640f8878fe7e50f60ec3c2d9d759c9b9a9",
+      "metrics": {
+        "query": "memory_working_set",
+        "query_succeeded_at": "2026-11-18T14:34:09.577877Z",
+        "coverage": "available",
+        "coverage_reasons": [],
+        "latest_evaluation_at": "2026-11-18T14:34:09.071000Z",
+        "raw_freshness": "unknown"
+      },
+      "historical": false
+    }
+  },
+  "restart": {
+    "receipts_preserved": 6,
+    "ids_and_timestamps_unchanged": true,
+    "new_receipts_on_startup": 0
+  },
+  "browser": {
+    "browser": "Microsoft Edge, isolated headless session",
+    "version": "157.0.4341.60",
+    "check_posts": {
+      "operator": 2,
+      "viewer": 0
+    },
+    "operator_viewport_width": 1280,
+    "viewer_viewport_width": 390
+  },
+  "jobs_queued": 0,
+  "model_provider_configured": false,
+  "inference_requests": 0,
+  "controlled_checks": {
+    "candidate_backend_tests_passed": 67,
+    "backend_unit_tests": {
+      "passed": 1049,
+      "skipped": 1
+    },
+    "web_tests": {
+      "node": "24.21.0",
+      "passed": 288
+    },
+    "provider_cases": [
+      "Kubernetes and Prometheus 401 and 403 are recorded as source denial",
+      "Kubernetes and Prometheus redirects cause zero follow-up requests",
+      "Malformed and oversized responses are classified separately",
+      "A controlled deadline cancels the read and replay returns the same timeout receipt",
+      "Empty, foreign, gapped, stale, and complete Prometheus results have distinct reasons or coverage"
+    ],
+    "postgresql_cases": [
+      "A competing Operator is denied while a source check is in flight",
+      "The admission lock is free during the provider wait and a database check can complete",
+      "A repeat after the first result honors cooldown for callers without a key",
+      "Same-key retries return the original attempt and conflicting intents are denied",
+      "Upgrade and repeat upgrade preserve legacy receipt values",
+      "Expired receipts retain their history ordering before and after replay"
+    ]
+  },
+  "initial_candidate_source_sha256": {
+    "apps/web/src/features/connections/Connections.tsx": "90a8ac88437f4df2b75548de59cc5066323b6f41c814b278133c3f131decf35e",
+    "apps/web/src/features/connections/SourceChecks.test.tsx": "eb04809012449e91336e2f3f95b1ecf6346d31d9f2b997373ad1a670d7eb0fe5",
+    "apps/web/src/features/connections/SourceChecks.tsx": "957e2d7a8d902f700069e623f310715a52c22bc0b2d65b9468a7046dba4ac25d",
+    "services/backend/migrations/versions/0018_connection_checks.py": "f5e801a6c64e63aa387cd350ee35826156fffc7b9b6f6a09ee911bbf1043064d",
+    "services/backend/src/cloudops/features/connections/api.py": "dd5d37adf3e6a15f0904a7e111fea5493a1255c425b2c62aad9016098708e746",
+    "services/backend/src/cloudops/features/connections/models.py": "9dba964fbc0965dfb1c7e9f20f9a6fadbf520e5f3a4cf530353165a6da9484c8",
+    "services/backend/src/cloudops/features/connections/schemas.py": "3634e3fdda07a2a1fff8e50e2ca931752287a4866cdf0d888997a12f1362d395",
+    "services/backend/src/cloudops/features/connections/service.py": "2ffe874e9d3810e0e1e76e5087470389f41fa86f79c111400c6eebddf62b5e91",
+    "services/backend/src/cloudops/features/connections/sources.py": "f4d509282847ca09bbbfa0da84e8cd1f0de9fda65ca54bed6dce7e434b4b1b39",
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "968fe22d38c5ca6b4e64630b6292d47970caab03bda0fd32947970cd6def335b",
+    "services/backend/src/cloudops/features/workloads/observation_reader.py": "cde0fcf8a4b00ff91cd61d15d5e760c42c18b9ad817d478b7ccd2a51d0c8f122",
+    "services/backend/tests/test_connection_checks.py": "c2166087ae7fe25e45a16bb5d6a239066aaa53c6f0898259a625bc6a4f96127e"
+  },
+  "follow_up": {
+    "verified_on": "2026-11-19",
+    "focused_backend_tests_passed": 90,
+    "contracts_and_drift_passed": true,
+    "provider_deadline": {
+      "providers": [
+        "cluster",
+        "prometheus"
+      ],
+      "requests_when_tls_setup_exhausts_budget": 0,
+      "requests_with_remaining_budget": 1,
+      "in_flight_read_cancelled_at_deadline": true,
+      "same_key_preserves_timeout_receipt": true
+    },
+    "cold_start": {
+      "configurations": [
+        "missing",
+        "invalid"
+      ],
+      "api_ready": true,
+      "viewer_history_unchanged": true,
+      "operator_reason_codes": [
+        "config_missing",
+        "config_invalid"
+      ],
+      "collector_status": "unavailable",
+      "provider_requests": 0,
+      "worker_refuses_invalid_configuration": true,
+      "api_refuses_invalid_collection_mode": true
+    },
+    "backend_unit_tests": {
+      "passed": 1049,
+      "skipped": 1
+    }
+  },
+  "current_source_sha256": {
+    "apps/web/src/features/connections/Connections.tsx": "90a8ac88437f4df2b75548de59cc5066323b6f41c814b278133c3f131decf35e",
+    "apps/web/src/features/connections/SourceChecks.test.tsx": "eb04809012449e91336e2f3f95b1ecf6346d31d9f2b997373ad1a670d7eb0fe5",
+    "apps/web/src/features/connections/SourceChecks.tsx": "957e2d7a8d902f700069e623f310715a52c22bc0b2d65b9468a7046dba4ac25d",
+    "services/backend/migrations/versions/0018_connection_checks.py": "f5e801a6c64e63aa387cd350ee35826156fffc7b9b6f6a09ee911bbf1043064d",
+    "services/backend/src/cloudops/entrypoints/api.py": "2227ef93415e17fb11f3927b7f2912904d5bfd4794a724bc955f22cdd49afccc",
+    "services/backend/src/cloudops/features/connections/api.py": "dd5d37adf3e6a15f0904a7e111fea5493a1255c425b2c62aad9016098708e746",
+    "services/backend/src/cloudops/features/connections/models.py": "9dba964fbc0965dfb1c7e9f20f9a6fadbf520e5f3a4cf530353165a6da9484c8",
+    "services/backend/src/cloudops/features/connections/schemas.py": "3634e3fdda07a2a1fff8e50e2ca931752287a4866cdf0d888997a12f1362d395",
+    "services/backend/src/cloudops/features/connections/service.py": "534ad75b670d0111a8f70a7c93826081d491b9df4310740d34e5143cb794c842",
+    "services/backend/src/cloudops/features/connections/sources.py": "c28ad03f9f69ae1c155391596442c763fe27481517d9e54ecdeee15356c43b12",
+    "services/backend/src/cloudops/features/health/api.py": "cf51916671788d2b6a943fc17659db534a9374224799475c16e80a70aa1c75e4",
+    "services/backend/src/cloudops/features/investigations/collector.py": "178c43271607bbce3a4dfed32d72bf8a1806c4e2c736b81de18d090fe9b5a516",
+    "services/backend/src/cloudops/features/investigations/prometheus.py": "d3899447a4ecdcd48c778ef55f685608bb6910d1b95adccfd311586bc401045b",
+    "services/backend/src/cloudops/features/workloads/observation_reader.py": "1b5ffde3141fe18ce27d80d1229fcf6cea83c815e338a26fc3804b22d7f6a155",
+    "services/backend/tests/test_connection_checks.py": "a8a6beea164cab44fae44e944e5e892dd97947a2e1fb2426b890b6979a369356"
+  }
+}

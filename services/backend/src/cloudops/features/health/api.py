@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from cloudops.features.access.dependencies import current_session
+from cloudops.features.connections.sources import provider_config
 from cloudops.features.health.schemas import HealthObservation, HealthView
 from cloudops.shared.config import settings
 from cloudops.shared.database import WorkerHeartbeat, database_now, get_db, require_schema
@@ -55,10 +56,18 @@ def observations(db: Session = Depends(get_db)):
         if mode.strip()
     }
     if "prometheus" in modes:
+        _, config_issue = provider_config("prometheus")
+        config_reason = (
+            "The Prometheus read configuration is missing. Inspect Connections for source status."
+            if config_issue == "config_missing"
+            else "The Prometheus read configuration is invalid. Inspect Connections for source status."
+        )
         collector_status, collector_source, collector_reason = (
-            "available",
+            "unavailable" if config_issue else "available",
             "prometheus",
-            "Scoped Prometheus metric collection is configured. Availability does not "
+            config_reason
+            if config_issue
+            else "Scoped Prometheus metric collection is configured. Availability does not "
             "indicate collection success or a live diagnosis, and Kubernetes sources remain "
             "separate. Inspect investigation attempts for results.",
         )
