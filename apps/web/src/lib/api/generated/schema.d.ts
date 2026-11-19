@@ -2095,6 +2095,7 @@ export interface components {
             runnable: number;
             /** Running */
             running: number;
+            verification_slots: components["schemas"]["VerificationSlots"] | null;
         };
         /** JobKindStatus */
         JobKindStatus: {
@@ -4382,6 +4383,15 @@ export interface components {
             window_seconds: 180 | 300;
             /** Workload Uid */
             workload_uid: string;
+        };
+        /** VerificationSlots */
+        VerificationSlots: {
+            /** Due */
+            due: number;
+            /** Earliest Future At */
+            earliest_future_at: string | null;
+            /** Future */
+            future: number;
         };
         /** VerificationView */
         VerificationView: {

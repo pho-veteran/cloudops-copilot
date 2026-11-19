@@ -11,14 +11,16 @@ from cloudops.features.connections.operations_schemas import (
     JobKindStatus,
     OperationsView,
     QuotaWaitingRun,
+    VerificationSlots,
 )
 from cloudops.features.diagnosis.models import Analysis
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.investigations.states import COLLECTION_JOB
+from cloudops.features.recovery.verification_policy import VERIFICATION_JOB
 from cloudops.shared.database import database_now
 from cloudops.shared.dispatch_permit import DispatchGate
-from cloudops.shared.jobs import Job
+from cloudops.shared.jobs import Job, JobAttempt
 
 JOB_KINDS = get_args(JobKind)
 JOB_READ_LIMIT = 1000
@@ -26,6 +28,17 @@ RUN_SAMPLE_LIMIT = 20
 
 
 def active_jobs_query():
+    verification_attempt_state = (
+        select(JobAttempt.state)
+        .where(
+            Job.kind == VERIFICATION_JOB,
+            Job.state == "queued",
+            Job.attempts > 0,
+            JobAttempt.job_id == Job.id,
+            JobAttempt.number == Job.attempts,
+        )
+        .scalar_subquery()
+    )
     # The extra row detects overflow. No partial counts or ages are published in that case.
     return (
         select(
@@ -36,6 +49,7 @@ def active_jobs_query():
             Job.lease_until,
             Job.attempts,
             Job.max_attempts,
+            verification_attempt_state.label("verification_attempt_state"),
         )
         .where(Job.state.in_(("queued", "running", "held")), Job.kind.in_(JOB_KINDS))
         .limit(JOB_READ_LIMIT + 1)
@@ -102,9 +116,15 @@ def summarize_jobs(rows, now: datetime) -> tuple[dict[str, JobCounts], int | Non
             future_retry=0,
             expired_lease=0,
             earliest_future_retry_at=None,
+            verification_slots=(
+                VerificationSlots(due=0, future=0, earliest_future_at=None)
+                if kind == VERIFICATION_JOB
+                else None
+            ),
         )
         for kind in JOB_KINDS
     }
+    unknown_counts = set()
     oldest = None
     for row in rows:
         status = counts[row.kind]
@@ -119,18 +139,43 @@ def summarize_jobs(rows, now: datetime) -> tuple[dict[str, JobCounts], int | Non
         else:
             status.queued += 1
             # Match the scheduler's due-time boundary. Dispatch authority is a separate signal.
-            if row.due_at is not None and row.due_at > now:
+            future = row.due_at is not None and row.due_at > now
+            if row.attempts >= row.max_attempts:
+                continue
+            if not future:
+                status.runnable += 1
+                if oldest is None or row.created_at < oldest:
+                    oldest = row.created_at
+
+            slots = status.verification_slots
+            if slots is not None:
+                # Verification advances to a normal observation slot after a successful attempt.
+                if row.attempts == 0 or row.verification_attempt_state == "succeeded":
+                    if future:
+                        slots.future += 1
+                        if (
+                            slots.earliest_future_at is None
+                            or row.due_at < slots.earliest_future_at
+                        ):
+                            slots.earliest_future_at = row.due_at
+                    else:
+                        slots.due += 1
+                    continue
+                if row.verification_attempt_state not in {"failed", "expired"}:
+                    unknown_counts.add(row.kind)
+                    continue
+
+            if future:
                 status.future_retry += 1
                 if (
                     status.earliest_future_retry_at is None
                     or row.due_at < status.earliest_future_retry_at
                 ):
                     status.earliest_future_retry_at = row.due_at
-            elif row.attempts < row.max_attempts:
-                status.runnable += 1
+            else:
                 status.due_retry += int(row.attempts > 0)
-                if oldest is None or row.created_at < oldest:
-                    oldest = row.created_at
+    for kind in unknown_counts:
+        del counts[kind]
     age = max(0, int((now - oldest).total_seconds())) if oldest is not None else None
     return counts, age
 

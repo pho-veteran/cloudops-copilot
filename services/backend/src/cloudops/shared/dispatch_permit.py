@@ -152,7 +152,7 @@ class DispatchGate:
     def current(self) -> tuple[Permit | None, frozenset[str], DenyReason | None]:
         """Lock-free status only; call-start and publication admission use ``admitted``."""
         root = self.root
-        if root is None:
+        if root is None or not (root / LOCK).exists():
             return None, frozenset(), "permit_missing"
         permit, reason = read_permit(root)
         kinds, reason = self._evaluate(permit, reason)

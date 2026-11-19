@@ -2932,6 +2932,16 @@
           "running": {
             "title": "Running",
             "type": "integer"
+          },
+          "verification_slots": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationSlots"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -2942,7 +2952,8 @@
           "due_retry",
           "future_retry",
           "expired_lease",
-          "earliest_future_retry_at"
+          "earliest_future_retry_at",
+          "verification_slots"
         ],
         "title": "JobCounts",
         "type": "object"
@@ -9495,6 +9506,37 @@
           "queries"
         ],
         "title": "VerificationProfile",
+        "type": "object"
+      },
+      "VerificationSlots": {
+        "properties": {
+          "due": {
+            "title": "Due",
+            "type": "integer"
+          },
+          "earliest_future_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Future At"
+          },
+          "future": {
+            "title": "Future",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "due",
+          "future",
+          "earliest_future_at"
+        ],
+        "title": "VerificationSlots",
         "type": "object"
       },
       "VerificationView": {

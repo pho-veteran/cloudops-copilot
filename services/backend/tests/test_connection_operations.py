@@ -11,10 +11,11 @@ from cloudops.features.connections import operations
 from cloudops.features.incidents.models import Incident
 from cloudops.features.investigations.models import InvestigationRun
 from cloudops.features.investigations.states import COLLECTION_JOB
+from cloudops.features.recovery.verification_policy import VERIFICATION_JOB
 from cloudops.features.workloads.models import Workload
 from cloudops.shared.database import database_now, engine
-from cloudops.shared.dispatch_permit import transition
-from cloudops.shared.jobs import Job
+from cloudops.shared.dispatch_permit import LOCK, transition
+from cloudops.shared.jobs import Job, JobAttempt
 
 ROUTE = "/api/connections/operations"
 NOW = datetime(2026, 11, 18, 12, tzinfo=UTC)
@@ -65,6 +66,7 @@ def test_job_reasons_and_permit_are_independent(client, db, monkeypatch, dispatc
         "future_retry": 1,
         "expired_lease": 1,
         "earliest_future_retry_at": future.isoformat().replace("+00:00", "Z"),
+        "verification_slots": None,
     }
     report = next(job for job in normal["jobs"] if job["kind"] == "recommendation_report_v1")
     assert report["counts"]["expired_lease"] is None
@@ -80,6 +82,72 @@ def test_job_reasons_and_permit_are_independent(client, db, monkeypatch, dispatc
     assert paused["dispatch"] == "paused" and paused["dispatch_reason"] == "recovery_mode"
     assert paused["counts"] == collection["counts"]
     assert str(token) not in str(normal) and "private worker error" not in str(normal)
+
+
+def test_verification_slots_are_distinct_from_worker_retries(client, db, monkeypatch):
+    monkeypatch.setattr(operations, "database_now", lambda _: NOW)
+    future = NOW + timedelta(seconds=30)
+    for due_at, history in (
+        (NOW, ("failed", "succeeded")),
+        (future, ("succeeded",)),
+        (future + timedelta(seconds=30), ()),
+        (NOW, ("failed",)),
+    ):
+        job = Job(
+            kind=VERIFICATION_JOB,
+            subject_id=uuid4(),
+            due_at=due_at,
+            attempts=len(history),
+            created_at=NOW - timedelta(seconds=60),
+        )
+        db.add(job)
+        db.flush()
+        for number, state in enumerate(history, start=1):
+            db.add(
+                JobAttempt(
+                    job_id=job.id,
+                    number=number,
+                    lease_token=uuid4(),
+                    state=state,
+                    started_at=NOW - timedelta(seconds=31),
+                    finished_at=NOW - timedelta(seconds=30),
+                )
+            )
+    db.commit()
+    sign_in(client)
+    snapshot = read(client)
+    counts = next(job["counts"] for job in snapshot["jobs"] if job["kind"] == VERIFICATION_JOB)
+    assert counts["runnable"] == 2 and snapshot["oldest_runnable_age_seconds"] == 60
+    assert counts["due_retry"] == 1 and counts["future_retry"] == 0
+    assert counts["earliest_future_retry_at"] is None
+    assert counts["verification_slots"] == {
+        "due": 1,
+        "future": 2,
+        "earliest_future_at": future.isoformat().replace("+00:00", "Z"),
+    }
+
+    db.add(Job(kind=VERIFICATION_JOB, subject_id=uuid4(), attempts=1, due_at=NOW))
+    db.commit()
+    snapshot = read(client)
+    assert (
+        next(job["counts"] for job in snapshot["jobs"] if job["kind"] == VERIFICATION_JOB) is None
+    )
+    assert snapshot["oldest_runnable_age_seconds"] == 60
+
+
+def test_valid_permit_without_lock_pauses_operations(client, db, dispatch_permit):
+    db.add(Job(kind=COLLECTION_JOB, subject_id=uuid4()))
+    db.commit()
+    sign_in(client)
+    (dispatch_permit / LOCK).unlink()
+
+    snapshot = read(client)
+    assert all(
+        (job["dispatch"], job["dispatch_reason"]) == ("paused", "permit_missing")
+        for job in snapshot["jobs"]
+    )
+    collection = next(job for job in snapshot["jobs"] if job["kind"] == COLLECTION_JOB)
+    assert collection["counts"]["runnable"] == 1
 
 
 @pytest.mark.parametrize("role", ["operator", "viewer"])

@@ -70,16 +70,19 @@ it("shows each outcome with a readable reason and the exact incident link", asyn
   );
   mount();
   expect(await screen.findByText("Intake configured · source lab-alertmanager")).toBeTruthy();
-  for (const label of ["Accepted", "Accepted · deferred at delivery", "Rejected", "Ignored", "Retry pending", "Alert resolved", "Duplicate"])
+  for (const label of ["Accepted", "Accepted · deferred at delivery", "Rejected", "Ignored", "Retry requested at delivery", "Alert resolved", "Duplicate"])
     expect(screen.getByText(label)).toBeTruthy();
   expect(screen.getByText(/Check the alert's cluster, namespace and workload/)).toBeTruthy();
-  expect(screen.getByText("Investigation capacity is full; Alertmanager will retry.")).toBeTruthy();
+  expect(screen.getByText("Investigation capacity was full.")).toBeTruthy();
   expect(screen.getByText(/Reason unavailable/)).toBeTruthy();
   const runLinks = screen.getAllByRole("link", { name: "Open Run" });
   expect(runLinks).toHaveLength(2);
   expect(runLinks[0].getAttribute("href")).toBe(`#/incidents/${incident}?run=${run}`);
   expect(screen.getByRole("link", { name: "Open incident" }).getAttribute("href")).toBe(`#/incidents/${incident}`);
   expect(screen.getByText("Rejected").closest("li")?.querySelector("a")).toBeNull();
+  // A retained retry request for the same fingerprint stays historical after admission.
+  expect(screen.getByText("Retry requested at delivery").closest("li")?.querySelector("a")).toBeNull();
+  expect(screen.queryByText(/Retry pending|will retry/i)).toBeNull();
   expect(screen.queryByRole("button", { name: /Check|Delete|Retry delivery/ })).toBeNull();
 });
 
@@ -87,7 +90,7 @@ it("distinguishes unconfigured intake, empty history and a failed read with retr
   http.fetch.mockResolvedValueOnce(page([], null, false));
   mount();
   expect(await screen.findByText(/Alert intake is not configured/)).toBeTruthy();
-  expect(screen.getByText("No authenticated deliveries yet.")).toBeTruthy();
+  expect(screen.getByText("No retained deliveries.")).toBeTruthy();
   cleanup();
   http.fetch.mockReset();
   cache.clear();

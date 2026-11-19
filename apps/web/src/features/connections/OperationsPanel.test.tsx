@@ -60,6 +60,31 @@ it("keeps queue and permit signals distinct and links the exact capacity and quo
   expect(screen.queryByRole("button", { name: /resume|dispatch/i })).toBeNull();
 });
 
+it("shows verification slots independently of retries", async () => {
+  const snapshot = operationsFixture();
+  const future = "2026-11-18T10:01:00Z";
+  const jobs = snapshot.jobs.map((job) =>
+    job.kind === "recovery_verification_v1" && job.counts
+      ? {
+        ...job,
+        counts: {
+          ...job.counts,
+          queued: 3,
+          runnable: 2,
+          due_retry: 1,
+          verification_slots: { due: 1, future: 1, earliest_future_at: future },
+        },
+      }
+      : job,
+  );
+  http.fetch.mockResolvedValueOnce(Response.json(operationsFixture({ jobs })));
+  mount();
+  const verification = (await screen.findByRole("heading", { name: "Recovery verification" })).closest("li")!;
+  expect(within(verification).getByText("Due verification slots 1 · Future slots 1")).toBeTruthy();
+  expect(within(verification).getByText("Runnable 2 · Due retry 1 · Future retry 0 · Expired lease 0")).toBeTruthy();
+  expect(within(verification).getByText(/Next verification slot/).querySelector("time")?.dateTime).toBe(future);
+});
+
 it("labels capped counts and keeps the last snapshot when a read fails", async () => {
   const snapshot = operationsFixture();
   const capped = {

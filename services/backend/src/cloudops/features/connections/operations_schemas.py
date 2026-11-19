@@ -16,6 +16,12 @@ JobKind = Literal[
 ]
 
 
+class VerificationSlots(View):
+    due: int
+    future: int
+    earliest_future_at: datetime | None
+
+
 class JobCounts(View):
     queued: int
     running: int
@@ -25,6 +31,7 @@ class JobCounts(View):
     future_retry: int
     expired_lease: int | None
     earliest_future_retry_at: datetime | None
+    verification_slots: VerificationSlots | None
 
 
 class JobKindStatus(View):

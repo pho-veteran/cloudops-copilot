@@ -60,6 +60,14 @@ function JobStatus({ job }: { job: JobKindStatus }) {
           {counts.earliest_future_retry_at && (
             <p>Next scheduled retry <Time value={counts.earliest_future_retry_at} /></p>
           )}
+          {counts.verification_slots && (
+            <>
+              <p>Due verification slots {counts.verification_slots.due} · Future slots {counts.verification_slots.future}</p>
+              {counts.verification_slots.earliest_future_at && (
+                <p>Next verification slot <Time value={counts.verification_slots.earliest_future_at} /></p>
+              )}
+            </>
+          )}
         </>
       ) : <p>Job counts unknown.</p>}
     </li>

@@ -10,7 +10,8 @@ what happened at delivery time.
 
 - Mount `OperationsPanel` and `AlertReceipts` from `apps/web/src/features/connections` inside the authenticated page. Both components use the shared transport and need no role prop.
 - Import `operationsFixture` and `alertReceiptsPageFixture` from the feature's `fixtures.ts`. Both return fresh, generated-contract fixtures with matching capacity Run and receipt IDs. Each accepts response field overrides for failure recovery, empty data or sample truncation tests.
-- `due_retry` is a subset of `runnable`. Dispatch can be paused for a job kind with runnable work. A null `counts` means the active-job read overflowed. A null `expired_lease` within otherwise known counts means a running job lacked a lease deadline. Use the separate `has_more` fields to label the two bounded Run samples.
+- `due_retry` is a subset of `runnable`. Due verification slots also count toward `runnable`. The recovery verification row exposes `verification_slots` for scheduled observations, including the earliest future slot. Dispatch can be paused for a job kind with runnable work.
+- `jobs_capped` identifies overflow of the active-job read, which withholds all counts and runnable age. Missing attempt history for an eligible queued verification job withholds counts for that job kind. A null `expired_lease` within otherwise known counts means a running job lacked a lease deadline. Use the separate `has_more` fields to label the two bounded Run samples.
 
 ## PostgreSQL projection
 
@@ -83,3 +84,25 @@ link. Each role saw the dispatch pause, runnable backlog, future retry and expir
 A controlled HTTP 503 on refresh preserved the last snapshot, and Retry recovered it. Browser
 API traffic after sign-in consisted of GETs. The installed C5/C6 page remains a separate
 integration check.
+
+## Verification slots, dispatch authority and retained receipts
+
+The follow-up to `7a6949b` passed 129 focused backend cases in the Linux image with
+PostgreSQL 17.11. They cover operations, intake, job inventory, dispatch permits and worker
+admission, diagnosis lifecycle and route permissions. The Connections and route tests passed
+all 71 cases. The production web build, Ruff check and format, and contract generation and
+drift checks passed. The code and test diff from `7a6949b` has SHA-256
+`e4ad62dc24a85d7d1d997dc18e947077edd12fd153daa24934124a2760bbb71f`.
+
+The revised active-jobs query was profiled independently with 30,000 terminal jobs and 1,050
+queued jobs. The read stopped at 1,001 rows using `ix_jobs_state`. The attempt lookup used
+`ix_job_attempts_job_id` for the 500 started, queued verification jobs in the bounded sample.
+
+In a separate migrated PostgreSQL lab, a disposable Microsoft Edge 157 profile opened the
+C4 preview as Viewer at 320px in light mode and Operator at 390px in dark mode. Both roles
+saw a due verification slot and a future verification slot alongside a single due retry. A
+valid permit file with its lock removed showed paused dispatch. The retained retry receipt
+described the earlier delivery and exposed no link. The later receipt opened the exact saved
+Run by keyboard. A controlled HTTP 503 preserved the last Operations snapshot and Retry
+recovered it. Removing the session cookie returned HTTP 401 and brought the browser back to
+sign-in. All API requests after sign-in were GETs. Neither panel overflowed horizontally.

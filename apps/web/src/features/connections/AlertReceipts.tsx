@@ -15,7 +15,7 @@ const outcomes: Record<Receipt["outcome"], string> = {
   resolved_signal: "Alert resolved",
   ignored: "Ignored",
   rejected: "Rejected",
-  retryable: "Retry pending",
+  retryable: "Retry requested at delivery",
 };
 
 const reasons: Record<string, string> = {
@@ -28,12 +28,12 @@ const reasons: Record<string, string> = {
   out_of_scope: "The workload is not in the configured scope. Check the alert's cluster, namespace and workload against the pinned scope.",
   resolved_before_admission: "Resolved before any investigation was admitted.",
   scope_unpinned: "Intake needs a pinned live scope. Ask the scope owner to check the configured cluster and scope.",
-  scope_changed: "The workload scope changed during the read; Alertmanager will retry.",
-  cluster_unavailable: "The scoped cluster read failed; Alertmanager will retry.",
-  budget_exhausted: "The scoped cluster read budget was exhausted; Alertmanager will retry.",
-  capacity_exhausted: "Investigation capacity is full; Alertmanager will retry.",
-  admission_conflict: "Admission was refused for now; Alertmanager will retry.",
-  database_unavailable: "The application database was unavailable; Alertmanager will retry.",
+  scope_changed: "The workload scope changed during the read.",
+  cluster_unavailable: "The scoped cluster read failed.",
+  budget_exhausted: "The scoped cluster read budget was exhausted.",
+  capacity_exhausted: "Investigation capacity was full.",
+  admission_conflict: "Admission was temporarily refused.",
+  database_unavailable: "The application database was unavailable.",
 };
 
 export function describeReason(code: string | null) {
@@ -85,7 +85,7 @@ export function AlertReceipts() {
             </Button>
           </div>
           {!items.length ? (
-            <p>No authenticated deliveries yet.</p>
+            <p>No retained deliveries.</p>
           ) : (
             <ol className="foundation-stack">
               {items.map((item) => (

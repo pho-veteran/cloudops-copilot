@@ -37,6 +37,7 @@ export function operationsFixture(overrides: Partial<Snapshot> = {}): Snapshot {
           future_retry: 1,
           expired_lease: 1,
           earliest_future_retry_at: retryAt,
+          verification_slots: null,
         },
       },
       ...otherJobKinds.map((kind): Job => ({
@@ -52,6 +53,9 @@ export function operationsFixture(overrides: Partial<Snapshot> = {}): Snapshot {
           future_retry: 0,
           expired_lease: 0,
           earliest_future_retry_at: null,
+          verification_slots: kind === "recovery_verification_v1"
+            ? { due: 0, future: 0, earliest_future_at: null }
+            : null,
         },
       })),
     ],
