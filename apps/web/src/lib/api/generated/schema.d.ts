@@ -1922,7 +1922,7 @@ export interface components {
              * Reason Code
              * @enum {string}
              */
-            reason_code: "database_connected" | "heartbeat_missing" | "heartbeat_fresh" | "heartbeat_stale" | "invalid_evidence_time" | "collector_unconfigured" | "collector_configured" | "collector_fixture" | "collector_configuration_invalid" | "scope_not_configured" | "scope_target_missing" | "scope_target_unavailable" | "fixture_target" | "reader_unconfigured" | "scope_configuration_changed" | "no_matching_observation" | "observation_pending" | "observation_expired" | "observation_partial" | "observation_denied" | "observation_failed" | "observation_stale" | "observation_fresh" | "model_feature_view" | "executor_unconfigured" | "executor_feature_view" | "runner_unconfigured" | "runner_not_observed" | "report_not_observed" | "report_retained";
+            reason_code: "database_connected" | "heartbeat_missing" | "heartbeat_fresh" | "heartbeat_stale" | "invalid_evidence_time" | "collector_unconfigured" | "collector_configured" | "collector_fixture" | "collector_configuration_invalid" | "scope_not_configured" | "scope_target_missing" | "scope_target_unavailable" | "fixture_target" | "reader_unconfigured" | "scope_configuration_changed" | "no_matching_observation" | "observation_pending" | "observation_expired" | "observation_partial" | "observation_denied" | "observation_failed" | "observation_stale" | "observation_fresh" | "model_feature_view" | "executor_unconfigured" | "executor_feature_view" | "runner_unconfigured" | "runner_not_observed" | "report_invalid" | "report_not_observed" | "report_retained";
             /** Report Id */
             report_id?: string | null;
             /**

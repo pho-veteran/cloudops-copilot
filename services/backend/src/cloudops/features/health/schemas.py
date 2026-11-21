@@ -35,6 +35,7 @@ HealthReason = Literal[
     "executor_feature_view",
     "runner_unconfigured",
     "runner_not_observed",
+    "report_invalid",
     "report_not_observed",
     "report_retained",
 ]

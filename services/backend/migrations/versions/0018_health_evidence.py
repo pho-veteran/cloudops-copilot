@@ -12,6 +12,12 @@ depends_on = None
 def upgrade():
     for column in ("attempt_binding", "success_binding", "failure_binding"):
         op.add_column("workload_observation_state", sa.Column(column, sa.String(64), nullable=True))
+    op.add_column("workload_observation_state", sa.Column("bound_attempt_sequence", sa.Integer()))
+    op.add_column("workload_observation_state", sa.Column("bound_success_id", sa.Uuid()))
+    op.add_column("workload_observation_state", sa.Column("bound_success_config_id", sa.String(64)))
+    op.add_column(
+        "workload_observation_state", sa.Column("bound_failure_at", sa.DateTime(timezone=True))
+    )
     op.create_index(
         "ix_workloads_active_health_scope",
         "workloads",
@@ -40,5 +46,13 @@ def downgrade():
     )
     op.drop_index("ix_scope_targets_configured_health", table_name="workload_scope_targets")
     op.drop_index("ix_workloads_active_health_scope", table_name="workloads")
-    for column in ("failure_binding", "success_binding", "attempt_binding"):
+    for column in (
+        "bound_failure_at",
+        "bound_success_config_id",
+        "bound_success_id",
+        "bound_attempt_sequence",
+        "failure_binding",
+        "success_binding",
+        "attempt_binding",
+    ):
         op.drop_column("workload_observation_state", column)

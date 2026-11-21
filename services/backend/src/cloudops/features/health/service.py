@@ -51,6 +51,7 @@ REASONS = {
     "executor_feature_view": "Open a workload to inspect recovery authority for its exact UID.",
     "runner_unconfigured": "No KRR runner endpoint is configured.",
     "runner_not_observed": "A KRR endpoint is configured. Current runner availability is unknown.",
+    "report_invalid": "The retained resource report has invalid evidence.",
     "report_not_observed": "No qualified resource report has been retained.",
     "report_retained": "A qualified report was retained. Open it for its source evidence and applicability.",
 }
@@ -162,30 +163,38 @@ def cluster_observation(db, now):
     elif not assessment:
         status, reason = "unknown", "no_matching_observation"
     elif state.latest_outcome == "partial":
-        if state.partial_payload:
+        if state.last_failure_at and state.last_failure_at < now - timedelta(
+            days=POLICY.history_days
+        ):
+            status, reason = "unavailable", "observation_expired"
+        elif state.partial_payload:
             observed = evidence_time(
                 Observation.model_validate(state.partial_payload).observed_at, cutoff
             )
-        status, reason = (
-            ("partial", "observation_partial") if observed else ("unknown", "invalid_evidence_time")
-        )
+            status, reason = (
+                ("partial", "observation_partial")
+                if observed
+                else ("unknown", "invalid_evidence_time")
+            )
+        else:
+            status, reason = "unknown", "no_matching_observation"
     elif assessment.coverage == "complete":
         status, reason, observed = "fresh", "observation_fresh", last_success
     elif "lease_expired" in assessment.reasons or "history_expired" in assessment.reasons:
         status, reason = "unavailable", "observation_expired"
     elif (
-        state.failure_binding == evidence.config_id
+        evidence.failure_matches
         and state.last_failure_reason == "permission_denied"
         and (state.latest_outcome != "running" or state.success_sequence != state.sequence - 1)
         and "permission_denied" in assessment.reasons
     ):
         status, reason = "denied", "observation_denied"
-    elif "stale" in assessment.reasons and state.success_binding == evidence.config_id:
+    elif "stale" in assessment.reasons and evidence.success_matches:
         status, reason, observed = "stale", "observation_stale", last_success
     elif state.last_success_at and last_success is None:
         status, reason = "unknown", "invalid_evidence_time"
     elif state.latest_outcome == "running" and (
-        state.failure_binding != evidence.config_id or "not_observed" in assessment.reasons
+        not evidence.failure_matches or "not_observed" in assessment.reasons
     ):
         status, reason = "unknown", "observation_pending"
     elif state.latest_outcome == "complete":
@@ -204,7 +213,7 @@ def cluster_observation(db, now):
         observed_at=observed,
         last_attempt_at=evidence_time(state.last_attempt_at, cutoff) if state else None,
         last_success_at=last_success,
-        last_success_config_id=state.success_binding if state and last_success else None,
+        last_success_config_id=evidence.last_success_config_id if last_success else None,
         last_failure_at=evidence_time(state.last_failure_at, cutoff) if state else None,
         stale_after_seconds=POLICY.stale_seconds,
     )
@@ -221,9 +230,11 @@ def report_observation(db, now):
         result = ReportResult.model_validate(row.result_v2)
     except ValidationError:
         result = None
-    source = result.source_evidence if result else None
-    invocation = result.tool_invocation if result else None
-    identity = result.identity if result else None
+    if not result or result.state != "available" or result.source != "live_krr":
+        return observation(now, "krr_report", "unknown", "live_krr", "report_invalid")
+    source = result.source_evidence
+    invocation = result.tool_invocation
+    identity = result.identity
     return observation(
         now,
         "krr_report",

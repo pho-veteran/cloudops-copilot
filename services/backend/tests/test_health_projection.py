@@ -98,13 +98,13 @@ def test_current_cluster_observation_requires_exact_uid_attempt_and_config(
     uid = ["deploy-uid"]
     result = ["complete"]
 
-    def write_reader(server):
+    def write_reader(server, token="private-reader-sentinel"):
         reader_path.write_text(
             json.dumps(
                 {
                     "server": server,
                     "ca_data": base64.b64encode(b"controlled-ca").decode(),
-                    "token": "private-reader-sentinel",
+                    "token": token,
                 }
             ),
             encoding="utf-8",
@@ -187,6 +187,13 @@ def test_current_cluster_observation_requires_exact_uid_attempt_and_config(
                 frozen.setattr(service, "database_now", lambda db: stamp)
                 assert get_cluster()["status"] == expected
 
+        write_reader("https://cluster-a.invalid", token="rotated-reader")
+        rotated = get_cluster()
+        assert rotated["status"] == "unknown" and rotated["observed_at"] is None
+        assert rotated["config_id"] == last_success["config_id"]
+        assert rotated["last_success_at"] == last_success["last_success_at"]
+        write_reader("https://cluster-a.invalid")
+
         for outcome in ("denied", "partial"):
             result[0] = outcome
             direct = asyncio.run(observation_service.observe_direct(workload_id))
@@ -196,11 +203,22 @@ def test_current_cluster_observation_requires_exact_uid_attempt_and_config(
             assert row["last_attempt_at"] is not None and row["last_failure_at"] is not None
             if outcome == "partial":
                 assert datetime.fromisoformat(row["observed_at"]) == direct.observation.observed_at
+                with monkeypatch.context() as frozen:
+                    from cloudops.features.workloads.observation_settings import POLICY
+
+                    expired = datetime.fromisoformat(row["last_failure_at"]) + timedelta(
+                        days=POLICY.history_days, microseconds=1
+                    )
+                    frozen.setattr(service, "database_now", lambda db: expired)
+                    retained = get_cluster()
+                    assert retained["reason_code"] == "observation_expired"
+                    assert retained["observed_at"] is None
             else:
                 assert row["observed_at"] is None
 
+        private, public = observation_service.reader_bindings()
         pending = observation_service.claim(
-            workload_id, "baseline_candidate", reader_identity=observation_service.reader_binding()
+            workload_id, "baseline_candidate", reader_identity=private, public_reader=public
         )
         assert get_cluster()["status"] != "fresh"
         observation_service.finalize(pending, observed(pending.identity, pending.started_at))
@@ -218,7 +236,10 @@ def test_current_cluster_observation_requires_exact_uid_attempt_and_config(
         write_reader("https://cluster-a.invalid")
         with sessions()() as db, db.begin():
             previous = db.get(ObservationState, workload_id)
-            previous.attempt_binding = previous.success_binding = None
+            # An older worker advances the attempt while leaving the new binding columns intact.
+            previous.sequence += 1
+            previous.success_sequence = previous.sequence
+            previous.last_attempt_at = database_now(db)
         unbound = get_cluster()
         assert unbound["status"] == "unknown"
         assert unbound["last_success_at"] == prior["last_success_at"]
@@ -351,6 +372,12 @@ def test_poll_is_bounded_read_only_and_retains_krr_evidence(client, db, monkeypa
     rows, _ = poll()
     assert rows["krr_runner"]["status"] == "unconfigured"
     assert rows["krr_report"]["report_id"] == str(report_id)
+    with db.begin():
+        row = db.get(RecommendationReport, report_id)
+        row.result_v2 = {"state": "unavailable"}
+    rows, _ = poll()
+    assert rows["krr_report"]["reason_code"] == "report_invalid"
+    assert rows["krr_report"]["last_success_at"] is None
     with db.begin():
         assert db.scalar(select(func.count()).select_from(Job)) == 0
         assert db.scalar(select(func.count()).select_from(ObservationAttempt)) == 0
