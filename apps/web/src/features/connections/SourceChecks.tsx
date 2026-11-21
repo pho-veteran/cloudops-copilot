@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Failure, Loading } from "@/app/Feedback";
 import { Badge } from "@/components/ui/badge";
+import { useEvidenceElapsed } from "@/hooks/useEvidenceElapsed";
 import { Button } from "@/components/ui/button";
 import { requestKey, settleKey } from "@/features/investigations/request";
 import { api, unwrap } from "@/lib/api/client";
@@ -32,20 +33,21 @@ function MetricsEvidence({ evidence }: { evidence: Metrics }) {
   );
 }
 
-function CheckButton({ component }: { component: Component }) {
+function CheckButton({ component, actorId }: { component: Component; actorId: string }) {
   const cache = useQueryClient();
-  const scope = `connection-check:${component}`;
+  const scope = `connection-check:${actorId}:${component}`;
   const check = useMutation({
+    networkMode: "always",
     retry: false,
     mutationFn: async (key: string) => unwrap(await api.POST("/api/connection-checks", {
       body: { component },
       params: { header: { "idempotency-key": key } },
     })),
     onSuccess(receipt, key) {
-      if (receipt.reason_code !== "check_pending") settleKey(scope, undefined, key);
+      if (receipt.reason_code !== "check_pending") settleKey(scope, undefined, key, true);
     },
     onError(error, key) {
-      settleKey(scope, error, key);
+      settleKey(scope, error, key, true);
     },
     onSettled() {
       return cache.invalidateQueries({ queryKey: checksKey });
@@ -54,7 +56,7 @@ function CheckButton({ component }: { component: Component }) {
 
   return (
     <div>
-      <Button variant="outline" disabled={check.isPending} onClick={() => check.mutate(requestKey(scope, {}))}>
+      <Button variant="outline" disabled={check.isPending} onClick={() => check.mutate(requestKey(scope, {}, true))}>
         {`Check ${labels[component]} connection`}
       </Button>
       {check.isPending && <p role="status">Checking {labels[component]}…</p>}
@@ -64,7 +66,7 @@ function CheckButton({ component }: { component: Component }) {
   );
 }
 
-export function SourceChecks({ canMutate }: { canMutate: boolean }) {
+export function SourceChecks({ canMutate, actorId }: { canMutate: boolean; actorId: string }) {
   const statuses = useQuery({
     queryKey: statusKey,
     queryFn: async () => unwrap(await api.GET("/api/connection-checks/status")),
@@ -74,6 +76,7 @@ export function SourceChecks({ canMutate }: { canMutate: boolean }) {
     queryKey: checksKey,
     queryFn: async () => unwrap(await api.GET("/api/connection-checks")),
   });
+  const elapsed = useEvidenceElapsed(statuses.dataUpdatedAt);
   return (
     <section aria-label="Configured source checks" className="foundation-stack">
       {!canMutate && <p>Viewer access allows inspection of saved checks. An Operator can start a new check.</p>}
@@ -82,12 +85,14 @@ export function SourceChecks({ canMutate }: { canMutate: boolean }) {
       <div className="foundation-grid">
         {(Object.keys(labels) as Component[]).map((component) => {
           const item = statuses.data?.find((entry) => entry.component === component);
+          const aged = item?.status === "available" && item.observed_at && item.stale_after_seconds != null &&
+            Date.parse(item.assessed_at) - Date.parse(item.observed_at) + elapsed > item.stale_after_seconds * 1000;
           return (
             <article key={component} className="foundation-panel min-w-0">
               <h2>{labels[component]} check</h2>
               {item && <>
-                <Badge variant="outline">{item.status.replaceAll("_", " ")}</Badge>
-                <p>{item.reason}</p>
+                <Badge variant="outline">{(aged ? "stale" : item.status).replaceAll("_", " ")}</Badge>
+                <p>{aged ? "The last successful check is past its freshness threshold. Run a new check." : item.reason}</p>
                 {item.target && <p className="break-all">{item.target.cluster} / {item.target.namespace} / {item.target.name} · UID {item.target.uid}</p>}
                 <dl className="muted">
                   <dt>Last attempt</dt><dd>{time(item.last_attempt_at)}</dd>
@@ -97,7 +102,7 @@ export function SourceChecks({ canMutate }: { canMutate: boolean }) {
                 </dl>
                 {item.metrics && <MetricsEvidence evidence={item.metrics} />}
               </>}
-              {canMutate && <CheckButton component={component} />}
+              {canMutate && <CheckButton key={actorId} component={component} actorId={actorId} />}
             </article>
           );
         })}

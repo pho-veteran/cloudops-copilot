@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearRequestKeys } from "@/features/investigations/request";
 import type { components, operations } from "@/lib/api/generated/schema";
@@ -46,7 +46,7 @@ const status: components["schemas"]["CheckStatus"] = {
 
 function mount(canMutate: boolean) {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } } });
-  const view = render(<QueryClientProvider client={cache}><SourceChecks canMutate={canMutate} /></QueryClientProvider>);
+  const view = render(<QueryClientProvider client={cache}><SourceChecks canMutate={canMutate} actorId={id} /></QueryClientProvider>);
   return { ...view, cache };
 }
 
@@ -63,6 +63,8 @@ afterEach(() => {
   cleanup();
   http.fetch.mockReset();
   clearRequestKeys();
+  sessionStorage.clear();
+  onlineManager.setOnline(true);
 });
 
 describe("configured source checks", () => {
@@ -89,19 +91,71 @@ describe("configured source checks", () => {
       if (requests.length === 1) throw new TypeError("Lost reply");
       return completedCheck();
     });
-    mount(true);
+    const first = mount(true);
     const user = userEvent.setup();
-    const button = screen.getByRole("button", { name: "Check Prometheus connection" });
-    await user.click(button);
+    const check = () => screen.getByRole("button", { name: "Check Prometheus connection" });
+    await user.click(check());
     await screen.findByText(/Cannot reach the local API/);
     expect(requests).toHaveLength(1);
-    await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
-    await user.click(button);
+    first.unmount();
+    clearRequestKeys();
+    mount(true);
+    await screen.findByText("Raw sample freshness");
+    expect(requests).toHaveLength(1);
+    await user.click(check());
     await screen.findByText("The source check reached its deadline.");
     expect(requests).toHaveLength(2);
     expect(requests[0].key).toMatch(/^[0-9a-f-]{36}$/);
     expect(requests[0].body).toEqual({ component: "prometheus" });
     expect(requests[1]).toEqual(requests[0]);
+  });
+
+  it("ages a retained check when refresh fails and the wall clock jumps", async () => {
+    const recent = {
+      ...status, status: "available", reason_code: "query_succeeded", reason: "Scoped data returned.",
+      observed_at: new Date(Date.parse(date) - 299_000).toISOString(),
+    };
+    let fail = false;
+    http.fetch.mockImplementation(async (input) => {
+      if (fail && (input as Request).url.endsWith("/status")) throw new TypeError("Offline");
+      return Response.json((input as Request).url.endsWith("/status") ? [recent] : []);
+    });
+    const { cache } = mount(false);
+    const card = (await screen.findByRole("heading", { name: "Prometheus check" })).closest("article")!;
+    expect(await within(card).findByText("available", { exact: true })).toBeTruthy();
+    fail = true;
+    await act(() => cache.refetchQueries({ queryKey: ["connection-checks", "status"] }));
+    const original = performance.now();
+    const clock = vi.spyOn(performance, "now").mockReturnValue(original + 2500);
+    const wall = vi.spyOn(Date, "now").mockReturnValue(Date.now() - 3600_000);
+    try {
+      expect(await within(card).findByText("stale", { exact: true }, { timeout: 2000 })).toBeTruthy();
+      expect(within(card).getByText("unknown")).toBeTruthy();
+      expect(screen.getByText(/Cannot reach the local API/)).toBeTruthy();
+    } finally {
+      clock.mockRestore();
+      wall.mockRestore();
+    }
+  });
+
+  it("does not queue a check to send after reconnect", async () => {
+    const posts: string[] = [];
+    const user = userEvent.setup();
+    http.fetch.mockImplementation(async (input) => {
+      const request = input as Request;
+      if (request.method === "GET") return Response.json(request.url.endsWith("/status") ? [status] : []);
+      if (!onlineManager.isOnline()) throw new TypeError("Offline");
+      posts.push(request.url);
+      return completedCheck();
+    });
+    mount(true);
+    await screen.findByText("Raw sample freshness");
+    onlineManager.setOnline(false);
+    await user.click(screen.getByRole("button", { name: "Check Prometheus connection" }));
+    await screen.findByText(/Cannot reach the local API/);
+    onlineManager.setOnline(true);
+    await waitFor(() => expect(http.fetch.mock.calls.length).toBeGreaterThanOrEqual(3));
+    expect(posts).toHaveLength(0);
   });
 
   it("keeps the new attempt's retry key when the original response arrives late", async () => {

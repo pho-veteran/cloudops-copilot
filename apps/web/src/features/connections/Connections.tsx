@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 import { Failure, Loading } from "@/app/Feedback";
 import { buildReportHash } from "@/app/routes";
 import type { components } from "@/lib/api/generated/schema";
+import { useEvidenceElapsed } from "@/hooks/useEvidenceElapsed";
 import { Badge } from "@/components/ui/badge";
 import { AlertReceipts } from "./AlertReceipts";
 import { OperationsPanel } from "./OperationsPanel";
@@ -72,18 +72,13 @@ function ObservationCard({ observation, elapsed }: { observation: Observation; e
   );
 }
 
-export function Connections({ canMutate }: { canMutate: boolean }) {
+export function Connections({ canMutate, actorId }: { canMutate: boolean; actorId: string }) {
   const query = useQuery({
     queryKey: ["health"],
     queryFn: async () => unwrap(await api.GET("/api/health")),
     refetchInterval: 10000,
   });
-  const [now, setNow] = useState(Date.now);
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  const elapsed = Math.max(0, now - query.dataUpdatedAt);
+  const elapsed = useEvidenceElapsed(query.dataUpdatedAt);
 
   return (
     <section className="foundation-stack">
@@ -108,7 +103,7 @@ export function Connections({ canMutate }: { canMutate: boolean }) {
           </>
         )}
       </section>
-      <SourceChecks canMutate={canMutate} />
+      <SourceChecks canMutate={canMutate} actorId={actorId} />
       <ModelConnection canMutate={canMutate} />
       <OperationsPanel />
       <AlertReceipts />

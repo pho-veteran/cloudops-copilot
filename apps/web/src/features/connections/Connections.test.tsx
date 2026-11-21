@@ -12,7 +12,6 @@ vi.mock("@/lib/api/client", () => ({
   unwrap: ({ data }: { data: unknown }) => data,
 }));
 vi.mock("./AlertReceipts", () => ({ AlertReceipts: () => null }));
-vi.mock("@/features/knowledge/KnowledgeStatus", () => ({ KnowledgeStatus: () => null }));
 vi.mock("@/features/diagnosis/ModelConnection", () => ({ ModelConnection: () => null }));
 
 it("shows unobserved and denied states and links to workload authority without polling it", async () => {
@@ -68,6 +67,18 @@ it("shows unobserved and denied states and links to workload authority without p
     oldest_runnable_age_seconds: null, capacity_deferred: [], capacity_deferred_has_more: false,
     quota_waiting: [], quota_waiting_has_more: false, run_sample_limit: 10,
   };
+  const knowledge: components["schemas"]["KnowledgeIndexStatus"] = {
+    active_generation: {
+      id: reportId, captured_at: assessedAt, indexed_at: assessedAt, config_digest: "config",
+      source_digest: "source", fingerprint: "fingerprint", document_count: 2, chunk_count: 5,
+      chunker_version: "1", index_format_version: "1", ranking_config_version: "1", search_config_version: "1",
+    },
+    catalog_search_available: true, has_active_generation: true, last_attempt: null, last_success: null,
+    last_checked_at: assessedAt, last_checked_source_digest: "source", last_success_at: assessedAt,
+    observed_at: assessedAt, read_available: true, retrieval_available: true,
+    retrieval_mode: "catalog_full_text", semantic_mode: "not_configured", state: "ready",
+    retained: { chunks: 5, document_versions: 2, generations: 1 },
+  };
   let refreshFails = false;
   get.mockImplementation(async (path: string) => {
     if (path === "/api/health") {
@@ -75,13 +86,17 @@ it("shows unobserved and denied states and links to workload authority without p
       return { data: health };
     }
     if (path === "/api/connections/operations") return { data: operations };
+    if (path === "/api/knowledge/index-status") {
+      if (refreshFails) throw new Error("Knowledge refresh failed");
+      return { data: knowledge };
+    }
     if (["/api/connection-checks", "/api/connection-checks/status"].includes(path)) return { data: [] };
     throw new Error(`Unexpected request: ${path}`);
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={cache}>
-      <Connections canMutate={false} />
+      <Connections canMutate={false} actorId={workloadId} />
     </QueryClientProvider>,
   );
   try {
@@ -99,15 +114,21 @@ it("shows unobserved and denied states and links to workload authority without p
     expect(screen.getByRole("link", { name: "Open retained resource report" }).getAttribute("href"))
       .toBe(`#/reports?report=${reportId}`);
     expect(await screen.findByText("No Runs are waiting for collection capacity.")).toBeTruthy();
+    expect(await screen.findByText("2 document versions · 5 chunks")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Check .* connection/ })).toBeNull();
     expect(get.mock.calls.map(([path]) => path).sort()).toEqual([
-      "/api/connection-checks", "/api/connection-checks/status", "/api/connections/operations", "/api/health",
+      "/api/connection-checks", "/api/connection-checks/status", "/api/connections/operations", "/api/health", "/api/knowledge/index-status",
     ]);
     refreshFails = true;
-    await act(() => cache.refetchQueries({ queryKey: ["health"] }));
+    await act(() => Promise.all([
+      cache.refetchQueries({ queryKey: ["health"] }),
+      cache.refetchQueries({ queryKey: ["knowledge", "status"] }),
+    ]));
     expect(await screen.findByText("Showing the last saved assessment.")).toBeTruthy();
     expect(screen.getByText("No Runs are waiting for collection capacity.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open retained resource report" })).toBeTruthy();
+    expect(await screen.findByText("Error: Knowledge refresh failed")).toBeTruthy();
+    expect(screen.getByText("2 document versions · 5 chunks")).toBeTruthy();
   } finally {
     cleanup();
     cache.clear();
