@@ -233,6 +233,10 @@ def test_current_cluster_observation_requires_exact_uid_attempt_and_config(
         del invalid["token"]
         reader_path.write_text(json.dumps(invalid), encoding="utf-8")
         assert get_cluster()["reason_code"] == "reader_unconfigured"
+        write_reader("https://cluster-a.invalid", token="")
+        assert get_cluster()["reason_code"] == "reader_unconfigured"
+        reader_path.write_text("x" * 100_001, encoding="utf-8")
+        assert get_cluster()["reason_code"] == "reader_unconfigured"
         write_reader("https://cluster-a.invalid")
         with sessions()() as db, db.begin():
             previous = db.get(ObservationState, workload_id)

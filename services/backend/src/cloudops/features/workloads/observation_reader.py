@@ -25,7 +25,7 @@ def reader_bindings():
         with Path(os.environ["KUBE_READ_CONFIG"]).open("rb") as stream:
             raw = stream.read(100_001)
         if len(raw) > 100_000:
-            return None
+            return None, None
         config = json.loads(raw)
         token = config["token"]
         if (
@@ -33,7 +33,7 @@ def reader_bindings():
             or not token
             or any(ord(c) <= 32 or ord(c) >= 127 for c in token)
         ):
-            return None
+            return None, None
         return credential_binding(config), binding(config)
     except (AttributeError, KeyError, OSError, ValueError, TypeError, RecursionError):
         return None, None
