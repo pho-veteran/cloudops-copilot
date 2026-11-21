@@ -58,7 +58,7 @@ it("shows unobserved and denied states and links to workload authority without p
   };
   get.mockImplementation(async (path: string) => {
     if (path === "/api/health") return { data: health };
-    if (path === "/api/connection-checks") return { data: [] };
+    if (["/api/connection-checks", "/api/connection-checks/status"].includes(path)) return { data: [] };
     throw new Error(`Unexpected request: ${path}`);
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -79,7 +79,9 @@ it("shows unobserved and denied states and links to workload authority without p
     expect(screen.getByRole("link", { name: "Open observed workload" }).getAttribute("href"))
       .toBe(`#/workloads?workload=${workloadId}`);
     expect(screen.getByRole("link", { name: "Open Workloads" }).getAttribute("href")).toBe("#/workloads");
-    expect(get.mock.calls.map(([path]) => path).sort()).toEqual(["/api/connection-checks", "/api/health"]);
+    expect(get.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/api/connection-checks", "/api/connection-checks/status", "/api/health",
+    ]);
   } finally {
     cleanup();
     cache.clear();
