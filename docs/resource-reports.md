@@ -311,3 +311,6 @@ Expected-UID coverage alone cannot hide another series that influenced KRR.
 The normalized protocol retains allowlisted target/source/configuration/output
 failure reasons in the immutable report; unknown provider reasons use the generic
 fallback and never reach a report verbatim.
+
+The [R6 acceptance record](evidence/e08-r6-integrated.md) maps the bounded live
+run, controlled cases, persistent Edge export and lab cleanup to the E08 gates.
