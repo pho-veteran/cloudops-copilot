@@ -973,6 +973,37 @@
         "title": "BaselineView",
         "type": "object"
       },
+      "BlockedRun": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "incident_title": {
+            "title": "Incident Title",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "incident_title",
+          "run_id",
+          "created_at"
+        ],
+        "title": "BlockedRun",
+        "type": "object"
+      },
       "CallKind": {
         "enum": [
           "text",
@@ -3337,6 +3368,141 @@
         "title": "InverseQualification",
         "type": "object"
       },
+      "JobCounts": {
+        "properties": {
+          "due_retry": {
+            "title": "Due Retry",
+            "type": "integer"
+          },
+          "earliest_future_retry_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Future Retry At"
+          },
+          "expired_lease": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expired Lease"
+          },
+          "future_retry": {
+            "title": "Future Retry",
+            "type": "integer"
+          },
+          "held": {
+            "title": "Held",
+            "type": "integer"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "runnable": {
+            "title": "Runnable",
+            "type": "integer"
+          },
+          "running": {
+            "title": "Running",
+            "type": "integer"
+          },
+          "verification_slots": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationSlots"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "queued",
+          "running",
+          "held",
+          "runnable",
+          "due_retry",
+          "future_retry",
+          "expired_lease",
+          "earliest_future_retry_at",
+          "verification_slots"
+        ],
+        "title": "JobCounts",
+        "type": "object"
+      },
+      "JobKindStatus": {
+        "properties": {
+          "counts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dispatch": {
+            "enum": [
+              "allowed",
+              "paused"
+            ],
+            "title": "Dispatch",
+            "type": "string"
+          },
+          "dispatch_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "permit_missing",
+                  "permit_invalid",
+                  "permit_stale",
+                  "recovery_mode",
+                  "class_denied"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dispatch Reason"
+          },
+          "kind": {
+            "enum": [
+              "development_collection_v1",
+              "diagnosis_analysis_v1",
+              "diagnosis_probe_v1",
+              "recommendation_report_v1",
+              "recovery_execution_v1",
+              "recovery_reconciliation_v1",
+              "recovery_verification_v1"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "counts",
+          "dispatch",
+          "dispatch_reason"
+        ],
+        "title": "JobKindStatus",
+        "type": "object"
+      },
       "JsonValue": {},
       "KnowledgeApplicability": {
         "additionalProperties": false,
@@ -5405,6 +5571,81 @@
         "title": "ObservationSummary",
         "type": "object"
       },
+      "OperationsView": {
+        "properties": {
+          "assessed_at": {
+            "format": "date-time",
+            "title": "Assessed At",
+            "type": "string"
+          },
+          "capacity_deferred": {
+            "items": {
+              "$ref": "#/components/schemas/BlockedRun"
+            },
+            "title": "Capacity Deferred",
+            "type": "array"
+          },
+          "capacity_deferred_has_more": {
+            "title": "Capacity Deferred Has More",
+            "type": "boolean"
+          },
+          "job_read_limit": {
+            "title": "Job Read Limit",
+            "type": "integer"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobKindStatus"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "jobs_capped": {
+            "title": "Jobs Capped",
+            "type": "boolean"
+          },
+          "oldest_runnable_age_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oldest Runnable Age Seconds"
+          },
+          "quota_waiting": {
+            "items": {
+              "$ref": "#/components/schemas/QuotaWaitingRun"
+            },
+            "title": "Quota Waiting",
+            "type": "array"
+          },
+          "quota_waiting_has_more": {
+            "title": "Quota Waiting Has More",
+            "type": "boolean"
+          },
+          "run_sample_limit": {
+            "title": "Run Sample Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assessed_at",
+          "jobs",
+          "jobs_capped",
+          "job_read_limit",
+          "oldest_runnable_age_seconds",
+          "capacity_deferred",
+          "capacity_deferred_has_more",
+          "quota_waiting",
+          "quota_waiting_has_more",
+          "run_sample_limit"
+        ],
+        "title": "OperationsView",
+        "type": "object"
+      },
       "OriginView": {
         "properties": {
           "kind": {
@@ -6587,6 +6828,50 @@
           "unit"
         ],
         "title": "QuerySpec",
+        "type": "object"
+      },
+      "QuotaWaitingRun": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "earliest_retry_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Retry At"
+          },
+          "incident_id": {
+            "format": "uuid",
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "incident_title": {
+            "title": "Incident Title",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "incident_title",
+          "run_id",
+          "created_at",
+          "earliest_retry_at"
+        ],
+        "title": "QuotaWaitingRun",
         "type": "object"
       },
       "RCAResult": {
@@ -9771,6 +10056,37 @@
         "title": "VerificationProfile",
         "type": "object"
       },
+      "VerificationSlots": {
+        "properties": {
+          "due": {
+            "title": "Due",
+            "type": "integer"
+          },
+          "earliest_future_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Future At"
+          },
+          "future": {
+            "title": "Future",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "due",
+          "future",
+          "earliest_future_at"
+        ],
+        "title": "VerificationSlots",
+        "type": "object"
+      },
       "VerificationView": {
         "properties": {
           "acknowledged_at": {
@@ -11240,6 +11556,92 @@
           }
         ],
         "summary": "Status",
+        "tags": [
+          "connections"
+        ]
+      }
+    },
+    "/api/connections/operations": {
+      "get": {
+        "operationId": "read_connection_operations",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Operations",
         "tags": [
           "connections"
         ]

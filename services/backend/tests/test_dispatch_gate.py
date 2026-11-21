@@ -88,6 +88,15 @@ def test_every_job_kind_is_denied_without_a_valid_permit(
     assert snapshot() == before
 
 
+def test_dispatch_status_rejects_an_unusable_lock(dispatch_permit):
+    lock = dispatch_permit / permits.LOCK
+    lock.unlink()
+    lock.mkdir()
+    assert GATE.status("collection") == (False, "permit_invalid")
+    with GATE.admitted() as admission:
+        assert not admission.kinds and admission.reason == "permit_invalid"
+
+
 def test_recovery_denies_promotion_until_collection_is_resumed(client, dispatch_permit):
     ids = create(client, sign_in(client), incident_body(client)).json()
     with sessions()() as db, db.begin():

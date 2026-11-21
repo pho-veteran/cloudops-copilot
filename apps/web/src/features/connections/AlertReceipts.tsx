@@ -2,6 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import type { components } from "@/lib/api/generated/schema";
 import { api, unwrap } from "@/lib/api/client";
 import { Failure, Loading } from "@/app/Feedback";
+import { buildIncidentHash } from "@/app/routes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -9,35 +10,37 @@ type Receipt = components["schemas"]["AlertReceiptView"];
 
 const outcomes: Record<Receipt["outcome"], string> = {
   accepted: "Accepted",
-  deferred: "Accepted · waiting for capacity",
+  deferred: "Accepted · deferred at delivery",
   duplicate: "Duplicate",
   resolved_signal: "Alert resolved",
   ignored: "Ignored",
   rejected: "Rejected",
-  retryable: "Retry pending",
+  retryable: "Retry requested at delivery",
 };
 
 const reasons: Record<string, string> = {
   identity_missing:
-    "The alert has no namespace with a deployment or pod label, or the object no longer exists.",
-  identity_invalid: "Identity labels are not valid Kubernetes names.",
-  identity_ambiguous: "Pod and deployment labels disagree or the owner chain is ambiguous.",
-  identity_changed: "The live Deployment UID differs from the configured identity.",
-  unsupported_identity: "The pod is not owned by a Deployment through a ReplicaSet.",
-  out_of_scope: "The workload is not in the configured scope.",
+    "The workload identity could not be found. Check the namespace and deployment or pod labels, and confirm the object still exists.",
+  identity_invalid: "Identity labels are invalid. Use valid Kubernetes names in the alert labels.",
+  identity_ambiguous: "The workload identity is ambiguous. Check that the pod and deployment labels agree and the owner chain identifies one Deployment.",
+  identity_changed: "The live Deployment UID differs from the configured identity. Ask the scope owner to review the pinned UID.",
+  unsupported_identity: "The pod is not owned by a Deployment through a ReplicaSet. Check the workload type and alert mapping.",
+  out_of_scope: "The workload is not in the configured scope. Check the alert's cluster, namespace and workload against the pinned scope.",
   resolved_before_admission: "Resolved before any investigation was admitted.",
-  scope_unpinned: "Intake needs the pinned live scope for its configured cluster.",
-  scope_changed: "The workload scope changed during the read; Alertmanager will retry.",
-  cluster_unavailable: "The scoped cluster read failed; Alertmanager will retry.",
-  budget_exhausted: "The scoped cluster read budget was exhausted; Alertmanager will retry.",
-  capacity_exhausted: "Investigation capacity is full; Alertmanager will retry.",
-  admission_conflict: "Admission was refused for now; Alertmanager will retry.",
-  database_unavailable: "The application database was unavailable; Alertmanager will retry.",
+  scope_unpinned: "Intake needs a pinned live scope. Ask the scope owner to check the configured cluster and scope.",
+  scope_changed: "The workload scope changed during the read.",
+  cluster_unavailable: "The scoped cluster read failed.",
+  budget_exhausted: "The scoped cluster read budget was exhausted.",
+  capacity_exhausted: "Investigation capacity was full.",
+  admission_conflict: "Admission was temporarily refused.",
+  database_unavailable: "The application database was unavailable.",
 };
 
 export function describeReason(code: string | null) {
   if (!code) return null;
-  return reasons[code] ?? `Unrecognized reason: ${code}`;
+  return Object.hasOwn(reasons, code)
+    ? reasons[code]
+    : "Reason unavailable. Check the delivery configuration or ask the intake owner.";
 }
 
 export function AlertReceipts() {
@@ -62,8 +65,8 @@ export function AlertReceipts() {
     <section className="foundation-panel foundation-stack" aria-labelledby="alert-intake">
       <h2 id="alert-intake">Alert intake</h2>
       <p className="muted">
-        Outcomes of authenticated Alertmanager deliveries, newest first. Unauthenticated or
-        malformed deliveries are refused without being recorded. Intake never calls a model.
+        Retained outcomes of authenticated Alertmanager deliveries, newest first. Each receipt
+        records the outcome at delivery time.
       </p>
       {query.isPending ? (
         <Loading />
@@ -82,7 +85,7 @@ export function AlertReceipts() {
             </Button>
           </div>
           {!items.length ? (
-            <p>No authenticated deliveries yet.</p>
+            <p>No retained deliveries.</p>
           ) : (
             <ol className="foundation-stack">
               {items.map((item) => (
@@ -103,9 +106,9 @@ export function AlertReceipts() {
                   {describeReason(item.reason) && <p>{describeReason(item.reason)}</p>}
                   {item.incident_id && (
                     <a
-                      href={`#/incidents/${item.incident_id}${item.run_id ? `?run=${item.run_id}` : ""}`}
+                      href={buildIncidentHash(item.incident_id, item.run_id ?? undefined)}
                     >
-                      Open incident
+                      {item.run_id ? "Open Run" : "Open incident"}
                     </a>
                   )}
                 </li>

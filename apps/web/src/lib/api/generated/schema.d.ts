@@ -59,6 +59,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/connections/operations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operations */
+        get: operations["read_connection_operations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/diagnosis/checks": {
         parameters: {
             query?: never;
@@ -1392,6 +1409,26 @@ export interface components {
              */
             workload_id: string;
         };
+        /** BlockedRun */
+        BlockedRun: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Incident Id
+             * Format: uuid
+             */
+            incident_id: string;
+            /** Incident Title */
+            incident_title: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+        };
         /**
          * CallKind
          * @enum {string}
@@ -2165,6 +2202,42 @@ export interface components {
             /** Workload Uid */
             workload_uid: string;
         };
+        /** JobCounts */
+        JobCounts: {
+            /** Due Retry */
+            due_retry: number;
+            /** Earliest Future Retry At */
+            earliest_future_retry_at: string | null;
+            /** Expired Lease */
+            expired_lease: number | null;
+            /** Future Retry */
+            future_retry: number;
+            /** Held */
+            held: number;
+            /** Queued */
+            queued: number;
+            /** Runnable */
+            runnable: number;
+            /** Running */
+            running: number;
+            verification_slots: components["schemas"]["VerificationSlots"] | null;
+        };
+        /** JobKindStatus */
+        JobKindStatus: {
+            counts: components["schemas"]["JobCounts"] | null;
+            /**
+             * Dispatch
+             * @enum {string}
+             */
+            dispatch: "allowed" | "paused";
+            /** Dispatch Reason */
+            dispatch_reason: ("permit_missing" | "permit_invalid" | "permit_stale" | "recovery_mode" | "class_denied") | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "development_collection_v1" | "diagnosis_analysis_v1" | "diagnosis_probe_v1" | "recommendation_report_v1" | "recovery_execution_v1" | "recovery_reconciliation_v1" | "recovery_verification_v1";
+        };
         JsonValue: unknown;
         /** KnowledgeApplicability */
         KnowledgeApplicability: {
@@ -2866,6 +2939,32 @@ export interface components {
              */
             stale_after_seconds: 60;
         };
+        /** OperationsView */
+        OperationsView: {
+            /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
+            /** Capacity Deferred */
+            capacity_deferred: components["schemas"]["BlockedRun"][];
+            /** Capacity Deferred Has More */
+            capacity_deferred_has_more: boolean;
+            /** Job Read Limit */
+            job_read_limit: number;
+            /** Jobs */
+            jobs: components["schemas"]["JobKindStatus"][];
+            /** Jobs Capped */
+            jobs_capped: boolean;
+            /** Oldest Runnable Age Seconds */
+            oldest_runnable_age_seconds: number | null;
+            /** Quota Waiting */
+            quota_waiting: components["schemas"]["QuotaWaitingRun"][];
+            /** Quota Waiting Has More */
+            quota_waiting_has_more: boolean;
+            /** Run Sample Limit */
+            run_sample_limit: number;
+        };
         /** OriginView */
         OriginView: {
             /**
@@ -3277,6 +3376,28 @@ export interface components {
             query: string;
             /** Unit */
             unit: string;
+        };
+        /** QuotaWaitingRun */
+        QuotaWaitingRun: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Earliest Retry At */
+            earliest_retry_at: string | null;
+            /**
+             * Incident Id
+             * Format: uuid
+             */
+            incident_id: string;
+            /** Incident Title */
+            incident_title: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
         };
         /**
          * RCAResult
@@ -4417,6 +4538,15 @@ export interface components {
             /** Workload Uid */
             workload_uid: string;
         };
+        /** VerificationSlots */
+        VerificationSlots: {
+            /** Due */
+            due: number;
+            /** Earliest Future At */
+            earliest_future_at: string | null;
+            /** Future */
+            future: number;
+        };
         /** VerificationView */
         VerificationView: {
             /** Acknowledged At */
@@ -5032,6 +5162,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CheckStatus"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    read_connection_operations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationsView"];
                 };
             };
             /** @description Unauthorized */

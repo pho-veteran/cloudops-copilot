@@ -115,6 +115,7 @@ OPERATIONS = {
     ),
     "create_connection_check": Operation("POST", "/api/connection-checks", "operator_mutation"),
     "list_connection_checks": Operation("GET", "/api/connection-checks", "protected_read"),
+    "read_connection_operations": Operation("GET", "/api/connections/operations", "protected_read"),
     "get_connection_check_status": Operation(
         "GET", "/api/connection-checks/status", "protected_read"
     ),

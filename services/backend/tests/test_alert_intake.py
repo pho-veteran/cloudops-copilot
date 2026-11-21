@@ -263,6 +263,16 @@ def test_permanent_identity_refusals_leave_a_terminal_marker(
     assert again.json()["counts"] == {"duplicate": 1}
     assert len(intake.calls) == calls, "A known episode is never remapped"
     assert rows(AlertReceipt, AlertReceipt.outcome == "duplicate")[0].reason == reason
+    sign_in(client, "viewer")
+    history = client.get("/api/alert-receipts").json()["items"]
+    for receipt in history:
+        assert (receipt["reason"], receipt["incident_id"], receipt["run_id"]) == (
+            reason,
+            None,
+            None,
+        )
+    assert {receipt["outcome"] for receipt in history} == {"rejected", "duplicate"}
+    assert len(intake.calls) == calls
 
 
 @pytest.mark.parametrize("failure", ["forbidden", "redirect", "server", "fingerprint", "unpinned"])
@@ -506,6 +516,12 @@ def test_capacity_defers_refuses_replays_and_promotes_the_same_run(client, intak
     assert rows(InvestigationRun, InvestigationRun.id == accepted.run_id)[0].queue_reason == (
         "capacity"
     )
+    operations_route = "/api/connections/operations"
+    sample = client.get(operations_route).json()["capacity_deferred"]
+    assert [(row["incident_id"], row["run_id"]) for row in sample] == [
+        (str(accepted.incident_id), str(accepted.run_id))
+    ]
+    assert not rows(Job, Job.subject_id == accepted.run_id)
     before = (count(Incident), count(InvestigationRun), count(AlertEpisode))
     full = deliver(client, envelope(alert("b3")))
     assert full.status_code == 503 and episode("b3") is None
@@ -517,7 +533,15 @@ def test_capacity_defers_refuses_replays_and_promotes_the_same_run(client, intak
     link = rows(AlertReceipt, AlertReceipt.outcome == "duplicate")[0]
     assert (link.incident_id, link.run_id) == (accepted.incident_id, accepted.run_id)
     free_capacity()
+    assert client.get(operations_route).json()["capacity_deferred"] == sample
     assert promote_deferred(gate=GATE) == 1
+    assert client.get(operations_route).json()["capacity_deferred"] == []
+    retained = client.get("/api/alert-receipts").json()["items"]
+    original = next(receipt for receipt in retained if receipt["outcome"] == "deferred")
+    assert (original["incident_id"], original["run_id"]) == (
+        str(accepted.incident_id),
+        str(accepted.run_id),
+    )
     with sessions()() as db:
         run = db.get(InvestigationRun, accepted.run_id)
         assert run.queue_reason is None
