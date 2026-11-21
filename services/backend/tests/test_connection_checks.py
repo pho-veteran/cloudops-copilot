@@ -233,6 +233,9 @@ def test_failed_source_is_classified_and_never_redirected(
     [
         ("full", "query_succeeded", "available"),
         ("empty", "metrics_missing", "missing"),
+        ("empty_values", "metrics_missing", "missing"),
+        ("malformed", "invalid_response", None),
+        ("mixed", "metrics_partial", "partial"),
         ("foreign", "metrics_missing", "missing"),
         ("gapped", "metrics_partial", "partial"),
         ("stale", "metrics_stale", "partial"),
@@ -249,23 +252,28 @@ def test_metric_coverage_and_raw_freshness_are_independent(
         assert request.url.params["query"] == 'value{namespace="demo",deployment_uid="uid-1"}'
         assert request.headers["authorization"] == "Bearer scoped-prom"
         start = float(request.url.params["start"])
-        points = {"full": [0, 1, 2, 3, 4], "gapped": [0, 2, 4], "stale": [0, 1]}.get(shape, [0, 4])
+        points = {
+            "full": [0, 1, 2, 3, 4],
+            "mixed": [0, 1, 2, 3, 4],
+            "gapped": [0, 2, 4],
+            "stale": [0, 1],
+            "empty_values": [],
+        }.get(shape, [0, 4])
+        metric = {
+            "namespace": "demo",
+            "deployment_uid": "foreign" if shape == "foreign" else "uid-1",
+        }
+        series = [{"metric": metric, "values": [[start + 30 * step, "0"] for step in points]}]
+        if shape == "malformed":
+            series = [{"metric": metric}, {"metric": metric, "values": "invalid"}]
+        if shape == "mixed":
+            series.append({"metric": metric, "values": "invalid"})
         return streamed_json(
             {
                 "status": "success",
                 "data": {
                     "resultType": "matrix",
-                    "result": []
-                    if shape == "empty"
-                    else [
-                        {
-                            "metric": {
-                                "namespace": "demo",
-                                "deployment_uid": "foreign" if shape == "foreign" else "uid-1",
-                            },
-                            "values": [[start + 30 * step, "0"] for step in points],
-                        }
-                    ],
+                    "result": [] if shape == "empty" else series,
                 },
             },
         )
@@ -273,8 +281,11 @@ def test_metric_coverage_and_raw_freshness_are_independent(
     route(monkeypatch, serve)
     row = post(client, headers, "prometheus").json()
     assert row["reason_code"] == reason
-    assert row["metrics"]["coverage"] == coverage
-    assert row["metrics"]["raw_freshness"] == "unknown"
+    if coverage:
+        assert row["metrics"]["coverage"] == coverage
+        assert row["metrics"]["raw_freshness"] == "unknown"
+    else:
+        assert row["metrics"] is None
     assert status(client, "prometheus")["metrics"] == row["metrics"]
 
 
@@ -402,6 +413,53 @@ def test_v2_check_uses_the_exact_configured_target_and_refuses_unapplied_scope(
     assert status(client, "cluster")["status"] == "unconfigured"
 
 
+def test_applied_legacy_scope_change_blocks_new_reads(configured, monkeypatch, tmp_path):
+    from cloudops.features.workloads import reconcile
+
+    client, _, _ = configured
+    scope_file = tmp_path / "scope.json"
+    monkeypatch.setenv("WORKLOADS_FILE", str(scope_file))
+    settings.cache_clear()
+    entries = [
+        {
+            "cluster": "owned",
+            "namespace": "demo",
+            "name": "checkout",
+            "uid": "uid-1",
+            "source": "live_kubernetes",
+        }
+    ]
+    scope_file.write_text(json.dumps(entries))
+    with sessions()() as db:
+        reconcile.sync(db)
+
+    calls = []
+
+    def serve(request):
+        calls.append(request)
+        return deployment(request)
+
+    auth = sign_in(client)
+    route(monkeypatch, serve)
+    original = post(client, auth, "cluster").json()
+    assert original["reason_code"] == "deployment_read"
+    scope_file.write_text("[]")
+    allow_next("cluster")
+    assert post(client, auth, "cluster").json()["reason_code"] == "scope_changed"
+    assert status(client, "cluster")["reason_code"] == "scope_changed"
+    receipts = client.get(CHECKS).json()
+    assert next(row for row in receipts if row["id"] == original["id"])["historical"]
+    assert len(calls) == 1
+
+    scope_file.write_text(json.dumps(entries) + "\n")
+    with sessions()() as db:
+        reconcile.sync(db)
+    allow_next("cluster")
+    assert post(client, auth, "cluster").json()["reason_code"] == "deployment_read"
+    assert len(calls) == 2
+    settings.cache_clear()
+
+
 def test_wrong_provider_uid_and_changed_config_during_read_are_fenced(configured, monkeypatch):
     client, kube, _ = configured
     headers = sign_in(client)
@@ -421,6 +479,50 @@ def test_wrong_provider_uid_and_changed_config_during_read_are_fenced(configured
     row = post(client, headers, "cluster").json()
     assert row["reason_code"] == "config_changed" and row["historical"]
     assert status(client, "cluster")["status"] == "never_observed"
+
+
+def test_settlement_can_never_replace_an_exposed_timeout(configured, monkeypatch):
+    client, _, _ = configured
+    auth = sign_in(client)
+    entered, release = Event(), Event()
+    settling = Event()
+    original_lock = service.lock_admission
+
+    def lock(db):
+        if entered.is_set():
+            settling.set()
+        original_lock(db)
+
+    def serve(request):
+        entered.set()
+        assert release.wait(5)
+        return deployment(request)
+
+    monkeypatch.setattr(service, "lock_admission", lock)
+    route(monkeypatch, serve)
+    key = uuid4()
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        attempt = executor.submit(post, client, auth, "cluster", key)
+        try:
+            assert entered.wait(5)
+            with sessions()() as scope_db, scope_db.begin():
+                original_lock(scope_db)
+                release.set()
+                assert settling.wait(2)
+                with sessions()() as receipt_db, receipt_db.begin():
+                    row = receipt_db.scalar(select(ConnectionCheck))
+                    row.deadline_at = database_now(receipt_db) - timedelta(milliseconds=1)
+                assert status(client, "cluster")["reason_code"] == "timeout"
+        finally:
+            release.set()
+        response = attempt.result(timeout=5)
+    assert response.status_code == 201
+    receipt = response.json()
+    assert receipt["reason_code"] == "timeout"
+    assert post(client, auth, "cluster", key).json() == receipt
+    with sessions()() as db:
+        row = db.get(ConnectionCheck, UUID(receipt["id"]))
+        assert row.finished_at == row.deadline_at and row.evidence_at is None
 
 
 def test_timeout_replay_and_response_bounds(configured, monkeypatch):

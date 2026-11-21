@@ -160,11 +160,15 @@ def selected(db, component: Component, prepared: PreparedConfig, *, fence=False)
         return Selection(target=target, issue=prepared.issue)
     if not target:
         return Selection(issue="scope_missing")
-    if v2:
+    if v2 or scope_digest is not None:
         try:
             with settings().workloads_file.open("rb") as handle:
                 raw_scope = handle.read(100_001)
-            if not scope.fingerprint or hashlib.sha256(raw_scope).hexdigest() != scope_digest:
+            if (
+                len(raw_scope) > 100_000
+                or (v2 and not scope.fingerprint)
+                or hashlib.sha256(raw_scope).hexdigest() != scope_digest
+            ):
                 return Selection(target=target, issue="scope_changed")
         except OSError:
             return Selection(target=target, issue="scope_changed")

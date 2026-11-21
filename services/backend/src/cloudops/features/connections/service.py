@@ -1,10 +1,12 @@
 """Durable admission and passive evidence assessments for explicit checks."""
 
 import asyncio
+from contextlib import contextmanager
 from datetime import timedelta
 from time import monotonic
 
 from sqlalchemy import and_, or_, select, text
+from sqlalchemy.exc import DBAPIError
 
 from cloudops.features.connections import sources
 from cloudops.features.connections.models import ConnectionCheck
@@ -139,6 +141,22 @@ def lock_admission(db):
     db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": ADMISSION_LOCK})
 
 
+@contextmanager
+def check_transaction(db):
+    try:
+        with db.begin():
+            db.execute(text("SET LOCAL lock_timeout = '1s'"))
+            db.execute(text("SET LOCAL statement_timeout = '2s'"))
+            lock_admission(db)
+            yield
+    except DBAPIError as error:
+        if getattr(error.orig, "sqlstate", None) not in {"55P03", "57014"}:
+            raise
+        raise DomainError(
+            503, "check_busy", "Check storage is busy. Try this check again."
+        ) from None
+
+
 def finish(row, result, finished_at, *, evidence_at=None):
     status, row.reason = REASONS[result.reason]
     if result.reason == "heartbeat_missing":
@@ -197,8 +215,7 @@ def runtime_result(db, component, now):
 def create(db, actor_id, component: Component, key):
     cutoff = monotonic() + DEADLINE_SECONDS
     prepared = sources.prepare_config(component)
-    with db.begin():
-        lock_admission(db)
+    with check_transaction(db):
         if key is not None:
             original = db.scalar(
                 select(ConnectionCheck).where(ConnectionCheck.idempotency_key == key)
@@ -265,16 +282,17 @@ def create(db, actor_id, component: Component, key):
         else sources.Result("timeout")
     )
     prepared = sources.prepare_config(component)
-    deadline_reached = monotonic() >= cutoff
 
-    with db.begin():
-        completed_at = database_now(db)
-        lock_admission(db)
+    with check_transaction(db):
         row = db.get(ConnectionCheck, attempt_id, populate_existing=True)
         current = sources.selected(db, component, prepared, fence=True)
-        assessed_at = database_now(db)
+        completed_at = database_now(db)
         if row.finished_at is None:
-            if deadline_reached or completed_at >= row.deadline_at or result.reason == "timeout":
+            if (
+                monotonic() >= cutoff
+                or completed_at >= row.deadline_at
+                or result.reason == "timeout"
+            ):
                 finish(row, sources.Result("timeout"), min(completed_at, row.deadline_at))
             elif not current_binding(row, current):
                 target_changed = current.target != selection.target
@@ -288,7 +306,7 @@ def create(db, actor_id, component: Component, key):
                     completed_at if result.reason == "deployment_read" or result.coverage else None
                 )
                 finish(row, result, completed_at, evidence_at=evidence_at)
-        return view(row, current, assessed_at)
+        return view(row, current, completed_at)
 
 
 def history(db):

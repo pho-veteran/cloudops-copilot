@@ -206,7 +206,11 @@ def parse_response(
         ):
             foreign += 1
             continue
-        rows, bad = _sample_rows(item.get("values", item.get("samples")), start, end)
+        values = item.get("values", item.get("samples"))
+        if not isinstance(values, list):
+            invalid += 1
+            continue
+        rows, bad = _sample_rows(values, start, end)
         invalid += bad
         if not rows:
             empty += 1
