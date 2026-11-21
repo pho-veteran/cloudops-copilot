@@ -1533,6 +1533,42 @@
         "title": "CitationTargets",
         "type": "object"
       },
+      "CollectionDispatch": {
+        "properties": {
+          "reason_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "permit_missing",
+                  "permit_invalid",
+                  "permit_stale",
+                  "recovery_mode",
+                  "class_denied"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "status": {
+            "enum": [
+              "allowed",
+              "paused",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "CollectionDispatch",
+        "type": "object"
+      },
       "Comparison": {
         "additionalProperties": false,
         "properties": {
@@ -2691,16 +2727,73 @@
       },
       "HealthObservation": {
         "properties": {
+          "assessed_at": {
+            "format": "date-time",
+            "title": "Assessed At",
+            "type": "string"
+          },
           "component": {
             "enum": [
               "database",
               "worker",
               "collector",
+              "kubernetes",
               "diagnosis",
-              "executor"
+              "executor",
+              "krr_runner",
+              "krr_report"
             ],
             "title": "Component",
             "type": "string"
+          },
+          "config_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config Id"
+          },
+          "configured_adapters": {
+            "items": {
+              "enum": [
+                "development_fixture",
+                "live_kubernetes",
+                "prometheus"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Configured Adapters",
+            "type": "array"
+          },
+          "last_attempt_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt At"
+          },
+          "last_failure_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Failure At"
           },
           "last_success_at": {
             "anyOf": [
@@ -2714,59 +2807,214 @@
             ],
             "title": "Last Success At"
           },
+          "last_success_config_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success Config Id"
+          },
           "observed_at": {
-            "format": "date-time",
-            "title": "Observed At",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
           },
           "reason": {
+            "maxLength": 240,
             "title": "Reason",
             "type": "string"
+          },
+          "reason_code": {
+            "enum": [
+              "database_connected",
+              "heartbeat_missing",
+              "heartbeat_fresh",
+              "heartbeat_stale",
+              "invalid_evidence_time",
+              "collector_unconfigured",
+              "collector_configured",
+              "collector_fixture",
+              "collector_configuration_invalid",
+              "scope_not_configured",
+              "scope_target_missing",
+              "scope_target_unavailable",
+              "fixture_target",
+              "reader_unconfigured",
+              "scope_configuration_changed",
+              "no_matching_observation",
+              "observation_pending",
+              "observation_expired",
+              "observation_partial",
+              "observation_denied",
+              "observation_failed",
+              "observation_stale",
+              "observation_fresh",
+              "model_feature_view",
+              "executor_unconfigured",
+              "executor_feature_view",
+              "runner_unconfigured",
+              "runner_not_observed",
+              "report_invalid",
+              "report_not_observed",
+              "report_retained"
+            ],
+            "title": "Reason Code",
+            "type": "string"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
           },
           "source": {
             "enum": [
               "runtime",
               "development_fixture",
-              "prometheus",
-              "unimplemented",
-              "live_gateway"
+              "collection_configuration",
+              "live_kubernetes",
+              "feature_view",
+              "live_krr"
             ],
             "title": "Source",
             "type": "string"
+          },
+          "stale_after_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale After Seconds"
           },
           "status": {
             "enum": [
               "available",
               "unavailable",
-              "stale"
+              "unconfigured",
+              "configured",
+              "never_observed",
+              "fresh",
+              "stale",
+              "denied",
+              "partial",
+              "unknown",
+              "historical",
+              "see_feature"
             ],
             "title": "Status",
             "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HealthTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
           "component",
           "status",
-          "observed_at",
-          "last_success_at",
-          "reason",
-          "source"
+          "source",
+          "assessed_at",
+          "reason_code",
+          "reason"
         ],
         "title": "HealthObservation",
         "type": "object"
       },
+      "HealthTarget": {
+        "properties": {
+          "cluster": {
+            "maxLength": 100,
+            "title": "Cluster",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "title": "Name",
+            "type": "string"
+          },
+          "namespace": {
+            "maxLength": 100,
+            "title": "Namespace",
+            "type": "string"
+          },
+          "uid": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uid"
+          },
+          "workload_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workload Id"
+          }
+        },
+        "required": [
+          "cluster",
+          "namespace",
+          "name"
+        ],
+        "title": "HealthTarget",
+        "type": "object"
+      },
       "HealthView": {
         "properties": {
+          "collection_dispatch": {
+            "$ref": "#/components/schemas/CollectionDispatch"
+          },
           "observations": {
             "items": {
               "$ref": "#/components/schemas/HealthObservation"
             },
+            "maxItems": 8,
             "title": "Observations",
             "type": "array"
           }
         },
         "required": [
-          "observations"
+          "observations",
+          "collection_dispatch"
         ],
         "title": "HealthView",
         "type": "object"

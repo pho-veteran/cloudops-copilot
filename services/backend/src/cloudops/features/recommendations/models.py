@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -10,7 +10,17 @@ from cloudops.shared.database import Base
 
 class RecommendationReport(Base):
     __tablename__ = "recommendation_reports"
-    __table_args__ = (Index("ix_recommendation_reports_history", "created_at", "id"),)
+    __table_args__ = (
+        Index("ix_recommendation_reports_history", "created_at", "id"),
+        Index(
+            "ix_recommendation_reports_qualified_history",
+            "finished_at",
+            "id",
+            postgresql_where=text(
+                "schema_version = 2 AND state = 'available' AND finished_at IS NOT NULL"
+            ),
+        ),
+    )
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     workload_id: Mapped[UUID] = mapped_column(ForeignKey("workloads.id"), index=True)
     state: Mapped[str] = mapped_column(String(32), default="queued")

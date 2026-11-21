@@ -14,7 +14,7 @@ Provider checks have an eight-second wall deadline and make at most one request.
 
 An API restart with Prometheus selected and a missing or invalid read configuration preserves access to saved receipts. Connections shows `config_missing` or `config_invalid`. The worker requires a valid configuration before it starts collection.
 
-Migration `0018_connection_checks` preserves previous IDs, timestamps and receipt text. Existing unbound receipts stay historical. Downgrade refuses to discard newly recorded attempt evidence.
+Migration `0019_connection_checks` preserves previous IDs, timestamps and receipt text. Existing unbound receipts stay historical. Downgrade refuses to discard newly recorded attempt evidence.
 
 ## Verification
 

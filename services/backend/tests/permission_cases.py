@@ -164,11 +164,21 @@ def health_check(response, context, actor):
     assert response.status_code == 200, response.text
     view = validated(HealthView, response)
     observations = {item.component: item for item in view.observations}
-    assert set(observations) == {"database", "worker", "collector", "diagnosis", "executor"}
+    assert set(observations) == {
+        "database",
+        "worker",
+        "collector",
+        "kubernetes",
+        "diagnosis",
+        "executor",
+        "krr_runner",
+        "krr_report",
+    }
     assert observations["database"].status == "available"
     assert observations["collector"].source == "development_fixture"
-    assert observations["diagnosis"].status == "available"
-    assert observations["executor"].status == "unavailable"
+    assert observations["collector"].status == "configured"
+    assert observations["diagnosis"].status == "see_feature"
+    assert observations["executor"].status == "unconfigured"
 
 
 def create_incident_request(context):
