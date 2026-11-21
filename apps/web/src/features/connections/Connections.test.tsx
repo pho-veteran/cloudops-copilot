@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import type { components } from "@/lib/api/generated/schema";
 import { Connections } from "./Connections";
@@ -8,6 +8,7 @@ import { Connections } from "./Connections";
 const { get } = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("@/lib/api/client", () => ({
   api: { GET: get },
+  message: (error: unknown) => String(error),
   unwrap: ({ data }: { data: unknown }) => data,
 }));
 vi.mock("./AlertReceipts", () => ({ AlertReceipts: () => null }));
@@ -16,6 +17,7 @@ vi.mock("@/features/diagnosis/ModelConnection", () => ({ ModelConnection: () => 
 
 it("shows unobserved and denied states and links to workload authority without polling it", async () => {
   const assessedAt = "2026-11-18T01:02:03Z";
+  const reportId = "00000000-0000-4000-8000-000000000108";
   const workloadId = "00000000-0000-4000-8000-000000000104";
   const health: components["schemas"]["HealthView"] = {
     collection_dispatch: { status: "paused", reason_code: "class_denied" },
@@ -54,11 +56,26 @@ it("shows unobserved and denied states and links to workload authority without p
         reason_code: "executor_feature_view",
         reason: "Open a workload to inspect recovery authority for its exact UID.",
       },
+      {
+        component: "krr_report", source: "live_krr", status: "historical",
+        assessed_at: assessedAt, report_id: reportId,
+        reason_code: "report_retained", reason: "A qualified report was retained.",
+      },
     ],
   };
+  const operations: components["schemas"]["OperationsView"] = {
+    assessed_at: assessedAt, jobs: [], jobs_capped: false, job_read_limit: 100,
+    oldest_runnable_age_seconds: null, capacity_deferred: [], capacity_deferred_has_more: false,
+    quota_waiting: [], quota_waiting_has_more: false, run_sample_limit: 10,
+  };
+  let refreshFails = false;
   get.mockImplementation(async (path: string) => {
-    if (path === "/api/health") return { data: health };
-    if (path === "/api/connection-checks") return { data: [] };
+    if (path === "/api/health") {
+      if (refreshFails) throw new Error("Health refresh failed");
+      return { data: health };
+    }
+    if (path === "/api/connections/operations") return { data: operations };
+    if (["/api/connection-checks", "/api/connection-checks/status"].includes(path)) return { data: [] };
     throw new Error(`Unexpected request: ${path}`);
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -79,7 +96,18 @@ it("shows unobserved and denied states and links to workload authority without p
     expect(screen.getByRole("link", { name: "Open observed workload" }).getAttribute("href"))
       .toBe(`#/workloads?workload=${workloadId}`);
     expect(screen.getByRole("link", { name: "Open Workloads" }).getAttribute("href")).toBe("#/workloads");
-    expect(get.mock.calls.map(([path]) => path).sort()).toEqual(["/api/connection-checks", "/api/health"]);
+    expect(screen.getByRole("link", { name: "Open retained resource report" }).getAttribute("href"))
+      .toBe(`#/reports?report=${reportId}`);
+    expect(await screen.findByText("No Runs are waiting for collection capacity.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Check .* connection/ })).toBeNull();
+    expect(get.mock.calls.map(([path]) => path).sort()).toEqual([
+      "/api/connection-checks", "/api/connection-checks/status", "/api/connections/operations", "/api/health",
+    ]);
+    refreshFails = true;
+    await act(() => cache.refetchQueries({ queryKey: ["health"] }));
+    expect(await screen.findByText("Showing the last saved assessment.")).toBeTruthy();
+    expect(screen.getByText("No Runs are waiting for collection capacity.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open retained resource report" })).toBeTruthy();
   } finally {
     cleanup();
     cache.clear();
