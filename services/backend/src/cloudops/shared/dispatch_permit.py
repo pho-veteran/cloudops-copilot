@@ -9,6 +9,7 @@ These mechanics are feature-neutral: entrypoints inject the job-kind to permit-c
 
 import json
 import os
+import stat
 import threading
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
@@ -152,8 +153,16 @@ class DispatchGate:
     def current(self) -> tuple[Permit | None, frozenset[str], DenyReason | None]:
         """Lock-free status only; call-start and publication admission use ``admitted``."""
         root = self.root
-        if root is None or not (root / LOCK).exists():
+        if root is None:
             return None, frozenset(), "permit_missing"
+        lock = root / LOCK
+        try:
+            if not stat.S_ISREG(lock.stat().st_mode) or not os.access(lock, os.R_OK):
+                return None, frozenset(), "permit_invalid"
+        except FileNotFoundError:
+            return None, frozenset(), "permit_missing"
+        except OSError:
+            return None, frozenset(), "permit_invalid"
         permit, reason = read_permit(root)
         kinds, reason = self._evaluate(permit, reason)
         return permit, kinds, reason
