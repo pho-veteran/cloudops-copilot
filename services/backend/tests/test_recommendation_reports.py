@@ -32,7 +32,7 @@ from cloudops.features.recommendations.schemas import (
 from cloudops.features.recommendations.worker import ReportHandler
 from cloudops.features.workloads.models import Workload
 from cloudops.shared.config import settings
-from cloudops.shared.database import BACKEND_ROOT, database_now, engine, sessions
+from cloudops.shared.database import BACKEND_ROOT, WorkerHeartbeat, database_now, engine, sessions
 from cloudops.shared.jobs import Claim, Job, JobAttempt, claim_next, finish
 
 permission_context = _permission_context
@@ -149,6 +149,56 @@ def test_terminal_export_partial_contract_and_stale_precedence(permission_contex
     assert viewer.get(f"{PATH}/{report_id}").json()["applicability"]["state"] == "stale"
     engine().dispose()
     assert viewer.get(f"{PATH}/{report_id}/export").content == frozen.content
+
+
+@pytest.mark.parametrize("reason", ["runner_source_unavailable", "metrics_unavailable"])
+def test_latest_unavailable_report_updates_observation_and_preserves_saved_export(
+    permission_context, monkeypatch, reason
+):
+    monkeypatch.setenv("KRR_RUNNER_URL", "http://krr:8090")
+    viewer = permission_context.actors["viewer"].client
+    handler = ReportHandler()
+    handlers = {service.REPORT_JOB: handler}
+
+    first = create(permission_context)
+    assert first.status_code == 201
+    saved_id = UUID(first.json()["id"])
+    claim = claim_next(handlers, GATE)
+    assert claim.subject_id == saved_id
+    with sessions()() as db, db.begin():
+        now = database_now(db)
+        db.merge(WorkerHeartbeat(name="collector", observed_at=now))
+        value = controlled_result(db.get(RecommendationReport, saved_id), now)
+    assert finish(claim, handler, result=value, gate=GATE)
+
+    export_path = f"{PATH}/{saved_id}/export"
+    original = viewer.get(export_path)
+    assert original.status_code == 200
+    healthy = viewer.get(PATH).json()["observation"]
+    assert healthy["status"] == "available"
+    assert healthy["reason"] == "last_report_succeeded"
+    assert healthy["last_success_at"] is not None
+
+    second = create(permission_context)
+    assert second.status_code == 201
+    failed_id = UUID(second.json()["id"])
+    claim = claim_next(handlers, GATE)
+    assert claim.subject_id == failed_id
+    with sessions()() as db:
+        value = service.unavailable(db.get(RecommendationReport, failed_id), reason)
+    assert finish(claim, handler, result=value, gate=GATE)
+
+    page = viewer.get(PATH).json()
+    assert page["items"][0]["id"] == str(failed_id)
+    assert page["items"][0]["result_v2"]["reason"] == reason
+    assert page["observation"]["status"] == "unavailable"
+    assert page["observation"]["reason"] == "latest_report_unavailable"
+    assert page["observation"]["last_success_at"] == healthy["last_success_at"]
+    assert page["observation"]["source_kind"] == "live_krr"
+    assert viewer.get(f"{PATH}/{saved_id}").json()["result_state"] == "available"
+    retained = viewer.get(export_path)
+    assert retained.status_code == 200
+    assert retained.content == original.content
 
 
 def test_admission_concurrency_and_permission_denials(permission_context):

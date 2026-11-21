@@ -3,8 +3,8 @@
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0018_operations_quota_wait_index"
-down_revision = "0017_recommendation_reports"
+revision = "0020_operations_quota_wait_index"
+down_revision = "0019_connection_checks"
 branch_labels = None
 depends_on = None
 

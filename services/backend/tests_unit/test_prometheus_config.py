@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from cloudops.features.investigations.prometheus_config import (
+    MAX_CONFIG_BYTES,
     QUERY_IDS,
     PrometheusConfig,
     escape_promql,
@@ -177,3 +178,21 @@ def test_load_config_sanitizes_failures(tmp_path):
     with pytest.raises(ValueError) as error:
         load_config(path)
     assert "private-token-sentinel" not in str(error.value)
+
+
+def test_load_config_rejects_oversized_file_before_json_validation(tmp_path):
+    path = tmp_path / "read.json"
+    data = json.dumps(config()).encode("utf-8")
+    bounded = data.ljust(MAX_CONFIG_BYTES, b" ")
+    path.write_bytes(bounded)
+    assert load_config(path).endpoint_id == "lab-prometheus"
+    path.write_bytes(bounded + b" ")
+    with pytest.raises(ValueError, match="configuration is invalid or unavailable"):
+        load_config(path)
+
+
+def test_load_config_sanitizes_excessive_json_nesting(tmp_path):
+    path = tmp_path / "read.json"
+    path.write_bytes(("[" * 10_000 + "]" * 10_000).encode("ascii"))
+    with pytest.raises(ValueError, match="configuration is invalid or unavailable"):
+        load_config(path)

@@ -152,28 +152,27 @@ REGISTERED_ADAPTERS: dict[str, SourceAdapter] = {
 }
 
 
-def configured_adapters(mode: str) -> dict[str, SourceAdapter]:
-    """Compose the finite provider set named by deployment configuration.
-
-    Existing ``none`` and ``development_fixture`` values keep their meaning. A live
-    provider is never combined with the synthetic fixture. Feature #47 can register
-    another provider here without changing the parser or the runner.
-    """
-    names = [name.strip() for name in mode.split(",") if name.strip()]
-    if not names or names == ["none"]:
-        return {}
+def collection_source_modes(mode: str) -> tuple[str, ...]:
+    """Validate the deployment's provider selection without loading provider files."""
+    names = tuple(name.strip() for name in mode.split(",") if name.strip())
+    if not names or names == ("none",):
+        return ()
     if len(names) != len(set(names)):
         raise ValueError("Duplicate collection source mode.")
     if "none" in names:
         raise ValueError("The none source mode cannot be combined with a provider.")
     if "development_fixture" in names and len(names) > 1:
         raise ValueError("The development fixture cannot be combined with a live provider.")
+    if any(name not in _PROVIDERS for name in names):
+        raise ValueError("Unknown collection source mode.")
+    return names
+
+
+def configured_adapters(mode: str) -> dict[str, SourceAdapter]:
+    """Load the finite provider set for the collection runner."""
     adapters: dict[str, SourceAdapter] = {}
-    for name in names:
-        provider = _PROVIDERS.get(name)
-        if provider is None:
-            raise ValueError("Unknown collection source mode.")
-        selected = provider()
+    for name in collection_source_modes(mode):
+        selected = _PROVIDERS[name]()
         # The finite registry is also the validation authority used by both runners.
         # Register the provider's actual adapter objects so bindings remain identity-checked.
         REGISTERED_ADAPTERS.update(selected)

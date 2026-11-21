@@ -27,6 +27,13 @@ class ObservationState(Base):
     last_failure_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_failure_reason: Mapped[str | None] = mapped_column(String(64))
     last_success_id: Mapped[UUID | None]
+    attempt_binding: Mapped[str | None] = mapped_column(String(64))
+    success_binding: Mapped[str | None] = mapped_column(String(64))
+    failure_binding: Mapped[str | None] = mapped_column(String(64))
+    bound_attempt_sequence: Mapped[int | None]
+    bound_success_id: Mapped[UUID | None]
+    bound_success_config_id: Mapped[str | None] = mapped_column(String(64))
+    bound_failure_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     partial_payload: Mapped[dict | None] = mapped_column(JSONB)
 
 
