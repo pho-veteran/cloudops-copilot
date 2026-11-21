@@ -112,7 +112,7 @@ def test_failures_exhaust_budget_without_success_evidence(client, monkeypatch):
         o for o in client.get("/api/health").json()["observations"] if o["component"] == "collector"
     )
     # Adapter availability must not manufacture a successful collection observation.
-    assert collector["status"] == "available"
+    assert collector["status"] == "configured"
     assert collector["source"] == "development_fixture"
     assert collector["last_success_at"] is None
     assert rerun(client, headers, ids["incident_id"]).status_code == 201

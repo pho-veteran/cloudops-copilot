@@ -1519,6 +1519,16 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** CollectionDispatch */
+        CollectionDispatch: {
+            /** Reason Code */
+            reason_code?: ("permit_missing" | "permit_invalid" | "permit_stale" | "recovery_mode" | "class_denied") | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "allowed" | "paused" | "unknown";
+        };
         /** Comparison */
         Comparison: {
             /** Changes */
@@ -1893,32 +1903,68 @@ export interface components {
         /** HealthObservation */
         HealthObservation: {
             /**
+             * Assessed At
+             * Format: date-time
+             */
+            assessed_at: string;
+            /**
              * Component
              * @enum {string}
              */
-            component: "database" | "worker" | "collector" | "diagnosis" | "executor";
+            component: "database" | "worker" | "collector" | "kubernetes" | "diagnosis" | "executor" | "krr_runner" | "krr_report";
+            /** Config Id */
+            config_id?: string | null;
+            /** Configured Adapters */
+            configured_adapters?: ("development_fixture" | "live_kubernetes" | "prometheus")[];
+            /** Last Attempt At */
+            last_attempt_at?: string | null;
+            /** Last Failure At */
+            last_failure_at?: string | null;
             /** Last Success At */
-            last_success_at: string | null;
-            /**
-             * Observed At
-             * Format: date-time
-             */
-            observed_at: string;
+            last_success_at?: string | null;
+            /** Last Success Config Id */
+            last_success_config_id?: string | null;
+            /** Observed At */
+            observed_at?: string | null;
             /** Reason */
             reason: string;
+            /**
+             * Reason Code
+             * @enum {string}
+             */
+            reason_code: "database_connected" | "heartbeat_missing" | "heartbeat_fresh" | "heartbeat_stale" | "invalid_evidence_time" | "collector_unconfigured" | "collector_configured" | "collector_fixture" | "collector_configuration_invalid" | "scope_not_configured" | "scope_target_missing" | "scope_target_unavailable" | "fixture_target" | "reader_unconfigured" | "scope_configuration_changed" | "no_matching_observation" | "observation_pending" | "observation_expired" | "observation_partial" | "observation_denied" | "observation_failed" | "observation_stale" | "observation_fresh" | "model_feature_view" | "executor_unconfigured" | "executor_feature_view" | "runner_unconfigured" | "runner_not_observed" | "report_invalid" | "report_not_observed" | "report_retained";
+            /** Report Id */
+            report_id?: string | null;
             /**
              * Source
              * @enum {string}
              */
-            source: "runtime" | "development_fixture" | "prometheus" | "unimplemented" | "live_gateway";
+            source: "runtime" | "development_fixture" | "collection_configuration" | "live_kubernetes" | "feature_view" | "live_krr";
+            /** Stale After Seconds */
+            stale_after_seconds?: number | null;
             /**
              * Status
              * @enum {string}
              */
-            status: "available" | "unavailable" | "stale";
+            status: "available" | "unavailable" | "unconfigured" | "configured" | "never_observed" | "fresh" | "stale" | "denied" | "partial" | "unknown" | "historical" | "see_feature";
+            target?: components["schemas"]["HealthTarget"] | null;
+        };
+        /** HealthTarget */
+        HealthTarget: {
+            /** Cluster */
+            cluster: string;
+            /** Name */
+            name: string;
+            /** Namespace */
+            namespace: string;
+            /** Uid */
+            uid?: string | null;
+            /** Workload Id */
+            workload_id?: string | null;
         };
         /** HealthView */
         HealthView: {
+            collection_dispatch: components["schemas"]["CollectionDispatch"];
             /** Observations */
             observations: components["schemas"]["HealthObservation"][];
         };

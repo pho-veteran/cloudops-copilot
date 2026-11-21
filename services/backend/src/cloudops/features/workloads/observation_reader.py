@@ -2,8 +2,8 @@
 
 import asyncio
 import base64
-import json
 import hashlib
+import json
 import os
 import ssl
 from pathlib import Path
@@ -17,13 +17,32 @@ from cloudops.features.workloads.observation_settings import POLICY
 from cloudops.features.workloads.scope_config import cluster_fingerprint
 
 
-def reader_binding():
-    """Legacy connection continuity, never an operator-established v2 trust pin."""
+def reader_bindings():
+    """Return private reader binding and credential-free public configuration identity."""
     try:
-        config = json.loads(Path(os.environ["KUBE_READ_CONFIG"]).read_text(encoding="utf-8"))
-        return binding(config)
-    except (KeyError, OSError, ValueError, TypeError):
-        return None
+        with Path(os.environ["KUBE_READ_CONFIG"]).open("rb") as stream:
+            raw = stream.read(100_001)
+        if len(raw) > 100_000:
+            return None, None
+        config = json.loads(raw)
+        token = config["token"]
+        if (
+            not isinstance(token, str)
+            or not token
+            or any(ord(c) <= 32 or ord(c) >= 127 for c in token)
+        ):
+            return None, None
+        return credential_binding(config), binding(config)
+    except (AttributeError, KeyError, OSError, ValueError, TypeError, RecursionError):
+        return None, None
+
+
+def reader_binding():
+    return reader_bindings()[1]
+
+
+def credential_binding(config):
+    return hashlib.sha256(f"{binding(config)}:{config['token']}".encode()).hexdigest()
 
 
 def binding(config):
@@ -52,7 +71,7 @@ class ObservationReader:
                 and cluster_fingerprint(config) != self.expected_fingerprint
             ):
                 raise ObservationError("cluster_identity_mismatch")
-            if self.expected_binding and binding(config) != self.expected_binding:
+            if self.expected_binding and credential_binding(config) != self.expected_binding:
                 raise ObservationError("cluster_identity_mismatch")
             server = config["server"].rstrip("/")
             url = urlsplit(server)

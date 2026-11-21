@@ -58,7 +58,8 @@ class LiveScope(BaseModel):
 
 def load_scope(path: Path):
     try:
-        raw = path.read_bytes()
+        with path.open("rb") as stream:
+            raw = stream.read(100_001)
         if len(raw) > 100_000:
             raise ValueError
         value = json.loads(raw)

@@ -340,21 +340,34 @@ def unavailable(row, reason="producer_contract_unavailable"):
     )
 
 
-def feature_observation(db):
-    now = database_now(db)
-    success = db.scalar(
+def latest_qualified_report(db):
+    """Retained producer evidence, usable independently of current runner setup."""
+    return db.scalar(
         select(RecommendationReport)
-        .where(RecommendationReport.schema_version == 2, RecommendationReport.state == "available")
-        .order_by(RecommendationReport.finished_at.desc())
+        .where(
+            RecommendationReport.schema_version == 2,
+            RecommendationReport.state == "available",
+            RecommendationReport.finished_at.is_not(None),
+        )
+        .order_by(RecommendationReport.finished_at.desc(), RecommendationReport.id.desc())
         .limit(1)
     )
+
+
+def runner_configured():
+    return bool(os.environ.get("KRR_RUNNER_URL"))
+
+
+def feature_observation(db):
+    now = database_now(db)
+    success = latest_qualified_report(db)
     latest = db.scalar(
         select(RecommendationReport)
         .order_by(RecommendationReport.created_at.desc(), RecommendationReport.id.desc())
         .limit(1)
     )
     beat = db.get(WorkerHeartbeat, "collector")
-    configured = bool(os.environ.get("KRR_RUNNER_URL"))
+    configured = runner_configured()
     status, reason = "unavailable", "runner_unconfigured"
     if configured:
         reason = "no_qualified_report"
