@@ -288,6 +288,8 @@ Health polling reads local configuration and saved data. Open the exact workload
 
 API liveness and readiness are public probes. Readiness requires the current Alembic head. Worker unavailability leaves saved reads available. A database outage returns an actionable API error. Follow the README migration recovery instructions if the schema is missing or a migration fails.
 
+[Configured source checks](connection-checks.md) describes the explicit Operator checks, saved receipts, freshness assessment, and local Kubernetes and Prometheus verification.
+
 ## Interfaces and module ownership
 
 | Owner | Implementation boundary | Consumers |

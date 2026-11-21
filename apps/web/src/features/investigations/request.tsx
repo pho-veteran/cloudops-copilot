@@ -165,11 +165,13 @@ export function requestKey(scope: string, input: unknown) {
   pendingKeys.set(scope, { input: serialized, key });
   return key;
 }
-export function settleKey(scope: string, error?: unknown) {
+export function settleKey(scope: string, error?: unknown, key?: string) {
   const definite =
     error === undefined ||
     (error instanceof ApiError && error.status >= 400 && error.status < 500);
-  if (definite) pendingKeys.delete(scope);
+  if (definite && (key === undefined || pendingKeys.get(scope)?.key === key)) {
+    pendingKeys.delete(scope);
+  }
 }
 export function clearRequestKeys() {
   pendingKeys.clear();

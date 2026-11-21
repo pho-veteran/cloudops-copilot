@@ -19,6 +19,7 @@ QUERY_IDS = (
     "restarts",
 )
 PLACEHOLDERS = ("{{namespace}}", "{{workload_uid}}")
+MAX_CONFIG_BYTES = 512 * 1024
 _ENDPOINT = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 _LABEL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _PATH = re.compile(r"^/[A-Za-z0-9._~/-]+$")
@@ -161,7 +162,11 @@ def substitute_query(template: str, namespace: str, workload_uid: str) -> str:
 def load_config(path: str | Path) -> PrometheusConfig:
     """Load one trusted file; failures never echo credentials or file contents."""
     try:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        with Path(path).open("rb") as handle:
+            data = handle.read(MAX_CONFIG_BYTES + 1)
+        if len(data) > MAX_CONFIG_BYTES:
+            raise ValueError
+        raw = json.loads(data.decode("utf-8"))
         return PrometheusConfig.model_validate(raw)
-    except (OSError, UnicodeDecodeError, ValueError, ValidationError):
+    except (OSError, ValueError, ValidationError, RecursionError):
         raise ValueError("Prometheus read configuration is invalid or unavailable.") from None

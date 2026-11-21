@@ -152,11 +152,11 @@ REGISTERED_ADAPTERS: dict[str, SourceAdapter] = {
 }
 
 
-def configured_source_modes(mode: str) -> list[str]:
-    """Validate configured mode names without loading adapters or contacting providers."""
-    names = [name.strip() for name in mode.split(",") if name.strip()]
-    if not names or names == ["none"]:
-        return []
+def collection_source_modes(mode: str) -> tuple[str, ...]:
+    """Validate the deployment's provider selection without loading provider files."""
+    names = tuple(name.strip() for name in mode.split(",") if name.strip())
+    if not names or names == ("none",):
+        return ()
     if len(names) != len(set(names)):
         raise ValueError("Duplicate collection source mode.")
     if "none" in names:
@@ -169,9 +169,9 @@ def configured_source_modes(mode: str) -> list[str]:
 
 
 def configured_adapters(mode: str) -> dict[str, SourceAdapter]:
-    """Compose the finite provider set named by deployment configuration."""
+    """Load the finite provider set for the collection runner."""
     adapters: dict[str, SourceAdapter] = {}
-    for name in configured_source_modes(mode):
+    for name in collection_source_modes(mode):
         selected = _PROVIDERS[name]()
         # The finite registry is also the validation authority used by both runners.
         # Register the provider's actual adapter objects so bindings remain identity-checked.

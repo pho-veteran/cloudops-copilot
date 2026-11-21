@@ -533,6 +533,10 @@ CASES = {
         lambda c: {},
         lambda r, c, a: saved_list(r, c, a, "reason", "Persisted prior connection check."),
     ),
+    "get_connection_check_status": RequestCase(
+        lambda c: {},
+        lambda r, c, a: saved_list(r, c, a, "component", "database"),
+    ),
     "create_recommendation_report": RequestCase(
         lambda c: {"json": {"workload_id": c.consumer.workload_id, "requested_hours": 6}},
         report_create_check,

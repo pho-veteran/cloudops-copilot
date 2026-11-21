@@ -6,13 +6,14 @@ from datetime import datetime, timedelta
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
+from cloudops.features.connections.sources import provider_config
 from cloudops.features.health.schemas import (
     CollectionDispatch,
     HealthObservation,
     HealthTarget,
     HealthView,
 )
-from cloudops.features.investigations.collector import configured_source_modes
+from cloudops.features.investigations.collector import collection_source_modes
 from cloudops.features.investigations.service import collection_dispatch_status
 from cloudops.features.recommendations.schemas import ReportResult
 from cloudops.features.recommendations.service import latest_qualified_report, runner_configured
@@ -96,7 +97,7 @@ def worker_observation(db, now):
 
 def collector_observation(now):
     try:
-        modes = configured_source_modes(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
+        modes = list(collection_source_modes(os.environ.get("COLLECTION_SOURCE_MODE", "none")))
     except ValueError:
         return observation(
             now,
@@ -104,6 +105,15 @@ def collector_observation(now):
             "unavailable",
             "collection_configuration",
             "collector_configuration_invalid",
+        )
+    if "prometheus" in modes and provider_config("prometheus")[1]:
+        return observation(
+            now,
+            "collector",
+            "unavailable",
+            "collection_configuration",
+            "collector_configuration_invalid",
+            configured_adapters=modes,
         )
     if "development_fixture" in modes:
         status, source, reason = "configured", "development_fixture", "collector_fixture"

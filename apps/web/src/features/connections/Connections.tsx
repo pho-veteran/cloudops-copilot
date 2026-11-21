@@ -1,9 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 import { Failure, Loading } from "@/app/Feedback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertReceipts } from "./AlertReceipts";
+import { SourceChecks } from "./SourceChecks";
 import { KnowledgeStatus } from "@/features/knowledge/KnowledgeStatus";
 import { ModelConnection } from "@/features/diagnosis/ModelConnection";
 
@@ -19,17 +20,6 @@ const observationLabels = {
 };
 
 export function Connections({ canMutate }: { canMutate: boolean }) {
-  const cache = useQueryClient();
-  const checks = useQuery({
-    queryKey: ["connection-checks"],
-    queryFn: async () => unwrap(await api.GET("/api/connection-checks")),
-  });
-  const check = useMutation({
-    mutationFn: async (component: "cluster" | "database" | "worker") =>
-      unwrap(await api.POST("/api/connection-checks", { body: { component } })),
-    onSuccess: () =>
-      cache.invalidateQueries({ queryKey: ["connection-checks"] }),
-  });
   const query = useQuery({
     queryKey: ["health"],
     queryFn: async () => unwrap(await api.GET("/api/health")),
@@ -39,33 +29,13 @@ export function Connections({ canMutate }: { canMutate: boolean }) {
     <section>
       <div className="eyebrow">LOCAL OPERATING STATUS</div>
       <h1>Connections</h1>
-      {canMutate ? (
-        <div className="foundation-actions">
-          {(["cluster", "database", "worker"] as const).map((component) => (
-            <Button
-              key={component}
-              variant="outline"
-              disabled={check.isPending}
-              onClick={() => check.mutate(component)}
-            >
-              Check {component} connection
-            </Button>
-          ))}
-        </div>
-      ) : (
-        <p>
-          Viewer access: inspect existing observations. An Operator must
-          initiate a connection check.
-        </p>
-      )}
-      {check.isError && <Failure error={check.error} />}
-      {checks.isError && <Failure error={checks.error} />}
-      {checks.data?.map((item) => (
-        <p key={item.id}>
-          {item.component} · {item.status} ·{" "}
-          {new Date(item.observed_at).toLocaleString()} · {item.reason}
-        </p>
-      ))}
+      <p className="muted">
+        A fresh worker heartbeat describes the local process. Fixture
+        availability does not establish live source health. Collector
+        availability describes the configured adapter; inspect investigation
+        attempts for collection results.
+      </p>
+      <SourceChecks canMutate={canMutate} />
       {query.isPending ? (
         <Loading />
       ) : query.isError ? (

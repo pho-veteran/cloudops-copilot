@@ -10,7 +10,7 @@ from cloudops.features.diagnosis.lifecycle import configure_dispatch
 from cloudops.entrypoints.dispatch import GATE
 from cloudops.features.incidents.intake_settings import intake_config
 from cloudops.features.investigations.admission_settings import deferred_run_limit
-from cloudops.features.investigations.collector import configured_adapters
+from cloudops.features.investigations.collector import collection_source_modes
 from cloudops.features.investigations.service import configure_dispatch_status
 from cloudops.features.investigations.states import COLLECTION_JOB
 from cloudops.features.recommendations.service import (
@@ -29,7 +29,7 @@ async def lifespan(app):
     settings()
     deferred_run_limit()
     intake_config()
-    configured_adapters(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
+    collection_source_modes(os.environ.get("COLLECTION_SOURCE_MODE", "none"))
     require_schema()
     yield
 
