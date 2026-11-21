@@ -156,22 +156,44 @@ export function WindowFields({
 }
 
 // Uncertain retries reuse the same key across remounts; a definite answer settles it.
-const pendingKeys = new Map<string, { input: string; key: string }>();
-export function requestKey(scope: string, input: unknown) {
+type PendingKey = { input: string; key: string };
+const pendingKeys = new Map<string, PendingKey>();
+
+function storedKey(scope: string): PendingKey | undefined {
+  try {
+    const value = sessionStorage.getItem(scope);
+    if (value) return JSON.parse(value);
+  } catch {
+    // Some browser policies disable session storage.
+  }
+}
+
+function rememberKey(scope: string, pending?: PendingKey) {
+  try {
+    if (pending) sessionStorage.setItem(scope, JSON.stringify(pending));
+    else sessionStorage.removeItem(scope);
+  } catch {
+    // The in-memory key remains available while this app is mounted.
+  }
+}
+
+export function requestKey(scope: string, input: unknown, remember = false) {
   const serialized = JSON.stringify(input);
-  const pending = pendingKeys.get(scope);
+  const pending = pendingKeys.get(scope) ?? (remember ? storedKey(scope) : undefined);
   if (pending?.input === serialized) return pending.key;
   const key = crypto.randomUUID();
-  pendingKeys.set(scope, { input: serialized, key });
+  const next = { input: serialized, key };
+  pendingKeys.set(scope, next);
+  if (remember) rememberKey(scope, next);
   return key;
 }
-export function settleKey(scope: string, error?: unknown, key?: string) {
+export function settleKey(scope: string, error?: unknown, key?: string, remember = false) {
   const definite =
     error === undefined ||
     (error instanceof ApiError && error.status >= 400 && error.status < 500);
-  if (definite && (key === undefined || pendingKeys.get(scope)?.key === key)) {
-    pendingKeys.delete(scope);
-  }
+  if (!definite) return;
+  if (key === undefined || pendingKeys.get(scope)?.key === key) pendingKeys.delete(scope);
+  if (remember && (key === undefined || storedKey(scope)?.key === key)) rememberKey(scope);
 }
 export function clearRequestKeys() {
   pendingKeys.clear();

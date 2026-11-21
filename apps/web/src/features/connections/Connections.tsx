@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 import { Failure, Loading } from "@/app/Feedback";
+import { buildReportHash } from "@/app/routes";
+import type { components } from "@/lib/api/generated/schema";
+import { useEvidenceElapsed } from "@/hooks/useEvidenceElapsed";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { AlertReceipts } from "./AlertReceipts";
+import { OperationsPanel } from "./OperationsPanel";
 import { SourceChecks } from "./SourceChecks";
 import { KnowledgeStatus } from "@/features/knowledge/KnowledgeStatus";
 import { ModelConnection } from "@/features/diagnosis/ModelConnection";
@@ -19,82 +22,92 @@ const observationLabels = {
   krr_report: "Resource report history",
 };
 
-export function Connections({ canMutate }: { canMutate: boolean }) {
+type Observation = components["schemas"]["HealthObservation"];
+
+function ObservationCard({ observation, elapsed }: { observation: Observation; elapsed: number }) {
+  const row = observation;
+  const age = row.observed_at ? Date.parse(row.assessed_at) - Date.parse(row.observed_at) + elapsed : null;
+  const aged = row.status === "fresh" && age !== null && row.stale_after_seconds != null &&
+    age > row.stale_after_seconds * 1000;
+  const workload = row.target?.workload_id;
+  return (
+    <article className="foundation-panel min-w-0">
+      <h3>{observationLabels[row.component]}</h3>
+      <Badge variant="outline">{(aged ? "stale" : row.status).replaceAll("_", " ")}</Badge>
+      <p>{aged ? "The last observation is past its freshness threshold. Refresh runtime status." : row.reason}</p>
+      {row.target && (
+        <p className="muted break-all">
+          {row.target.cluster} / {row.target.namespace} / {row.target.name}
+          {row.target.uid && ` · UID ${row.target.uid}`}
+        </p>
+      )}
+      {!!row.configured_adapters?.length && (
+        <p className="muted">
+          Adapters: {row.configured_adapters.map(adapter => adapter.replaceAll("_", " ")).join(", ")}
+        </p>
+      )}
+      <p className="muted">Source: {row.source.replaceAll("_", " ")}</p>
+      <p className="muted">
+        Observed: {row.observed_at ? new Date(row.observed_at).toLocaleString() : "Not observed"}
+      </p>
+      <p className="muted">
+        Last success: {row.last_success_at ? new Date(row.last_success_at).toLocaleString() : "Not recorded"}
+      </p>
+      {row.last_attempt_at && (
+        <p className="muted">Last attempt: {new Date(row.last_attempt_at).toLocaleString()}</p>
+      )}
+      {row.last_failure_at && (
+        <p className="muted">Last failure: {new Date(row.last_failure_at).toLocaleString()}</p>
+      )}
+      {row.component === "executor" && row.status === "see_feature" && (
+        <a href="#/workloads">Open Workloads</a>
+      )}
+      {row.component === "kubernetes" && row.source === "live_kubernetes" && workload && (
+        <a href={`#/workloads?workload=${workload}`}>Open observed workload</a>
+      )}
+      {row.report_id && (
+        <a href={buildReportHash({ workload: workload ?? undefined, report: row.report_id })}>Open retained resource report</a>
+      )}
+    </article>
+  );
+}
+
+export function Connections({ canMutate, actorId }: { canMutate: boolean; actorId: string }) {
   const query = useQuery({
     queryKey: ["health"],
     queryFn: async () => unwrap(await api.GET("/api/health")),
     refetchInterval: 10000,
   });
+  const elapsed = useEvidenceElapsed(query.data, query.dataUpdatedAt);
+
   return (
-    <section>
-      <div className="eyebrow">LOCAL OPERATING STATUS</div>
+    <section className="foundation-stack">
       <h1>Connections</h1>
-      <p className="muted">
-        A fresh worker heartbeat describes the local process. Fixture
-        availability does not establish live source health. Collector
-        availability describes the configured adapter; inspect investigation
-        attempts for collection results.
-      </p>
-      <SourceChecks canMutate={canMutate} />
-      {query.isPending ? (
-        <Loading />
-      ) : query.isError ? (
-        <Failure error={query.error} retry={() => void query.refetch()} />
-      ) : (
-        <div className="foundation-grid">
-          <p>
-            Collection dispatch: {query.data.collection_dispatch.status}
-            {query.data.collection_dispatch.reason_code &&
-              ` · ${query.data.collection_dispatch.reason_code.replaceAll("_", " ")}`}
-          </p>
-          {query.data.observations.map((o) => (
-            <article className="foundation-panel" key={o.component}>
-              <Badge variant="outline">{o.status.replaceAll("_", " ")}</Badge>
-              <h2>{observationLabels[o.component]}</h2>
-              <p>{o.reason}</p>
-              {o.target && (
-                <p className="muted break-all">
-                  {o.target.cluster} / {o.target.namespace} / {o.target.name}
-                  {o.target.uid && ` · UID ${o.target.uid}`}
-                </p>
-              )}
-              {!!o.configured_adapters?.length && (
-                <p className="muted">
-                  Adapters: {o.configured_adapters.map((adapter) => adapter.replaceAll("_", " ")).join(", ")}
-                </p>
-              )}
-              <p className="muted">Source: {o.source.replaceAll("_", " ")}</p>
-              <p className="muted">
-                Observed: {o.observed_at ? new Date(o.observed_at).toLocaleString() : "Not observed"}
-              </p>
-              <p className="muted">
-                Last success:{" "}
-                {o.last_success_at
-                  ? new Date(o.last_success_at).toLocaleString()
-                  : "Not recorded"}
-              </p>
-              {o.last_attempt_at && (
-                <p className="muted">Last attempt: {new Date(o.last_attempt_at).toLocaleString()}</p>
-              )}
-              {o.last_failure_at && (
-                <p className="muted">Last failure: {new Date(o.last_failure_at).toLocaleString()}</p>
-              )}
-              {o.component === "executor" && o.status === "see_feature" && (
-                <a href="#/workloads">Open Workloads</a>
-              )}
-              {o.component === "kubernetes" && o.source === "live_kubernetes" && o.target?.workload_id && (
-                <a href={`#/workloads?workload=${o.target.workload_id}`}>Open observed workload</a>
-              )}
-              {o.component === "krr_report" && o.report_id && (
-                <a href="#/reports">Open Resource reports</a>
-              )}
-            </article>
-          ))}
-        </div>
-      )}
+      <section className="foundation-stack" aria-labelledby="runtime-status">
+        <h2 id="runtime-status">Runtime and retained evidence</h2>
+        {query.isPending && <Loading />}
+        {query.isError && <Failure error={query.error} retry={() => void query.refetch()} />}
+        {query.data && (
+          <>
+            <p>
+              Collection dispatch: {query.data.collection_dispatch.status}
+              {query.data.collection_dispatch.reason_code &&
+                ` · ${query.data.collection_dispatch.reason_code.replaceAll("_", " ")}`}
+            </p>
+            {query.isError && <p role="status">Showing the last saved assessment.</p>}
+            <div className="foundation-grid">
+              {query.data.observations.map(observation => (
+                <ObservationCard key={observation.component} observation={observation} elapsed={elapsed} />
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+      <SourceChecks canMutate={canMutate} actorId={actorId} />
+      <ModelConnection canMutate={canMutate} />
+      <OperationsPanel />
       <AlertReceipts />
       <KnowledgeStatus />
-      <ModelConnection canMutate={canMutate} />
     </section>
   );
 }

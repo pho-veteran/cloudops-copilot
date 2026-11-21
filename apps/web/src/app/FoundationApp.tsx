@@ -305,7 +305,7 @@ export function Workspace() {
               }}
             />
           ) : route.page === "connections" ? (
-            <Connections canMutate={canMutate} />
+            <Connections canMutate={canMutate} actorId={session.data.principal.id} />
           ) : route.page === "reports" ? (
             <Reports canMutate={canMutate} route={route.reports ?? {}} />
           ) : route.page === "knowledge" ? (

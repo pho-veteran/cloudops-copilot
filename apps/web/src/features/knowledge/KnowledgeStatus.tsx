@@ -8,11 +8,9 @@ export function KnowledgeStatus() {
   return (
     <article className="foundation-panel">
       <h2>Knowledge index</h2>
-      {query.isPending ? (
-        <Loading />
-      ) : query.isError ? (
-        <Failure error={query.error} retry={() => void query.refetch()} />
-      ) : (
+      {query.isPending && <Loading />}
+      {query.isError && <Failure error={query.error} retry={() => void query.refetch()} />}
+      {query.data && (
         <>
           <Badge variant="outline">
             {query.data.state.replaceAll("_", " ")}

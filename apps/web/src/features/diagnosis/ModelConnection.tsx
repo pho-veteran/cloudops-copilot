@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEvidenceElapsed } from "@/hooks/useEvidenceElapsed";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, unwrap } from "@/lib/api/client";
 import type { components } from "@/lib/api/generated/schema";
@@ -278,6 +278,7 @@ export function ModelConnection({ canMutate }: { canMutate: boolean }) {
     retry: false,
   });
   const check = useMutation({
+    networkMode: "always",
     retry: false,
     mutationFn: async () =>
       unwrap(
@@ -295,23 +296,8 @@ export function ModelConnection({ canMutate }: { canMutate: boolean }) {
     },
   });
   const latest = status.data?.last_check;
-  const received = useMemo(
-    () => ({
-      clock: performance.now(),
-      elapsed: Math.max(0, Date.now() - status.dataUpdatedAt),
-    }),
-    [status.dataUpdatedAt],
-  );
-  const [, tick] = useState(0);
-  useEffect(() => {
-    const timer = window.setInterval(() => tick((value) => value + 1), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  const assessed = status.data
-    ? Date.parse(status.data.assessed_at) +
-      received.elapsed +
-      Math.max(0, performance.now() - received.clock)
-    : 0;
+  const elapsed = useEvidenceElapsed(status.data, status.dataUpdatedAt);
+  const assessed = status.data ? Date.parse(status.data.assessed_at) + elapsed : 0;
   const active =
     latest &&
     ["queued", "in_flight"].includes(latest.state) &&
