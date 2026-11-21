@@ -296,7 +296,7 @@ export function ModelConnection({ canMutate }: { canMutate: boolean }) {
     },
   });
   const latest = status.data?.last_check;
-  const elapsed = useEvidenceElapsed(status.dataUpdatedAt);
+  const elapsed = useEvidenceElapsed(status.data, status.dataUpdatedAt);
   const assessed = status.data ? Date.parse(status.data.assessed_at) + elapsed : 0;
   const active =
     latest &&

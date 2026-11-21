@@ -44,8 +44,9 @@ const status: components["schemas"]["CheckStatus"] = {
   metrics,
 };
 
-function mount(canMutate: boolean) {
-  const cache = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } } });
+function mount(canMutate: boolean, cache = new QueryClient({
+  defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { gcTime: 0 } },
+})) {
   const view = render(<QueryClientProvider client={cache}><SourceChecks canMutate={canMutate} actorId={id} /></QueryClientProvider>);
   return { ...view, cache };
 }
@@ -89,6 +90,9 @@ describe("configured source checks", () => {
       if (request.method === "GET") return Response.json(request.url.endsWith("/status") ? [status] : []);
       requests.push({ key: request.headers.get("idempotency-key"), body: await request.json() });
       if (requests.length === 1) throw new TypeError("Lost reply");
+      if (requests.length === 2) return Response.json({
+        error: { code: "session_expired", message: "Sign in again." },
+      }, { status: 401 });
       return completedCheck();
     });
     const first = mount(true);
@@ -103,11 +107,13 @@ describe("configured source checks", () => {
     await screen.findByText("Raw sample freshness");
     expect(requests).toHaveLength(1);
     await user.click(check());
+    await screen.findByText("Sign in again.");
+    await user.click(check());
     await screen.findByText("The source check reached its deadline.");
-    expect(requests).toHaveLength(2);
+    expect(requests).toHaveLength(3);
     expect(requests[0].key).toMatch(/^[0-9a-f-]{36}$/);
     expect(requests[0].body).toEqual({ component: "prometheus" });
-    expect(requests[1]).toEqual(requests[0]);
+    expect(requests.slice(1)).toEqual([requests[0], requests[0]]);
   });
 
   it("ages a retained check when refresh fails and the wall clock jumps", async () => {
@@ -120,8 +126,10 @@ describe("configured source checks", () => {
       if (fail && (input as Request).url.endsWith("/status")) throw new TypeError("Offline");
       return Response.json((input as Request).url.endsWith("/status") ? [recent] : []);
     });
-    const { cache } = mount(false);
-    const card = (await screen.findByRole("heading", { name: "Prometheus check" })).closest("article")!;
+    const cache = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
+    const first = mount(false, cache);
+    const getCard = async () => (await screen.findByRole("heading", { name: "Prometheus check" })).closest("article")!;
+    const card = await getCard();
     expect(await within(card).findByText("available", { exact: true })).toBeTruthy();
     fail = true;
     await act(() => cache.refetchQueries({ queryKey: ["connection-checks", "status"] }));
@@ -132,6 +140,9 @@ describe("configured source checks", () => {
       expect(await within(card).findByText("stale", { exact: true }, { timeout: 2000 })).toBeTruthy();
       expect(within(card).getByText("unknown")).toBeTruthy();
       expect(screen.getByText(/Cannot reach the local API/)).toBeTruthy();
+      first.unmount();
+      mount(false, cache);
+      expect(within(await getCard()).getByText("stale", { exact: true })).toBeTruthy();
     } finally {
       clock.mockRestore();
       wall.mockRestore();

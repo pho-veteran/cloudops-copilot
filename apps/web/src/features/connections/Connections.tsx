@@ -78,7 +78,7 @@ export function Connections({ canMutate, actorId }: { canMutate: boolean; actorI
     queryFn: async () => unwrap(await api.GET("/api/health")),
     refetchInterval: 10000,
   });
-  const elapsed = useEvidenceElapsed(query.dataUpdatedAt);
+  const elapsed = useEvidenceElapsed(query.data, query.dataUpdatedAt);
 
   return (
     <section className="foundation-stack">

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEvidenceElapsed } from "@/hooks/useEvidenceElapsed";
 import { Button } from "@/components/ui/button";
 import { requestKey, settleKey } from "@/features/investigations/request";
-import { api, unwrap } from "@/lib/api/client";
+import { api, ApiError, unwrap } from "@/lib/api/client";
 import type { components } from "@/lib/api/generated/schema";
 
 type Component = components["schemas"]["CheckBody"]["component"];
@@ -47,6 +47,7 @@ function CheckButton({ component, actorId }: { component: Component; actorId: st
       if (receipt.reason_code !== "check_pending") settleKey(scope, undefined, key, true);
     },
     onError(error, key) {
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return;
       settleKey(scope, error, key, true);
     },
     onSettled() {
@@ -76,7 +77,7 @@ export function SourceChecks({ canMutate, actorId }: { canMutate: boolean; actor
     queryKey: checksKey,
     queryFn: async () => unwrap(await api.GET("/api/connection-checks")),
   });
-  const elapsed = useEvidenceElapsed(statuses.dataUpdatedAt);
+  const elapsed = useEvidenceElapsed(statuses.data, statuses.dataUpdatedAt);
   return (
     <section aria-label="Configured source checks" className="foundation-stack">
       {!canMutate && <p>Viewer access allows inspection of saved checks. An Operator can start a new check.</p>}
