@@ -128,6 +128,14 @@ resource "aws_instance" "lab" {
 
   lifecycle {
     precondition {
+      condition = length(data.aws_ami.lab.block_device_mappings) == 1 && alltrue([
+        for mapping in data.aws_ami.lab.block_device_mappings :
+        mapping.device_name == data.aws_ami.lab.root_device_name && length(mapping.ebs) > 0
+      ])
+      error_message = "Use an approved AMI with only its EBS root block-device mapping."
+    }
+
+    precondition {
       condition = (
         contains(data.aws_ec2_instance_type.lab.supported_architectures, "x86_64") &&
         data.aws_ec2_instance_type.lab.default_vcpus >= 8 &&

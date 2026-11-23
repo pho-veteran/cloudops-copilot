@@ -18,21 +18,38 @@ tofu validate
 After the account owner approves the account, region, target, costs, timebox and cleanup policy, initialize the authorized private state and review the exact saved plan. Supply absolute paths for the state, input and plan artifacts outside this checkout. Apply only that reviewed, budget-authorized plan with the confirmed account context.
 
 ```sh
-tofu init -backend-config="path=$private_state_file" -lockfile=readonly
-tofu plan -var-file="$approved_variables" -out="$reviewed_plan"
+(
+  set -eu
+  umask 077
+  : "${private_state_file:?Set the dedicated local state path}"
+  : "${approved_variables:?Set the reviewed variable file path}"
+  : "${reviewed_plan:?Set the saved plan destination}"
+  for path in "$private_state_file" "$approved_variables" "$reviewed_plan"; do
+    case "$path" in
+      /*) ;;
+      *) printf '%s\n' 'Use absolute paths for state, variables and plan' >&2; exit 1 ;;
+    esac
+  done
+  export TF_DATA_DIR="$private_state_file.tofu" TF_WORKSPACE=default
+  unset TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_plan
+  mkdir -p "$TF_DATA_DIR"
+  tofu init -reconfigure -backend-config="path=$private_state_file" -lockfile=readonly
+  tofu plan -var-file="$approved_variables" -out="$reviewed_plan"
+)
 ```
 
-The plan should show the single instance, one encrypted volume and the dedicated network. Only SSH from the approved IPv4 `/32` is accepted. Egress permits TCP 443 for the package dependencies and pre-approved HTTPS destinations. Application, database, Kubernetes and executor ports stay unexposed. Public IPv4 is assigned to this instance for management and internet reachability. Record the approved SSH host key separately before connecting.
+The plan requires a root-only EBS AMI and should show the single instance, one encrypted volume and the dedicated network. Only SSH from the approved IPv4 `/32` is accepted. Network egress permits IPv4 TCP 443. The app's separately approved source and provider policies still govern its allowed destinations. Application, database, Kubernetes and executor ports stay unexposed. Public IPv4 is assigned to this instance for management and internet reachability. Obtain the approved SSH host key independently and put it in the operator's known_hosts before connecting.
 
 ## Install and reach the existing origin
 
-Verify prerequisites on the host and transfer the pinned package over the authorized connection. Follow the [release package install](../../docs/release-package.md), then separately qualify the scoped lab services and credential boundaries. Run the tunnel from the operator workstation while the app is up. Replace the SSH user and address with the approved AMI user and current instance output.
+Verify prerequisites on the host and transfer the pinned package over the authorized connection. Follow the [release package install](../../docs/release-package.md) to verify the core artifact. Stop that core project with volume retention before starting the separate owned lab project. Both use loopback port 8443 and need separate project volumes. Qualify scoped services and reader/writer isolation using the owned lab procedure. Run the tunnel from the operator workstation while the app is up. Replace the SSH user and address with the approved AMI user and current instance output.
 
 ```sh
-ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8443:127.0.0.1:8443 "$ssh_user@$host"
+ssh -N -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=yes -o ForwardAgent=no \
+  -L 127.0.0.1:8443:127.0.0.1:8443 "$ssh_user@$host"
 ```
 
-Use `https://localhost:8443` via the tunnel. Use the actual lab CA and the workstation's approved trust process. Keep the certificate hostname, configured Origin and address identical. Release qualification must record actual install, sessions, scoped source readiness and reader/writer isolation.
+Use `https://localhost:8443` via the tunnel. Use the CA for the active project and the workstation's approved trust process. Keep the certificate hostname, configured Origin and address identical. Release qualification must record actual install, sessions, scoped source readiness and reader/writer isolation.
 
 ## Estimate, stop and retain
 
