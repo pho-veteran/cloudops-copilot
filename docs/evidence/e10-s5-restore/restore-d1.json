@@ -5,7 +5,7 @@
       "pid": 1,
       "uid": 0
     },
-    "cleanup_id": "4f3795de-4189-42a0-b512-598dff39e712",
+    "cleanup_id": "18a48f51-7f4d-4843-9135-e18e45588ffd",
     "configured_gateway_targets_closed": 2,
     "executions_retired": 0,
     "jobs_retired": 0,
@@ -20,7 +20,7 @@
       "pid": 1,
       "uid": 0
     },
-    "cleanup_id": "70db0d8d-16fb-4751-b4a9-6835b4c95ef5",
+    "cleanup_id": "0a142892-3098-40b9-a578-255cf4b2839a",
     "configured_gateway_targets_closed": 2,
     "executions_retired": 0,
     "jobs_retired": 0,
@@ -33,40 +33,39 @@
   "database": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 12:48:16.539728+00",
+    "observed_at": "2026-11-23 14:08:29.507892+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "1339"
+    "txid": "1340"
   },
   "deployments_end": {
     "checkout": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "2bff598a-836f-48e4-b6a7-20407d4df332"
+        "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
       },
       "generation": 4,
       "ready": 2,
       "replicas": 2,
-      "resource_version": "894",
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "resource_version": "899",
+      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
     },
     "checkout-standby": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e"
+        "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
       },
       "generation": 3,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "851",
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "resource_version": "854",
+      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
     }
   },
   "diagnosis_cleanup": "{\"sessions_revoked\": true, \"restored_model_work_retired\": true, \"analysis_dispatch_denied\": true, \"permit_generation\": 2}",
-  "dump_sha256": "a7b82ee20f270187327df2e026ea8a02b64b532c9d7e070b09b3b87b3c3d590d",
+  "dump_sha256": "017ca7299c8f72801b1cc7b96b0ce3938238b53a3b37c927427e68763f5b6b12",
   "evidence_bytes_equal": true,
   "executions": [],
   "executor_uses_restore_database": {
     "executor": true
   },
-  "fingerprint_after_cleanup_before_start": true,
   "journal_attempts": {
     "acknowledged": 1
   },
@@ -83,7 +82,7 @@
   },
   "maintenance_enter": {
     "code": null,
-    "request_id": "77790e84-566f-4b51-bd22-c5640ad54d7e",
+    "request_id": "7806b5d5-3250-40e3-afc3-5586fb85a4b2",
     "status": "applied"
   },
   "maintenance_replay": {
@@ -109,45 +108,45 @@
     "after": {
       "checkout": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "2bff598a-836f-48e4-b6a7-20407d4df332"
+          "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
         },
         "generation": 4,
         "ready": 2,
         "replicas": 2,
-        "resource_version": "894",
-        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+        "resource_version": "899",
+        "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
       },
       "checkout-standby": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e"
+          "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
         },
         "generation": 3,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "851",
-        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+        "resource_version": "854",
+        "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
       }
     },
     "before": {
       "checkout": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "2bff598a-836f-48e4-b6a7-20407d4df332"
+          "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
         },
         "generation": 4,
         "ready": 2,
         "replicas": 2,
-        "resource_version": "894",
-        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+        "resource_version": "899",
+        "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
       },
       "checkout-standby": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e"
+          "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
         },
         "generation": 3,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "851",
-        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+        "resource_version": "854",
+        "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
       }
     },
     "deployments_unchanged": true,
@@ -164,7 +163,7 @@
     "jobs_unchanged": true,
     "permit": {
       "allowed_job_kinds": [],
-      "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+      "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
       "denial": "recovery_mode",
       "generation": 2,
       "mode": "recovery"
@@ -172,7 +171,7 @@
   },
   "permit_after": {
     "allowed_job_kinds": [],
-    "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
     "denial": "recovery_mode",
     "generation": 2,
     "mode": "recovery"
@@ -184,7 +183,7 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
     "denial": null,
     "generation": 1,
     "mode": "normal"
@@ -193,7 +192,7 @@
     "allowed_job_kinds": [
       "collection"
     ],
-    "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
     "denial": null,
     "generation": 3,
     "mode": "recovery"
@@ -218,7 +217,7 @@
   },
   "restored_plans": [
     {
-      "id": "ee4a3275-9848-431b-8fb2-4e5db3cd5808",
+      "id": "7b5707b0-65ee-475f-8595-bf3984641d5d",
       "state": "invalidated"
     }
   ],
@@ -226,72 +225,79 @@
   "rows": {
     "action_plans": {
       "changed_after_cutoff": [
-        "ee4a3275-9848-431b-8fb2-4e5db3cd5808"
+        "7b5707b0-65ee-475f-8595-bf3984641d5d"
       ],
       "changed_by_restore_cleanup": [
-        "ee4a3275-9848-431b-8fb2-4e5db3cd5808"
+        "7b5707b0-65ee-475f-8595-bf3984641d5d"
       ],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [],
       "missing_from_cutoff": []
     },
     "evidence": {
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "1384b0a5-18a3-484a-8817-fb39dafff80b",
-        "158e4e72-faca-4a60-afaa-ba8b78a38f88",
-        "17eb0942-dbbb-435b-9e63-1065fa95215b",
-        "467e5367-bc0c-42d9-b545-61d936d342a4",
-        "4db2e78f-152f-4df0-9403-1e4e92d92dd4",
-        "544ae0a7-6b53-40f4-9aad-c53b3861bdc7",
-        "67a39850-1365-495e-a340-6dbbb1b8bf33",
-        "c3eee986-08e2-4573-b9ee-2b41c08ce87f",
-        "d30019a4-8f3b-4979-8aba-9af4dd4d07dc",
-        "e29e7d4b-1598-41b5-8ce9-4d9c76f34db8",
-        "e97d8720-d2b9-44c4-b9c0-34dc6df01a81",
-        "fe2fa311-d609-48d4-842f-1a71c92586e7"
+        "0e7dbeca-2d04-44d9-aed7-632dcd2f1e22",
+        "1e2e9a4c-a65a-448e-a691-1ce836c18e2f",
+        "22debf96-3eb0-43a5-8a18-b069bf72050d",
+        "3c84838b-3432-4e25-b4c4-a361ac78d93d",
+        "46729038-946e-474d-a67a-3d196275c40c",
+        "54f52e0a-d1e3-42c2-af6e-410f1c642765",
+        "585f57c6-f5ef-4dc6-a6db-796d31f205e7",
+        "77eb3348-0be5-41f0-b26e-38ccf21902fe",
+        "aa55969f-1cf9-4f67-9c75-5a854ffbc9c5",
+        "bf4a534c-02cc-4be6-a993-ef819b8f77fe",
+        "ce84be61-aba4-4592-894b-15df877c77c2",
+        "e196aed7-a2b0-40b0-9894-c8d139f67f0f"
       ],
       "missing_from_cutoff": []
     },
     "incident_activity": {
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "34fc91c0-1e9c-42fc-9109-dfd94383631d",
-        "e9aa563a-d338-454e-b094-ff39b4a8dcc1"
+        "60f27438-9abf-4fc5-9b37-bc81a963a339",
+        "974b876b-4cf1-4921-8389-c361402a8251"
       ],
       "missing_from_cutoff": []
     },
     "incidents": {
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "9da7f070-2f6d-4e62-9d4f-a1a4383e6b5f"
+        "0cc10c77-3e05-4279-bf3f-00349e5d6842"
       ],
       "missing_from_cutoff": []
     },
     "investigation_runs": {
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "1ac42eac-175b-4e4d-af00-b6700b4464d4"
+        "da0dab8a-9f4d-49cc-b2a3-dfdd9cb6cadc"
       ],
       "missing_from_cutoff": []
     },
     "jobs": {
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "5fab9630-8f23-4453-b21d-7de8ad5e9d91",
-        "b14d0d96-5e04-402e-9abc-f17e2f37675d"
+        "3f471147-e132-4a42-8d9d-f7a6941bf1f5",
+        "a1039e66-bea9-4de8-bc9d-303472c83a43"
       ],
       "missing_from_cutoff": []
     },
     "recovery_executions": {
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "0bcb8d5b-6e2b-4be3-af91-896dbb90543a"
+        "9659bd60-8911-4870-9f87-58d6db901f1a"
       ],
       "missing_from_cutoff": []
     }
@@ -528,13 +534,13 @@
       "enabled": false,
       "historical_unknown_count": 0,
       "recovery_mode": true,
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
     },
     {
       "enabled": false,
       "historical_unknown_count": 0,
       "recovery_mode": true,
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
     }
   ]
 }

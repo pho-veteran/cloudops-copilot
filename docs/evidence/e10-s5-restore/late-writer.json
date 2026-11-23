@@ -1,0 +1,31 @@
+{
+  "dispatch_outcome": "outcome_unknown",
+  "execution_after": {
+    "holds_lock": false,
+    "id": "73a81e1d-f2ac-4747-892e-07f254708a2e",
+    "maintenance_released": true,
+    "outcome": "outcome_unknown",
+    "state": "outcome_unknown"
+  },
+  "execution_id": "73a81e1d-f2ac-4747-892e-07f254708a2e",
+  "fence_excluded_attempt": true,
+  "journal_unknown": [
+    {
+      "id": "73a81e1d-f2ac-4747-892e-07f254708a2e",
+      "safety_exclusion_request": "b7febacd-06dd-4fa1-9f8f-bd38a70a7eea",
+      "state": "outcome_unknown",
+      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+    }
+  ],
+  "late_patch": "target_changed",
+  "late_worker_preserved_unknown": true,
+  "plan_id": "e34ecdf5-4fd5-48de-9b38-70a05f124a8e",
+  "replicas_after": 1,
+  "replicas_before": 1,
+  "retired_epoch_denied": true,
+  "target_after_probe": {
+    "enabled": true,
+    "historical_unknown_count": 1,
+    "recovery_mode": false
+  }
+}

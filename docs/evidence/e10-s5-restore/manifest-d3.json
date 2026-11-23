@@ -1,102 +1,102 @@
 {
   "bundle": {
     "images": {
-      "backend": "sha256:316cc54da3d6c6ab01b52fa9ad0888575615e35355e57eb9403a9cf54fc490a2",
+      "backend": "sha256:dcd66382fbef70128e26c1c5f263b7e73dd7738427d5e980bfd2096486a99b57",
       "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-      "https": "sha256:5fee2bbaa0d4365b48f752ab64ff1844400452d9699b1a9ea1b751b0ef133ddd"
+      "https": "sha256:ba39f22a13aeaa9136942bf657469faab6d6cad552dc9e261bac2485941f8f9d"
     },
-    "revision": "08ad0ad6b25967cc57d5d3f5463264a86cfe97c1",
+    "revision": "37ddddb508ad49aca943d544247f8c48f9f25adb",
     "sha256": {
-      "images.env": "2a1d81c4fed63406293ae9f3ec0c0aa25da0f5f2ff9542091cd24ef9890b93cc",
-      "images.tar": "e0a0837b138aa2def27632fe6017dbcf2ec4c389db4f8bad2debc00fa953923a",
-      "source.tar": "6ec1578ac11cd6b8649d6e96f6070bff7af48a0557e0b97a89b5802e6c4550da"
+      "images.env": "c67475592357940b53af2157837454f9199e563b47a48b236b626f4ffd81721c",
+      "images.tar": "a7e5dafac6cd6f026d5af16d9f55a49a48186d845525a7e327bd08c848c3276b",
+      "source.tar": "c21a23233fd5522e1bf4dfc7af51b0cfe5614726192739c1f930bbf2044b5679"
     }
   },
   "cutoff": "d3",
   "database": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 12:47:44.315686+00",
+    "observed_at": "2026-11-23 14:07:57.080079+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "831"
+    "txid": "843"
   },
   "database_after_dump": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 12:47:45.943913+00",
+    "observed_at": "2026-11-23 14:07:58.776299+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "844"
+    "txid": "845"
   },
   "deployments": {
     "checkout": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "2bff598a-836f-48e4-b6a7-20407d4df332"
+        "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
       },
       "generation": 4,
       "ready": 1,
       "replicas": 2,
-      "resource_version": "878",
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "resource_version": "883",
+      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
     },
     "checkout-standby": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e"
+        "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
       },
       "generation": 3,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "851",
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "resource_version": "854",
+      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
     }
   },
   "dump": {
-    "bytes": 126942,
+    "bytes": 127012,
     "format": "pg_dump -Fc",
-    "sha256": "6dc4f2e052090abd6066beaafd7276bc10bd6b12828c3bd77ed570704e04fce5"
+    "sha256": "23f15d13c55959951a228ac5b89775940c2eba21a3c43d2929def696033bc880"
   },
   "evidence_sha256": {
-    "02672236-4cd8-4457-b599-96aba1579f4d": "1190edc94b917d21612afb0ca226c6e91bbc32786731d0cb26150b7cb3145990",
-    "081696ee-9610-4d39-8669-ac4485d9ab3c": "",
-    "1871af94-3dde-49ae-b442-85ee43eb8ca9": "",
-    "1d8fbc74-7c05-4592-88eb-ab9844b126db": "ea423991b4a3bcb96f7e3b22d9f74e37ab1f3f7addc1435bf315d355dccbd3d6",
-    "25162c9f-4142-48bf-8018-a380f72f9c7a": "",
-    "379de344-ee33-4bbb-ad19-c326f975020f": "dc60b1c1970845c957825405205789f709da0b007c5a05c9a2b0e244d19b0f37",
-    "3becc144-cf7d-4a24-99c3-6dabac45bfe9": "",
-    "3d031240-6da2-4c6e-abcd-8a6c05fe9c58": "",
-    "58b6d313-40b4-4aad-ac4c-3983e348e265": "1369a1a9965fe59fcd64b2d3dd55d4d97fd95de735abed197be88bea88696948",
-    "68ecae50-a91d-4eb1-aa2b-1d75cba6348b": "",
-    "7eb1518d-ca31-4ed4-ae83-13b26e097451": "",
-    "8a03bcac-4c4f-4c9a-8353-9764dc312a17": "",
-    "b6dc9838-472e-43bd-975c-54b43727f066": "",
-    "c0ceb59d-73d2-43ac-b789-814819f0f823": "",
-    "c4c1df47-85af-4e05-b3e7-5263d68c79ec": "",
-    "ca798c5b-c705-4dfd-80e8-9ce721fa6da3": "",
-    "cbaae3f4-70e7-4289-bf44-ae463cefe20f": "",
-    "ce0499a1-7e6c-43e0-b480-f2549d0708b4": "",
-    "d6e9e980-e4c0-4a62-af0f-bc804faa4c47": "",
-    "df00c2a8-d8ac-4beb-b71f-11b8db6d0374": "67cdcce16f5d00892f8cc41a554318566c54bd98cf8c66a46ce4fda24501d1a9",
-    "ea01457b-4142-48bc-9a16-6cdf9742f05d": "",
-    "eccec3d7-dcfe-4c98-9e7b-28a2355bc82f": "5cca07adeaecf0ff74acb24a4af97e915868e37167fa889b9f3e5da8b8844231",
-    "f4f8a1f9-e9d2-463a-8949-d83fe156825e": "",
-    "f5ea8a19-272f-4deb-a784-d53a700ecd7b": ""
+    "0fe9a538-c1f0-4b7e-9c97-589431413b1d": "",
+    "29273793-1e4f-4a8d-8d9e-da25d97e7208": "",
+    "3063a833-cd7b-4b65-839d-4c0adf00ffc5": "",
+    "3521062e-4199-4e6c-be42-d1ed81f1502f": "7c3eadad18f07ead7a5dd5e2cdd2daacd840cc6fc2090849056a88cef67056bc",
+    "4ca7e665-528b-49b1-a800-27143d074e2c": "",
+    "52f6f4bd-0050-411a-999f-07182a864d5b": "c80a2c90b737ae9000f959355c3c80daf69856d00eaf5ca10c21cc2985ee339b",
+    "5c106287-4b3c-4b69-b3fa-57632a1f777a": "d541d9013a4484bb59fd9063ae52ea00546e7180b871ac89386bc2afef8de1aa",
+    "5d74dfa1-e950-4ab9-bbe9-159c2b4d58d4": "56dd5b037e1519e381b9abcde4c68fc8e08e77160c764d3d934e2c9b3b018566",
+    "5ecdd66b-5a84-4cf7-ac17-aec834f72311": "",
+    "60ba90cf-0a6f-4405-872c-026868a1b5d9": "",
+    "79968a0a-102c-4d11-9069-7640d6f887de": "",
+    "7feab36a-b701-4510-b381-27bab0167d0b": "",
+    "83ece83b-bd5b-4664-805e-fecec932c23f": "7bc798161533cddefddf30f51b09e78cab411b50d14c520620dfc2ee9f113c92",
+    "89c9530d-8868-4165-b410-f1e02407395c": "",
+    "8dc8f484-138f-44c3-a9dc-fa94e008e55b": "",
+    "9cd53218-4948-48fe-b03d-37b43d90b812": "",
+    "aa4b534d-f554-4ff3-a146-c1af33ba2b05": "",
+    "acdb4d75-3da7-44fd-ae09-a0e30b901ba2": "",
+    "bebdfcc6-b5a4-40b7-a31b-bdf792866109": "",
+    "cd5ecffa-706d-4c65-bf71-2ff03d2acc90": "",
+    "d2ad0df8-d068-4407-a02d-406ea615f916": "",
+    "e957ba9f-d546-4b04-9d3a-581429b653ad": "",
+    "f2c14827-8381-465a-bfd0-ee6217566ac2": "",
+    "ff777e6a-f807-4c85-956a-43177241f09c": "1286918bd1dd7c1cbae9ac5784e10a8d9bf79b70fbcb78234c26a4b5b57c3e71"
   },
   "execution": {
     "holds_lock": false,
-    "id": "0bcb8d5b-6e2b-4be3-af91-896dbb90543a",
+    "id": "9659bd60-8911-4870-9f87-58d6db901f1a",
     "state": "manual_intervention"
   },
   "fingerprint": {
     "action_plans": {
-      "ids_md5": "07c1a9a9632daa97457e7ad433cdc050",
-      "md5": "06e9a205cee83aa392f509deb59a822a",
+      "ids_md5": "517019164f2c911388b4cd1e87700186",
+      "md5": "6e04b6d680bd1ef0901d9e52796c48ee",
       "row_md5": {
-        "ee4a3275-9848-431b-8fb2-4e5db3cd5808": "06e9a205cee83aa392f509deb59a822a"
+        "7b5707b0-65ee-475f-8595-bf3984641d5d": "6e04b6d680bd1ef0901d9e52796c48ee"
       },
       "rows": 1
     },
     "admissions": {
-      "ids_md5": "647e1cdb448e6afade8951f49aa8cbd5",
-      "md5": "39d47866421f28e92d6ce101e0984511",
+      "ids_md5": "a5534e12e94376e029728817ec24d1e8",
+      "md5": "a9d51fcc3d89417f42ee1bd05ee08d09",
       "rows": 2
     },
     "alembic_version": {
@@ -160,39 +160,39 @@
       "rows": 0
     },
     "evidence": {
-      "ids_md5": "319edd9ab2777caa558fe5e047dbee99",
-      "md5": "8b40544275cc6d3b094ead1f59da7cd5",
+      "ids_md5": "6085db058d136dd45d1aa0e581565df7",
+      "md5": "2bbfa89858c82d2c6c34a2322dc60c60",
       "row_md5": {
-        "02672236-4cd8-4457-b599-96aba1579f4d": "86a73984be1e4eda17b249ea125252f8",
-        "081696ee-9610-4d39-8669-ac4485d9ab3c": "4b75e27685a1e4ae29f7ab676ec7149e",
-        "1871af94-3dde-49ae-b442-85ee43eb8ca9": "e10dc1eaae1b357e70d4b353309b5fc8",
-        "1d8fbc74-7c05-4592-88eb-ab9844b126db": "47b6024c7b95d63cb03c7916c7064905",
-        "25162c9f-4142-48bf-8018-a380f72f9c7a": "e6435768a2ad2868604e7c1142d135e6",
-        "379de344-ee33-4bbb-ad19-c326f975020f": "6a681d8fdbf798d16580ce803141fd30",
-        "3becc144-cf7d-4a24-99c3-6dabac45bfe9": "ef45d54c9cb0865a34112868225e981e",
-        "3d031240-6da2-4c6e-abcd-8a6c05fe9c58": "7f04e8c81bce9e31e4cb2cb9be2ab3fd",
-        "58b6d313-40b4-4aad-ac4c-3983e348e265": "d19e2fcfc950cf0b917fd655ece4ba68",
-        "68ecae50-a91d-4eb1-aa2b-1d75cba6348b": "007b6abff82d69f58a374392fb89beb8",
-        "7eb1518d-ca31-4ed4-ae83-13b26e097451": "ad29d9ad7a9d26b2d0baaf7f8b8670b6",
-        "8a03bcac-4c4f-4c9a-8353-9764dc312a17": "b4806e90c72f5997d86dd37e1ef3a71a",
-        "b6dc9838-472e-43bd-975c-54b43727f066": "6d5d92597aeb72f81f7e3541300e5b6d",
-        "c0ceb59d-73d2-43ac-b789-814819f0f823": "a0404b347db0ad1abddb606c3da5a6fe",
-        "c4c1df47-85af-4e05-b3e7-5263d68c79ec": "f0341cac31e31d832129479a98cb08e6",
-        "ca798c5b-c705-4dfd-80e8-9ce721fa6da3": "1c219270485671299bd9188cdba219b5",
-        "cbaae3f4-70e7-4289-bf44-ae463cefe20f": "a3b184ccc78b5c32125773d381525ed4",
-        "ce0499a1-7e6c-43e0-b480-f2549d0708b4": "1dcddaeeed8e9bfa9a473b81207a5dab",
-        "d6e9e980-e4c0-4a62-af0f-bc804faa4c47": "89629c1f5002012469cbf415cf13456a",
-        "df00c2a8-d8ac-4beb-b71f-11b8db6d0374": "0ce7d7ab4db3d2787c7dc84b04e2fe5e",
-        "ea01457b-4142-48bc-9a16-6cdf9742f05d": "c1f160139e7c18b230ba25bb0f2d9c69",
-        "eccec3d7-dcfe-4c98-9e7b-28a2355bc82f": "ecee8ed37d58c1fe97437351e959770f",
-        "f4f8a1f9-e9d2-463a-8949-d83fe156825e": "54e45d4d69595560010aa811b800cd14",
-        "f5ea8a19-272f-4deb-a784-d53a700ecd7b": "fd43409414832c93f674c39433145aa5"
+        "0fe9a538-c1f0-4b7e-9c97-589431413b1d": "204b62bab44b9f332fa3470c7ed4a8cd",
+        "29273793-1e4f-4a8d-8d9e-da25d97e7208": "269e8eac209f37ecb8a78c9b7dbd4177",
+        "3063a833-cd7b-4b65-839d-4c0adf00ffc5": "e81af0a16608b3c19c62c2fc6ae4d1a7",
+        "3521062e-4199-4e6c-be42-d1ed81f1502f": "e1e902c28c5e9132486e0353cbb436cc",
+        "4ca7e665-528b-49b1-a800-27143d074e2c": "a59026692a2b19c1d6732d71230ebd45",
+        "52f6f4bd-0050-411a-999f-07182a864d5b": "6bbb810fbea5cfdb0561f66ec341b077",
+        "5c106287-4b3c-4b69-b3fa-57632a1f777a": "0efd9d03ad97816a322d803d1a48fd05",
+        "5d74dfa1-e950-4ab9-bbe9-159c2b4d58d4": "d220c6909c96847fe991c593a9b0b551",
+        "5ecdd66b-5a84-4cf7-ac17-aec834f72311": "81772f7bb10cfb9bc6b3b189cb52fc3a",
+        "60ba90cf-0a6f-4405-872c-026868a1b5d9": "7f6ed517bb7f573673030a79ffc6671f",
+        "79968a0a-102c-4d11-9069-7640d6f887de": "01a0a38c6c1308f8c7d3534686ca183a",
+        "7feab36a-b701-4510-b381-27bab0167d0b": "a68fe21dd21ded3c76934ea0dc28940e",
+        "83ece83b-bd5b-4664-805e-fecec932c23f": "3c9fb0b15ffd349b27603f72f0046073",
+        "89c9530d-8868-4165-b410-f1e02407395c": "0b975216b9d60cf2e6542221fb6dc617",
+        "8dc8f484-138f-44c3-a9dc-fa94e008e55b": "5bafb77268d80001834b0879b23767b7",
+        "9cd53218-4948-48fe-b03d-37b43d90b812": "81c5679b77c53358d286283e2aa00373",
+        "aa4b534d-f554-4ff3-a146-c1af33ba2b05": "b3589f047c8f54b411aee12d68eedec7",
+        "acdb4d75-3da7-44fd-ae09-a0e30b901ba2": "da039e56322658650ddf3c56ff266152",
+        "bebdfcc6-b5a4-40b7-a31b-bdf792866109": "9c8adb43a1a8a92dcb05e55e37d35bba",
+        "cd5ecffa-706d-4c65-bf71-2ff03d2acc90": "83e1382f604b8432883dbb1db9a9369f",
+        "d2ad0df8-d068-4407-a02d-406ea615f916": "eae20479f3eb43d7dec2342c2db3eb5f",
+        "e957ba9f-d546-4b04-9d3a-581429b653ad": "88ed0f761eb9c79235c8604d2469af94",
+        "f2c14827-8381-465a-bfd0-ee6217566ac2": "69c5401dfb9aea82a92d463b7d672b44",
+        "ff777e6a-f807-4c85-956a-43177241f09c": "7eb2be40ec91b290a99f7038678ef23b"
       },
       "rows": 24
     },
     "evidence_pins": {
       "ids_md5": "",
-      "md5": "9e801f035cd367312be7a33ea1b7f615",
+      "md5": "8b447f810b070d76771cf1e63eebf5bc",
       "rows": 6
     },
     "incident_activity": {
@@ -202,40 +202,40 @@
       "rows": 0
     },
     "incidents": {
-      "ids_md5": "a5b2e66c376b35d6bbd87b957e17f0eb",
-      "md5": "d0dd956cb2ffac6a54a2d2e25e3c4d6f",
+      "ids_md5": "9b92701bff447c3426f20a697f5efa57",
+      "md5": "c24e8b31092959129e4184babf3b2a41",
       "row_md5": {
-        "599d994b-d3f4-40a1-ac9a-4b67e9541b97": "d7212e080c28d7b4296d8f1bf95e809d",
-        "d1b0c1a5-5754-4b99-bb03-8eca3f5a8647": "fef1731f25fc34f2bec15be94dcb81d2"
+        "1000c30c-cc6c-43da-bdca-b610004ad21b": "c54011975bff35b70fec0a0e1f78b417",
+        "4e90f6bf-0bd9-44c8-b8e8-e9b27c8835c8": "96926291193c8a28e5303f87af333a0d"
       },
       "rows": 2
     },
     "investigation_runs": {
-      "ids_md5": "cc854decb0be1b5a0f8f2f3e4677dad5",
-      "md5": "3e2cda728aafb232607f143998819065",
+      "ids_md5": "3c9a4fa4c00b4ff232bb9196c0013aa4",
+      "md5": "94fcbfe71167c8f2ee45f20808db757a",
       "row_md5": {
-        "12c7eead-7640-4aa3-878a-7f1b8891bd07": "859c1a96220de013c5bde44fce47e5c0",
-        "8dd16774-7ffa-4ee2-9dd8-20e9de902fb0": "af62fe96fd79c81df16a35886af24119"
+        "b94dd5ab-c7d4-49e0-a905-cb1b6be16d97": "0874382048810b8ab11e3aa1dede8af6",
+        "e0aa9168-27f7-4802-8598-54f68465dda7": "2899702b3d356f582ab7df925c8c925d"
       },
       "rows": 2
     },
     "job_attempts": {
-      "ids_md5": "1502472cc748ff6e36aeebf91ccef370",
-      "md5": "88b14f1079e48d2691c9b12a7fa431f6",
+      "ids_md5": "f23f54621b07be91b9789030f1f672b0",
+      "md5": "12432c39ae7167e0f97ec15897a987b8",
       "rows": 3
     },
     "job_checkpoints": {
       "ids_md5": "",
-      "md5": "b3659d26758e7af04a6d9c6bd6221555",
+      "md5": "49bb1d30fb761c70e8841d8f372170ac",
       "rows": 12
     },
     "jobs": {
-      "ids_md5": "4c00e400214ee9417c14bf7bb51a5f72",
-      "md5": "756820e9fa72691c1791605277ebfe7a",
+      "ids_md5": "f48aed5b85f25a54a3d8986dd1c4085c",
+      "md5": "8585aead9a5991296e6075bf7799309a",
       "row_md5": {
-        "5fab9630-8f23-4453-b21d-7de8ad5e9d91": "b35e20383c23edfa532500307aad3bc9",
-        "76ed4c3e-6d8e-4598-aef4-79ac17eeea72": "e359140651f5bd7efe2256438b0d2206",
-        "7ff5fc1b-5e42-423c-bd13-8aa42c4c21cf": "6a515582468d5f1f2b063f9f1732be3d"
+        "3f471147-e132-4a42-8d9d-f7a6941bf1f5": "fdd1456bfaa177404d9384f179d1baba",
+        "9ac35b1e-d44b-48da-b368-7a80be6c5306": "ba1e72a7f5edbf2d41365fb14214d06f",
+        "d674834c-5bf0-4f57-a6d4-7d34c97d7f2a": "146ab55c3f301ab821bb833562b4e9d4"
       },
       "rows": 3
     },
@@ -285,8 +285,8 @@
       "rows": 0
     },
     "plan_reviews": {
-      "ids_md5": "145ce5268c08e37b99345fc71a20f89f",
-      "md5": "49d839fa982591f9ba24d976e6ef43db",
+      "ids_md5": "95afc731dcd4964e39e933367d9311bf",
+      "md5": "8d318ff5fecd0df134fa01eeae976309",
       "rows": 1
     },
     "recommendation_reports": {
@@ -295,10 +295,10 @@
       "rows": 0
     },
     "recovery_executions": {
-      "ids_md5": "a3b8c7f69be074ca46ce264e2601580b",
-      "md5": "3a63af03a1973dc31988bd716a9dcc7b",
+      "ids_md5": "809254f3f0809cda3fea6e6719c04345",
+      "md5": "496ee872cb6a4e7263ee49042488f45c",
       "row_md5": {
-        "0bcb8d5b-6e2b-4be3-af91-896dbb90543a": "3a63af03a1973dc31988bd716a9dcc7b"
+        "9659bd60-8911-4870-9f87-58d6db901f1a": "496ee872cb6a4e7263ee49042488f45c"
       },
       "rows": 1
     },
@@ -314,17 +314,17 @@
     },
     "sessions": {
       "ids_md5": "",
-      "md5": "62fde4ee2f5ac5c9cc8df6a33c5a1d67",
+      "md5": "4f9486bffe0f872ec99c905c437d8aa7",
       "rows": 3
     },
     "users": {
-      "ids_md5": "e6c554eaaffe481ef3fb85791b8373c7",
-      "md5": "d6c7a25b6428ee1dea81a449ba0753f7",
+      "ids_md5": "6d885306db5bde595cde163e3e986080",
+      "md5": "a15e322c634d75b02dea0225e586f4cf",
       "rows": 2
     },
     "worker_heartbeats": {
       "ids_md5": "",
-      "md5": "8adda29181db195ffbe47bccccbc3d21",
+      "md5": "99da34afb1faff15f4a32371a0eb8021",
       "rows": 1
     },
     "workload_observation_attempts": {
@@ -344,7 +344,7 @@
     },
     "workload_scope_state": {
       "ids_md5": "c4ca4238a0b923820dcc509a6f75849b",
-      "md5": "c6c1820abc238fd2f8288a9b4e4f3bf6",
+      "md5": "c4cb232add97c49b7c5078a06bb64d71",
       "rows": 1
     },
     "workload_scope_targets": {
@@ -353,81 +353,43 @@
       "rows": 0
     },
     "workloads": {
-      "ids_md5": "cd1a5b2860575ca69a43ecd3f7d927ab",
-      "md5": "1fef7b14ebbd43ca78ceb4770237a35d",
+      "ids_md5": "6bbcacfbc349564f15aff78fd7a522b6",
+      "md5": "4540fe19c987d1bc4bfd4143954dbce0",
       "rows": 6
     }
   },
   "journal": {
     "attempt_ids": [
-      "0bcb8d5b-6e2b-4be3-af91-896dbb90543a"
+      "9659bd60-8911-4870-9f87-58d6db901f1a"
     ],
     "attempts": {
       "acknowledged": 1
     },
     "audit_rows": 3,
-    "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-    "pin_sha256": "fd78887c1646720e779942b76a6db2dc52aa0d0382b0a2d70e812b50719e4cfb",
+    "deployment_id": "fda9dbf3-62f6-44ff-99ff-1353e1f43a12",
+    "pin_sha256": "9768f96566cc2cdd7c3a0bb39eff7e947e7d2311913ee993f2f7cbf0f5d19d43",
     "recovery_mode": "false",
     "targets": {
-      "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+      "840bde43-5bfa-413e-b758-ca923b64537b": {
         "enabled": true,
-        "epoch": "dc3a92be-b983-44b7-80a7-22b78fd436ec"
+        "epoch": "8fadf4de-af38-4e0d-9514-59ad25041e63"
       },
-      "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
+      "eaa0d6d3-2ab5-404c-95d9-c67448866916": {
         "enabled": true,
-        "epoch": "3372b22c-68ff-486f-b512-1f840b196ff1"
+        "epoch": "aff81372-1093-432c-8865-7b63ab180a22"
       }
     }
   },
   "maintenance_targets": [
     {
-      "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+      "deployment_id": "fda9dbf3-62f6-44ff-99ff-1353e1f43a12",
       "enabled": true,
-      "epoch": "dc3a92be-b983-44b7-80a7-22b78fd436ec",
+      "epoch": "8fadf4de-af38-4e0d-9514-59ad25041e63",
       "historical_unknown_count": 0,
       "proof": {
         "excluded_attempts": [],
-        "nonce": "2bff598a-836f-48e4-b6a7-20407d4df332",
-        "observed_at": "2026-11-23T12:47:17.477138+00:00",
-        "provider": "resource_version_fence_v1",
-        "resource_version": "848",
-        "snapshot": {
-          "containers": [
-            {
-              "image": "python:3.13.11-slim-bookworm",
-              "name": "checkout",
-              "resources": {
-                "limits": {
-                  "cpu": "100m",
-                  "memory": "64Mi"
-                },
-                "requests": {
-                  "cpu": "10m",
-                  "memory": "32Mi"
-                }
-              }
-            }
-          ],
-          "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
-          "replicas": 1,
-          "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
-        },
-        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
-      },
-      "reason": "Conditional write acknowledged; application verification remains manual.",
-      "recovery_mode": false,
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
-    },
-    {
-      "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-      "enabled": true,
-      "epoch": "3372b22c-68ff-486f-b512-1f840b196ff1",
-      "historical_unknown_count": 0,
-      "proof": {
-        "excluded_attempts": [],
-        "nonce": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e",
-        "observed_at": "2026-11-23T12:47:17.703846+00:00",
+        "nonce": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e",
+        "observed_at": "2026-11-23T14:07:29.579154+00:00",
         "provider": "resource_version_fence_v1",
         "resource_version": "851",
         "snapshot": {
@@ -449,13 +411,51 @@
           ],
           "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
           "replicas": 1,
-          "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
         },
-        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+        "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+      },
+      "reason": "Conditional write acknowledged; application verification remains manual.",
+      "recovery_mode": false,
+      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+    },
+    {
+      "deployment_id": "fda9dbf3-62f6-44ff-99ff-1353e1f43a12",
+      "enabled": true,
+      "epoch": "aff81372-1093-432c-8865-7b63ab180a22",
+      "historical_unknown_count": 0,
+      "proof": {
+        "excluded_attempts": [],
+        "nonce": "09e2da11-cb69-438b-b671-41688444b8f9",
+        "observed_at": "2026-11-23T14:07:29.805040+00:00",
+        "provider": "resource_version_fence_v1",
+        "resource_version": "854",
+        "snapshot": {
+          "containers": [
+            {
+              "image": "python:3.13.11-slim-bookworm",
+              "name": "checkout",
+              "resources": {
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "64Mi"
+                },
+                "requests": {
+                  "cpu": "10m",
+                  "memory": "32Mi"
+                }
+              }
+            }
+          ],
+          "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
+          "replicas": 1,
+          "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+        },
+        "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
       },
       "reason": "Trusted current-state and old-writer exclusion proof recorded.",
       "recovery_mode": false,
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
     }
   ],
   "outcome": "acknowledged",
@@ -466,7 +466,7 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
     "denial": null,
     "generation": 1,
     "mode": "normal"
@@ -474,8 +474,8 @@
   "project": "cloudops-release-restore",
   "schema": "ReleaseRestoreManifest/v1",
   "scope_sha256": {
-    "reader": "13c99df0819c72eaa7eef63f8fe493d883a124d4c723e1a8c712bdfcc4372baf",
-    "writer": "2d6776f71a5368a384de5102ad537ec028d4bfe2bbafe33e723b729d551df4d8"
+    "reader": "34a49da943481b9c1b98d92da98607ae93e0a9905fbb509197947bd3c1eab690",
+    "writer": "f33d5d40a4e10ba9c754088e22d97dee24c12f97e79ceeb5469cd8291df4ca39"
   },
   "stable_during_dump": "every non-volatile table digest equal before and after pg_dump",
   "stage": "execution dispatched and acknowledged",
@@ -485,14 +485,14 @@
       "name": "checkout",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
     },
     {
       "cluster": "local-k3s",
       "name": "checkout-standby",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
     }
   ]
 }
