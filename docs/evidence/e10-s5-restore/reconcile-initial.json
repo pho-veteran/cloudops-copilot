@@ -5,84 +5,84 @@
         "actor": {
           "account": "root",
           "channel": "local_unix_peer_credentials",
-          "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-          "pid": 103,
+          "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+          "pid": 98,
           "uid": 0
         },
         "evidence": [
           "local://release-restore/reconcile-initial.json"
         ],
-        "observed_at": "2026-11-23T12:47:17.714181+00:00",
+        "observed_at": "2026-11-23T14:32:08.462868+00:00",
         "operation": "exit_recovery_mode",
         "reason": "All targets reconciled (initial).",
-        "request_id": "f812d123-b04a-42b5-b3fd-d1593cddddff",
+        "request_id": "b0e4f308-324b-4bd5-b009-8daf658e90d6",
         "status": "applied",
         "targets": [
-          "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884",
-          "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e",
+          "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
         ]
       },
       {
         "actor": {
           "account": "root",
           "channel": "local_unix_peer_credentials",
-          "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-          "pid": 90,
+          "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+          "pid": 91,
           "uid": 0
         },
         "evidence": [
           "local://release-restore/reconcile-initial.json"
         ],
-        "observed_at": "2026-11-23T12:47:17.056723+00:00",
+        "observed_at": "2026-11-23T14:32:07.816363+00:00",
         "operation": "enable_target",
         "reason": "Reconciled current state (initial); fence and health proof required.",
-        "request_id": "5ab5a85d-3eab-45c4-823f-03abfae5d91c",
+        "request_id": "68d98404-27b3-490d-95d9-b743cfbbd964",
         "status": "applied",
         "targets": [
-          "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
         ]
       },
       {
         "actor": {
           "account": "root",
           "channel": "local_unix_peer_credentials",
-          "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-          "pid": 83,
+          "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+          "pid": 84,
           "uid": 0
         },
         "evidence": [
           "local://release-restore/reconcile-initial.json"
         ],
-        "observed_at": "2026-11-23T12:47:16.626022+00:00",
+        "observed_at": "2026-11-23T14:32:07.396632+00:00",
         "operation": "enable_target",
         "reason": "Reconciled current state (initial); fence and health proof required.",
-        "request_id": "3c518d41-dfc5-4348-90bc-70ba068caa77",
+        "request_id": "f02c1402-1e88-4fd4-9f4a-7b011167c5b7",
         "status": "applied",
         "targets": [
-          "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+          "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
         ]
       }
     ],
     "deployments": {
       "checkout": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "2bff598a-836f-48e4-b6a7-20407d4df332"
+          "cloudops-copilot.local/writer-fence": "578b6e64-9125-4bd4-af1e-4b4282517a94"
         },
         "generation": 3,
         "ready": 1,
         "replicas": 1,
         "resource_version": "848",
-        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+        "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
       },
       "checkout-standby": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e"
+          "cloudops-copilot.local/writer-fence": "33dafc22-6eae-4092-84a5-04e98b4ab34e"
         },
         "generation": 3,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "851",
-        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+        "resource_version": "852",
+        "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
       }
     },
     "executions": [],
@@ -90,17 +90,17 @@
       "attempt_ids": [],
       "attempts": {},
       "audit_rows": 3,
-      "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-      "pin_sha256": "fd78887c1646720e779942b76a6db2dc52aa0d0382b0a2d70e812b50719e4cfb",
+      "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+      "pin_sha256": "8f581a3a6678c4595948a3fb7c749bc0b03f1f04aa9f67755c50371e41f88112",
       "recovery_mode": "false",
       "targets": {
-        "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+        "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
           "enabled": true,
-          "epoch": "dc3a92be-b983-44b7-80a7-22b78fd436ec"
+          "epoch": "24281bd8-7471-40c8-b84c-8a9a0d7fe9cb"
         },
-        "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
+        "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
           "enabled": true,
-          "epoch": "3372b22c-68ff-486f-b512-1f840b196ff1"
+          "epoch": "504b08c0-42a1-44ad-af6a-ed296c9bd253"
         }
       }
     },
@@ -111,7 +111,7 @@
         "recommendation",
         "recovery_execution"
       ],
-      "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+      "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
       "denial": null,
       "generation": 1,
       "mode": "normal"
@@ -124,16 +124,16 @@
         "generation": 1,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "733",
-        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+        "resource_version": "726",
+        "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
       },
       "checkout-standby": {
         "fence": {},
         "generation": 1,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "798",
-        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+        "resource_version": "800",
+        "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
       }
     },
     "executions": [],
@@ -141,17 +141,17 @@
       "attempt_ids": [],
       "attempts": {},
       "audit_rows": 0,
-      "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-      "pin_sha256": "fd78887c1646720e779942b76a6db2dc52aa0d0382b0a2d70e812b50719e4cfb",
+      "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+      "pin_sha256": "8f581a3a6678c4595948a3fb7c749bc0b03f1f04aa9f67755c50371e41f88112",
       "recovery_mode": "true",
       "targets": {
-        "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+        "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
           "enabled": false,
-          "epoch": "471e3af6-3fd6-4923-bee2-92a790640c87"
+          "epoch": "2ed90c99-82b5-47b7-9375-2809295c6824"
         },
-        "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
+        "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
           "enabled": false,
-          "epoch": "cdaca9fe-536d-4001-9b7b-640fd07a1370"
+          "epoch": "f80490db-1690-4857-b454-a85d789b17a1"
         }
       }
     },
@@ -159,24 +159,24 @@
       "audit": [],
       "targets": [
         {
-          "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+          "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
           "enabled": false,
-          "epoch": "471e3af6-3fd6-4923-bee2-92a790640c87",
+          "epoch": "f80490db-1690-4857-b454-a85d789b17a1",
           "historical_unknown_count": 0,
           "proof": {},
           "reason": "Initial target quarantine.",
           "recovery_mode": true,
-          "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+          "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
         },
         {
-          "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+          "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
           "enabled": false,
-          "epoch": "cdaca9fe-536d-4001-9b7b-640fd07a1370",
+          "epoch": "2ed90c99-82b5-47b7-9375-2809295c6824",
           "historical_unknown_count": 0,
           "proof": {},
           "reason": "Initial target quarantine.",
           "recovery_mode": true,
-          "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
         }
       ],
       "unknown_attributions": []
@@ -187,18 +187,18 @@
       "actor": {
         "account": "root",
         "channel": "local_unix_peer_credentials",
-        "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-        "pid": 83,
+        "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+        "pid": 84,
         "uid": 0
       },
       "operation": "enable_target",
       "proofs": {
-        "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+        "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
           "excluded_attempts": [],
-          "nonce": "0b35312d-57c8-4da9-bb73-82bdbb2e0e2a",
-          "observed_at": "2026-11-23T12:47:16.424512+00:00",
+          "nonce": "1ba4f302-8587-4767-905b-8f87c3884454",
+          "observed_at": "2026-11-23T14:32:07.179897+00:00",
           "provider": "resource_version_fence_v1",
-          "resource_version": "841",
+          "resource_version": "840",
           "snapshot": {
             "containers": [
               {
@@ -218,31 +218,31 @@
             ],
             "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
             "replicas": 1,
-            "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+            "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
           },
-          "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+          "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
         }
       },
       "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
-      "request_id": "3c518d41-dfc5-4348-90bc-70ba068caa77",
+      "request_id": "f02c1402-1e88-4fd4-9f4a-7b011167c5b7",
       "status": "applied"
     },
     "enable_checkout-standby": {
       "actor": {
         "account": "root",
         "channel": "local_unix_peer_credentials",
-        "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-        "pid": 90,
+        "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+        "pid": 91,
         "uid": 0
       },
       "operation": "enable_target",
       "proofs": {
-        "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
+        "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
           "excluded_attempts": [],
-          "nonce": "ef2b1486-1e3f-41ce-a854-493355719043",
-          "observed_at": "2026-11-23T12:47:17.050208+00:00",
+          "nonce": "0be04ac1-7d9c-4c62-8371-e2686eb7fc90",
+          "observed_at": "2026-11-23T14:32:07.811958+00:00",
           "provider": "resource_version_fence_v1",
-          "resource_version": "845",
+          "resource_version": "843",
           "snapshot": {
             "containers": [
               {
@@ -262,29 +262,58 @@
             ],
             "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
             "replicas": 1,
-            "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+            "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
           },
-          "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
         }
       },
       "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
-      "request_id": "5ab5a85d-3eab-45c4-823f-03abfae5d91c",
+      "request_id": "68d98404-27b3-490d-95d9-b743cfbbd964",
       "status": "applied"
     },
     "exit_recovery_mode": {
       "actor": {
         "account": "root",
         "channel": "local_unix_peer_credentials",
-        "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-        "pid": 103,
+        "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+        "pid": 98,
         "uid": 0
       },
       "operation": "exit_recovery_mode",
       "proofs": {
-        "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+        "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
           "excluded_attempts": [],
-          "nonce": "2bff598a-836f-48e4-b6a7-20407d4df332",
-          "observed_at": "2026-11-23T12:47:17.477138+00:00",
+          "nonce": "33dafc22-6eae-4092-84a5-04e98b4ab34e",
+          "observed_at": "2026-11-23T14:32:08.455810+00:00",
+          "provider": "resource_version_fence_v1",
+          "resource_version": "852",
+          "snapshot": {
+            "containers": [
+              {
+                "image": "python:3.13.11-slim-bookworm",
+                "name": "checkout",
+                "resources": {
+                  "limits": {
+                    "cpu": "100m",
+                    "memory": "64Mi"
+                  },
+                  "requests": {
+                    "cpu": "10m",
+                    "memory": "32Mi"
+                  }
+                }
+              }
+            ],
+            "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
+            "replicas": 1,
+            "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
+          },
+          "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
+        },
+        "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
+          "excluded_attempts": [],
+          "nonce": "578b6e64-9125-4bd4-af1e-4b4282517a94",
+          "observed_at": "2026-11-23T14:32:08.228039+00:00",
           "provider": "resource_version_fence_v1",
           "resource_version": "848",
           "snapshot": {
@@ -306,42 +335,13 @@
             ],
             "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
             "replicas": 1,
-            "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+            "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
           },
-          "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
-        },
-        "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
-          "excluded_attempts": [],
-          "nonce": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e",
-          "observed_at": "2026-11-23T12:47:17.703846+00:00",
-          "provider": "resource_version_fence_v1",
-          "resource_version": "851",
-          "snapshot": {
-            "containers": [
-              {
-                "image": "python:3.13.11-slim-bookworm",
-                "name": "checkout",
-                "resources": {
-                  "limits": {
-                    "cpu": "100m",
-                    "memory": "64Mi"
-                  },
-                  "requests": {
-                    "cpu": "10m",
-                    "memory": "32Mi"
-                  }
-                }
-              }
-            ],
-            "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
-            "replicas": 1,
-            "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
-          },
-          "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
         }
       },
       "reason": "Proof/current-state checks passed; historical unknown outcomes were preserved.",
-      "request_id": "f812d123-b04a-42b5-b3fd-d1593cddddff",
+      "request_id": "b0e4f308-324b-4bd5-b009-8daf658e90d6",
       "status": "applied"
     }
   }

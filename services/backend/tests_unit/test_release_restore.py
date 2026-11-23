@@ -212,3 +212,43 @@ def test_restore_standby_writer_scope_names_only_the_standby():
     assert binding["subjects"] == [
         {"kind": "ServiceAccount", "name": "cloudops-writer", "namespace": "demo"}
     ]
+
+
+def test_core_drill_overlay_connects_only_to_the_restore_database():
+    services = yaml.safe_load((ROOT / "compose.release-core-restore.yaml").read_text())["services"]
+    assert "executor" not in services and "restore-admin" not in services
+    assert services["db"]["environment"]["POSTGRES_DB"] == "cloudops_restore_test"
+    urls = {
+        name: service["environment"]["DATABASE_URL"]
+        for name, service in services.items()
+        if "DATABASE_URL" in service.get("environment", {})
+    }
+    assert set(urls) == {"migrate", "api", "worker", "observer", "test"}
+    assert all(url.endswith("@db:5432/cloudops_restore_test") for url in urls.values())
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        {},
+        {
+            "CLOUDOPS_CORE_PROJECT": "cloudops-local",
+            "CLOUDOPS_RELEASE_BUNDLE": "bundle",
+            "CLOUDOPS_HOST_ENV": "host.env",
+        },
+        {"CLOUDOPS_CORE_PROJECT": "cloudops-release-core-test"},
+    ],
+    ids=["no-project", "reserved-project", "no-bundle"],
+)
+def test_core_drill_refuses_incomplete_targets(tmp_path, values):
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "probe-release-core-restore.py")],
+        env=clean_env(**values),
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode != 0
+    expected = "CLOUDOPS_CORE_PROJECT" if os.name == "posix" else "Linux host or WSL"
+    assert expected in result.stderr

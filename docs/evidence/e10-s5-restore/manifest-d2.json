@@ -1,102 +1,102 @@
 {
   "bundle": {
     "images": {
-      "backend": "sha256:316cc54da3d6c6ab01b52fa9ad0888575615e35355e57eb9403a9cf54fc490a2",
+      "backend": "sha256:44e78180524bda7b213c6ad422b801607d5a7959139fa2663c6ae043bb488018",
       "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-      "https": "sha256:5fee2bbaa0d4365b48f752ab64ff1844400452d9699b1a9ea1b751b0ef133ddd"
+      "https": "sha256:b0d285a8db70bfc418ac1f5530b115813cac994f1fca866c14badd2a75e51cac"
     },
-    "revision": "08ad0ad6b25967cc57d5d3f5463264a86cfe97c1",
+    "revision": "f8e5dbae568413a448eda78d347e8b750bddaf36",
     "sha256": {
-      "images.env": "2a1d81c4fed63406293ae9f3ec0c0aa25da0f5f2ff9542091cd24ef9890b93cc",
-      "images.tar": "e0a0837b138aa2def27632fe6017dbcf2ec4c389db4f8bad2debc00fa953923a",
-      "source.tar": "6ec1578ac11cd6b8649d6e96f6070bff7af48a0557e0b97a89b5802e6c4550da"
+      "images.env": "809c3c8d64a72d76d95b60db30deead771f8fe57616b7c6b97e30a3f7d651ddf",
+      "images.tar": "012dbae93bd7af5f086aa0955109a250b917b3d623c07da4793600fd88f24032",
+      "source.tar": "dd2894859c691e3b0151012be093ede6aeea9bed4057997b575c952f347a9942"
     }
   },
   "cutoff": "d2",
   "database": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 12:47:34.319048+00",
+    "observed_at": "2026-11-23 14:32:24.945372+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "817"
+    "txid": "818"
   },
   "database_after_dump": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 12:47:35.933425+00",
+    "observed_at": "2026-11-23 14:32:26.554589+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "818"
+    "txid": "819"
   },
   "deployments": {
     "checkout": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "2bff598a-836f-48e4-b6a7-20407d4df332"
+        "cloudops-copilot.local/writer-fence": "578b6e64-9125-4bd4-af1e-4b4282517a94"
       },
       "generation": 3,
       "ready": 1,
       "replicas": 1,
       "resource_version": "848",
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     "checkout-standby": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e"
+        "cloudops-copilot.local/writer-fence": "33dafc22-6eae-4092-84a5-04e98b4ab34e"
       },
       "generation": 3,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "851",
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "resource_version": "852",
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   },
   "dump": {
-    "bytes": 126644,
+    "bytes": 126648,
     "format": "pg_dump -Fc",
-    "sha256": "4347fa2da29ae1d52882541db4345d38d86bb4be6f2e2feee9e3745849509ed9"
+    "sha256": "5b5015396057cc7ef697e868962abff5933f12227c0b9af9831da394237e8207"
   },
   "evidence_sha256": {
-    "02672236-4cd8-4457-b599-96aba1579f4d": "1190edc94b917d21612afb0ca226c6e91bbc32786731d0cb26150b7cb3145990",
-    "081696ee-9610-4d39-8669-ac4485d9ab3c": "",
-    "1871af94-3dde-49ae-b442-85ee43eb8ca9": "",
-    "1d8fbc74-7c05-4592-88eb-ab9844b126db": "ea423991b4a3bcb96f7e3b22d9f74e37ab1f3f7addc1435bf315d355dccbd3d6",
-    "25162c9f-4142-48bf-8018-a380f72f9c7a": "",
-    "379de344-ee33-4bbb-ad19-c326f975020f": "dc60b1c1970845c957825405205789f709da0b007c5a05c9a2b0e244d19b0f37",
-    "3becc144-cf7d-4a24-99c3-6dabac45bfe9": "",
-    "3d031240-6da2-4c6e-abcd-8a6c05fe9c58": "",
-    "58b6d313-40b4-4aad-ac4c-3983e348e265": "1369a1a9965fe59fcd64b2d3dd55d4d97fd95de735abed197be88bea88696948",
-    "68ecae50-a91d-4eb1-aa2b-1d75cba6348b": "",
-    "7eb1518d-ca31-4ed4-ae83-13b26e097451": "",
-    "8a03bcac-4c4f-4c9a-8353-9764dc312a17": "",
-    "b6dc9838-472e-43bd-975c-54b43727f066": "",
-    "c0ceb59d-73d2-43ac-b789-814819f0f823": "",
-    "c4c1df47-85af-4e05-b3e7-5263d68c79ec": "",
-    "ca798c5b-c705-4dfd-80e8-9ce721fa6da3": "",
-    "cbaae3f4-70e7-4289-bf44-ae463cefe20f": "",
-    "ce0499a1-7e6c-43e0-b480-f2549d0708b4": "",
-    "d6e9e980-e4c0-4a62-af0f-bc804faa4c47": "",
-    "df00c2a8-d8ac-4beb-b71f-11b8db6d0374": "67cdcce16f5d00892f8cc41a554318566c54bd98cf8c66a46ce4fda24501d1a9",
-    "ea01457b-4142-48bc-9a16-6cdf9742f05d": "",
-    "eccec3d7-dcfe-4c98-9e7b-28a2355bc82f": "5cca07adeaecf0ff74acb24a4af97e915868e37167fa889b9f3e5da8b8844231",
-    "f4f8a1f9-e9d2-463a-8949-d83fe156825e": "",
-    "f5ea8a19-272f-4deb-a784-d53a700ecd7b": ""
+    "0e84eda2-b6c6-420d-8de6-0894d6518289": "",
+    "1f2f21ea-315e-480f-8bfd-e67125f25cd4": "",
+    "24416d43-c7c2-403a-b1b4-6752d176d048": "",
+    "24537b3d-7607-4a0a-9eae-327f13b936ac": "6d74839d2708de04551c7efcdc0f345735c72b030c3b3b4a3856f58320aa1dcd",
+    "28323a22-d1e0-47c5-aab4-45dd0e538066": "",
+    "2a6d74f8-7411-4b71-98b9-8a394cf3b9c7": "",
+    "4a7dddcd-ccae-460a-a28e-2af0c96365b0": "",
+    "4ca12232-3946-4dc8-8a96-996e3ee0dc38": "",
+    "4ea6a855-6457-4e96-bce9-639a24dc186b": "",
+    "567ae29d-4318-4038-9138-4aed8c4d2f2d": "f51537ebe6aef1af0cb67f20999ef656737e83767c1f95fdf08dc3217f47aa40",
+    "5a8ab534-da10-433b-b0dc-a50488205b1a": "4690310a4f3c0c5f745ea400fcc3f59868bf217a158ab13259482ad541549b5c",
+    "5c825f7e-e7b3-437d-a9e1-22e438270a9b": "",
+    "6a1672a8-f869-4376-b16e-5bd768bf8873": "52a63278964645ec190bb2c9206d33f93bdeb17d160353e7ab6a4b2b3fe0cebd",
+    "6b92f17e-026e-4e62-88d2-fb8c9ae76096": "",
+    "71aa0424-d67e-4b42-8ea5-eca09421bfeb": "",
+    "98972c0a-61f8-4376-98b0-2aec938ba239": "",
+    "a519fa85-27c7-441b-afc0-6431f32c3953": "b1bf5d89c50b59532e877779d217cfeb1b6ea2b340d776b4c7dd71c96cb8cab9",
+    "a644bea7-15fc-4078-af97-195893f436a9": "",
+    "b52b696a-9526-4bdb-9172-b8c3a24fd0ff": "",
+    "b5c0bd2e-cc35-4e33-8f0b-5d1704186cc9": "",
+    "b63162e8-9841-4fb0-bfb6-29275a00abbe": "",
+    "b9f3f9f3-4790-4d10-be3d-13c1e876e54e": "",
+    "c5bff47f-cb70-4875-90e2-f2016cb54eec": "58f38594d380f004b233c96674a3046f34370f3cb4aea7d1ce97a21a90b368db",
+    "f1064e2c-6476-4c7f-9e5c-5d2b4cfb96b9": ""
   },
   "execution": {
     "holds_lock": true,
-    "id": "0bcb8d5b-6e2b-4be3-af91-896dbb90543a",
+    "id": "fa33a605-4bf1-4ecf-9991-3f5918bef7f8",
     "state": "queued"
   },
   "fingerprint": {
     "action_plans": {
-      "ids_md5": "07c1a9a9632daa97457e7ad433cdc050",
-      "md5": "06e9a205cee83aa392f509deb59a822a",
+      "ids_md5": "d823ee996838dede1c5d9fc829c44d14",
+      "md5": "f87711e0e47c724060f8ced5a2e699d0",
       "row_md5": {
-        "ee4a3275-9848-431b-8fb2-4e5db3cd5808": "06e9a205cee83aa392f509deb59a822a"
+        "2be3bf2a-cc64-4161-87fa-f23162ee38cd": "f87711e0e47c724060f8ced5a2e699d0"
       },
       "rows": 1
     },
     "admissions": {
-      "ids_md5": "647e1cdb448e6afade8951f49aa8cbd5",
-      "md5": "39d47866421f28e92d6ce101e0984511",
+      "ids_md5": "e95168ce97281b1ef5736185f46bec77",
+      "md5": "20d23988905def2ea4cc6776682ecab8",
       "rows": 2
     },
     "alembic_version": {
@@ -160,39 +160,39 @@
       "rows": 0
     },
     "evidence": {
-      "ids_md5": "319edd9ab2777caa558fe5e047dbee99",
-      "md5": "8b40544275cc6d3b094ead1f59da7cd5",
+      "ids_md5": "de7db6fc13dc725db0c18e11019b99e1",
+      "md5": "35cedc0d0e02afea56be076fdadb64ff",
       "row_md5": {
-        "02672236-4cd8-4457-b599-96aba1579f4d": "86a73984be1e4eda17b249ea125252f8",
-        "081696ee-9610-4d39-8669-ac4485d9ab3c": "4b75e27685a1e4ae29f7ab676ec7149e",
-        "1871af94-3dde-49ae-b442-85ee43eb8ca9": "e10dc1eaae1b357e70d4b353309b5fc8",
-        "1d8fbc74-7c05-4592-88eb-ab9844b126db": "47b6024c7b95d63cb03c7916c7064905",
-        "25162c9f-4142-48bf-8018-a380f72f9c7a": "e6435768a2ad2868604e7c1142d135e6",
-        "379de344-ee33-4bbb-ad19-c326f975020f": "6a681d8fdbf798d16580ce803141fd30",
-        "3becc144-cf7d-4a24-99c3-6dabac45bfe9": "ef45d54c9cb0865a34112868225e981e",
-        "3d031240-6da2-4c6e-abcd-8a6c05fe9c58": "7f04e8c81bce9e31e4cb2cb9be2ab3fd",
-        "58b6d313-40b4-4aad-ac4c-3983e348e265": "d19e2fcfc950cf0b917fd655ece4ba68",
-        "68ecae50-a91d-4eb1-aa2b-1d75cba6348b": "007b6abff82d69f58a374392fb89beb8",
-        "7eb1518d-ca31-4ed4-ae83-13b26e097451": "ad29d9ad7a9d26b2d0baaf7f8b8670b6",
-        "8a03bcac-4c4f-4c9a-8353-9764dc312a17": "b4806e90c72f5997d86dd37e1ef3a71a",
-        "b6dc9838-472e-43bd-975c-54b43727f066": "6d5d92597aeb72f81f7e3541300e5b6d",
-        "c0ceb59d-73d2-43ac-b789-814819f0f823": "a0404b347db0ad1abddb606c3da5a6fe",
-        "c4c1df47-85af-4e05-b3e7-5263d68c79ec": "f0341cac31e31d832129479a98cb08e6",
-        "ca798c5b-c705-4dfd-80e8-9ce721fa6da3": "1c219270485671299bd9188cdba219b5",
-        "cbaae3f4-70e7-4289-bf44-ae463cefe20f": "a3b184ccc78b5c32125773d381525ed4",
-        "ce0499a1-7e6c-43e0-b480-f2549d0708b4": "1dcddaeeed8e9bfa9a473b81207a5dab",
-        "d6e9e980-e4c0-4a62-af0f-bc804faa4c47": "89629c1f5002012469cbf415cf13456a",
-        "df00c2a8-d8ac-4beb-b71f-11b8db6d0374": "0ce7d7ab4db3d2787c7dc84b04e2fe5e",
-        "ea01457b-4142-48bc-9a16-6cdf9742f05d": "c1f160139e7c18b230ba25bb0f2d9c69",
-        "eccec3d7-dcfe-4c98-9e7b-28a2355bc82f": "ecee8ed37d58c1fe97437351e959770f",
-        "f4f8a1f9-e9d2-463a-8949-d83fe156825e": "54e45d4d69595560010aa811b800cd14",
-        "f5ea8a19-272f-4deb-a784-d53a700ecd7b": "fd43409414832c93f674c39433145aa5"
+        "0e84eda2-b6c6-420d-8de6-0894d6518289": "e324f82413ace622ccc29eb0eea75b9b",
+        "1f2f21ea-315e-480f-8bfd-e67125f25cd4": "68035eef4c63cf4c76c8ccacf942dcba",
+        "24416d43-c7c2-403a-b1b4-6752d176d048": "5e50fe57b26f25a299857af114411b1f",
+        "24537b3d-7607-4a0a-9eae-327f13b936ac": "577e8bbd8b3a2e25aba1a56d8d411a5e",
+        "28323a22-d1e0-47c5-aab4-45dd0e538066": "fc267bca48b95000d70446e9dac75301",
+        "2a6d74f8-7411-4b71-98b9-8a394cf3b9c7": "dc65a551cb001c3700bb0536010ae1ad",
+        "4a7dddcd-ccae-460a-a28e-2af0c96365b0": "d8161d5c5f5900e09b2ea7d00cf1f1a6",
+        "4ca12232-3946-4dc8-8a96-996e3ee0dc38": "607caafbfe3618b3090b8c8f6f979c08",
+        "4ea6a855-6457-4e96-bce9-639a24dc186b": "84221bfab58ed18e78016be3e62be4d9",
+        "567ae29d-4318-4038-9138-4aed8c4d2f2d": "a31b7ea4b57c8756178083f7c0e910ff",
+        "5a8ab534-da10-433b-b0dc-a50488205b1a": "de514f5ff104038f3ef6cb8b8fd26717",
+        "5c825f7e-e7b3-437d-a9e1-22e438270a9b": "8107ad82bb098d8342401c288e329896",
+        "6a1672a8-f869-4376-b16e-5bd768bf8873": "3c3e4caea3cd34cfa2cb8cdf77738bf7",
+        "6b92f17e-026e-4e62-88d2-fb8c9ae76096": "c8ea46ae381c2672bf5904c5895ac47b",
+        "71aa0424-d67e-4b42-8ea5-eca09421bfeb": "68db32aa2ee7222f833108104a25bdb9",
+        "98972c0a-61f8-4376-98b0-2aec938ba239": "e78bde720a0f63823c0d35616a262c11",
+        "a519fa85-27c7-441b-afc0-6431f32c3953": "5a298db8f957805ac9122afdb3ff2a78",
+        "a644bea7-15fc-4078-af97-195893f436a9": "6c818eaf56fc96793feabc58e350c5be",
+        "b52b696a-9526-4bdb-9172-b8c3a24fd0ff": "764b48400655151d62ec24cbab09f9f9",
+        "b5c0bd2e-cc35-4e33-8f0b-5d1704186cc9": "34da01370959272dff52b03bbc9627b8",
+        "b63162e8-9841-4fb0-bfb6-29275a00abbe": "865ecace34212b7da2b45515a510ece1",
+        "b9f3f9f3-4790-4d10-be3d-13c1e876e54e": "7deb5dc7e84999723df90b382cfac1e7",
+        "c5bff47f-cb70-4875-90e2-f2016cb54eec": "fefae49b60560b5ad7a0157627831bc9",
+        "f1064e2c-6476-4c7f-9e5c-5d2b4cfb96b9": "699f60200f2b7e1df1febe13f87cc3fb"
       },
       "rows": 24
     },
     "evidence_pins": {
       "ids_md5": "",
-      "md5": "9e801f035cd367312be7a33ea1b7f615",
+      "md5": "0121a833201c7d41fe4ae1ce0001f627",
       "rows": 6
     },
     "incident_activity": {
@@ -202,40 +202,40 @@
       "rows": 0
     },
     "incidents": {
-      "ids_md5": "a5b2e66c376b35d6bbd87b957e17f0eb",
-      "md5": "d0dd956cb2ffac6a54a2d2e25e3c4d6f",
+      "ids_md5": "8ce34ec9a5dbf7f97be98c5027d73d9a",
+      "md5": "22e5e8289ab064ad66fa5b7c34b36821",
       "row_md5": {
-        "599d994b-d3f4-40a1-ac9a-4b67e9541b97": "d7212e080c28d7b4296d8f1bf95e809d",
-        "d1b0c1a5-5754-4b99-bb03-8eca3f5a8647": "fef1731f25fc34f2bec15be94dcb81d2"
+        "77964d33-1972-4982-b736-b400ba419460": "038e37a3d2b17024ea90047158c980b4",
+        "c3d7d083-d61e-4844-a770-496ef6ee596f": "d648c35d333e082515fbcfda4b94be57"
       },
       "rows": 2
     },
     "investigation_runs": {
-      "ids_md5": "cc854decb0be1b5a0f8f2f3e4677dad5",
-      "md5": "3e2cda728aafb232607f143998819065",
+      "ids_md5": "44f0635f961a739fa04bbb0a0e39d627",
+      "md5": "5c49fcfdaa9e226bc814a10846dd1e5c",
       "row_md5": {
-        "12c7eead-7640-4aa3-878a-7f1b8891bd07": "859c1a96220de013c5bde44fce47e5c0",
-        "8dd16774-7ffa-4ee2-9dd8-20e9de902fb0": "af62fe96fd79c81df16a35886af24119"
+        "806f1f66-7ba5-4e06-a876-4aee4d7fb873": "03d1e3359f0df5230aadac20a0fa0125",
+        "8351bb2b-d8a8-453d-add6-f9c5d488f455": "6a1f56bde6654cd8ed5cc56c7615dccb"
       },
       "rows": 2
     },
     "job_attempts": {
-      "ids_md5": "f13d501abf456241c4242a5719242df1",
-      "md5": "f3bb77f6233faf049eb3f2abda655ec4",
+      "ids_md5": "c20abafac5d51b430a028e8b88be139a",
+      "md5": "6648296401181e049b54aea039de56f5",
       "rows": 2
     },
     "job_checkpoints": {
       "ids_md5": "",
-      "md5": "b3659d26758e7af04a6d9c6bd6221555",
+      "md5": "3975feb2d6ba76886ca2a4831ed5c678",
       "rows": 12
     },
     "jobs": {
-      "ids_md5": "4c00e400214ee9417c14bf7bb51a5f72",
-      "md5": "2bc8f33946996de37de61587d1213039",
+      "ids_md5": "fbd227dcb0d1fcdb03491d096e7eac62",
+      "md5": "856fd2cd965fe68b1a5f9c74d001d785",
       "row_md5": {
-        "5fab9630-8f23-4453-b21d-7de8ad5e9d91": "186c60199ecc023de1cca4e88304e7d8",
-        "76ed4c3e-6d8e-4598-aef4-79ac17eeea72": "e359140651f5bd7efe2256438b0d2206",
-        "7ff5fc1b-5e42-423c-bd13-8aa42c4c21cf": "6a515582468d5f1f2b063f9f1732be3d"
+        "2692386c-0f8c-4855-a7a7-1a2f8aa4bec9": "cba1f2a2e2f021a00588b953c909e823",
+        "65c84c93-0aa3-4d41-ad5f-caaee3fa167e": "05411794eab4a6bc2a3c9b823423bccd",
+        "9e45ddc2-62ef-4b88-bbb5-9a042a8c07f2": "d472d329f9ef46e9059a7dca23a7a899"
       },
       "rows": 3
     },
@@ -285,8 +285,8 @@
       "rows": 0
     },
     "plan_reviews": {
-      "ids_md5": "145ce5268c08e37b99345fc71a20f89f",
-      "md5": "49d839fa982591f9ba24d976e6ef43db",
+      "ids_md5": "940283b50d3cb96134363bfbc09c537c",
+      "md5": "f5d49e3390e5790cb07a15e0f0f0493d",
       "rows": 1
     },
     "recommendation_reports": {
@@ -295,10 +295,10 @@
       "rows": 0
     },
     "recovery_executions": {
-      "ids_md5": "a3b8c7f69be074ca46ce264e2601580b",
-      "md5": "67ddfe6fc14ebc04925036b85a48c4a0",
+      "ids_md5": "380085e8c574c8bffcd61c834d1ae834",
+      "md5": "16d1632548fe8256d9460a24694dd6eb",
       "row_md5": {
-        "0bcb8d5b-6e2b-4be3-af91-896dbb90543a": "67ddfe6fc14ebc04925036b85a48c4a0"
+        "fa33a605-4bf1-4ecf-9991-3f5918bef7f8": "16d1632548fe8256d9460a24694dd6eb"
       },
       "rows": 1
     },
@@ -314,17 +314,17 @@
     },
     "sessions": {
       "ids_md5": "",
-      "md5": "7e831ed6ce0efc323004085d8ec1ef11",
+      "md5": "5bfb4aa8293e6bca4b28caa791187edd",
       "rows": 2
     },
     "users": {
-      "ids_md5": "e6c554eaaffe481ef3fb85791b8373c7",
-      "md5": "d6c7a25b6428ee1dea81a449ba0753f7",
+      "ids_md5": "a5afa2950fc4771916e0432b55b0be48",
+      "md5": "baba9c5d88783b1fbe5536cd022b3a4b",
       "rows": 2
     },
     "worker_heartbeats": {
       "ids_md5": "",
-      "md5": "ffa67d46a36e9ed4edb5d4fddbdd97db",
+      "md5": "40f51f018a86142373cc92f965f8b221",
       "rows": 1
     },
     "workload_observation_attempts": {
@@ -344,7 +344,7 @@
     },
     "workload_scope_state": {
       "ids_md5": "c4ca4238a0b923820dcc509a6f75849b",
-      "md5": "5e347d95d9150210360ee3cc313fb707",
+      "md5": "c7b82f5efaf9612bd5bb5c0e36736f0b",
       "rows": 1
     },
     "workload_scope_targets": {
@@ -353,8 +353,8 @@
       "rows": 0
     },
     "workloads": {
-      "ids_md5": "cd1a5b2860575ca69a43ecd3f7d927ab",
-      "md5": "82d06024e87b934b536e3d080eb90ebc",
+      "ids_md5": "c82667d0832528d5721a8a861e91ba94",
+      "md5": "71d5ebf2bf25c3652a8e59b225afe485",
       "rows": 6
     }
   },
@@ -362,30 +362,30 @@
     "attempt_ids": [],
     "attempts": {},
     "audit_rows": 3,
-    "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
-    "pin_sha256": "fd78887c1646720e779942b76a6db2dc52aa0d0382b0a2d70e812b50719e4cfb",
+    "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+    "pin_sha256": "8f581a3a6678c4595948a3fb7c749bc0b03f1f04aa9f67755c50371e41f88112",
     "recovery_mode": "false",
     "targets": {
-      "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+      "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
         "enabled": true,
-        "epoch": "dc3a92be-b983-44b7-80a7-22b78fd436ec"
+        "epoch": "24281bd8-7471-40c8-b84c-8a9a0d7fe9cb"
       },
-      "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
+      "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
         "enabled": true,
-        "epoch": "3372b22c-68ff-486f-b512-1f840b196ff1"
+        "epoch": "504b08c0-42a1-44ad-af6a-ed296c9bd253"
       }
     }
   },
   "maintenance_targets": [
     {
-      "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+      "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
       "enabled": true,
-      "epoch": "dc3a92be-b983-44b7-80a7-22b78fd436ec",
+      "epoch": "504b08c0-42a1-44ad-af6a-ed296c9bd253",
       "historical_unknown_count": 0,
       "proof": {
         "excluded_attempts": [],
-        "nonce": "2bff598a-836f-48e4-b6a7-20407d4df332",
-        "observed_at": "2026-11-23T12:47:17.477138+00:00",
+        "nonce": "578b6e64-9125-4bd4-af1e-4b4282517a94",
+        "observed_at": "2026-11-23T14:32:08.228039+00:00",
         "provider": "resource_version_fence_v1",
         "resource_version": "848",
         "snapshot": {
@@ -407,25 +407,25 @@
           ],
           "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
           "replicas": 1,
-          "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+          "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
         },
-        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+        "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
       },
       "reason": "Trusted current-state and old-writer exclusion proof recorded.",
       "recovery_mode": false,
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     {
-      "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+      "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
       "enabled": true,
-      "epoch": "3372b22c-68ff-486f-b512-1f840b196ff1",
+      "epoch": "24281bd8-7471-40c8-b84c-8a9a0d7fe9cb",
       "historical_unknown_count": 0,
       "proof": {
         "excluded_attempts": [],
-        "nonce": "6f5b2a83-fb8f-4f82-8f57-e460dd67194e",
-        "observed_at": "2026-11-23T12:47:17.703846+00:00",
+        "nonce": "33dafc22-6eae-4092-84a5-04e98b4ab34e",
+        "observed_at": "2026-11-23T14:32:08.455810+00:00",
         "provider": "resource_version_fence_v1",
-        "resource_version": "851",
+        "resource_version": "852",
         "snapshot": {
           "containers": [
             {
@@ -445,13 +445,13 @@
           ],
           "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
           "replicas": 1,
-          "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+          "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
         },
-        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+        "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
       },
       "reason": "Trusted current-state and old-writer exclusion proof recorded.",
       "recovery_mode": false,
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   ],
   "permit": {
@@ -461,7 +461,7 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+    "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
     "denial": null,
     "generation": 1,
     "mode": "normal"
@@ -469,8 +469,8 @@
   "project": "cloudops-release-restore",
   "schema": "ReleaseRestoreManifest/v1",
   "scope_sha256": {
-    "reader": "13c99df0819c72eaa7eef63f8fe493d883a124d4c723e1a8c712bdfcc4372baf",
-    "writer": "2d6776f71a5368a384de5102ad537ec028d4bfe2bbafe33e723b729d551df4d8"
+    "reader": "4e6b0de04098476dad74825104a61885069ba9455745093cc755c2b55d7326cd",
+    "writer": "53e7449b5db930c642735212ad215e0e09cec8d431e76453eb71272c1ad583fc"
   },
   "stable_during_dump": "every non-volatile table digest equal before and after pg_dump",
   "stage": "plan approved, execution queued before dispatch",
@@ -480,14 +480,14 @@
       "name": "checkout",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     {
       "cluster": "local-k3s",
       "name": "checkout-standby",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   ]
 }

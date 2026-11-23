@@ -1,0 +1,366 @@
+{
+  "bundle": {
+    "images": {
+      "backend": "sha256:44e78180524bda7b213c6ad422b801607d5a7959139fa2663c6ae043bb488018",
+      "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+      "https": "sha256:b0d285a8db70bfc418ac1f5530b115813cac994f1fca866c14badd2a75e51cac"
+    },
+    "revision": "f8e5dbae568413a448eda78d347e8b750bddaf36",
+    "sha256": {
+      "images.env": "809c3c8d64a72d76d95b60db30deead771f8fe57616b7c6b97e30a3f7d651ddf",
+      "images.tar": "012dbae93bd7af5f086aa0955109a250b917b3d623c07da4793600fd88f24032",
+      "source.tar": "dd2894859c691e3b0151012be093ede6aeea9bed4057997b575c952f347a9942"
+    }
+  },
+  "connections_use_restore_database": {
+    "api": true,
+    "worker": true
+  },
+  "diagnosis_cleanup": "{\"sessions_revoked\": true, \"restored_model_work_retired\": true, \"analysis_dispatch_denied\": true, \"permit_generation\": 2}",
+  "evidence_bytes_equal": true,
+  "executor_health": [
+    {
+      "component": "executor",
+      "reason_code": "executor_unconfigured",
+      "status": "unconfigured"
+    }
+  ],
+  "fresh_admission": {
+    "run_state": "insufficient_evidence"
+  },
+  "old_worker": {
+    "attempts_unchanged": true,
+    "container": "running",
+    "heartbeat_advanced": true,
+    "jobs_unchanged": true,
+    "queued_run_state_under_recovery": "queued"
+  },
+  "permit_after": {
+    "allowed_job_kinds": [],
+    "authority_id": "0f0cf9db-bb8b-4c5d-8233-c02cf51d7105",
+    "denial": "recovery_mode",
+    "generation": 2,
+    "mode": "recovery"
+  },
+  "permit_before": {
+    "allowed_job_kinds": [
+      "analysis",
+      "collection",
+      "recommendation",
+      "recovery_execution"
+    ],
+    "authority_id": "0f0cf9db-bb8b-4c5d-8233-c02cf51d7105",
+    "denial": null,
+    "generation": 1,
+    "mode": "normal"
+  },
+  "permit_end": {
+    "allowed_job_kinds": [
+      "analysis",
+      "collection",
+      "recommendation",
+      "recovery_execution"
+    ],
+    "authority_id": "0f0cf9db-bb8b-4c5d-8233-c02cf51d7105",
+    "denial": null,
+    "generation": 3,
+    "mode": "normal"
+  },
+  "post_cutoff_incident": "f37631a2-6320-405c-857d-c802cfb13c6b",
+  "project": "cloudops-release-core-restore",
+  "proposal_without_executor": {
+    "code": "live_target_required",
+    "status": 409
+  },
+  "queued_run_state_after_exit": "insufficient_evidence",
+  "reads": {
+    "incident": 200,
+    "run": 200
+  },
+  "restored_session": 401,
+  "revoke_all_sessions": "All browser sessions revoked; users must sign in and read current protected state again.",
+  "rows": {
+    "action_plans": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [],
+      "missing_from_cutoff": []
+    },
+    "evidence": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [],
+      "missing_from_cutoff": []
+    },
+    "incident_activity": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [],
+      "missing_from_cutoff": []
+    },
+    "incidents": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [
+        "f37631a2-6320-405c-857d-c802cfb13c6b"
+      ],
+      "missing_from_cutoff": []
+    },
+    "investigation_runs": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [
+        "60a250cf-5f4c-4e7a-a4fd-fb0addd51a9c"
+      ],
+      "missing_from_cutoff": []
+    },
+    "jobs": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [
+        "9edba009-9b5c-470d-a9a5-d46a9c343aa0"
+      ],
+      "missing_from_cutoff": []
+    },
+    "recovery_executions": {
+      "changed_after_cutoff": [],
+      "changed_by_restore_cleanup": [],
+      "deleted_after_cutoff": [],
+      "lost_after_cutoff": [],
+      "missing_from_cutoff": []
+    }
+  },
+  "tables": {
+    "action_plans": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "admissions": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "alembic_version": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "alert_episodes": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "alert_intake_receipts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "baseline_candidates": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "baselines": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "connection_checks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_analyses": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_calls": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_checks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_contexts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_results": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_resumes": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "evidence": {
+      "result": "identical",
+      "rows_cutoff": 12,
+      "rows_restored": 12
+    },
+    "evidence_pins": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "incident_activity": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "incidents": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "investigation_runs": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "job_attempts": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "job_checkpoints": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "jobs": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "knowledge_chunks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_document_versions": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_generation_chunks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_generation_documents": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_generations": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_index_attempts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_index_state": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_selection_chunks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_selections": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "plan_reviews": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "recommendation_reports": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "recovery_executions": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "recovery_rollback_windows": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "recovery_verifications": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "sessions": {
+      "result": "not compared: restored sessions revoked; new sign-ins add rows",
+      "rows_cutoff": 1,
+      "rows_restored": 0
+    },
+    "users": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "worker_heartbeats": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "workload_observation_attempts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workload_observation_state": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workload_observations": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workload_scope_state": {
+      "result": "identifiers retained; content changed by bootstrap scope synchronization counters",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "workload_scope_targets": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workloads": {
+      "result": "identifiers retained; content changed by bootstrap scope synchronization counters",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    }
+  }
+}
