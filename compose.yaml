@@ -24,7 +24,7 @@ x-backend: &backend
       condition: service_healthy
 services:
   db:
-    image: postgres:17.11-bookworm
+    image: postgres:17.12-bookworm
     environment:
       POSTGRES_USER: cloudops
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}

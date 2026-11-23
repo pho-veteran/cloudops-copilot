@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17.11-bookworm
+        image: postgres:17.12-bookworm
         env:
           POSTGRES_USER: cloudops
           POSTGRES_PASSWORD: ci-local-only

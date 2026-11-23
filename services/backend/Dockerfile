@@ -1,5 +1,5 @@
 FROM ghcr.io/astral-sh/uv:0.9.26 AS uv
-FROM python:3.13.11-slim-bookworm
+FROM python:3.13.18-slim-bookworm
 COPY --from=uv /uv /uvx /bin/
 WORKDIR /workspace
 COPY services/backend/pyproject.toml services/backend/uv.lock services/backend/

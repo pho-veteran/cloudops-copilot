@@ -60,7 +60,7 @@ For a populated upgrade of this core installation, stage and verify the new bund
 | Architecture and OS | Linux/amd64 Docker Engine with cgroup v2 for the builder and the target. The bundle rejects other image platforms. |
 | Tools | Docker Compose 2.24.4 or later and Python 3.12 or later on both hosts. The builder also needs Git and Docker Buildx with registry access. The target needs no registry, Git or Node. |
 | Network | The core project publishes only `127.0.0.1:8443`. API, PostgreSQL and worker ports stay unpublished. Reach the origin locally or through the authorized management tunnel. |
-| Images | Exactly three runtime images from `images.tar`: backend (API, worker, migration, observer, dispatch administration), compiled web with Caddy, and PostgreSQL 17.11. The scoped owned lab separately pins PostgreSQL 17.12. Cross-lab restores stay within major version 17. |
+| Images | Exactly three runtime images from `images.tar`: backend (API, worker, migration, observer, dispatch administration), compiled web with Caddy, and PostgreSQL 17.12, the same minor version as the scoped owned lab. |
 | Storage | Keep the bundle, install directory, Docker images and project volumes on a disk with at least 20 GiB free after loading. Volumes are `database`, `job_dispatch`, `local_https_data` and `local_https_config`. |
 
 Measured sizes, idle use and the qualified environment for a specific candidate are recorded in the [release package evidence](evidence/e10-s1-release/README.md).
