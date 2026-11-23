@@ -1147,6 +1147,10 @@ def phase_late_writer(args):
     if set(opened.values()) != {"applied"}:
         die(f"targets could not be opened for the drill: {opened}")
     before = deployments()
+    # The admitted patch must reach the delayed transport, not a stale-resourceVersion denial
+    # from a rollout that is still updating status.
+    kubectl("rollout", "status", f"deployment/{primary['name']}", "-n", "demo", "--timeout=180s")
+    time.sleep(5)
     with client() as operator:
         oh = login(operator, "operator", operator_password)
         incident_id = data["primary_incident"]["incident_id"]
