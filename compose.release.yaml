@@ -1,0 +1,31 @@
+x-release-backend: &release-backend
+  image: ${RELEASE_BACKEND_IMAGE:?Use the release bundle images.env}
+  build: !reset null
+  pull_policy: never
+  platform: linux/amd64
+  environment:
+    COLLECTION_SOURCE_MODE: none
+
+services:
+  db:
+    image: ${RELEASE_DB_IMAGE:?Use the release bundle images.env}
+    pull_policy: never
+    platform: linux/amd64
+  migrate:
+    <<: *release-backend
+  api:
+    <<: *release-backend
+  worker:
+    <<: *release-backend
+  observer:
+    <<: *release-backend
+  dispatch-admin:
+    image: ${RELEASE_BACKEND_IMAGE:?Use the release bundle images.env}
+    build: !reset null
+    pull_policy: never
+    platform: linux/amd64
+  https:
+    image: ${RELEASE_HTTPS_IMAGE:?Use the release bundle images.env}
+    build: !reset null
+    pull_policy: never
+    platform: linux/amd64
