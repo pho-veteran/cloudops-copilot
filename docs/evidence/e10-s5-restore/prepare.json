@@ -1,0 +1,123 @@
+{
+  "bundle": {
+    "images": {
+      "backend": "sha256:316cc54da3d6c6ab01b52fa9ad0888575615e35355e57eb9403a9cf54fc490a2",
+      "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+      "https": "sha256:5fee2bbaa0d4365b48f752ab64ff1844400452d9699b1a9ea1b751b0ef133ddd"
+    },
+    "revision": "08ad0ad6b25967cc57d5d3f5463264a86cfe97c1",
+    "sha256": {
+      "images.env": "2a1d81c4fed63406293ae9f3ec0c0aa25da0f5f2ff9542091cd24ef9890b93cc",
+      "images.tar": "e0a0837b138aa2def27632fe6017dbcf2ec4c389db4f8bad2debc00fa953923a",
+      "source.tar": "6ec1578ac11cd6b8649d6e96f6070bff7af48a0557e0b97a89b5802e6c4550da"
+    }
+  },
+  "ca_sha256": "b0efd0ff7ee3dbf81ef90a721beebd62afeb6acb918930e8757d82bc8f7c7205",
+  "connections_use_restore_database": {
+    "api": true,
+    "executor": true,
+    "worker": true
+  },
+  "database": {
+    "alembic_head": "0020_operations_quota_wait_index",
+    "database": "cloudops_restore_test",
+    "observed_at": "2026-11-23 12:47:12.153909+00",
+    "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
+    "txid": "754"
+  },
+  "deployments": {
+    "checkout": {
+      "fence": {},
+      "generation": 1,
+      "ready": 1,
+      "replicas": 1,
+      "resource_version": "733",
+      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+    },
+    "checkout-standby": {
+      "fence": {},
+      "generation": 1,
+      "ready": 1,
+      "replicas": 1,
+      "resource_version": "798",
+      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+    }
+  },
+  "journal": {
+    "attempt_ids": [],
+    "attempts": {},
+    "audit_rows": 0,
+    "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+    "pin_sha256": "fd78887c1646720e779942b76a6db2dc52aa0d0382b0a2d70e812b50719e4cfb",
+    "recovery_mode": "true",
+    "targets": {
+      "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884": {
+        "enabled": false,
+        "epoch": "471e3af6-3fd6-4923-bee2-92a790640c87"
+      },
+      "c6ca9e3f-abc7-47e1-ac28-c24287109860": {
+        "enabled": false,
+        "epoch": "cdaca9fe-536d-4001-9b7b-640fd07a1370"
+      }
+    }
+  },
+  "maintenance": {
+    "audit": [],
+    "targets": [
+      {
+        "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+        "enabled": false,
+        "epoch": "471e3af6-3fd6-4923-bee2-92a790640c87",
+        "historical_unknown_count": 0,
+        "proof": {},
+        "reason": "Initial target quarantine.",
+        "recovery_mode": true,
+        "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+      },
+      {
+        "deployment_id": "d8b9b717-a5a9-403a-9d2f-ff44b2a6d8e9",
+        "enabled": false,
+        "epoch": "cdaca9fe-536d-4001-9b7b-640fd07a1370",
+        "historical_unknown_count": 0,
+        "proof": {},
+        "reason": "Initial target quarantine.",
+        "recovery_mode": true,
+        "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+      }
+    ],
+    "unknown_attributions": []
+  },
+  "permit": {
+    "allowed_job_kinds": [
+      "analysis",
+      "collection",
+      "recommendation",
+      "recovery_execution"
+    ],
+    "authority_id": "f95a60b7-1460-445f-89b4-e621ea9d6fcc",
+    "denial": null,
+    "generation": 1,
+    "mode": "normal"
+  },
+  "project": "cloudops-release-restore",
+  "scope_sha256": {
+    "reader": "13c99df0819c72eaa7eef63f8fe493d883a124d4c723e1a8c712bdfcc4372baf",
+    "writer": "2d6776f71a5368a384de5102ad537ec028d4bfe2bbafe33e723b729d551df4d8"
+  },
+  "targets": [
+    {
+      "cluster": "local-k3s",
+      "name": "checkout",
+      "namespace": "demo",
+      "source": "live_kubernetes",
+      "uid": "bfcdb2f0-8f3f-452a-96b1-55fda0ef7884"
+    },
+    {
+      "cluster": "local-k3s",
+      "name": "checkout-standby",
+      "namespace": "demo",
+      "source": "live_kubernetes",
+      "uid": "c6ca9e3f-abc7-47e1-ac28-c24287109860"
+    }
+  ]
+}

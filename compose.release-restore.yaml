@@ -1,0 +1,34 @@
+# Restore drills only: point a disposable release-lab project at its owned restore database.
+# Use after compose.release.yaml, compose.release-lab.yaml and compose.restore-admin.yaml.
+# Every application, executor, cleanup and check connection uses cloudops_restore_test.
+x-restore-url: &restore-url postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/cloudops_restore_test
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: cloudops_restore_test
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U cloudops -d cloudops_restore_test']
+  migrate:
+    environment:
+      DATABASE_URL: *restore-url
+  api:
+    environment:
+      DATABASE_URL: *restore-url
+  worker:
+    environment:
+      DATABASE_URL: *restore-url
+  observer:
+    environment:
+      DATABASE_URL: *restore-url
+  executor:
+    environment:
+      DATABASE_URL: *restore-url
+  restore-admin:
+    environment:
+      DATABASE_URL: *restore-url
+  # Never point destructive pytest runs at the drill database.
+  test:
+    environment:
+      DATABASE_URL: *restore-url
+      TEST_DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/cloudops_restore_checks_test

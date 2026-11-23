@@ -362,6 +362,8 @@ Use `--request-id <UUID>` to retrieve an exact maintenance request's durable rec
 
 ## Restore and restart
 
+For the release installation, use the qualified [release backup and restore](release-restore.md) procedure. The steps below describe this source-built lab.
+
 1. Enter recovery through the deployment-root CLI, covering every target; stop API and worker before restoring application data. Preserve the executor authority volume and Kubernetes identity.
 2. Restore the known application backup, then run the current image's `cloudops.entrypoints.cli revoke-all-sessions` **before starting the API**. This removes sessions resurrected by an older database snapshot without hand-editing rows. Apply required migrations and synchronize scope through the CLI.
 3. Restart the executor/API in independent quarantine. Inspect actual target state, retained unknown attribution and root audit receipts. Do not infer readiness from restored application rows.
