@@ -1,18 +1,18 @@
 {
   "bundle": {
     "images": {
-      "backend": "sha256:dcd66382fbef70128e26c1c5f263b7e73dd7738427d5e980bfd2096486a99b57",
+      "backend": "sha256:44e78180524bda7b213c6ad422b801607d5a7959139fa2663c6ae043bb488018",
       "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-      "https": "sha256:ba39f22a13aeaa9136942bf657469faab6d6cad552dc9e261bac2485941f8f9d"
+      "https": "sha256:b0d285a8db70bfc418ac1f5530b115813cac994f1fca866c14badd2a75e51cac"
     },
-    "revision": "37ddddb508ad49aca943d544247f8c48f9f25adb",
+    "revision": "f8e5dbae568413a448eda78d347e8b750bddaf36",
     "sha256": {
-      "images.env": "c67475592357940b53af2157837454f9199e563b47a48b236b626f4ffd81721c",
-      "images.tar": "a7e5dafac6cd6f026d5af16d9f55a49a48186d845525a7e327bd08c848c3276b",
-      "source.tar": "c21a23233fd5522e1bf4dfc7af51b0cfe5614726192739c1f930bbf2044b5679"
+      "images.env": "809c3c8d64a72d76d95b60db30deead771f8fe57616b7c6b97e30a3f7d651ddf",
+      "images.tar": "012dbae93bd7af5f086aa0955109a250b917b3d623c07da4793600fd88f24032",
+      "source.tar": "dd2894859c691e3b0151012be093ede6aeea9bed4057997b575c952f347a9942"
     }
   },
-  "ca_sha256": "8762e1faf617e2ddc538e56b15d697bc63dbf1f9b82af23b63651784118b72a1",
+  "ca_sha256": "e11e66978206a512bbdd696d764e163956ed2b1586d60f68bede13e5ae4d8796",
   "connections_use_restore_database": {
     "api": true,
     "executor": true,
@@ -21,9 +21,9 @@
   "database": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 14:07:24.289592+00",
+    "observed_at": "2026-11-23 14:32:03.134826+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "754"
+    "txid": "755"
   },
   "deployments": {
     "checkout": {
@@ -31,33 +31,33 @@
       "generation": 1,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "737",
-      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+      "resource_version": "726",
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     "checkout-standby": {
       "fence": {},
       "generation": 1,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "804",
-      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+      "resource_version": "800",
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   },
   "journal": {
     "attempt_ids": [],
     "attempts": {},
     "audit_rows": 0,
-    "deployment_id": "fda9dbf3-62f6-44ff-99ff-1353e1f43a12",
-    "pin_sha256": "9768f96566cc2cdd7c3a0bb39eff7e947e7d2311913ee993f2f7cbf0f5d19d43",
+    "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
+    "pin_sha256": "8f581a3a6678c4595948a3fb7c749bc0b03f1f04aa9f67755c50371e41f88112",
     "recovery_mode": "true",
     "targets": {
-      "840bde43-5bfa-413e-b758-ca923b64537b": {
+      "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
         "enabled": false,
-        "epoch": "2884ee92-b7d4-4efb-859b-1a6c49f6b4fe"
+        "epoch": "2ed90c99-82b5-47b7-9375-2809295c6824"
       },
-      "eaa0d6d3-2ab5-404c-95d9-c67448866916": {
+      "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
         "enabled": false,
-        "epoch": "629cb4b1-8024-43e6-985b-cba1a5e5906d"
+        "epoch": "f80490db-1690-4857-b454-a85d789b17a1"
       }
     }
   },
@@ -65,24 +65,24 @@
     "audit": [],
     "targets": [
       {
-        "deployment_id": "fda9dbf3-62f6-44ff-99ff-1353e1f43a12",
+        "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
         "enabled": false,
-        "epoch": "2884ee92-b7d4-4efb-859b-1a6c49f6b4fe",
+        "epoch": "f80490db-1690-4857-b454-a85d789b17a1",
         "historical_unknown_count": 0,
         "proof": {},
         "reason": "Initial target quarantine.",
         "recovery_mode": true,
-        "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+        "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
       },
       {
-        "deployment_id": "fda9dbf3-62f6-44ff-99ff-1353e1f43a12",
+        "deployment_id": "ff5d050c-18df-4378-aee2-2dafc1d9343e",
         "enabled": false,
-        "epoch": "629cb4b1-8024-43e6-985b-cba1a5e5906d",
+        "epoch": "2ed90c99-82b5-47b7-9375-2809295c6824",
         "historical_unknown_count": 0,
         "proof": {},
         "reason": "Initial target quarantine.",
         "recovery_mode": true,
-        "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+        "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
       }
     ],
     "unknown_attributions": []
@@ -94,15 +94,15 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
+    "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
     "denial": null,
     "generation": 1,
     "mode": "normal"
   },
   "project": "cloudops-release-restore",
   "scope_sha256": {
-    "reader": "34a49da943481b9c1b98d92da98607ae93e0a9905fbb509197947bd3c1eab690",
-    "writer": "f33d5d40a4e10ba9c754088e22d97dee24c12f97e79ceeb5469cd8291df4ca39"
+    "reader": "4e6b0de04098476dad74825104a61885069ba9455745093cc755c2b55d7326cd",
+    "writer": "53e7449b5db930c642735212ad215e0e09cec8d431e76453eb71272c1ad583fc"
   },
   "targets": [
     {
@@ -110,14 +110,14 @@
       "name": "checkout",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     {
       "cluster": "local-k3s",
       "name": "checkout-standby",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   ]
 }

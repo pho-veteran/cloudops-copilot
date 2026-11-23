@@ -5,7 +5,7 @@
       "pid": 1,
       "uid": 0
     },
-    "cleanup_id": "ba6426e4-241a-4372-90d2-d6e581835b27",
+    "cleanup_id": "436786d4-d83a-47ad-ae14-a23f19a69bdb",
     "configured_gateway_targets_closed": 2,
     "executions_retired": 0,
     "jobs_retired": 0,
@@ -20,7 +20,7 @@
       "pid": 1,
       "uid": 0
     },
-    "cleanup_id": "258e0d16-9389-4e25-83f0-15c0a3cf3655",
+    "cleanup_id": "54879f0b-a34b-499d-8a60-3e3405ecb64e",
     "configured_gateway_targets_closed": 2,
     "executions_retired": 0,
     "jobs_retired": 0,
@@ -33,39 +33,39 @@
   "database": {
     "alembic_head": "0020_operations_quota_wait_index",
     "database": "cloudops_restore_test",
-    "observed_at": "2026-11-23 14:10:06.869507+00",
+    "observed_at": "2026-11-23 14:34:39.572595+00",
     "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
-    "txid": "1882"
+    "txid": "1881"
   },
   "deployments_end": {
     "checkout": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
+        "cloudops-copilot.local/writer-fence": "578b6e64-9125-4bd4-af1e-4b4282517a94"
       },
       "generation": 4,
       "ready": 2,
       "replicas": 2,
-      "resource_version": "899",
-      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+      "resource_version": "893",
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     "checkout-standby": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
+        "cloudops-copilot.local/writer-fence": "33dafc22-6eae-4092-84a5-04e98b4ab34e"
       },
       "generation": 3,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "854",
-      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+      "resource_version": "852",
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   },
   "diagnosis_cleanup": "{\"sessions_revoked\": true, \"restored_model_work_retired\": true, \"analysis_dispatch_denied\": true, \"permit_generation\": 4}",
-  "dump_sha256": "23f15d13c55959951a228ac5b89775940c2eba21a3c43d2929def696033bc880",
+  "dump_sha256": "352d3b777b48c18955d4ece684a3e41e0376ae5337290e9ba3166c1ecf74eb56",
   "evidence_bytes_equal": true,
   "executions": [
     {
       "holds_lock": false,
-      "id": "9659bd60-8911-4870-9f87-58d6db901f1a",
+      "id": "fa33a605-4bf1-4ecf-9991-3f5918bef7f8",
       "maintenance_released": false,
       "outcome": "acknowledged",
       "state": "manual_intervention"
@@ -90,7 +90,7 @@
   },
   "maintenance_enter": {
     "code": null,
-    "request_id": "161ca4cd-6177-4eb0-9829-d3ffb2d61e7f",
+    "request_id": "35cafd42-7d14-466d-b2ee-3433064d3570",
     "status": "applied"
   },
   "maintenance_replay": {
@@ -116,45 +116,45 @@
     "after": {
       "checkout": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
+          "cloudops-copilot.local/writer-fence": "578b6e64-9125-4bd4-af1e-4b4282517a94"
         },
         "generation": 4,
         "ready": 2,
         "replicas": 2,
-        "resource_version": "899",
-        "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+        "resource_version": "893",
+        "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
       },
       "checkout-standby": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
+          "cloudops-copilot.local/writer-fence": "33dafc22-6eae-4092-84a5-04e98b4ab34e"
         },
         "generation": 3,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "854",
-        "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+        "resource_version": "852",
+        "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
       }
     },
     "before": {
       "checkout": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "0d3b5eef-e1d4-484d-9062-9a6d3b73381e"
+          "cloudops-copilot.local/writer-fence": "578b6e64-9125-4bd4-af1e-4b4282517a94"
         },
         "generation": 4,
         "ready": 2,
         "replicas": 2,
-        "resource_version": "899",
-        "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+        "resource_version": "893",
+        "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
       },
       "checkout-standby": {
         "fence": {
-          "cloudops-copilot.local/writer-fence": "09e2da11-cb69-438b-b671-41688444b8f9"
+          "cloudops-copilot.local/writer-fence": "33dafc22-6eae-4092-84a5-04e98b4ab34e"
         },
         "generation": 3,
         "ready": 1,
         "replicas": 1,
-        "resource_version": "854",
-        "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+        "resource_version": "852",
+        "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
       }
     },
     "deployments_unchanged": true,
@@ -171,7 +171,7 @@
     "jobs_unchanged": true,
     "permit": {
       "allowed_job_kinds": [],
-      "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
+      "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
       "denial": "recovery_mode",
       "generation": 4,
       "mode": "recovery"
@@ -179,7 +179,7 @@
   },
   "permit_after": {
     "allowed_job_kinds": [],
-    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
+    "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
     "denial": "recovery_mode",
     "generation": 4,
     "mode": "recovery"
@@ -188,7 +188,7 @@
     "allowed_job_kinds": [
       "collection"
     ],
-    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
+    "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
     "denial": null,
     "generation": 3,
     "mode": "recovery"
@@ -197,7 +197,7 @@
     "allowed_job_kinds": [
       "collection"
     ],
-    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
+    "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
     "denial": null,
     "generation": 5,
     "mode": "recovery"
@@ -222,7 +222,7 @@
   },
   "restored_plans": [
     {
-      "id": "7b5707b0-65ee-475f-8595-bf3984641d5d",
+      "id": "2be3bf2a-cc64-4161-87fa-f23162ee38cd",
       "state": "approved"
     }
   ],
@@ -240,18 +240,18 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "0e7dbeca-2d04-44d9-aed7-632dcd2f1e22",
-        "1e2e9a4c-a65a-448e-a691-1ce836c18e2f",
-        "22debf96-3eb0-43a5-8a18-b069bf72050d",
-        "3c84838b-3432-4e25-b4c4-a361ac78d93d",
-        "46729038-946e-474d-a67a-3d196275c40c",
-        "54f52e0a-d1e3-42c2-af6e-410f1c642765",
-        "585f57c6-f5ef-4dc6-a6db-796d31f205e7",
-        "77eb3348-0be5-41f0-b26e-38ccf21902fe",
-        "aa55969f-1cf9-4f67-9c75-5a854ffbc9c5",
-        "bf4a534c-02cc-4be6-a993-ef819b8f77fe",
-        "ce84be61-aba4-4592-894b-15df877c77c2",
-        "e196aed7-a2b0-40b0-9894-c8d139f67f0f"
+        "0380ed44-cd23-42e4-b755-10007c6e65d1",
+        "083c82ac-b901-4489-9b99-114e2c2287b8",
+        "31ee1482-3e45-4b0c-9bd6-aaa776810ab4",
+        "3cc419e7-14f3-4fda-9f23-cf98f0c73f9a",
+        "40c2407b-48d9-4ae6-93b5-fa3030d2340d",
+        "4f5c6d58-7d85-4630-834d-1625863bb56a",
+        "5c24f511-f4c9-400d-a7d6-5e2d5f9cb30a",
+        "5e521f7c-80fb-4e3a-b6eb-c9dcfe5bffb4",
+        "70649b3f-2af5-453f-8b1f-1d555d857201",
+        "79590689-cd67-49cc-a46a-3cb0469615e5",
+        "daaeb064-2e65-44f8-bb52-796f98a21f03",
+        "efbdf486-ef77-432b-8f0e-09beff98c0f6"
       ],
       "missing_from_cutoff": []
     },
@@ -260,8 +260,8 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "60f27438-9abf-4fc5-9b37-bc81a963a339",
-        "974b876b-4cf1-4921-8389-c361402a8251"
+        "6a63a685-8090-4780-8bb3-dc2fef669b67",
+        "9d28b747-1222-4faa-ae60-3eea95245335"
       ],
       "missing_from_cutoff": []
     },
@@ -270,7 +270,7 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "0cc10c77-3e05-4279-bf3f-00349e5d6842"
+        "cb497fa9-5498-4e74-a547-3c38ca90a4d2"
       ],
       "missing_from_cutoff": []
     },
@@ -279,7 +279,7 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "da0dab8a-9f4d-49cc-b2a3-dfdd9cb6cadc"
+        "8f4a979c-9857-490c-a5d6-2698780ecfa5"
       ],
       "missing_from_cutoff": []
     },
@@ -288,7 +288,7 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "a1039e66-bea9-4de8-bc9d-303472c83a43"
+        "3c656429-3187-441a-9067-a4c088e15baa"
       ],
       "missing_from_cutoff": []
     },
@@ -532,13 +532,13 @@
       "enabled": false,
       "historical_unknown_count": 0,
       "recovery_mode": true,
-      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     {
       "enabled": false,
       "historical_unknown_count": 0,
       "recovery_mode": true,
-      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   ]
 }

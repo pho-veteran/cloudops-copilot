@@ -3,32 +3,32 @@
   "deployments": {
     "checkout": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "858afdbc-1a69-46f8-be26-04ba38b87f33"
+        "cloudops-copilot.local/writer-fence": "f23d86b6-11b3-4909-82bc-4057f128eb86"
       },
       "generation": 7,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "1190",
-      "uid": "840bde43-5bfa-413e-b758-ca923b64537b"
+      "resource_version": "1180",
+      "uid": "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e"
     },
     "checkout-standby": {
       "fence": {
-        "cloudops-copilot.local/writer-fence": "9302dc72-01c1-4467-987b-1db3b188934a"
+        "cloudops-copilot.local/writer-fence": "987d996d-e145-4969-9cd4-7a41730b396a"
       },
       "generation": 7,
       "ready": 1,
       "replicas": 1,
-      "resource_version": "1176",
-      "uid": "eaa0d6d3-2ab5-404c-95d9-c67448866916"
+      "resource_version": "1166",
+      "uid": "9e1d50fc-dc9f-4000-b22e-88adacd4d949"
     }
   },
   "journal_new_attempts": [
-    "458ac0ab-b92c-43ff-892e-c2b9623bcc2c"
+    "de9bf577-e432-40f2-91c2-8597ac2aaa89"
   ],
   "new_executions": [
     {
       "holds_lock": false,
-      "id": "458ac0ab-b92c-43ff-892e-c2b9623bcc2c",
+      "id": "de9bf577-e432-40f2-91c2-8597ac2aaa89",
       "outcome": "acknowledged",
       "state": "manual_intervention"
     }
@@ -40,23 +40,23 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "35d9c444-b7f3-4495-824c-a35ca5bc6f6b",
+    "authority_id": "a0dc2fa8-a426-4de3-bfad-88bb5b388701",
     "denial": null,
     "generation": 8,
     "mode": "normal"
   },
-  "plan_id": "d7fa5c72-dc00-4f10-aa52-ee710f03dc6e",
+  "plan_id": "0a53bece-a359-444d-a586-3167d2e9d05b",
   "restored_executions": [
     {
       "holds_lock": false,
-      "id": "9659bd60-8911-4870-9f87-58d6db901f1a",
+      "id": "fa33a605-4bf1-4ecf-9991-3f5918bef7f8",
       "maintenance_released": true,
       "outcome": "outcome_unknown",
       "state": "outcome_unknown"
     },
     {
       "holds_lock": false,
-      "id": "458ac0ab-b92c-43ff-892e-c2b9623bcc2c",
+      "id": "de9bf577-e432-40f2-91c2-8597ac2aaa89",
       "maintenance_released": false,
       "outcome": "acknowledged",
       "state": "manual_intervention"
@@ -69,11 +69,11 @@
     }
   },
   "targets_enabled_before": {
-    "840bde43-5bfa-413e-b758-ca923b64537b": {
+    "9e1d50fc-dc9f-4000-b22e-88adacd4d949": {
       "enabled": true,
       "recovery_mode": false
     },
-    "eaa0d6d3-2ab5-404c-95d9-c67448866916": {
+    "a8c0f48c-b4b6-43e3-b118-8495c2e71a4e": {
       "enabled": true,
       "recovery_mode": false
     }

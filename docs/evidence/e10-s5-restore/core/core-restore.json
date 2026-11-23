@@ -1,15 +1,15 @@
 {
   "bundle": {
     "images": {
-      "backend": "sha256:dcd66382fbef70128e26c1c5f263b7e73dd7738427d5e980bfd2096486a99b57",
+      "backend": "sha256:44e78180524bda7b213c6ad422b801607d5a7959139fa2663c6ae043bb488018",
       "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-      "https": "sha256:ba39f22a13aeaa9136942bf657469faab6d6cad552dc9e261bac2485941f8f9d"
+      "https": "sha256:b0d285a8db70bfc418ac1f5530b115813cac994f1fca866c14badd2a75e51cac"
     },
-    "revision": "37ddddb508ad49aca943d544247f8c48f9f25adb",
+    "revision": "f8e5dbae568413a448eda78d347e8b750bddaf36",
     "sha256": {
-      "images.env": "c67475592357940b53af2157837454f9199e563b47a48b236b626f4ffd81721c",
-      "images.tar": "a7e5dafac6cd6f026d5af16d9f55a49a48186d845525a7e327bd08c848c3276b",
-      "source.tar": "c21a23233fd5522e1bf4dfc7af51b0cfe5614726192739c1f930bbf2044b5679"
+      "images.env": "809c3c8d64a72d76d95b60db30deead771f8fe57616b7c6b97e30a3f7d651ddf",
+      "images.tar": "012dbae93bd7af5f086aa0955109a250b917b3d623c07da4793600fd88f24032",
+      "source.tar": "dd2894859c691e3b0151012be093ede6aeea9bed4057997b575c952f347a9942"
     }
   },
   "connections_use_restore_database": {
@@ -32,11 +32,12 @@
     "attempts_unchanged": true,
     "container": "running",
     "heartbeat_advanced": true,
-    "jobs_unchanged": true
+    "jobs_unchanged": true,
+    "queued_run_state_under_recovery": "queued"
   },
   "permit_after": {
     "allowed_job_kinds": [],
-    "authority_id": "25e2f83f-e07d-48e1-8ae4-538241ba083f",
+    "authority_id": "0f0cf9db-bb8b-4c5d-8233-c02cf51d7105",
     "denial": "recovery_mode",
     "generation": 2,
     "mode": "recovery"
@@ -48,7 +49,7 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "25e2f83f-e07d-48e1-8ae4-538241ba083f",
+    "authority_id": "0f0cf9db-bb8b-4c5d-8233-c02cf51d7105",
     "denial": null,
     "generation": 1,
     "mode": "normal"
@@ -60,16 +61,18 @@
       "recommendation",
       "recovery_execution"
     ],
-    "authority_id": "25e2f83f-e07d-48e1-8ae4-538241ba083f",
+    "authority_id": "0f0cf9db-bb8b-4c5d-8233-c02cf51d7105",
     "denial": null,
     "generation": 3,
     "mode": "normal"
   },
+  "post_cutoff_incident": "f37631a2-6320-405c-857d-c802cfb13c6b",
   "project": "cloudops-release-core-restore",
   "proposal_without_executor": {
     "code": "live_target_required",
     "status": 409
   },
+  "queued_run_state_after_exit": "insufficient_evidence",
   "reads": {
     "incident": 200,
     "run": 200
@@ -88,20 +91,7 @@
       "changed_after_cutoff": [],
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
-      "lost_after_cutoff": [
-        "05233ed7-f2a3-449c-a399-1aa339e6bb3f",
-        "0c0eb98f-d48c-446b-b173-4bcac39340e9",
-        "1cc9e6a3-0dcf-4ecc-8a68-4bcac86e4121",
-        "47483a01-ae07-4f63-a6f7-e20e2c74c48b",
-        "62311e11-3cec-459c-9770-c8b5d9f2aa52",
-        "918aff31-5295-4462-9ee3-b23258b400e7",
-        "9dc80326-0c36-47f8-acf0-d03f750a3789",
-        "9dc931ab-dbc3-405b-87ee-12b95005b987",
-        "b45cffca-3962-44bd-bd86-a619aba161db",
-        "bcb5361e-d2f8-44e2-bcdf-dfc1840023b0",
-        "d27eec23-03a7-4618-8c10-1e8f0868ecae",
-        "f74d03a8-78c5-48db-9b79-43e9fd1508ba"
-      ],
+      "lost_after_cutoff": [],
       "missing_from_cutoff": []
     },
     "incident_activity": {
@@ -116,7 +106,7 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "9627cbc8-05d0-4266-a6e9-d21c7b921ca0"
+        "f37631a2-6320-405c-857d-c802cfb13c6b"
       ],
       "missing_from_cutoff": []
     },
@@ -125,7 +115,7 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "7a801534-293a-4545-8eab-08072ef6867a"
+        "60a250cf-5f4c-4e7a-a4fd-fb0addd51a9c"
       ],
       "missing_from_cutoff": []
     },
@@ -134,7 +124,7 @@
       "changed_by_restore_cleanup": [],
       "deleted_after_cutoff": [],
       "lost_after_cutoff": [
-        "4b82531d-fc44-49c7-8089-b7278dd9087a"
+        "9edba009-9b5c-470d-a9a5-d46a9c343aa0"
       ],
       "missing_from_cutoff": []
     },
@@ -154,8 +144,8 @@
     },
     "admissions": {
       "result": "identical",
-      "rows_cutoff": 1,
-      "rows_restored": 1
+      "rows_cutoff": 2,
+      "rows_restored": 2
     },
     "alembic_version": {
       "result": "identical",
@@ -234,13 +224,13 @@
     },
     "incidents": {
       "result": "identical",
-      "rows_cutoff": 1,
-      "rows_restored": 1
+      "rows_cutoff": 2,
+      "rows_restored": 2
     },
     "investigation_runs": {
       "result": "identical",
-      "rows_cutoff": 1,
-      "rows_restored": 1
+      "rows_cutoff": 2,
+      "rows_restored": 2
     },
     "job_attempts": {
       "result": "identical",
@@ -254,8 +244,8 @@
     },
     "jobs": {
       "result": "identical",
-      "rows_cutoff": 1,
-      "rows_restored": 1
+      "rows_cutoff": 2,
+      "rows_restored": 2
     },
     "knowledge_chunks": {
       "result": "identical",
