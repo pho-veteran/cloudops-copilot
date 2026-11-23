@@ -102,3 +102,25 @@ def test_summary_disclaims_slo_and_execution_authority():
     text = " ".join(_summary([]).limitations).lower()
     assert "slo" in text
     assert "authority" in text
+
+
+def test_failed_and_interrupted_trials_lower_their_scenario_rate():
+    positive = [
+        spec.case_id
+        for spec in CASES
+        if "investigator" in spec.methods and spec.treatment in {"positive", "injection"}
+    ]
+    receipts = [
+        receipt(case_id, "investigator", "scored", passes=("cause_category",))
+        for case_id in positive
+        if case_id not in {"failed-trial", "interrupted-trial"}
+    ]
+    receipts += [
+        receipt("failed-trial", "investigator", "failed"),
+        receipt("interrupted-trial", "investigator", "interrupted"),
+    ]
+    value = _summary(receipts, "investigator")
+    assert {"failed-trial", "interrupted-trial"} <= set(positive)
+    assert value.thresholds["rules_positive_correct_min"] == pytest.approx(
+        (len(positive) - 2) / len(positive)
+    )

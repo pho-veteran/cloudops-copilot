@@ -22,7 +22,11 @@ from cloudops.features.evaluation.schemas import (
 from cloudops.features.evaluation.versions import IDENTITY_FIELDS, VERSIONS
 
 REPO_ROOT = Path(__file__).resolve().parents[6]
+# Every cloudops module the evaluation CLI loads, plus the fixture and runbook
+# inputs that produce the controlled corpus. A test keeps this list in step
+# with the real import graph.
 _PINNED_SOURCES = (
+    "services/backend/src/cloudops/__init__.py",
     "services/backend/src/cloudops/features/evaluation/__init__.py",
     "services/backend/src/cloudops/features/evaluation/versions.py",
     "services/backend/src/cloudops/features/evaluation/hashing.py",
@@ -43,12 +47,11 @@ _PINNED_SOURCES = (
     "services/backend/src/cloudops/features/investigations/catalog.py",
     "services/backend/src/cloudops/features/investigations/locators.py",
     "services/backend/src/cloudops/features/investigations/citation_schemas.py",
-    "services/backend/src/cloudops/features/investigations/models.py",
-    "services/backend/src/cloudops/features/investigations/service.py",
-    "services/backend/src/cloudops/features/investigations/storage.py",
-    "services/backend/src/cloudops/features/knowledge/guidance.py",
+    "services/backend/src/cloudops/features/investigations/schemas.py",
     "services/backend/src/cloudops/features/knowledge/guidance_schemas.py",
     "services/backend/src/cloudops/features/knowledge/schemas.py",
+    "services/backend/src/cloudops/shared/errors.py",
+    "services/backend/src/cloudops/shared/schemas.py",
     "services/backend/tests/diagnosis_fixtures.py",
     "services/backend/tests/fixtures/e06/cases.json",
     "services/backend/tests/fixtures/e06/oracle.json",
@@ -87,6 +90,11 @@ class EvalSealError(ValueError):
 
 def _sha(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
+
+
+def _sealed_sha(raw: bytes) -> str:
+    """Hash sealed text with LF line endings so the seal survives any Git checkout."""
+    return _sha(raw.replace(b"\r\n", b"\n"))
 
 
 def _json_bytes(value) -> bytes:
@@ -208,7 +216,7 @@ def freeze(
         target = _safe_state_file(state_dir, name, must_exist=False)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
-        files[name] = _sha(raw)
+        files[name] = _sealed_sha(raw)
 
     source_root = Path(cohort_path).resolve().parent
     for case in cohort.cases:
@@ -221,7 +229,7 @@ def freeze(
         target = _safe_state_file(state_dir, case.bundle, must_exist=False)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
-        files[case.bundle] = _sha(raw)
+        files[case.bundle] = _sealed_sha(raw)
 
     for relative in _PINNED_SOURCES:
         source = REPO_ROOT / Path(relative)
@@ -233,7 +241,7 @@ def freeze(
         target = _safe_state_file(state_dir, destination, must_exist=False)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
-        files[destination] = _sha(raw)
+        files[destination] = _sealed_sha(raw)
 
     seal = EvalSeal(
         cohort_id=cohort.cohort_id,
@@ -261,7 +269,20 @@ def freeze(
     return seal
 
 
-def verify(state_dir: Path, *, include_scoring_inputs: bool = True) -> EvalSeal:
+def verify(
+    state_dir: Path,
+    *,
+    include_scoring_inputs: bool = True,
+    live_sources: bool = True,
+) -> EvalSeal:
+    """Check frozen bytes against the seal and, for an active campaign, the live tree.
+
+    ``live_sources=False`` audits retained evidence on a later checkout: it still
+    proves every sealed input, bundle and source-snapshot byte matches the seal and
+    that the ledger matches the cohort plan, but it does not require the repository
+    to remain at the frozen implementation. Receipt bytes are bound by the ledger's
+    receipt hashes, which ``summary`` and ``compare-summary`` check.
+    """
     state_dir = Path(state_dir)
     try:
         raw = (state_dir / "seal.json").read_bytes()
@@ -280,19 +301,21 @@ def verify(state_dir: Path, *, include_scoring_inputs: bool = True) -> EvalSeal:
                 continue
         path = _safe_state_file(state_dir, relative)
         try:
-            actual = _sha(path.read_bytes())
+            actual = _sealed_sha(path.read_bytes())
         except OSError:
             raise EvalSealError("seal_mismatch") from None
         if actual != expected:
             raise EvalSealError("seal_mismatch")
-    for relative in _PINNED_SOURCES:
+    for relative in _PINNED_SOURCES if live_sources else ():
         if not include_scoring_inputs and relative in _SCORING_ONLY_SOURCES:
             continue
         sealed_path = _safe_state_file(state_dir, f"source/{relative}")
+        if f"source/{relative}" not in seal.files:
+            raise EvalSealError("seal_mismatch")
         live_path = REPO_ROOT / Path(relative)
         try:
-            sealed_hash = _sha(sealed_path.read_bytes())
-            live_hash = _sha(live_path.read_bytes())
+            sealed_hash = _sealed_sha(sealed_path.read_bytes())
+            live_hash = _sealed_sha(live_path.read_bytes())
         except OSError:
             raise EvalSealError("source_drift") from None
         if live_hash != sealed_hash:

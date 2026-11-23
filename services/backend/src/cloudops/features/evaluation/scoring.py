@@ -271,7 +271,10 @@ def score_case(
     if label.case_id == "" or rubric.cohort_id == "":
         raise EvalInputError("receipt_identity_invalid")
     if bundle is None:
-        if disposition != "missing" or output is not None or bundle_sha256 is not None:
+        invalid_bundle = disposition == "blocked" and list(reasons) == ["bundle_invalid"]
+        if output is not None or (disposition != "missing" and not invalid_bundle):
+            raise EvalInputError("bundle_required")
+        if (bundle_sha256 is None) != (disposition == "missing"):
             raise EvalInputError("bundle_required")
         context_digest = None
     else:

@@ -23,31 +23,12 @@ class FrozenModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
-class EvalScope(FrozenModel):
-    incident_id: str
-    run_id: str
-    workload_id: str
-    workload_uid: str
-    cluster: str
-    namespace: str
-    name: str
-    window_start: datetime
-    window_end: datetime
-    window_source: str
-
-    @model_validator(mode="after")
-    def ordered_window(self):
-        if self.window_end < self.window_start:
-            raise ValueError("window_end must not precede window_start")
-        return self
-
-
 class EvalCasePlan(FrozenModel):
     case_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$")
     family: CauseCategory
-    treatment: Literal[
-        "positive", "manual", "abstention", "injection", "malformed", "failed", "interrupted"
-    ]
+    # Treatment is the planned scenario class. Trial outcomes such as failed or
+    # interrupted are recorded only as receipt dispositions, never planned here.
+    treatment: Literal["positive", "manual", "abstention", "injection"]
     bundle: str
     methods: list[Literal["rules", "investigator"]] = Field(min_length=1)
     planned_stages: list[
@@ -277,10 +258,11 @@ class EvalReceipt(FrozenModel):
             self.bundle_sha256 is None or self.context_digest is None or self.output is None
         ):
             raise ValueError("scored receipts require a bundle, context and output")
-        if self.disposition != "missing" and (
-            self.bundle_sha256 is None or self.context_digest is None
-        ):
-            raise ValueError("non-missing receipts require a bundle and context")
+        if self.disposition != "missing" and self.bundle_sha256 is None:
+            raise ValueError("non-missing receipts require a bundle")
+        invalid_bundle = self.disposition == "blocked" and self.reasons == ["bundle_invalid"]
+        if self.disposition != "missing" and (self.context_digest is None) != invalid_bundle:
+            raise ValueError("context_digest is absent exactly for an invalid blocked bundle")
         if (self.output is None) != (self.output_sha256 is None):
             raise ValueError("output and output_sha256 must be present together")
         if (

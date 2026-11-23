@@ -39,6 +39,7 @@ from cloudops.features.evaluation.versions import DIMENSIONS, DISPOSITIONS, STAG
 
 REASONS = (
     "required_source_unavailable",
+    "bundle_invalid",
     "no_method_output",
     "method_timeout",
     "provider_unavailable",
@@ -63,6 +64,11 @@ def _parser() -> argparse.ArgumentParser:
 
     command = commands.add_parser("verify")
     command.add_argument("--state-dir", type=Path, required=True)
+    command.add_argument(
+        "--snapshot-only",
+        action="store_true",
+        help="check retained state against its own seal and source snapshot, not the live tree",
+    )
 
     command = commands.add_parser("compare")
     command.add_argument("--state-dir", type=Path, required=True)
@@ -227,8 +233,8 @@ def _do_freeze(args) -> int:
 
 
 def _do_verify(args) -> int:
-    verify(args.state_dir)
-    print("verify:ok")
+    verify(args.state_dir, live_sources=not args.snapshot_only)
+    print("verify:snapshot:ok" if args.snapshot_only else "verify:ok")
     return 0
 
 
@@ -309,14 +315,26 @@ def _do_score(args) -> int:
     )
     bundle = None
     bundle_sha = None
+    bundle_invalid = False
     if bundle_path is not None:
-        bundle, bundle_sha = load_bundle(bundle_path, expected_case_id=case.case_id)
+        try:
+            bundle, bundle_sha = load_bundle(bundle_path, expected_case_id=case.case_id)
+        except EvalInputError:
+            # A captured bundle that fails its contract stays in the ledger as
+            # blocked evidence, bound by its raw hash, instead of being dropped.
+            if args.disposition != "blocked" or args.reason != "bundle_invalid":
+                raise
+            bundle_invalid = True
+            bundle_sha = hashlib.sha256(bundle_path.read_bytes()).hexdigest()
     elif args.disposition != "missing":
         raise EvalSealError("bundle_required")
+    if args.reason == "bundle_invalid" and not bundle_invalid:
+        raise EvalSealError("disposition_not_allowed")
 
-    if "rules" in case.methods and bundle is not None:
-        if entry.compare_output_sha256 is None:
-            raise EvalSealError("compare_missing")
+    # Paired methods must score the bytes the rules comparator read. A rules
+    # trial that never compared can still be recorded with a non-scored
+    # disposition; compare-summary then checks the receipts' bundle identity.
+    if bundle is not None and entry.compare_output_sha256 is not None:
         if (
             entry.compare_bundle_sha256 != bundle_sha
             or entry.compare_context_digest != bundle.context.digest
@@ -362,10 +380,10 @@ def _do_score(args) -> int:
         )
     if missing_required and args.disposition not in {"blocked", "missing"}:
         raise EvalSealError("disposition_not_allowed")
-    if args.disposition == "blocked":
+    if args.disposition == "blocked" and not bundle_invalid:
         if not missing_required or args.reason != "required_source_unavailable":
             raise EvalSealError("disposition_not_allowed")
-    elif args.reason == "required_source_unavailable":
+    elif args.disposition != "blocked" and args.reason == "required_source_unavailable":
         raise EvalSealError("disposition_not_allowed")
 
     action = _optional_model(

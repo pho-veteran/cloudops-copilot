@@ -6,7 +6,7 @@ from pathlib import Path
 
 def test_evaluation_sources_do_not_import_authority_or_service_entrypoints():
     root = Path(__file__).parents[1] / "src/cloudops/features/evaluation"
-    forbidden = {"fastapi", "httpx", "cloudops.jobs", "cloudops.shared.database"}
+    forbidden = {"fastapi", "httpx", "cloudops.shared.jobs", "cloudops.shared.database"}
     for path in root.glob("*.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         imported = set()
@@ -36,7 +36,11 @@ for module in (
     importlib.import_module(module)
 
 for forbidden in (
+    "httpx",
     "sqlalchemy",
+    "cloudops.features.diagnosis.service",
+    "cloudops.features.diagnosis.transport",
+    "cloudops.features.diagnosis.worker",
     "cloudops.shared.database",
     "cloudops.shared.jobs",
     "cloudops.features.recovery",

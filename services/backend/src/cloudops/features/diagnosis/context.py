@@ -14,6 +14,7 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from cloudops.features.diagnosis.egress import EgressPolicy
 from cloudops.features.diagnosis.messages import Message, MessageError, serialize_payload
 from cloudops.features.diagnosis.profile import ModelProfile

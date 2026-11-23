@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -57,3 +59,57 @@ def test_seal_rejects_drift_in_live_scoring_source(tmp_path, monkeypatch):
     monkeypatch.setattr("cloudops.features.evaluation.seal.REPO_ROOT", live_root)
     with pytest.raises(EvalSealError, match="source_drift"):
         verify(state)
+
+
+def test_seal_ignores_checkout_line_endings(tmp_path):
+    state = _freeze(tmp_path)
+    for relative in (
+        "inputs/labels.json",
+        "source/services/backend/src/cloudops/features/evaluation/rules.py",
+    ):
+        path = state / relative
+        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+    verify(state)
+
+
+def test_snapshot_only_verify_audits_retained_state_without_the_live_tree(tmp_path, monkeypatch):
+    state = _freeze(tmp_path)
+    monkeypatch.setattr("cloudops.features.evaluation.seal.REPO_ROOT", tmp_path / "absent")
+    with pytest.raises(EvalSealError, match="source_drift"):
+        verify(state)
+    verify(state, live_sources=False)
+    snapshot = state / "source/services/backend/src/cloudops/features/evaluation/rules.py"
+    snapshot.write_bytes(snapshot.read_bytes() + b"# changed\n")
+    with pytest.raises(EvalSealError, match="seal_mismatch"):
+        verify(state, live_sources=False)
+
+
+def test_pinned_sources_cover_every_loaded_cloudops_module():
+    script = """
+import importlib
+import sys
+from pathlib import Path
+
+from cloudops.features.evaluation.seal import REPO_ROOT, _PINNED_SOURCES
+
+for module in (
+    "cloudops.features.evaluation.cli",
+    "cloudops.features.evaluation.rules",
+    "cloudops.features.evaluation.scoring",
+):
+    importlib.import_module(module)
+loaded = {
+    Path(module.__file__).resolve().relative_to(REPO_ROOT).as_posix()
+    for name, module in list(sys.modules.items())
+    if (name == "cloudops" or name.startswith("cloudops.")) and getattr(module, "__file__", None)
+}
+missing = sorted(loaded - set(_PINNED_SOURCES))
+assert not missing, missing
+"""
+    subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=Path(__file__).parents[1],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
