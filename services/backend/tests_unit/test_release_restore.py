@@ -78,8 +78,17 @@ def test_compare_reports_inserted_changed_and_cleaned_rows(driver):
         "changed_after_cutoff": ["9"],
         "changed_by_restore_cleanup": ["9"],
         "missing_from_cutoff": [],
+        "deleted_after_cutoff": [],
     }
     assert rows["incidents"]["lost_after_cutoff"] == ["5"]
+
+
+def test_compare_reports_rows_deleted_after_the_cutoff(driver):
+    manifest = {"fingerprint": {"jobs": entry(2, "a", "j2", {"1": "a", "2": "b"})}}
+    restored = {"jobs": entry(2, "a", "j2", {"1": "a", "2": "b"})}
+    live = {"fingerprint": {"jobs": {"row_md5": {"1": "a"}}}}
+    _, rows = driver.compare(manifest, restored, live)
+    assert rows["jobs"]["deleted_after_cutoff"] == ["2"]
 
 
 def test_written_ignores_status_only_updates(driver):

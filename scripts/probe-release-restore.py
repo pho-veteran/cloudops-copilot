@@ -416,6 +416,7 @@ def compare(manifest, restored, live):
                 i for i in cutoff if i in now and now[i] != cutoff[i]
             ),
             "missing_from_cutoff": sorted(set(cutoff) - set(now)),
+            "deleted_after_cutoff": sorted(set(cutoff) - set(later)),
         }
     return tables, rows
 
@@ -565,7 +566,7 @@ def phase_prepare(args):
                 f"label=com.docker.compose.project={LAB.PROJECT}",
             ]
         ).stdout.strip()
-        and not (OUT / "state.json").exists()
+        and state().get("project") != LAB.PROJECT
     ):
         # bootstrap-integration creates only K3s before prepare; refuse adopting other work.
         services = out("ps", "-a", "--format", "{{.Service}}").split()
@@ -856,6 +857,7 @@ def phase_activity(args):
     write(
         "live.json",
         {
+            "project": LAB.PROJECT,
             "database": database_identity(),
             "fingerprint": fingerprint(),
             "evidence_sha256": evidence_digests(),
@@ -872,8 +874,8 @@ def phase_restore(args):
     data = bound_state()
     manifest = read(f"manifest-{name}.json") or die(f"no manifest for {name}")
     live = read("live.json") or die("record post-cutoff activity first")
-    if manifest["project"] != LAB.PROJECT:
-        die("the manifest belongs to another project.")
+    if manifest["project"] != LAB.PROJECT or live.get("project") != LAB.PROJECT:
+        die("the manifest or live snapshot belongs to another project.")
     operator_password, viewer_password = passwords()
     receipt = {"cutoff": name, "dump_sha256": manifest["dump"]["sha256"]}
     dump = PRIVATE / f"{name}.dump"
@@ -913,7 +915,6 @@ def phase_restore(args):
         "cloudops.entrypoints.diagnosis_recovery",
         timeout=300,
     ).strip()[-400:]
-    receipt["fingerprint_after_cleanup_before_start"] = True
     restored = fingerprint()
     tables, rows = compare(manifest, restored, live)
     receipt["tables"] = tables
