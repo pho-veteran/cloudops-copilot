@@ -25,6 +25,21 @@ COMPOSE = [
 if PROJECT == OWNED_PROJECT:
     COMPOSE[2:2] = ["--env-file", str(LAB_DIR / "lab.env")]
     COMPOSE += ["-f", "compose.alertmanager.yaml", "-f", "compose.lab.yaml"]
+# Optional: run a separate disposable project from verified release bundle images.
+RELEASE_BUNDLE = os.environ.get("CLOUDOPS_RELEASE_BUNDLE")
+if RELEASE_BUNDLE:
+    if PROJECT == OWNED_PROJECT:
+        raise SystemExit("The retained testing lab builds its own images; use another project.")
+    HOST_ENV = os.environ.get("CLOUDOPS_HOST_ENV")
+    if not HOST_ENV:
+        raise SystemExit("Set CLOUDOPS_HOST_ENV to the private host.env for this release project.")
+    COMPOSE[2:2] = [
+        "--env-file",
+        str(Path(HOST_ENV).resolve()),
+        "--env-file",
+        str(Path(RELEASE_BUNDLE).resolve() / "images.env"),
+    ]
+    COMPOSE += ["-f", "compose.release.yaml", "-f", "compose.release-lab.yaml"]
 
 
 def private_write(path, value):

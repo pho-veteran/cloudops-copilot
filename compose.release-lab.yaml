@@ -1,0 +1,18 @@
+# Run the disposable E01 integration lab from a verified release bundle.
+# Use after compose.yaml, compose.https.yaml, compose.integration.yaml and compose.release.yaml.
+x-release-lab-backend: &release-lab-backend
+  image: ${RELEASE_BACKEND_IMAGE:?Use the release bundle images.env}
+  build: !reset null
+  pull_policy: never
+  platform: linux/amd64
+
+services:
+  migrate:
+    environment: &release-lab-collection
+      COLLECTION_SOURCE_MODE: live_kubernetes
+  api:
+    environment: *release-lab-collection
+  worker:
+    environment: *release-lab-collection
+  executor: *release-lab-backend
+  executor-init: *release-lab-backend
