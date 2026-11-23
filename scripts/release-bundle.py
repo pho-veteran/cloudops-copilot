@@ -8,6 +8,7 @@ import re
 import subprocess
 import tarfile
 from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = "linux/amd64"
@@ -56,8 +57,8 @@ def pinned(ref, upstream):
     return upstream[ref]
 
 
-def alias(component, revision):
-    return f"cloudops-release-{component}:{revision}"
+def alias(component, revision, identity):
+    return f"cloudops-release-{component}:{revision}-{identity.removeprefix('sha256:')}"
 
 
 def image_env(images):
@@ -83,6 +84,11 @@ def lock_dockerfile(path, upstream):
 def build(revision, output):
     require(re.fullmatch(r"[0-9a-f]{40}", revision), "Use the full reviewed Git commit SHA.")
     require(run("git", "rev-parse", f"{revision}^{{commit}}") == revision, "Unknown commit.")
+    for name in ("compose.release.yaml", "scripts/release-bundle.py"):
+        require(
+            run("git", "cat-file", "-t", f"{revision}:{name}") == "blob",
+            "Build a reviewed revision containing the release package.",
+        )
     output.mkdir(mode=0o700)
     archive = output / "source.tar"
     subprocess.run(
@@ -95,7 +101,7 @@ def build(revision, output):
             source.extractall(context, filter="data")
         for component, dockerfile in DOCKERFILES.items():
             lock_dockerfile(context / dockerfile, upstream)
-            ref = alias(component, revision)
+            staging = f"cloudops-release-stage:{uuid4().hex}"
             subprocess.run(
                 [
                     "docker",
@@ -110,21 +116,26 @@ def build(revision, output):
                     "--file",
                     str(context / dockerfile),
                     "--tag",
-                    ref,
+                    staging,
                     str(context),
                 ],
                 check=True,
             )
-            images[component] = {"ref": ref, "id": image_id(ref)}
+            identity = image_id(staging)
+            ref = alias(component, revision, identity)
+            run("docker", "image", "tag", staging, ref)
+            run("docker", "image", "rm", staging)
+            images[component] = {"ref": ref, "id": identity}
         db_source = re.search(
             r"(?m)^  db:\n    image: (\S+)\n", (context / "compose.yaml").read_text()
         )
         require(db_source is not None, "Cannot find the base Compose database image.")
         db = pinned(db_source[1], upstream)
         run("docker", "pull", "--platform", PLATFORM, db)
-        ref = alias("db", revision)
+        identity = image_id(db)
+        ref = alias("db", revision, identity)
         run("docker", "image", "tag", db, ref)
-        images["db"] = {"ref": ref, "id": image_id(ref)}
+        images["db"] = {"ref": ref, "id": identity}
 
     run(
         "docker",
@@ -166,13 +177,16 @@ def verify(bundle, loaded):
         "Compose references do not match the manifest.",
     )
     for name, item in manifest["images"].items():
-        ref = alias(name, revision)
         require(
-            item["ref"] == ref and re.fullmatch(r"sha256:[0-9a-f]{64}", item["id"]),
+            re.fullmatch(r"sha256:[0-9a-f]{64}", item["id"])
+            and item["ref"] == alias(name, revision, item["id"]),
             "Invalid image identity for " + name,
         )
         if loaded:
-            require(image_id(ref) == item["id"], "Loaded image differs from manifest for " + name)
+            require(
+                image_id(item["ref"]) == item["id"],
+                "Loaded image differs from manifest for " + name,
+            )
     print(f"Verified {revision} {PLATFORM}" + (" and loaded image IDs" if loaded else ""))
 
 
