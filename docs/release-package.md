@@ -12,12 +12,12 @@ Transfer the bundle and compare its manifest with the copy from the trusted buil
 ```sh
 bundle=/path/to/cloudops-BUNDLE_REVISION
 verifier=/path/to/trusted-checkout/scripts/release-bundle.py
-python3 "$verifier" verify "$bundle"
-mkdir /path/to/cloudops-install
-tar -xf "$bundle/source.tar" -C /path/to/cloudops-install
-cd /path/to/cloudops-install
-docker image load --input "$bundle/images.tar"
-python3 "$verifier" verify "$bundle" --loaded
+python3 "$verifier" verify "$bundle" &&
+  mkdir /path/to/cloudops-install &&
+  tar -xf "$bundle/source.tar" -C /path/to/cloudops-install &&
+  cd /path/to/cloudops-install &&
+  docker image load --input "$bundle/images.tar" &&
+  python3 "$verifier" verify "$bundle" --loaded
 ```
 
 ## Start and stop
@@ -31,13 +31,21 @@ compose() {
   docker compose -p "$release_project" --env-file ./host.env --env-file "$bundle/images.env" \
     -f compose.yaml -f compose.https.yaml -f compose.release.yaml "$@"
 }
-python3 "$verifier" verify "$bundle" --loaded
-compose up -d --no-build --pull never --wait --wait-timeout 120 api worker https
-# First install only. Account provisioning resets credentials and revokes prior sessions.
+python3 "$verifier" verify "$bundle" --loaded &&
+  compose up -d --no-build --pull never --wait --wait-timeout 120 api worker https &&
+  compose ps
+```
+
+On the first install, provision the accounts. Each provisioning command resets that account's credentials and revokes prior sessions.
+
+```sh
 compose exec api python -m cloudops.entrypoints.cli account operator --role operator
 compose exec api python -m cloudops.entrypoints.cli account viewer --role viewer
-compose ps
-# Stop the selected project while retaining its database, permit and TLS volumes.
+```
+
+When work is finished, stop this project and retain its database, permit and TLS volumes.
+
+```sh
 compose stop
 ```
 
