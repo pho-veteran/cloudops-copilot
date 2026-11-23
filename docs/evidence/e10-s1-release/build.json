@@ -2,34 +2,34 @@
   "bundles": [
     {
       "builder": "default",
-      "bundle": "cloudops-57ccfd6",
+      "bundle": "cloudops-3a94d13",
       "content": {
         "backend_app_files": 303,
-        "backend_app_tree_sha256": "c0659da79f8b6949a26889bbff5b2c13b76d4adb5eaaa999d73011a3a96100cb",
+        "backend_app_tree_sha256": "374a18a97e2df83416105b2b1071272eeaf1a067c412a2bb60fb7a3c70b54687",
         "backend_python_package_count": 32,
         "backend_python_packages_sha256": "ace49b078f13239c890a6c48185e65604883b54535d0cdd26d43d1e0410312a3",
         "caddyfile_sha256": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
         "images": {
           "backend": {
-            "created": "2026-11-23T06:14:15.706305953Z",
-            "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+            "created": "2026-11-23T08:16:40.885401259Z",
+            "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
             "os_arch": "linux/amd64",
-            "revision_label": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
-            "size_bytes": 385233854
+            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+            "size_bytes": 385153976
           },
           "db": {
-            "created": "2026-11-05T07:30:38.219799817Z",
-            "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+            "created": "2026-11-18T21:30:01.517652951Z",
+            "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
             "os_arch": "linux/amd64",
             "revision_label": null,
-            "size_bytes": 619680074
+            "size_bytes": 645641149
           },
           "https": {
-            "created": "2026-11-23T05:58:33.960832793Z",
-            "id": "sha256:c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
+            "created": "2026-11-23T08:17:03.865379868Z",
+            "id": "sha256:3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
             "os_arch": "linux/amd64",
-            "revision_label": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
-            "size_bytes": 84123799
+            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+            "size_bytes": 92948268
           }
         },
         "opentelemetry_api": "1.45.2",
@@ -38,96 +38,96 @@
       },
       "file_sizes": {
         "images.env": 445,
-        "images.tar": 281936384,
+        "images.tar": 262641152,
         "manifest.json": 1867,
-        "source.tar": 21852160
+        "source.tar": 21944320
       },
       "manifest": {
         "images": {
           "backend": {
-            "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
-            "ref": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9"
+            "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+            "ref": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38"
           },
           "db": {
-            "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
-            "ref": "cloudops-release-db:57ccfd61ffbe8170918defcd7f408e3aa298b386-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994"
+            "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+            "ref": "cloudops-release-db:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b"
           },
           "https": {
-            "id": "sha256:c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
-            "ref": "cloudops-release-https:57ccfd61ffbe8170918defcd7f408e3aa298b386-c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d"
+            "id": "sha256:3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
+            "ref": "cloudops-release-https:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5"
           }
         },
         "platform": "linux/amd64",
-        "revision": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
+        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
         "schema": "CloudOpsReleaseBundle/v1",
         "sha256": {
-          "images.env": "28bbd6101209f9f0fb249bc3a590632c5c6781dd6bdac280eb147e3ea6205e8a",
-          "images.tar": "a21c27fd6413c5547c7f259d5add7c577e370db684e973146970fd19c688f295",
-          "source.tar": "257cab364868f21c18b71838d786258733821515669505813523fa1356932c63"
+          "images.env": "623ae7ca0f16c963f9b2f26265e199a80c7528687ecaa30feeabe4eba6f0cff4",
+          "images.tar": "3b68aba86ba11b85536830d6d3507501ccf76308ebe001374d0d68aa7d42f222",
+          "source.tar": "edd583b202474187f62f0e530afba7efdd0e292dcee46e0c13c91ed70a36c970"
         },
         "upstream": {
-          "caddy:2.10.2-alpine": "caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d",
+          "caddy:2.11.9-alpine": "caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0",
           "ghcr.io/astral-sh/uv:0.9.26": "ghcr.io/astral-sh/uv:0.9.26@sha256:9a23023be68b2ed09750ae636228e903a54a05ea56ed03a934d00fe9fbeded4b",
           "node:24.21.0-bookworm-slim": "node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
-          "postgres:17.11-bookworm": "postgres:17.11-bookworm@sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
-          "python:3.13.11-slim-bookworm": "python:3.13.11-slim-bookworm@sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0"
+          "postgres:17.12-bookworm": "postgres:17.12-bookworm@sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+          "python:3.13.18-slim-bookworm": "python:3.13.18-slim-bookworm@sha256:a5a7017efc5969e00ae2b91c8eb0631049a569652aa4ffc4501769049ae45c72"
         }
       },
       "source_digests": {
         ".node-version": "73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f",
         ".python-version": "9fa33d932bbf6e5784f15b467a9a10e4ce43993c2341ee742f23ce0196fd73e9",
-        "apps/web/Dockerfile.https": "037f2406ddf891cd20b30e4ce7801cb9781bcca89c09f2fdb93e5f3d459e57a9",
+        "apps/web/Dockerfile.https": "c3033573f4ca062fe3955f6b4f072fac7196e4d33288563b7bc33851e08e203d",
         "apps/web/package-lock.json": "079d39dfd355ced9b00d10ed900e80a9f12e7b6e6d174a5675047e4237fb06db",
         "apps/web/package.json": "522ab4a64c9c8c3dd4517bae9002060a968ead0850f8adf00250ca61c2a5946f",
         "compose.https.yaml": "2279e781febf649e528c25369fed0daa3eee0add842e6f94d74bfa59721f8f6d",
         "compose.release-lab.yaml": "52adbd61038dfee454e94d3d2243610ada5c251355ad09dcdea4258ba8a7b612",
         "compose.release.yaml": "16c7e9562e191ca9e56e42140d57e5c445623967f1627c02cec75e641595e414",
-        "compose.yaml": "3b4b6e68c4f20ef016a453df991438c3956f8d19af9dcbc51555cf5787b492e8",
+        "compose.yaml": "766aa3ae97aa44370a9c83eb98a01c86f2c9d8f8d4693cde43b82882ac46f6a9",
         "config/Caddyfile.local": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
-        "services/backend/Dockerfile": "952dda7edd4be0e148768423f90b2e4e5c2379bf346ee23f2cb53fe780a4dc0c",
+        "services/backend/Dockerfile": "1806310b28be2ae43c6be3ae7c9817dadb5990d8948aa444d34a59d2fcb1eac1",
         "services/backend/pyproject.toml": "8bd7cba9af9a587b1f25368326f2c6e472cb019eb2b6242554bbfb79751397f4",
         "services/backend/uv.lock": "a32ccb4d45881919892a8d58e794634949324dc12a19d9fe91f761d9c593852d",
         "tools/contracts/package-lock.json": "4c6acc0cb08e79b28deec80aae1fc2dd76e131038926d628448597f53f1dc35a"
       },
-      "source_files": 963,
+      "source_files": 970,
       "source_sensitive_paths": [],
       "timing": {
         "builder": "default",
-        "finished": "2026-11-23T06:14:57Z",
-        "revision": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
-        "started": "2026-11-23T06:14:00Z"
+        "finished": "2026-11-23T08:17:26Z",
+        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+        "started": "2026-11-23T08:16:23Z"
       }
     },
     {
       "builder": "cloudops-release-clean (docker-container, empty cache)",
-      "bundle": "cloudops-57ccfd6-clean",
+      "bundle": "cloudops-3a94d13-clean",
       "content": {
         "backend_app_files": 303,
-        "backend_app_tree_sha256": "c0659da79f8b6949a26889bbff5b2c13b76d4adb5eaaa999d73011a3a96100cb",
+        "backend_app_tree_sha256": "374a18a97e2df83416105b2b1071272eeaf1a067c412a2bb60fb7a3c70b54687",
         "backend_python_package_count": 32,
         "backend_python_packages_sha256": "ace49b078f13239c890a6c48185e65604883b54535d0cdd26d43d1e0410312a3",
         "caddyfile_sha256": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
         "images": {
           "backend": {
-            "created": "2026-11-23T06:15:32.489874755Z",
-            "id": "sha256:6772b9763f26605cc084493d45d86da9b4d0912a0efef64dfa44886f883a7a5f",
+            "created": "2026-11-23T08:17:55.153385208Z",
+            "id": "sha256:820f977782caf73c6ad831b266c88fa9fffed8ca6c455e6edf5c87279cbd730e",
             "os_arch": "linux/amd64",
-            "revision_label": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
-            "size_bytes": 385225031
+            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+            "size_bytes": 385158164
           },
           "db": {
-            "created": "2026-11-05T07:30:38.219799817Z",
-            "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+            "created": "2026-11-18T21:30:01.517652951Z",
+            "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
             "os_arch": "linux/amd64",
             "revision_label": null,
-            "size_bytes": 619680074
+            "size_bytes": 645641149
           },
           "https": {
-            "created": "2026-11-23T06:16:11.509388034Z",
-            "id": "sha256:30bafebe0c9bd28d8648f864405b7236be4954a700a0ae70c3fc5860a379764f",
+            "created": "2026-11-23T08:18:46.225338258Z",
+            "id": "sha256:940656003e68e938ac57867caea3a3202c37b64b5493159e5b3fa75a4aa0e2ae",
             "os_arch": "linux/amd64",
-            "revision_label": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
-            "size_bytes": 84123795
+            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+            "size_bytes": 92948267
           }
         },
         "opentelemetry_api": "1.45.2",
@@ -136,64 +136,64 @@
       },
       "file_sizes": {
         "images.env": 445,
-        "images.tar": 281915392,
+        "images.tar": 262633472,
         "manifest.json": 1867,
-        "source.tar": 21852160
+        "source.tar": 21944320
       },
       "manifest": {
         "images": {
           "backend": {
-            "id": "sha256:6772b9763f26605cc084493d45d86da9b4d0912a0efef64dfa44886f883a7a5f",
-            "ref": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-6772b9763f26605cc084493d45d86da9b4d0912a0efef64dfa44886f883a7a5f"
+            "id": "sha256:820f977782caf73c6ad831b266c88fa9fffed8ca6c455e6edf5c87279cbd730e",
+            "ref": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-820f977782caf73c6ad831b266c88fa9fffed8ca6c455e6edf5c87279cbd730e"
           },
           "db": {
-            "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
-            "ref": "cloudops-release-db:57ccfd61ffbe8170918defcd7f408e3aa298b386-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994"
+            "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+            "ref": "cloudops-release-db:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b"
           },
           "https": {
-            "id": "sha256:30bafebe0c9bd28d8648f864405b7236be4954a700a0ae70c3fc5860a379764f",
-            "ref": "cloudops-release-https:57ccfd61ffbe8170918defcd7f408e3aa298b386-30bafebe0c9bd28d8648f864405b7236be4954a700a0ae70c3fc5860a379764f"
+            "id": "sha256:940656003e68e938ac57867caea3a3202c37b64b5493159e5b3fa75a4aa0e2ae",
+            "ref": "cloudops-release-https:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-940656003e68e938ac57867caea3a3202c37b64b5493159e5b3fa75a4aa0e2ae"
           }
         },
         "platform": "linux/amd64",
-        "revision": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
+        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
         "schema": "CloudOpsReleaseBundle/v1",
         "sha256": {
-          "images.env": "8643109b43baae875e499eb45caac6f0001e3079248d52d04156fe923205f8db",
-          "images.tar": "30ff14d46f76f26f7b43b8862d332409b806f53eb79eafc8dbb00d426dcea5b4",
-          "source.tar": "257cab364868f21c18b71838d786258733821515669505813523fa1356932c63"
+          "images.env": "3ec2ae7bc9820618ee027449e94846b9020328aefdeb0ddea75f858901602c90",
+          "images.tar": "bc8719e9b725a8656953d0137609b2ce433dcedc3c7f757516e5b449b5dfda56",
+          "source.tar": "edd583b202474187f62f0e530afba7efdd0e292dcee46e0c13c91ed70a36c970"
         },
         "upstream": {
-          "caddy:2.10.2-alpine": "caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d",
+          "caddy:2.11.9-alpine": "caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0",
           "ghcr.io/astral-sh/uv:0.9.26": "ghcr.io/astral-sh/uv:0.9.26@sha256:9a23023be68b2ed09750ae636228e903a54a05ea56ed03a934d00fe9fbeded4b",
           "node:24.21.0-bookworm-slim": "node:24.21.0-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
-          "postgres:17.11-bookworm": "postgres:17.11-bookworm@sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
-          "python:3.13.11-slim-bookworm": "python:3.13.11-slim-bookworm@sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0"
+          "postgres:17.12-bookworm": "postgres:17.12-bookworm@sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+          "python:3.13.18-slim-bookworm": "python:3.13.18-slim-bookworm@sha256:a5a7017efc5969e00ae2b91c8eb0631049a569652aa4ffc4501769049ae45c72"
         }
       },
       "source_digests": {
         ".node-version": "73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f",
         ".python-version": "9fa33d932bbf6e5784f15b467a9a10e4ce43993c2341ee742f23ce0196fd73e9",
-        "apps/web/Dockerfile.https": "037f2406ddf891cd20b30e4ce7801cb9781bcca89c09f2fdb93e5f3d459e57a9",
+        "apps/web/Dockerfile.https": "c3033573f4ca062fe3955f6b4f072fac7196e4d33288563b7bc33851e08e203d",
         "apps/web/package-lock.json": "079d39dfd355ced9b00d10ed900e80a9f12e7b6e6d174a5675047e4237fb06db",
         "apps/web/package.json": "522ab4a64c9c8c3dd4517bae9002060a968ead0850f8adf00250ca61c2a5946f",
         "compose.https.yaml": "2279e781febf649e528c25369fed0daa3eee0add842e6f94d74bfa59721f8f6d",
         "compose.release-lab.yaml": "52adbd61038dfee454e94d3d2243610ada5c251355ad09dcdea4258ba8a7b612",
         "compose.release.yaml": "16c7e9562e191ca9e56e42140d57e5c445623967f1627c02cec75e641595e414",
-        "compose.yaml": "3b4b6e68c4f20ef016a453df991438c3956f8d19af9dcbc51555cf5787b492e8",
+        "compose.yaml": "766aa3ae97aa44370a9c83eb98a01c86f2c9d8f8d4693cde43b82882ac46f6a9",
         "config/Caddyfile.local": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
-        "services/backend/Dockerfile": "952dda7edd4be0e148768423f90b2e4e5c2379bf346ee23f2cb53fe780a4dc0c",
+        "services/backend/Dockerfile": "1806310b28be2ae43c6be3ae7c9817dadb5990d8948aa444d34a59d2fcb1eac1",
         "services/backend/pyproject.toml": "8bd7cba9af9a587b1f25368326f2c6e472cb019eb2b6242554bbfb79751397f4",
         "services/backend/uv.lock": "a32ccb4d45881919892a8d58e794634949324dc12a19d9fe91f761d9c593852d",
         "tools/contracts/package-lock.json": "4c6acc0cb08e79b28deec80aae1fc2dd76e131038926d628448597f53f1dc35a"
       },
-      "source_files": 963,
+      "source_files": 970,
       "source_sensitive_paths": [],
       "timing": {
         "builder": "cloudops-release-clean",
-        "finished": "2026-11-23T06:16:25Z",
-        "revision": "57ccfd61ffbe8170918defcd7f408e3aa298b386",
-        "started": "2026-11-23T06:14:58Z"
+        "finished": "2026-11-23T08:19:01Z",
+        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+        "started": "2026-11-23T08:17:27Z"
       }
     },
     {
@@ -208,7 +208,7 @@
         "images": {
           "backend": {
             "created": "2026-11-23T05:58:17.877579886Z",
-            "id": "sha256:eac5c63ee1ccb54098ec0098d80ca2b169b4616c83edc4d07630057891cee08c",
+            "id": "sha256:6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
             "os_arch": "linux/amd64",
             "revision_label": "86649c0faec1bf8b5dde7fe1e16b371ef2967a1f",
             "size_bytes": 385308646
@@ -222,7 +222,7 @@
           },
           "https": {
             "created": "2026-11-23T05:58:33.960832793Z",
-            "id": "sha256:80c2565ba21918545b9e7ab1401909ad56daa79e0856eae74daf8b9e460221fd",
+            "id": "sha256:03b2fec0699189b3e238253fd104311a993ddc124306aa9b432993381c6b5916",
             "os_arch": "linux/amd64",
             "revision_label": "86649c0faec1bf8b5dde7fe1e16b371ef2967a1f",
             "size_bytes": 84123799
@@ -241,24 +241,24 @@
       "manifest": {
         "images": {
           "backend": {
-            "id": "sha256:eac5c63ee1ccb54098ec0098d80ca2b169b4616c83edc4d07630057891cee08c",
-            "ref": "cloudops-release-backend:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-eac5c63ee1ccb54098ec0098d80ca2b169b4616c83edc4d07630057891cee08c"
+            "id": "sha256:6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+            "ref": "cloudops-release-backend:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069"
           },
           "db": {
             "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
             "ref": "cloudops-release-db:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994"
           },
           "https": {
-            "id": "sha256:80c2565ba21918545b9e7ab1401909ad56daa79e0856eae74daf8b9e460221fd",
-            "ref": "cloudops-release-https:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-80c2565ba21918545b9e7ab1401909ad56daa79e0856eae74daf8b9e460221fd"
+            "id": "sha256:03b2fec0699189b3e238253fd104311a993ddc124306aa9b432993381c6b5916",
+            "ref": "cloudops-release-https:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-03b2fec0699189b3e238253fd104311a993ddc124306aa9b432993381c6b5916"
           }
         },
         "platform": "linux/amd64",
         "revision": "86649c0faec1bf8b5dde7fe1e16b371ef2967a1f",
         "schema": "CloudOpsReleaseBundle/v1",
         "sha256": {
-          "images.env": "573bbbfb5eea28cbbdb4983f04d6e7867cbc55904bb76d6156bd6545f2fb3a66",
-          "images.tar": "d0199ae60393205d0e96e202c76bae79510ba9c56c719635a59b19ca0cdf60f7",
+          "images.env": "4871908bf202356ed83ddadabdcde72e277746a263788fd3df7bfc933fe07283",
+          "images.tar": "41659810974061e7c84e8794e371b4daccf8d3ea897e3a217600ec095de5fd52",
           "source.tar": "e34ea359ab9723cb5b8d7750fc170eb4494124cacbca03145c66333e7980bc68"
         },
         "upstream": {
@@ -289,9 +289,9 @@
       "source_sensitive_paths": [],
       "timing": {
         "builder": "default",
-        "finished": "2026-11-23T05:58:55Z",
+        "finished": "2026-11-23T08:16:22Z",
         "revision": "86649c0faec1bf8b5dde7fe1e16b371ef2967a1f",
-        "started": "2026-11-23T05:58:04Z"
+        "started": "2026-11-23T08:15:45Z"
       }
     }
   ],

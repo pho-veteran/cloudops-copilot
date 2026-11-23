@@ -1,26 +1,26 @@
 {
   "containers": [
     {
-      "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
-      "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+      "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+      "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
       "service": "api",
       "state": "running"
     },
     {
-      "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
-      "image": "cloudops-release-db:57ccfd61ffbe8170918defcd7f408e3aa298b386-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+      "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+      "image": "cloudops-release-db:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
       "service": "db",
       "state": "running"
     },
     {
-      "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
-      "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+      "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+      "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
       "service": "executor",
       "state": "running"
     },
     {
-      "id": "sha256:c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
-      "image": "cloudops-release-https:57ccfd61ffbe8170918defcd7f408e3aa298b386-c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
+      "id": "sha256:3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
+      "image": "cloudops-release-https:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
       "service": "https",
       "state": "running"
     },
@@ -31,14 +31,14 @@
       "state": "running"
     },
     {
-      "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
-      "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+      "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+      "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
       "service": "migrate",
       "state": "exited"
     },
     {
-      "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
-      "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+      "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+      "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
       "service": "worker",
       "state": "running"
     }
@@ -52,7 +52,7 @@
         "historical_unknown_count": 0,
         "reason": "Initial target quarantine.",
         "recovery_mode": true,
-        "uid": "beaedb59-aaf5-45dd-bd8d-a6a1d7064c14"
+        "uid": "31c88958-4a9d-4cb6-9013-026a5142fb9e"
       }
     ],
     "unknown_attributions": 0
@@ -181,9 +181,9 @@
   ],
   "schema": "CloudOpsReleaseSeparationReceipt/v1",
   "scoped_collection": {
-    "incident_id": "26e775d7-1613-4784-83a9-bf3e1ccc4eef",
+    "incident_id": "28714608-f677-494f-94e4-76d888c963a8",
     "outcome_code": "analysis_unavailable",
-    "run_id": "10a90f99-ea20-40da-aa1f-72c6689221b6",
+    "run_id": "a965501a-2c40-43cf-9130-fadb9b9e4dc8",
     "run_state": "insufficient_evidence",
     "sources": [
       {
@@ -198,22 +198,22 @@
       },
       {
         "coverage": "available",
-        "sha256": "3a14cbc36fce407a73863e42eef15c40927d5bad92108a64aa75c0a55f7674e5",
+        "sha256": "dfc14dd3009355dc19cd8abdbb36c5bcad448d353e82e3ba036831d638453d88",
         "source_key": "kubernetes.events"
       },
       {
-        "coverage": "available",
-        "sha256": "fbfe837ab83866a376e0b020f52c4d76d4c3dcc34a0b3d4405e6d2a9adf44ebd",
+        "coverage": "not_applicable",
+        "sha256": null,
         "source_key": "kubernetes.logs.current"
       },
       {
-        "coverage": "partial",
-        "sha256": "9ffde14981ab84ca7a36e47a2bcd253d2659953c2d2b6dd1e54d48fd633a7d3c",
+        "coverage": "not_applicable",
+        "sha256": null,
         "source_key": "kubernetes.logs.previous"
       },
       {
         "coverage": "available",
-        "sha256": "d0018963550c48d14ac6c63e8bf5488a713cd15a480765a28e382917998edea8",
+        "sha256": "bf3317dba7f45acd9b814c2a7baeee07272a3ec1b6a639017d4e0e2dec50edd9",
         "source_key": "kubernetes.state"
       },
       {
@@ -248,11 +248,11 @@
       }
     ],
     "workload": {
-      "id": "42a1d8b4-10fb-41c1-83f0-7db59b32849a",
-      "name": "checkout-crashloop",
+      "id": "2ffe6257-f1fc-4b03-9414-c8fc0ec75043",
+      "name": "checkout-imagepull",
       "namespace": "demo",
       "source": "live_kubernetes",
-      "uid": "23aa8435-ab00-45bb-ac4e-23cb2c7ea31a"
+      "uid": "b1e19813-f155-4c61-981b-eb83dcd838e0"
     }
   },
   "topology": "compose.yaml + compose.https.yaml + compose.integration.yaml + compose.release.yaml + compose.release-lab.yaml from the B2 install directory; K3s v1.37.1-k3s1 by digest"

@@ -1,9 +1,9 @@
 {
   "bundle_files_bytes": {
     "images.env": 445,
-    "images.tar": 281936384,
+    "images.tar": 262641152,
     "manifest.json": 1867,
-    "source.tar": 21852160
+    "source.tar": 21944320
   },
   "deliberate_stop": {
     "retained_volumes": [
@@ -21,23 +21,23 @@
     ]
   },
   "disk_bytes": {
-    "bundle_directory": 303790856,
-    "install_directory_including_host_tooling_venv": 105204244
+    "bundle_directory": 284587784,
+    "install_directory_including_host_tooling_venv": 105286186
   },
   "idle_core_after_60s": [
-    "cloudops-release-s1-api-1 cpu=0.14% mem=95.67MiB / 10.7GiB",
-    "cloudops-release-s1-db-1 cpu=0.29% mem=28.88MiB / 10.7GiB",
-    "cloudops-release-s1-https-1 cpu=0.00% mem=12.29MiB / 10.7GiB",
-    "cloudops-release-s1-worker-1 cpu=0.97% mem=79.78MiB / 10.7GiB"
+    "cloudops-release-s1-api-1 cpu=0.17% mem=89.92MiB / 10.7GiB",
+    "cloudops-release-s1-db-1 cpu=6.40% mem=28.64MiB / 10.7GiB",
+    "cloudops-release-s1-https-1 cpu=0.00% mem=13.15MiB / 10.7GiB",
+    "cloudops-release-s1-worker-1 cpu=0.85% mem=78.82MiB / 10.7GiB"
   ],
   "label": "Local Docker Desktop 29.9.2 on WSL2 (8 CPU, 10.7 GiB). Not an EC2 measurement; #121 owns cloud headroom.",
   "loaded_image_bytes": {
-    "backend": 385233854,
-    "db": 619680074,
-    "https": 84123799
+    "backend": 385153976,
+    "db": 645641149,
+    "https": 92948268
   },
   "sanitization": {
-    "files_scanned": 80,
+    "files_scanned": 93,
     "hits": {},
     "patterns_checked": 5,
     "secret_values_checked": 10
@@ -48,20 +48,20 @@
     "upgrade": 17
   },
   "volumes": {
-    "cloudops-release-s1-lab_database": "50.23MB",
+    "cloudops-release-s1-lab_database": "50.49MB",
     "cloudops-release-s1-lab_executor_authority": "57.34kB",
     "cloudops-release-s1-lab_executor_identity": "189B",
     "cloudops-release-s1-lab_job_dispatch": "787B",
-    "cloudops-release-s1-lab_k3s_data": "763.5MB",
+    "cloudops-release-s1-lab_k3s_data": "768.3MB",
     "cloudops-release-s1-lab_local_https_config": "1.1kB",
-    "cloudops-release-s1-lab_local_https_data": "5.128kB",
-    "cloudops-release-s1-schema_database": "50.27MB",
+    "cloudops-release-s1-lab_local_https_data": "5.144kB",
+    "cloudops-release-s1-schema_database": "50.28MB",
     "cloudops-release-s1-schema_job_dispatch": "1.671kB",
     "cloudops-release-s1-schema_local_https_config": "1.1kB",
-    "cloudops-release-s1-schema_local_https_data": "5.136kB",
+    "cloudops-release-s1-schema_local_https_data": "5.132kB",
     "cloudops-release-s1_database": "67.38MB",
     "cloudops-release-s1_job_dispatch": "1.677kB",
     "cloudops-release-s1_local_https_config": "1.1kB",
-    "cloudops-release-s1_local_https_data": "5.136kB"
+    "cloudops-release-s1_local_https_data": "5.144kB"
   }
 }
