@@ -1,0 +1,21 @@
+{
+  "deployments_unchanged": true,
+  "enable_attempt": {
+    "status": "unavailable",
+    "stderr": "service \"executor\" is not running"
+  },
+  "enter": "applied",
+  "executor": {
+    "refused_missing_pin": true,
+    "state": "exited 0",
+    "up_returncode": 0
+  },
+  "manual_handoff": "Writer authority is missing, so every target stays quarantined and product writes stay disabled. Handle the incident manually outside the product. Restore requires the original executor journal and pin or a deployment-owner reconciliation; a new authority is never initialized over retained history.",
+  "proposal_without_authority": {
+    "code": "executor_unavailable",
+    "status": 503
+  },
+  "reads": {
+    "incident": 200
+  }
+}

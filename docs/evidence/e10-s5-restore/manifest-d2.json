@@ -1,0 +1,485 @@
+{
+  "bundle": {
+    "images": {
+      "backend": "sha256:0c9a47809ee12e3d78281080da0090f2e34507744ddcb9599b259932312e48fc",
+      "db": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+      "https": "sha256:ea6633d3f39b5dfcc5c6bd7eaad6708a715c83b9f209bbcb6656c182e5b31908"
+    },
+    "revision": "b488030c2ec90439e6e290a56452fa0d548a5b67",
+    "sha256": {
+      "images.env": "321099da874190bf8a31c16a5bd970cfa365527b0e8305e8171bfb459c6c36c8",
+      "images.tar": "1c9e17ae45339c90feabbb817b3af40cf59754d2ce4dca390dba86fccf68dc65",
+      "source.tar": "0b2dfac08e04d422d3adf9ec201e8fd334ac217b82a362ee0f1b697ccaf46911"
+    }
+  },
+  "cutoff": "d2",
+  "database": {
+    "alembic_head": "0020_operations_quota_wait_index",
+    "database": "cloudops_restore_test",
+    "observed_at": "2026-11-23 12:08:34.051978+00",
+    "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
+    "txid": "815"
+  },
+  "deployments": {
+    "checkout": {
+      "fence": {
+        "cloudops-copilot.local/writer-fence": "ec578c5a-cc93-4e33-96e6-234cef2ce2f9"
+      },
+      "generation": 3,
+      "ready": 1,
+      "replicas": 1,
+      "resource_version": "839",
+      "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+    },
+    "checkout-standby": {
+      "fence": {
+        "cloudops-copilot.local/writer-fence": "69581ca4-eefc-41bb-a125-02761f656eb7"
+      },
+      "generation": 3,
+      "ready": 1,
+      "replicas": 1,
+      "resource_version": "842",
+      "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+    }
+  },
+  "dump": {
+    "bytes": 126648,
+    "format": "pg_dump -Fc",
+    "sha256": "d33a87de6271361386f55df2e3a7af6964219e90c2cadad8701b1598ee448513"
+  },
+  "evidence_sha256": {
+    "023d8432-249c-44d0-a8c6-3707bba10d5a": "",
+    "03baedee-f950-458d-b90e-42ae0a191f65": "",
+    "15afddb7-4f31-452f-9a2f-df484381b879": "",
+    "2377707c-1875-4bf7-92bf-8603fa175266": "",
+    "3a4f3329-9426-4f1d-b8e5-d1c99d02741b": "",
+    "3acd57a1-a3f9-42b5-8983-1efcfb975cac": "",
+    "3c38f6a2-caf8-4bab-8207-7f59ab08a820": "",
+    "54785bf3-c495-4418-bcdb-c3f7e13eda5b": "",
+    "5a153200-cbe4-4872-b1c4-5123cf988eeb": "",
+    "60806f4a-9b1e-4a6f-b3e5-700f3e7ce99d": "",
+    "75113248-8004-4bdd-bd81-026e80f88aab": "95012e5f1daf09316c86636ed3a5c9974b5605b308ef1ddb4c8ba21e1d53c117",
+    "878baf07-fb66-40b1-9c84-dd401575fdae": "86b500df15e5f42b2637eb5f2a721df9a228991d05ebfbab97202fdd1a532675",
+    "92469d00-e1b8-44f0-8fd0-b16292d0f3b0": "15ee5608c29be4fa3389caa17d42e1537ef7cd185876764a0685dc78d19f594c",
+    "9532ed33-4460-436f-b1a7-005f272c19e8": "",
+    "98aecda1-f146-4d92-bde4-2d90bb037ae8": "",
+    "a6180356-260d-449d-8b91-e3a0ffd12e83": "",
+    "a95ee9ad-b74b-46cf-a9d0-fc4070d6acc0": "a848cf605465c34195717396d33b19e59558c03c127096639b9c38caa2e1cba9",
+    "b79e68fa-b1a7-487f-97d7-83520cf0aada": "",
+    "b8a456e5-b93e-4cdb-a622-7ccfaeb2e2c3": "",
+    "c01653c1-29c7-4bc6-ba66-e6414b595bc0": "bc87cf13b6bf6e7c42525b6bec3c84e4894eac18e41b5a4f15994eb1fdd13a81",
+    "c04aa160-ecdb-4836-8554-50ac69fa2d95": "",
+    "c81e9b9c-91b9-4325-ad57-cff03f737d35": "",
+    "e799bc50-93be-4625-ae83-e4457b9a615f": "552d95df08056372e741cd62ad8b9f9bb959420c475f883d591a149f260d2198",
+    "f191db97-ea25-4418-82f4-bbb832f26daa": ""
+  },
+  "execution": {
+    "holds_lock": true,
+    "id": "a4066688-26b9-47ef-ab8b-7a9365ced789",
+    "state": "queued"
+  },
+  "fingerprint": {
+    "action_plans": {
+      "ids": [
+        "9e65c4cc-c7ba-4386-b0ef-14a34695d401"
+      ],
+      "ids_md5": "17e6c3591914bfa89407c9f5f8e3adb2",
+      "md5": "125f2f41d0942a57aeb725d0870543b3",
+      "rows": 1
+    },
+    "admissions": {
+      "ids_md5": "f8d1e7cd3e0d88315775d69a780657c8",
+      "md5": "e21fd5e2764bdcf0564874cce64d36ad",
+      "rows": 2
+    },
+    "alembic_version": {
+      "ids_md5": "",
+      "md5": "08752d14021c5f745251711adf991d31",
+      "rows": 1
+    },
+    "alert_episodes": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "alert_intake_receipts": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "baseline_candidates": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "baselines": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "connection_checks": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "diagnosis_analyses": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "diagnosis_calls": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "diagnosis_checks": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "diagnosis_contexts": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "diagnosis_results": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "diagnosis_resumes": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "evidence": {
+      "ids": [
+        "023d8432-249c-44d0-a8c6-3707bba10d5a",
+        "03baedee-f950-458d-b90e-42ae0a191f65",
+        "15afddb7-4f31-452f-9a2f-df484381b879",
+        "2377707c-1875-4bf7-92bf-8603fa175266",
+        "3a4f3329-9426-4f1d-b8e5-d1c99d02741b",
+        "3acd57a1-a3f9-42b5-8983-1efcfb975cac",
+        "3c38f6a2-caf8-4bab-8207-7f59ab08a820",
+        "54785bf3-c495-4418-bcdb-c3f7e13eda5b",
+        "5a153200-cbe4-4872-b1c4-5123cf988eeb",
+        "60806f4a-9b1e-4a6f-b3e5-700f3e7ce99d",
+        "75113248-8004-4bdd-bd81-026e80f88aab",
+        "878baf07-fb66-40b1-9c84-dd401575fdae",
+        "92469d00-e1b8-44f0-8fd0-b16292d0f3b0",
+        "9532ed33-4460-436f-b1a7-005f272c19e8",
+        "98aecda1-f146-4d92-bde4-2d90bb037ae8",
+        "a6180356-260d-449d-8b91-e3a0ffd12e83",
+        "a95ee9ad-b74b-46cf-a9d0-fc4070d6acc0",
+        "b79e68fa-b1a7-487f-97d7-83520cf0aada",
+        "b8a456e5-b93e-4cdb-a622-7ccfaeb2e2c3",
+        "c01653c1-29c7-4bc6-ba66-e6414b595bc0",
+        "c04aa160-ecdb-4836-8554-50ac69fa2d95",
+        "c81e9b9c-91b9-4325-ad57-cff03f737d35",
+        "e799bc50-93be-4625-ae83-e4457b9a615f",
+        "f191db97-ea25-4418-82f4-bbb832f26daa"
+      ],
+      "ids_md5": "26ee3299d9a0d2fe531f344bbb9648ef",
+      "md5": "b3b42b209e296a13d586657719f103ea",
+      "rows": 24
+    },
+    "evidence_pins": {
+      "ids_md5": "",
+      "md5": "e9fdbfd8ac8d261515f3d7f3050e7596",
+      "rows": 6
+    },
+    "incident_activity": {
+      "ids": [],
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "incidents": {
+      "ids": [
+        "1fc1953f-829c-4e04-a9a8-ad3662cbd8cc",
+        "98dd7f22-3d5d-4dd4-91aa-db85319c658a"
+      ],
+      "ids_md5": "7202fbd95a259702118af180f44dfce6",
+      "md5": "906071bad08cef4c991f2568b71b5fac",
+      "rows": 2
+    },
+    "investigation_runs": {
+      "ids": [
+        "19d45bc1-7538-4ed4-8150-25a7204fce33",
+        "1c62b22b-f67e-4afa-8556-311aff44af10"
+      ],
+      "ids_md5": "92090d9d881a06d9f2867bff28a9add6",
+      "md5": "de920db94be7cce6cf67edee4b800e9b",
+      "rows": 2
+    },
+    "job_attempts": {
+      "ids_md5": "f1c42f43164fc8ad109b944be37603b7",
+      "md5": "aa86e8290cda64553197846053595cda",
+      "rows": 2
+    },
+    "job_checkpoints": {
+      "ids_md5": "",
+      "md5": "808d489db05f0be5e7caecf67f4d5df7",
+      "rows": 12
+    },
+    "jobs": {
+      "ids": [
+        "60c08ba5-f8ec-4222-b867-f0a80395a963",
+        "764bf7f0-9b1d-4928-9505-9b1ec5eb49a4",
+        "9798b81e-7a60-4f9a-913d-6696fc9a214f"
+      ],
+      "ids_md5": "96ae929427eac93d6a71c6f133a4c265",
+      "md5": "dd31e100384ca796756e7652480aa188",
+      "rows": 3
+    },
+    "knowledge_chunks": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_document_versions": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_generation_chunks": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_generation_documents": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_generations": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_index_attempts": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_index_state": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_selection_chunks": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "knowledge_selections": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "plan_reviews": {
+      "ids_md5": "6a6baa6b5664882ab366db2b8307b8e4",
+      "md5": "c541e208279ee9cf0ba75e6843e483f2",
+      "rows": 1
+    },
+    "recommendation_reports": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "recovery_executions": {
+      "ids": [
+        "a4066688-26b9-47ef-ab8b-7a9365ced789"
+      ],
+      "ids_md5": "51b9cc092e391f060482fa43ef242071",
+      "md5": "fbaa062e3908e35d3fca8e3566e629d4",
+      "rows": 1
+    },
+    "recovery_rollback_windows": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "recovery_verifications": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "sessions": {
+      "ids_md5": "",
+      "md5": "856daf92928c69b2bce2380afaeb8636",
+      "rows": 2
+    },
+    "users": {
+      "ids_md5": "201b9d29ef8fd83bdeaaec6415786911",
+      "md5": "0fa1cfc6129cf9a9d825fe3f47a55602",
+      "rows": 2
+    },
+    "worker_heartbeats": {
+      "ids_md5": "",
+      "md5": "4a67ec2219ca0060af094733316acc67",
+      "rows": 1
+    },
+    "workload_observation_attempts": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "workload_observation_state": {
+      "ids_md5": "",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "workload_observations": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "workload_scope_state": {
+      "ids_md5": "c4ca4238a0b923820dcc509a6f75849b",
+      "md5": "cb4fb681da880bbdaad2925677bd48d8",
+      "rows": 1
+    },
+    "workload_scope_targets": {
+      "ids_md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e",
+      "rows": 0
+    },
+    "workloads": {
+      "ids_md5": "ea9592efbf24e66a2e7a11761fa9f5ea",
+      "md5": "300ec73d7ed1e94bd78d27392667553a",
+      "rows": 6
+    }
+  },
+  "journal": {
+    "attempt_ids": [],
+    "attempts": {},
+    "audit_rows": 3,
+    "deployment_id": "7610dcd1-a981-46bc-936e-9731ad8aa73c",
+    "pin_sha256": "f84520403b758a1424cbb121fcfcbaf223eb0d72e47472af63fcc2ff307761e8",
+    "recovery_mode": "false",
+    "targets": {
+      "8edb767b-b3b7-4990-a2b3-5a43369a1034": {
+        "enabled": true,
+        "epoch": "bd35c11d-b1e4-432d-b75a-3a7fc86966f5"
+      },
+      "b51bbc5b-0bce-4f70-9d7f-1d0afd344129": {
+        "enabled": true,
+        "epoch": "29215115-724a-4a2c-8f3d-c7e5b1ea0a61"
+      }
+    }
+  },
+  "maintenance_targets": [
+    {
+      "deployment_id": "7610dcd1-a981-46bc-936e-9731ad8aa73c",
+      "enabled": true,
+      "epoch": "bd35c11d-b1e4-432d-b75a-3a7fc86966f5",
+      "historical_unknown_count": 0,
+      "proof": {
+        "excluded_attempts": [],
+        "nonce": "ec578c5a-cc93-4e33-96e6-234cef2ce2f9",
+        "observed_at": "2026-11-23T12:08:18.525503+00:00",
+        "provider": "resource_version_fence_v1",
+        "resource_version": "839",
+        "snapshot": {
+          "containers": [
+            {
+              "image": "python:3.13.11-slim-bookworm",
+              "name": "checkout",
+              "resources": {
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "64Mi"
+                },
+                "requests": {
+                  "cpu": "10m",
+                  "memory": "32Mi"
+                }
+              }
+            }
+          ],
+          "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
+          "replicas": 1,
+          "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+        },
+        "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+      },
+      "reason": "Trusted current-state and old-writer exclusion proof recorded.",
+      "recovery_mode": false,
+      "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+    },
+    {
+      "deployment_id": "7610dcd1-a981-46bc-936e-9731ad8aa73c",
+      "enabled": true,
+      "epoch": "29215115-724a-4a2c-8f3d-c7e5b1ea0a61",
+      "historical_unknown_count": 0,
+      "proof": {
+        "excluded_attempts": [],
+        "nonce": "69581ca4-eefc-41bb-a125-02761f656eb7",
+        "observed_at": "2026-11-23T12:08:18.752402+00:00",
+        "provider": "resource_version_fence_v1",
+        "resource_version": "842",
+        "snapshot": {
+          "containers": [
+            {
+              "image": "python:3.13.11-slim-bookworm",
+              "name": "checkout",
+              "resources": {
+                "limits": {
+                  "cpu": "100m",
+                  "memory": "64Mi"
+                },
+                "requests": {
+                  "cpu": "10m",
+                  "memory": "32Mi"
+                }
+              }
+            }
+          ],
+          "limitations": "Selected image/resource fields only; referenced configuration, secrets and external effects are not captured.",
+          "replicas": 1,
+          "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+        },
+        "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+      },
+      "reason": "Trusted current-state and old-writer exclusion proof recorded.",
+      "recovery_mode": false,
+      "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+    }
+  ],
+  "permit": {
+    "allowed_job_kinds": [
+      "analysis",
+      "collection",
+      "recommendation",
+      "recovery_execution"
+    ],
+    "authority_id": "38ce25eb-46f9-410b-84ba-4ae3b5e762a3",
+    "denial": null,
+    "generation": 1,
+    "mode": "normal"
+  },
+  "project": "cloudops-release-restore",
+  "schema": "ReleaseRestoreManifest/v1",
+  "scope_sha256": {
+    "reader": "37c37cf86a4b7ec1d26c7ccb47b65692db0124aef8e6900c8ca0ed39bf8cfb72",
+    "writer": "805c1a3e22f2e70ec6cc3decd0160e54510b464e504d805f16becb646a2fc6d7"
+  },
+  "stage": "plan approved, execution queued before dispatch",
+  "targets": [
+    {
+      "cluster": "local-k3s",
+      "name": "checkout",
+      "namespace": "demo",
+      "source": "live_kubernetes",
+      "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+    },
+    {
+      "cluster": "local-k3s",
+      "name": "checkout-standby",
+      "namespace": "demo",
+      "source": "live_kubernetes",
+      "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+    }
+  ]
+}

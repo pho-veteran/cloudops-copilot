@@ -1,0 +1,514 @@
+{
+  "cleanup": {
+    "actor": {
+      "channel": "local_os_account",
+      "pid": 1,
+      "uid": 0
+    },
+    "cleanup_id": "533e20fe-37b7-406a-9170-f58f07af965b",
+    "configured_gateway_targets_closed": 2,
+    "executions_retired": 1,
+    "jobs_retired": 1,
+    "permit_generation": 4,
+    "plans_invalidated": 1,
+    "reviews_retired": 1,
+    "sessions_revoked": 2
+  },
+  "cleanup_replay": {
+    "actor": {
+      "channel": "local_os_account",
+      "pid": 1,
+      "uid": 0
+    },
+    "cleanup_id": "e2ca7bb9-c072-427f-b50b-afdbd4f8d528",
+    "configured_gateway_targets_closed": 2,
+    "executions_retired": 0,
+    "jobs_retired": 0,
+    "permit_generation": 4,
+    "plans_invalidated": 0,
+    "reviews_retired": 1,
+    "sessions_revoked": 2
+  },
+  "cutoff": "d2",
+  "database": {
+    "alembic_head": "0020_operations_quota_wait_index",
+    "database": "cloudops_restore_test",
+    "observed_at": "2026-11-23 12:10:43.031184+00",
+    "server_version": "17.12 (Debian 17.12-1.pgdg12+1)",
+    "txid": "1884"
+  },
+  "deployments_end": {
+    "checkout": {
+      "fence": {
+        "cloudops-copilot.local/writer-fence": "ec578c5a-cc93-4e33-96e6-234cef2ce2f9"
+      },
+      "generation": 4,
+      "ready": 2,
+      "replicas": 2,
+      "resource_version": "892",
+      "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+    },
+    "checkout-standby": {
+      "fence": {
+        "cloudops-copilot.local/writer-fence": "69581ca4-eefc-41bb-a125-02761f656eb7"
+      },
+      "generation": 3,
+      "ready": 1,
+      "replicas": 1,
+      "resource_version": "842",
+      "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+    }
+  },
+  "diagnosis_cleanup": "{\"sessions_revoked\": true, \"restored_model_work_retired\": true, \"analysis_dispatch_denied\": true, \"permit_generation\": 4}",
+  "dump_sha256": "d33a87de6271361386f55df2e3a7af6964219e90c2cadad8701b1598ee448513",
+  "evidence_bytes_equal": true,
+  "executions": [
+    {
+      "holds_lock": true,
+      "id": "a4066688-26b9-47ef-ab8b-7a9365ced789",
+      "outcome": "outcome_unknown",
+      "state": "outcome_unknown"
+    }
+  ],
+  "late_requests": {
+    "old_epoch_new_identity": {
+      "code": "target_quarantined",
+      "status": 409
+    },
+    "restored_identity_changed_content": {
+      "code": "dispatch_conflict",
+      "status": 409
+    }
+  },
+  "maintenance_enter": {
+    "code": null,
+    "request_id": "07a74533-d3cf-4474-880d-fe1fceb24a87",
+    "status": "applied"
+  },
+  "maintenance_paths": {
+    "/api/executor/exit_recovery_mode": 404,
+    "/api/maintenance/enable_target": 404,
+    "/api/targets/enable": 404
+  },
+  "maintenance_replay": {
+    "replayed": true,
+    "status": "applied"
+  },
+  "new_proposals_while_quarantined": {
+    "primary": {
+      "code": "target_locked",
+      "status": 409
+    },
+    "standby": {
+      "code": "target_quarantined",
+      "status": 409
+    }
+  },
+  "no_write": {
+    "after": {
+      "checkout": {
+        "fence": {
+          "cloudops-copilot.local/writer-fence": "ec578c5a-cc93-4e33-96e6-234cef2ce2f9"
+        },
+        "generation": 4,
+        "ready": 2,
+        "replicas": 2,
+        "resource_version": "892",
+        "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+      },
+      "checkout-standby": {
+        "fence": {
+          "cloudops-copilot.local/writer-fence": "69581ca4-eefc-41bb-a125-02761f656eb7"
+        },
+        "generation": 3,
+        "ready": 1,
+        "replicas": 1,
+        "resource_version": "842",
+        "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+      }
+    },
+    "before": {
+      "checkout": {
+        "fence": {
+          "cloudops-copilot.local/writer-fence": "ec578c5a-cc93-4e33-96e6-234cef2ce2f9"
+        },
+        "generation": 4,
+        "ready": 2,
+        "replicas": 2,
+        "resource_version": "892",
+        "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+      },
+      "checkout-standby": {
+        "fence": {
+          "cloudops-copilot.local/writer-fence": "69581ca4-eefc-41bb-a125-02761f656eb7"
+        },
+        "generation": 3,
+        "ready": 1,
+        "replicas": 1,
+        "resource_version": "842",
+        "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+      }
+    },
+    "deployments_unchanged": true,
+    "journal_attempts_unchanged": true
+  },
+  "old_plan_approval": {
+    "code": "plan_unavailable",
+    "status": 409
+  },
+  "old_worker": {
+    "attempts_unchanged": true,
+    "jobs_unchanged": true,
+    "permit": {
+      "allowed_job_kinds": [],
+      "authority_id": "38ce25eb-46f9-410b-84ba-4ae3b5e762a3",
+      "denial": "recovery_mode",
+      "generation": 4,
+      "mode": "recovery"
+    }
+  },
+  "permit_after": {
+    "allowed_job_kinds": [],
+    "authority_id": "38ce25eb-46f9-410b-84ba-4ae3b5e762a3",
+    "denial": "recovery_mode",
+    "generation": 4,
+    "mode": "recovery"
+  },
+  "permit_before": {
+    "allowed_job_kinds": [
+      "collection"
+    ],
+    "authority_id": "38ce25eb-46f9-410b-84ba-4ae3b5e762a3",
+    "denial": null,
+    "generation": 3,
+    "mode": "recovery"
+  },
+  "permit_end": {
+    "allowed_job_kinds": [
+      "collection"
+    ],
+    "authority_id": "38ce25eb-46f9-410b-84ba-4ae3b5e762a3",
+    "denial": null,
+    "generation": 5,
+    "mode": "recovery"
+  },
+  "post_cutoff_loss": {
+    "action_plans": {
+      "count": 0,
+      "lost_after_cutoff": []
+    },
+    "evidence": {
+      "count": 12,
+      "lost_after_cutoff": [
+        "1fcbd130-b52f-4bee-8a87-254e618747e2",
+        "3158ccc4-1019-4257-bd6f-9a61a1c34d6e",
+        "566c940e-1515-49e7-aa63-07fc24d784e8",
+        "7538b45e-c3e2-47d1-ad5a-07758915c06a",
+        "822455b4-c5ef-48ee-bca3-bc1a25ebf904",
+        "8be5bcb1-9f7e-48c4-a389-923f7c37044c",
+        "ae5a443e-30df-4fb1-8043-bac7e69bf4ad",
+        "af94dda6-2b8c-42d4-a411-09c42125e5b2",
+        "bad31d20-5302-4719-9d4b-1ffa3af8ad54",
+        "bfc0f5a2-4833-429a-956a-ac9cc3a79fcd",
+        "f2744a7d-d24b-4ca3-8f2d-fa2afe046e3f",
+        "f619d4e6-8d81-4b50-a093-4ca2d28109c4"
+      ]
+    },
+    "incident_activity": {
+      "count": 2,
+      "lost_after_cutoff": [
+        "abbde0ae-7146-4558-b29a-059689e1f46a",
+        "b6ce87e7-997d-4494-9ecc-07f6b7e60e1b"
+      ]
+    },
+    "incidents": {
+      "count": 1,
+      "lost_after_cutoff": [
+        "7c2ac4fc-fc01-4db8-854d-a31e90afe7ef"
+      ]
+    },
+    "investigation_runs": {
+      "count": 1,
+      "lost_after_cutoff": [
+        "39133e1d-764b-4393-99cf-2a52cdce7d53"
+      ]
+    },
+    "jobs": {
+      "count": 1,
+      "lost_after_cutoff": [
+        "6f4efa60-dd5d-4bf5-bfe7-dc4dd48b6d28"
+      ]
+    },
+    "recovery_executions": {
+      "count": 0,
+      "lost_after_cutoff": []
+    }
+  },
+  "quarantined_investigation": {
+    "run_state": "insufficient_evidence",
+    "sources": [
+      "kubernetes.events",
+      "kubernetes.logs.current",
+      "kubernetes.logs.previous",
+      "kubernetes.state"
+    ]
+  },
+  "reads": {
+    "primary_incident": 200,
+    "primary_run": 200,
+    "standby_incident": 200,
+    "workloads": {
+      "checkout": 200,
+      "checkout-standby": 200
+    }
+  },
+  "restored_plans": [
+    {
+      "id": "9e65c4cc-c7ba-4386-b0ef-14a34695d401",
+      "state": "invalidated"
+    }
+  ],
+  "restored_session": 401,
+  "tables": {
+    "action_plans": {
+      "result": "identifiers retained; changed by proposed and retired approved plans invalidated",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "admissions": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "alembic_version": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "alert_episodes": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "alert_intake_receipts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "baseline_candidates": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "baselines": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "connection_checks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_analyses": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_calls": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_checks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_contexts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_results": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "diagnosis_resumes": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "evidence": {
+      "result": "identical",
+      "rows_cutoff": 24,
+      "rows_restored": 24
+    },
+    "evidence_pins": {
+      "result": "identical",
+      "rows_cutoff": 6,
+      "rows_restored": 6
+    },
+    "incident_activity": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "incidents": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "investigation_runs": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "job_attempts": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "job_checkpoints": {
+      "result": "identical",
+      "rows_cutoff": 12,
+      "rows_restored": 12
+    },
+    "jobs": {
+      "result": "identifiers retained; changed by restored recovery jobs retired",
+      "rows_cutoff": 3,
+      "rows_restored": 3
+    },
+    "knowledge_chunks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_document_versions": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_generation_chunks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_generation_documents": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_generations": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_index_attempts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_index_state": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_selection_chunks": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "knowledge_selections": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "plan_reviews": {
+      "result": "changed by restored review receipts retired",
+      "rows_cutoff": 1,
+      "rows_restored": 0
+    },
+    "recommendation_reports": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "recovery_executions": {
+      "result": "identifiers retained; changed by active restored executions retired",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "recovery_rollback_windows": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "recovery_verifications": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "sessions": {
+      "result": "changed by restored sessions revoked",
+      "rows_cutoff": 2,
+      "rows_restored": 0
+    },
+    "users": {
+      "result": "identical",
+      "rows_cutoff": 2,
+      "rows_restored": 2
+    },
+    "worker_heartbeats": {
+      "result": "identical",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "workload_observation_attempts": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workload_observation_state": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workload_observations": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workload_scope_state": {
+      "result": "identifiers retained; changed by bootstrap scope synchronization counters",
+      "rows_cutoff": 1,
+      "rows_restored": 1
+    },
+    "workload_scope_targets": {
+      "result": "identical",
+      "rows_cutoff": 0,
+      "rows_restored": 0
+    },
+    "workloads": {
+      "result": "identifiers retained; changed by bootstrap scope synchronization counters",
+      "rows_cutoff": 6,
+      "rows_restored": 6
+    }
+  },
+  "targets_after": [
+    {
+      "enabled": false,
+      "historical_unknown_count": 0,
+      "recovery_mode": true,
+      "uid": "8edb767b-b3b7-4990-a2b3-5a43369a1034"
+    },
+    {
+      "enabled": false,
+      "historical_unknown_count": 0,
+      "recovery_mode": true,
+      "uid": "b51bbc5b-0bce-4f70-9d7f-1d0afd344129"
+    }
+  ],
+  "unknown_attributions": []
+}
