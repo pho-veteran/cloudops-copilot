@@ -1,0 +1,664 @@
+{
+  "assessed_at": "2026-11-23",
+  "historical_e00": {
+    "current": "None of those high findings remains. The baseline on 86649c0 had one high (body-parser, fixed here) and six moderate; four moderate development-only findings remain with the disposition above.",
+    "finding": "E00 #15 retained seven inherited high-severity web development-tool advisories for E10 release-tooling sign-off."
+  },
+  "images": {
+    "applicability": {
+      "backend": "Debian bookworm OS packages of python:3.13.11-slim-bookworm. OpenSSL/glibc/gnutls are loaded by the Python runtime and its TLS clients; apt, dpkg and perl are not used at runtime.",
+      "db": "Debian packages of postgres:17.11-bookworm and the Go stdlib of its gosu entrypoint helper; PostgreSQL is unpublished on the project network.",
+      "https": "Caddy 2.10.2 and its Go modules terminate TLS for the loopback origin, plus Alpine OS packages; directly applicable to the HTTPS listener."
+    },
+    "disposition": "Unresolved for this candidate and recorded as a release gate item. Remediation requires refreshing the pinned bases (a newer python 3.13 slim patch, caddy 2.11.x and a newer PostgreSQL 17 patch), which changes the runtime, CI and lab images and needs the S1 build, install, upgrade and separation proof repeated. Exposure is limited to the loopback HTTPS origin and the private Compose network. Owner: E10 release gate (#13).",
+    "summary": {
+      "backend": {
+        "by_package_type": {
+          "deb": 60
+        },
+        "critical_high_findings": {
+          "CRITICAL": 8,
+          "HIGH": 52
+        },
+        "fixable_packages": {
+          "pkg:deb/debian/apt@2.6.1": {
+            "cves": [
+              "CVE-2026-109518"
+            ],
+            "fixed_version": [
+              "2.6.2"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:deb/debian/dpkg@1.21.22": {
+            "cves": [
+              "CVE-2025-6297",
+              "CVE-2026-2219"
+            ],
+            "fixed_version": [
+              "1.21.23"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:deb/debian/glibc@2.36-9%2Bdeb12u13": {
+            "cves": [
+              "CVE-2025-15281",
+              "CVE-2026-0861",
+              "CVE-2026-0915",
+              "CVE-2026-4046",
+              "CVE-2026-4437"
+            ],
+            "fixed_version": [
+              "2.36-9+deb12u14"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:deb/debian/gnutls28@3.7.9-2%2Bdeb12u5": {
+            "cves": [
+              "CVE-2026-33845",
+              "CVE-2026-33846",
+              "CVE-2026-42009",
+              "CVE-2026-42010",
+              "CVE-2026-42011",
+              "CVE-2026-42012",
+              "CVE-2026-42013",
+              "CVE-2026-5260"
+            ],
+            "fixed_version": [
+              "3.7.9-2+deb12u7"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:deb/debian/openssl@3.0.18-1~deb12u2": {
+            "cves": [
+              "CVE-2026-28387",
+              "CVE-2026-28388",
+              "CVE-2026-28389",
+              "CVE-2026-28390",
+              "CVE-2026-31789",
+              "CVE-2026-31790",
+              "CVE-2026-34180",
+              "CVE-2026-34182",
+              "CVE-2026-45445",
+              "CVE-2026-45447",
+              "CVE-2026-54874",
+              "CVE-2026-63072",
+              "CVE-2026-63076",
+              "CVE-2026-7383",
+              "CVE-2026-75803",
+              "CVE-2026-84782",
+              "CVE-2026-9076"
+            ],
+            "fixed_version": [
+              "3.0.19-1~deb12u2",
+              "3.0.20-1~deb12u2",
+              "3.0.22-1~deb12u1",
+              "3.0.22-1~deb12u2"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:deb/debian/pcre2@10.42-1": {
+            "cves": [
+              "CVE-2026-103111",
+              "CVE-2026-86145",
+              "CVE-2026-89161"
+            ],
+            "fixed_version": [
+              "10.42-1+deb12u1",
+              "10.42-1+deb12u2"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3": {
+            "cves": [
+              "CVE-2026-12087",
+              "CVE-2026-13221",
+              "CVE-2026-42496",
+              "CVE-2026-42497",
+              "CVE-2026-48959",
+              "CVE-2026-48962",
+              "CVE-2026-57432",
+              "CVE-2026-57433",
+              "CVE-2026-7017",
+              "CVE-2026-8376"
+            ],
+            "fixed_version": [
+              "5.36.0-7+deb12u4"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          }
+        },
+        "not_fixed_upstream": {
+          "HIGH": 14
+        }
+      },
+      "db": {
+        "by_package_type": {
+          "deb": 20,
+          "golang": 34
+        },
+        "critical_high_findings": {
+          "CRITICAL": 4,
+          "HIGH": 50
+        },
+        "fixable_packages": {
+          "pkg:golang/stdlib@1.24.6": {
+            "cves": [
+              "CVE-2025-58187",
+              "CVE-2025-58188",
+              "CVE-2025-61723",
+              "CVE-2025-61725",
+              "CVE-2025-61726",
+              "CVE-2025-61729",
+              "CVE-2025-68121",
+              "CVE-2026-25679",
+              "CVE-2026-32280",
+              "CVE-2026-32281",
+              "CVE-2026-32283",
+              "CVE-2026-33811",
+              "CVE-2026-33814",
+              "CVE-2026-33818",
+              "CVE-2026-39820",
+              "CVE-2026-39821",
+              "CVE-2026-39822",
+              "CVE-2026-39836",
+              "CVE-2026-42499",
+              "CVE-2026-42504",
+              "CVE-2026-56853",
+              "CVE-2026-56857",
+              "CVE-2026-56859",
+              "CVE-2026-56862",
+              "CVE-2026-56866",
+              "CVE-2026-78659",
+              "CVE-2026-78660",
+              "CVE-2026-78663",
+              "CVE-2026-78667",
+              "CVE-2026-78669",
+              "CVE-2026-94439",
+              "CVE-2026-94440",
+              "CVE-2026-97031",
+              "CVE-2026-97032"
+            ],
+            "fixed_version": [
+              "1.24.11",
+              "1.24.12",
+              "1.24.13",
+              "1.24.8",
+              "1.24.9",
+              "1.25.10",
+              "1.25.11",
+              "1.25.12",
+              "1.25.13",
+              "1.25.8",
+              "1.25.9",
+              "1.26.9"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          }
+        },
+        "not_fixed_upstream": {
+          "HIGH": 20
+        }
+      },
+      "https": {
+        "by_package_type": {
+          "apk": 55,
+          "golang": 83
+        },
+        "critical_high_findings": {
+          "CRITICAL": 29,
+          "HIGH": 109
+        },
+        "fixable_packages": {
+          "pkg:apk/alpine/c-ares@1.34.6-r0": {
+            "cves": [
+              "CVE-2026-33630"
+            ],
+            "fixed_version": [
+              "1.34.8-r0"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:apk/alpine/curl@8.14.1-r2": {
+            "cves": [
+              "CVE-2026-3805",
+              "CVE-2026-5773",
+              "CVE-2026-6276",
+              "CVE-2026-8286",
+              "CVE-2026-8924",
+              "CVE-2026-8927",
+              "CVE-2026-92392"
+            ],
+            "fixed_version": [
+              "8.14.1-r4"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:apk/alpine/musl@1.2.5-r10": {
+            "cves": [
+              "CVE-2026-107891",
+              "CVE-2026-40200"
+            ],
+            "fixed_version": [
+              "1.2.5-r12",
+              "1.2.5-r13"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:apk/alpine/nghttp2@1.65.0-r0": {
+            "cves": [
+              "CVE-2026-27135"
+            ],
+            "fixed_version": [
+              "1.68.1"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:apk/alpine/openssl@3.5.5-r0": {
+            "cves": [
+              "CVE-2026-14456",
+              "CVE-2026-14457",
+              "CVE-2026-18798",
+              "CVE-2026-28387",
+              "CVE-2026-28388",
+              "CVE-2026-28389",
+              "CVE-2026-28390",
+              "CVE-2026-31789",
+              "CVE-2026-31790",
+              "CVE-2026-34180",
+              "CVE-2026-34181",
+              "CVE-2026-34182",
+              "CVE-2026-34183",
+              "CVE-2026-42764",
+              "CVE-2026-45445",
+              "CVE-2026-45447",
+              "CVE-2026-54874",
+              "CVE-2026-63072",
+              "CVE-2026-63073",
+              "CVE-2026-63075",
+              "CVE-2026-63076",
+              "CVE-2026-7383",
+              "CVE-2026-75803",
+              "CVE-2026-9076"
+            ],
+            "fixed_version": [
+              "3.5.6-r0",
+              "3.5.7-r0",
+              "3.5.8-r0"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:apk/alpine/zlib@1.3.1-r2": {
+            "cves": [
+              "CVE-2026-4738",
+              "CVE-2026-85091"
+            ],
+            "fixed_version": [
+              "1.3.2-r1",
+              "1.4-r0"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/caddyserver/caddy/v2@2.10.2": {
+            "cves": [
+              "CVE-2026-27586",
+              "CVE-2026-27587",
+              "CVE-2026-27588",
+              "CVE-2026-27590",
+              "CVE-2026-30851",
+              "CVE-2026-45135",
+              "CVE-2026-52844",
+              "CVE-2026-52845"
+            ],
+            "fixed_version": [
+              "2.11.1",
+              "2.11.2",
+              "2.11.3",
+              "2.11.4"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/go-jose/go-jose/v3@3.0.4": {
+            "cves": [
+              "CVE-2026-116587",
+              "CVE-2026-34986"
+            ],
+            "fixed_version": [
+              "4.1.4",
+              "4.1.6"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/go-jose/go-jose/v4@4.0.5": {
+            "cves": [
+              "CVE-2026-116587",
+              "CVE-2026-34986"
+            ],
+            "fixed_version": [
+              "4.1.4",
+              "4.1.6"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/klauspost/compress@1.18.0": {
+            "cves": [
+              "CVE-2026-116591",
+              "CVE-2026-63209"
+            ],
+            "fixed_version": [
+              "1.18.7",
+              "1.20.2"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/quic-go/quic-go@0.54.0": {
+            "cves": [
+              "CVE-2025-59530"
+            ],
+            "fixed_version": [
+              "0.54.1"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/slackhq/nebula@1.9.5": {
+            "cves": [
+              "CVE-2026-25793"
+            ],
+            "fixed_version": [
+              "1.10.3"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/github.com/smallstep/certificates@0.28.4": {
+            "cves": [
+              "CVE-2025-44005",
+              "CVE-2026-30836"
+            ],
+            "fixed_version": [
+              "0.29.0",
+              "0.30.0"
+            ],
+            "severity": [
+              "CRITICAL"
+            ]
+          },
+          "pkg:golang/go.opentelemetry.io/otel/sdk@1.37.0": {
+            "cves": [
+              "CVE-2026-24051",
+              "CVE-2026-39883"
+            ],
+            "fixed_version": [
+              "1.40.0",
+              "1.43.0"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/go.opentelemetry.io/otel@1.37.0": {
+            "cves": [
+              "CVE-2026-29181"
+            ],
+            "fixed_version": [
+              "1.41.0"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/golang.org/x/crypto@0.40.0": {
+            "cves": [
+              "CVE-2025-47913",
+              "CVE-2026-39829",
+              "CVE-2026-39830",
+              "CVE-2026-39831",
+              "CVE-2026-39832",
+              "CVE-2026-39833",
+              "CVE-2026-39834",
+              "CVE-2026-42508",
+              "CVE-2026-46595",
+              "CVE-2026-46597",
+              "CVE-2026-56854",
+              "CVE-2026-56855",
+              "CVE-2026-78662"
+            ],
+            "fixed_version": [
+              "0.43.0",
+              "0.52.0",
+              "0.55.0",
+              "0.56.0"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:golang/golang.org/x/net@0.42.0": {
+            "cves": [
+              "CVE-2026-33814",
+              "CVE-2026-39821",
+              "CVE-2026-46600",
+              "CVE-2026-78659",
+              "CVE-2026-78660",
+              "CVE-2026-78661",
+              "CVE-2026-78663",
+              "CVE-2026-78669",
+              "CVE-2026-97032"
+            ],
+            "fixed_version": [
+              "0.56.0",
+              "0.60.0",
+              "0.62.0",
+              "1.25.10",
+              "1.25.13",
+              "1.26.9"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:golang/golang.org/x/text@0.27.0": {
+            "cves": [
+              "CVE-2026-56851",
+              "CVE-2026-56852"
+            ],
+            "fixed_version": [
+              "0.39.0",
+              "0.41.0"
+            ],
+            "severity": [
+              "HIGH"
+            ]
+          },
+          "pkg:golang/google.golang.org/grpc@1.73.0": {
+            "cves": [
+              "CVE-2026-33186",
+              "CVE-2026-84304",
+              "CVE-2026-84445",
+              "GHSA-hrxh-6v49-42gf"
+            ],
+            "fixed_version": [
+              "1.79.3",
+              "1.82.1",
+              "1.82.2",
+              "1.83.1"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          },
+          "pkg:golang/stdlib@1.25.0": {
+            "cves": [
+              "CVE-2025-58187",
+              "CVE-2025-58188",
+              "CVE-2025-61723",
+              "CVE-2025-61725",
+              "CVE-2025-61726",
+              "CVE-2025-61729",
+              "CVE-2025-68121",
+              "CVE-2026-25679",
+              "CVE-2026-32280",
+              "CVE-2026-32281",
+              "CVE-2026-32283",
+              "CVE-2026-33811",
+              "CVE-2026-33814",
+              "CVE-2026-33818",
+              "CVE-2026-39820",
+              "CVE-2026-39821",
+              "CVE-2026-39822",
+              "CVE-2026-39836",
+              "CVE-2026-42499",
+              "CVE-2026-42504",
+              "CVE-2026-56853",
+              "CVE-2026-56857",
+              "CVE-2026-56859",
+              "CVE-2026-56862",
+              "CVE-2026-56866",
+              "CVE-2026-78659",
+              "CVE-2026-78660",
+              "CVE-2026-78663",
+              "CVE-2026-78667",
+              "CVE-2026-78669",
+              "CVE-2026-94439",
+              "CVE-2026-94440",
+              "CVE-2026-97031",
+              "CVE-2026-97032"
+            ],
+            "fixed_version": [
+              "0.60.0",
+              "1.25.10",
+              "1.25.11",
+              "1.25.12",
+              "1.25.13",
+              "1.25.2",
+              "1.25.3",
+              "1.25.5",
+              "1.25.6",
+              "1.25.7",
+              "1.25.8",
+              "1.25.9",
+              "1.26.9"
+            ],
+            "severity": [
+              "CRITICAL",
+              "HIGH"
+            ]
+          }
+        },
+        "not_fixed_upstream": {
+          "CRITICAL": 6,
+          "HIGH": 12
+        }
+      }
+    },
+    "tool": "Docker Scout 1.27.0, local images, critical and high only"
+  },
+  "npm": {
+    "apps/web": {
+      "baseline_86649c0": {
+        "high": 1,
+        "moderate": 6,
+        "packages": [
+          "body-parser (high)",
+          "hono",
+          "@hono/node-server",
+          "minimatch",
+          "ts-morph",
+          "@ts-morph/common",
+          "shadcn"
+        ],
+        "production": 0,
+        "total": 7
+      },
+      "candidate": {
+        "high": 0,
+        "moderate": 4,
+        "packages": [
+          "minimatch (GHSA-g3hv-75wg-m249)",
+          "@ts-morph/common",
+          "ts-morph",
+          "shadcn"
+        ],
+        "production": 0,
+        "total": 4
+      },
+      "disposition": "Accepted for this candidate. The chain is the shadcn component CLI devDependency; the only fix downgrades shadcn to 1.0.0 (breaking). Production audit is 0, the runtime images do not install development packages and the compiled /srv output contains none of these modules. Owner: E10 release gate (#13); revisit when shadcn publishes a fixed ts-morph range.",
+      "fix": "npm audit fix without --force: lock-only update of @hono/node-server 2.1.5->2.1.11, hono 4.13.13->4.13.20 and body-parser 2.3.0->2.4.0; npm test (295) and build passed"
+    },
+    "tools/contracts": {
+      "production": 0,
+      "total": 0
+    }
+  },
+  "python_backend": {
+    "baseline_86649c0": [
+      {
+        "name": "opentelemetry-api",
+        "version": "1.45.1",
+        "vulns": [
+          {
+            "aliases": [
+              "GHSA-mf5v-w3w3-f6cg"
+            ],
+            "fix_versions": [
+              "1.45.2"
+            ],
+            "id": "CVE-2026-126360"
+          }
+        ]
+      }
+    ],
+    "candidate": [],
+    "fix": "uv lock --upgrade-package opentelemetry-api==1.45.2 (lock-only; FastAPI transitive). The application uses FastAPI's native trace context extraction only from HTTP headers, which cannot carry the newline the ReDoS needs; it was still patched because the package ships in the runtime image. Linux backend suite: 2289 passed.",
+    "tool": "pip-audit 2.10.1 on uv export --frozen (30 locked runtime and development packages)"
+  },
+  "schema": "CloudOpsReleaseAdvisoryReceipt/v1"
+}

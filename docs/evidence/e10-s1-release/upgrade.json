@@ -1,0 +1,351 @@
+{
+  "contract": {
+    "backend_image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+    "equal": true,
+    "method": "create_app().openapi() inside the bundle backend image with --network none, serialized as scripts/contracts.py does, compared with contracts/openapi.json from the bundle source.tar. TypeScript drift is checked by CI on the candidate.",
+    "openapi_committed_sha256": "7d2b707632b8c80adcaa22c2a1a525b5574f30aeb999a1b97bbe92c390305bea",
+    "openapi_from_image_sha256": "7d2b707632b8c80adcaa22c2a1a525b5574f30aeb999a1b97bbe92c390305bea",
+    "schema_d_ts_committed_sha256": "60a6b35debc986555399967ba87c4704b064b5db4f0ddfa8187add4a29f3411f"
+  },
+  "schema": "CloudOpsReleaseUpgradeReceipt/v1",
+  "u1_bundle_to_bundle": {
+    "alembic_head": "0020_operations_quota_wait_index (head)",
+    "backup_bytes": 123207,
+    "ca_unchanged": true,
+    "containers": [
+      {
+        "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "service": "api",
+        "state": "running"
+      },
+      {
+        "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+        "image": "cloudops-release-db:57ccfd61ffbe8170918defcd7f408e3aa298b386-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+        "service": "db",
+        "state": "running"
+      },
+      {
+        "id": "sha256:c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
+        "image": "cloudops-release-https:57ccfd61ffbe8170918defcd7f408e3aa298b386-c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
+        "service": "https",
+        "state": "running"
+      },
+      {
+        "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "service": "migrate",
+        "state": "exited"
+      },
+      {
+        "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "service": "worker",
+        "state": "running"
+      }
+    ],
+    "dispatch_after_upgrade": {
+      "reason_code": "recovery_mode",
+      "status": "paused"
+    },
+    "enter_recovery": {
+      "allowed_job_kinds": [],
+      "generation": 2,
+      "mode": "recovery"
+    },
+    "fingerprint_before": {
+      "alembic_head": "0020_operations_quota_wait_index",
+      "non_empty_rows": {
+        "admissions": 4,
+        "alembic_version": 1,
+        "evidence": 48,
+        "incident_activity": 4,
+        "incidents": 4,
+        "investigation_runs": 4,
+        "job_attempts": 4,
+        "job_checkpoints": 4,
+        "jobs": 4,
+        "users": 2,
+        "worker_heartbeats": 1,
+        "workload_scope_state": 1,
+        "workloads": 1
+      },
+      "tables": 45
+    },
+    "fingerprint_change_explanation": "Bootstrap synchronizes configured scope on every start. Column comparison against the pre-upgrade backup shows workloads changed only observation_epoch and workload_scope_state only applied_sequence/latest_sequence; worker_heartbeats is the live heartbeat. Identities and every other table are byte-identical.",
+    "fingerprint_compare": {
+      "added_tables": [],
+      "alembic_after": "0020_operations_quota_wait_index",
+      "alembic_before": "0020_operations_quota_wait_index",
+      "changed": {
+        "worker_heartbeats": {
+          "rows_after": 1,
+          "rows_before": 1
+        },
+        "workload_scope_state": {
+          "rows_after": 1,
+          "rows_before": 1
+        },
+        "workloads": {
+          "rows_after": 1,
+          "rows_before": 1
+        }
+      },
+      "removed_tables": [],
+      "tables_after": 45,
+      "tables_before": 45,
+      "unchanged_tables": 42
+    },
+    "from": "86649c0faec1bf8b5dde7fe1e16b371ef2967a1f",
+    "new_record_after_exit_recovery": {
+      "incident_id": "3b90490d-2111-403e-84dc-25988b102f86",
+      "note_id": "03383714-9ffc-4f18-86c8-76b53f538b0a",
+      "queue_reason": null,
+      "run_id": "a56e7efb-7fcd-4732-8e0b-c9e0d777579d",
+      "state": "queued",
+      "status": null,
+      "window": {
+        "end": "2026-11-23T06:24:29.536800Z",
+        "source": "legacy_default",
+        "start": "2026-11-23T05:54:29.536800Z"
+      },
+      "workload_id": "4a3e3fd4-5ba4-43d2-a4cf-0ef56a5bc6ae"
+    },
+    "project": "cloudops-release-s1",
+    "repeat_start": {
+      "dispatch_after_restart": {
+        "allowed_job_kinds": [
+          "analysis",
+          "collection",
+          "recommendation",
+          "recovery_execution"
+        ],
+        "denial": null,
+        "generation": 3,
+        "mode": "normal",
+        "operation": "exit_recovery",
+        "valid_until": "2026-12-23T06:24:29.028519Z"
+      },
+      "fingerprint_compare": {
+        "added_tables": [],
+        "alembic_after": "0020_operations_quota_wait_index",
+        "alembic_before": "0020_operations_quota_wait_index",
+        "changed": {
+          "workload_scope_state": {
+            "rows_after": 1,
+            "rows_before": 1
+          },
+          "workloads": {
+            "rows_after": 1,
+            "rows_before": 1
+          }
+        },
+        "removed_tables": [],
+        "tables_after": 45,
+        "tables_before": 45,
+        "unchanged_tables": 43
+      },
+      "retained_volumes": [
+        "cloudops-release-s1_database",
+        "cloudops-release-s1_job_dispatch",
+        "cloudops-release-s1_local_https_config",
+        "cloudops-release-s1_local_https_data"
+      ],
+      "stopped_states": [
+        "api exited",
+        "db exited",
+        "https exited",
+        "migrate exited",
+        "worker exited"
+      ]
+    },
+    "run_states": {
+      "insufficient_evidence": "6"
+    },
+    "sequence": [
+      "verify and load the new bundle while the old one serves",
+      "pg_dump backup to private storage",
+      "dispatch-admin enter-recovery",
+      "stop worker, then API and HTTPS",
+      "start the new bundle from a new install directory with the same project, host.env and volumes",
+      "check images, migration head, fingerprint, CA, dispatch pause and smoke",
+      "dispatch-admin exit-recovery, then admit a new record"
+    ],
+    "smoke": {
+      "incident_id": "b61f63bd-3ab7-4e40-ac0e-cf66516c27c4",
+      "queue_reason": null,
+      "run_id": "4301860e-ccd6-4ed4-af21-b4583a11f8df",
+      "state": "queued",
+      "window": {
+        "end": "2026-11-23T06:24:28.003539Z",
+        "source": "legacy_default",
+        "start": "2026-11-23T05:54:28.003539Z"
+      }
+    },
+    "startup_seconds": 17,
+    "to": "57ccfd61ffbe8170918defcd7f408e3aa298b386"
+  },
+  "u2_schema_crossing": {
+    "alembic_head": "0020_operations_quota_wait_index (head)",
+    "ca_unchanged": true,
+    "containers": [
+      {
+        "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "service": "api",
+        "state": "running"
+      },
+      {
+        "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+        "image": "cloudops-release-db:57ccfd61ffbe8170918defcd7f408e3aa298b386-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+        "service": "db",
+        "state": "running"
+      },
+      {
+        "id": "sha256:c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
+        "image": "cloudops-release-https:57ccfd61ffbe8170918defcd7f408e3aa298b386-c205835c469f5a4427fb43058fa8c518777ce2836e05ad8b73801262d083c05d",
+        "service": "https",
+        "state": "running"
+      },
+      {
+        "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "service": "migrate",
+        "state": "exited"
+      },
+      {
+        "id": "sha256:cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "image": "cloudops-release-backend:57ccfd61ffbe8170918defcd7f408e3aa298b386-cf17184edbbc32681e1ab529d49a05e8841d10ae27148b832226dc522b1789a9",
+        "service": "worker",
+        "state": "running"
+      }
+    ],
+    "fingerprint_change_explanation": "alembic_version advanced 0017 to 0020; the scope sync counters and worker heartbeat change as in U1. 0018-0020 add columns and indexes only, so the table count is unchanged.",
+    "fingerprint_compare": {
+      "added_tables": [],
+      "alembic_after": "0020_operations_quota_wait_index",
+      "alembic_before": "0017_recommendation_reports",
+      "changed": {
+        "alembic_version": {
+          "rows_after": 1,
+          "rows_before": 1
+        },
+        "worker_heartbeats": {
+          "rows_after": 1,
+          "rows_before": 1
+        },
+        "workload_scope_state": {
+          "rows_after": 1,
+          "rows_before": 1
+        },
+        "workloads": {
+          "rows_after": 1,
+          "rows_before": 1
+        }
+      },
+      "removed_tables": [],
+      "tables_after": 45,
+      "tables_before": 45,
+      "unchanged_tables": 41
+    },
+    "from_source": "f74d3edfd6f3ba5c43331db9ca30ab452c317629 (built from source; no earlier release bundle exists)",
+    "migrations_applied": [
+      "0018_health_evidence",
+      "0019_connection_checks",
+      "0020_operations_quota_wait_index"
+    ],
+    "new_record_after_upgrade": {
+      "incident_id": "10703b23-4de8-4b6c-824f-9c52e5d9f1b4",
+      "note_id": "6aeeddd5-aeb3-4b77-974e-0c8982b31af5",
+      "queue_reason": null,
+      "run_id": "dd3744d1-9850-4d1b-8280-1424c5b3eaf8",
+      "state": "queued",
+      "status": null,
+      "window": {
+        "end": "2026-11-23T06:27:50.735832Z",
+        "source": "legacy_default",
+        "start": "2026-11-23T05:57:50.735832Z"
+      },
+      "workload_id": "15e6dca0-b9e6-4487-944f-aa5fdf34635b"
+    },
+    "old_alembic_head": "0017_recommendation_reports (head)",
+    "old_containers": [
+      {
+        "id": "sha256:aab0fbffe8f0620ab2f04aad97bdaf061abfe47814e6c86e0e9eb5446e86ebbc",
+        "image": "cloudops-local-backend",
+        "service": "api",
+        "state": "running"
+      },
+      {
+        "id": "sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27",
+        "image": "postgres:17.11-bookworm",
+        "service": "db",
+        "state": "running"
+      },
+      {
+        "id": "sha256:acc94a0b17eca167aa836e00ab3613fbe14a25ff088223e6cbf4f54bd35d3599",
+        "image": "cloudops-local-https",
+        "service": "https",
+        "state": "running"
+      },
+      {
+        "id": "sha256:aab0fbffe8f0620ab2f04aad97bdaf061abfe47814e6c86e0e9eb5446e86ebbc",
+        "image": "cloudops-local-backend",
+        "service": "migrate",
+        "state": "exited"
+      },
+      {
+        "id": "sha256:aab0fbffe8f0620ab2f04aad97bdaf061abfe47814e6c86e0e9eb5446e86ebbc",
+        "image": "cloudops-local-backend",
+        "service": "worker",
+        "state": "running"
+      }
+    ],
+    "old_records": [
+      {
+        "incident_id": "29f211cb-cb52-4e80-80c1-c1f199cfc45a",
+        "note_id": "52c88d56-fd18-444d-855a-12a8d09efd7e",
+        "queue_reason": null,
+        "run_id": "5fc4debb-77f5-4c91-9358-30a108f6ccad",
+        "state": "queued",
+        "status": null,
+        "window": {
+          "end": "2026-11-23T06:26:56.018139Z",
+          "source": "legacy_default",
+          "start": "2026-11-23T05:56:56.018139Z"
+        },
+        "workload_id": "15e6dca0-b9e6-4487-944f-aa5fdf34635b"
+      },
+      {
+        "incident_id": "ff0219d3-2b16-47da-aeba-16b0f2f3d3fd",
+        "queue_reason": null,
+        "run_id": "205e30c9-bb72-4d62-ab57-2ff189a16de7",
+        "state": "queued",
+        "window": {
+          "end": "2026-11-23T06:26:56.415662Z",
+          "source": "legacy_default",
+          "start": "2026-11-23T05:56:56.415662Z"
+        }
+      }
+    ],
+    "old_run_states": {
+      "insufficient_evidence": "2"
+    },
+    "project": "cloudops-release-s1-schema",
+    "run_states": {
+      "insufficient_evidence": "4"
+    },
+    "smoke_after_upgrade": {
+      "incident_id": "2229731c-c4e3-482f-80cb-69635a151f19",
+      "queue_reason": null,
+      "run_id": "4d524416-00fa-44e5-b7f2-b31d34a340e2",
+      "state": "queued",
+      "window": {
+        "end": "2026-11-23T06:27:49.209989Z",
+        "source": "legacy_default",
+        "start": "2026-11-23T05:57:49.209989Z"
+      }
+    },
+    "to": "57ccfd61ffbe8170918defcd7f408e3aa298b386"
+  }
+}
