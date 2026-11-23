@@ -79,7 +79,7 @@ python3 "$verifier" verify "$new" &&
   tar -xf "$new/source.tar" -C /path/to/cloudops-install-NEW
 ```
 
-From the current install directory, record the dispatch state, close dispatch if a permit exists and stop the consumers. Then back up the database, which is still running, to private storage.
+From the current install directory, record the dispatch state, close dispatch if a permit exists and stop the consumers. For a restore from backup rather than an upgrade, follow [release backup and restore](release-restore.md). Then back up the database, which is still running, to private storage.
 
 ```sh
 compose run --rm -T dispatch-admin status > /path/to/private/dispatch-before-upgrade.json

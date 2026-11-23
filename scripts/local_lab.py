@@ -54,6 +54,11 @@ if RELEASE_BUNDLE:
         str(Path(RELEASE_BUNDLE).resolve() / "images.env"),
     ]
     COMPOSE += ["-f", "compose.release.yaml", "-f", "compose.release-lab.yaml"]
+    # Restore qualification: every connection uses the project's owned restore database.
+    if os.environ.get("CLOUDOPS_RELEASE_RESTORE") == "1":
+        COMPOSE += ["-f", "compose.release-restore.yaml"]
+elif os.environ.get("CLOUDOPS_RELEASE_RESTORE"):
+    raise SystemExit("CLOUDOPS_RELEASE_RESTORE requires CLOUDOPS_RELEASE_BUNDLE.")
 
 
 def private_write(path, value):
