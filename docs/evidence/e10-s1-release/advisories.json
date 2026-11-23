@@ -8,7 +8,7 @@
     "applicability": {
       "backend": "14 Debian bookworm findings have no fixed version. The 6 PyPI findings (urllib3, msgpack, setuptools) are copies vendored inside the base image's system pip under /usr/local/lib/python3.13/site-packages/pip/_vendor; the application virtual environment cannot import them and pip is not run at runtime.",
       "db": "PostgreSQL 17.12 is the newest 17 patch. Remaining findings are 20 Debian items without a fix and the Go stdlib of the gosu entrypoint helper, which only drops privileges at container start; no newer upstream image changes them. PostgreSQL is unpublished on the private Compose network.",
-      "https": "Caddy 2.11.9 is the newest upstream image. /usr/bin/caddy is a static binary (ldd: not a dynamic program), so the Alpine zlib, openssl and musl findings are in libraries used only by image tools such as curl and apk, which the runtime and health check do not run. The Go module findings (x/net, klauspost/compress) are inside the Caddy binary and await a published Caddy image; one high has no fix. The listener is loopback-only."
+      "https": "Caddy 2.11.9 is the newest upstream image. /usr/bin/caddy is a static binary (ldd: not a dynamic program), so the network-facing listener does not load the Alpine zlib, openssl or musl libraries. zlib and openssl are used only by image tools such as curl and apk, which nothing runs; musl is also loaded by the busybox health-check shell with fixed arguments. The Go module findings (x/net, klauspost/compress) are inside the Caddy binary and await a published Caddy image; one high has no fix. The listener is loopback-only."
     },
     "baseline_bases": {
       "caddy:2.10.2-alpine https": {

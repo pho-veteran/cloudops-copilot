@@ -129,7 +129,7 @@ lab up -d --no-build --pull never --wait --wait-timeout 240 api worker executor 
 uv run --project services/backend python scripts/probe-lab-credentials.py
 ```
 
-Generated credentials stay owner-only under the install directory's ignored `tmp/e01-integration`; the scripts also apply `umask 077` in release mode. The scripts refuse release mode without an explicit new `CLOUDOPS_LAB_PROJECT`, for the default or retained lab projects, or with an inherited `RELEASE_*` variable. The executor starts in recovery mode with every target disabled. KRR, Prometheus and the retained owned testing lab are outside the bundle, and `manage-local-lab.py` exits before any change when `CLOUDOPS_RELEASE_BUNDLE` is set.
+Generated credentials stay owner-only under the install directory's ignored `tmp/e01-integration`; the scripts also apply `umask 077` in release mode. The scripts refuse release mode without an explicit new `CLOUDOPS_LAB_PROJECT`, for the default or retained lab projects, or with an inherited `RELEASE_BACKEND_IMAGE`, `RELEASE_DB_IMAGE` or `RELEASE_HTTPS_IMAGE`. The release lab omits the Alertmanager overlay, whose container cannot read owner-only files; alert intake stays in the source-built lab. The executor starts in recovery mode with every target disabled. KRR, Prometheus and the retained owned testing lab are outside the bundle, and `manage-local-lab.py` exits before any change when `CLOUDOPS_RELEASE_BUNDLE` is set.
 
 ## Dependency advisories
 

@@ -17,7 +17,7 @@ All runs took place on 2026-11-23 in owned local projects. The host was a Docker
 | Candidate CI | [Repository checks run 45146993031](https://github.com/pho-veteran/cloudops-copilot/actions/runs/45146993031) passed web tests and build, backend, migrations, contract drift and the HTTPS smoke on PostgreSQL 17.12. |
 | Backend suite | **Host:** 2299 passed on Linux with the locked host environment and PostgreSQL 17.12. **Inside the B2 backend image** (Python 3.13.18), run with the bundle source mounted read-only: 2290 passed and 1 skipped. The 8 failures are `test_e06_acceptance_driver.py`, which needs `git`; the runtime image intentionally omits it. |
 
-Commits after the candidate add only this evidence directory.
+After the candidate, the PR adds this evidence directory and one host-script adjustment from the confirmation review. That adjustment narrows the inherited-image guard in `scripts/local_lab.py` to the three bundle image variables and documents that the release lab omits Alertmanager. Scripts and docs are not part of any image, so the bundle images and receipts are unchanged. The guard was checked with the focused release-lab tests on Linux; the bundle was not rebuilt for it.
 
 ## Acceptance
 
@@ -56,7 +56,7 @@ Details are in `advisories.json`.
 The remaining findings are accepted and recorded for the E10 release gate:
 
 - **backend:** 14 Debian findings have no fixed version. The 6 PyPI items are copies vendored in the base image's system pip, which the application environment cannot import.
-- **https:** `/usr/bin/caddy` is a static binary. The Alpine zlib, openssl and musl findings sit in libraries used only by image tools such as curl and apk. The Go module findings are inside Caddy and wait for a published Caddy image.
+- **https:** `/usr/bin/caddy` is a static binary, so the listener does not load the Alpine zlib, openssl or musl libraries. zlib and openssl serve only unused image tools such as curl and apk. musl is also loaded by the busybox health-check shell, which runs with fixed arguments. The Go module findings are inside Caddy and wait for a published Caddy image.
 - **db:** Debian findings have no fix. The `gosu` entrypoint helper's Go stdlib is also flagged; no newer PostgreSQL 17 image changes either.
 
 Exposure is limited to the loopback HTTPS origin and the private Compose network. Refresh the bases when upstream fixes arrive, then repeat this proof.
