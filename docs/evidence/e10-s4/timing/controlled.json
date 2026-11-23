@@ -1,0 +1,1 @@
+[{"stage": "inject", "state": "missing"}, {"stage": "detect", "state": "missing"}, {"stage": "collect", "state": "missing"}, {"stage": "analyze", "state": "missing"}, {"stage": "approval", "state": "not_applicable"}, {"stage": "apply", "state": "not_applicable"}, {"stage": "verify", "state": "not_applicable"}]

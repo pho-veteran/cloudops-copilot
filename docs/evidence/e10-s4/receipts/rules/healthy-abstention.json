@@ -1,0 +1,125 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "1650a21c74329fe8e1e6860543b1883ebfed06aeaa14fead22704ea93a52849f",
+  "case_id": "healthy-abstention",
+  "context_digest": "c753e09889fad3a0bb1818d65b70b89d9fb53995ee5c64d39582189582d48766",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "pass",
+      "reasons": []
+    }
+  ],
+  "disposition": "scored",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "42a0a4553b3f28b35c9b4f957262a0c75b2913b419e6bfbe7bd63c0949a523a8",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "rules",
+  "output": {
+    "alternatives": [],
+    "candidate_template_id": null,
+    "cause_category": "unknown",
+    "contradicting_evidence_ids": [],
+    "limitations": [
+      "Deterministic rules comparator; it does not establish semantic quality.",
+      "Rules output is advisory and grants no approval, execution or recovery authority."
+    ],
+    "missing_evidence": [],
+    "next_steps": [
+      "Review current workload state and collect the missing or next useful evidence."
+    ],
+    "ruled_out_hypotheses": [],
+    "runbook_citation_ids": [],
+    "schema_version": "RCAAdvice/v1",
+    "status": "insufficient_evidence",
+    "summary": "The captured evidence does not support a specific fault category.",
+    "supporting_evidence_ids": [
+      "E001",
+      "E005",
+      "E008",
+      "E014",
+      "E016"
+    ],
+    "unverified_checks": [
+      {
+        "check": "Fault signature",
+        "reason": "No supported fault signature is present in the captured evidence."
+      }
+    ]
+  },
+  "output_sha256": "9b7afe33b1ae044fcaae8709735750ea6d3a7104c2eb8416b85d8900f3be5a71",
+  "reasons": [],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": 1,
+      "stage": "analyze",
+      "state": "observed"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

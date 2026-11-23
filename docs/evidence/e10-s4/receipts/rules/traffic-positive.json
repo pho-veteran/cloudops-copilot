@@ -1,0 +1,125 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "8bbe3f6cb6b6dab38dc06e9add2fad994c364ff060438c668eabff8c6a88519d",
+  "case_id": "traffic-positive",
+  "context_digest": "c0b338ad94e894b4df04b1eb50ba2117defd441d2dff1ee48733238e6e6d137a",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "pass",
+      "reasons": []
+    }
+  ],
+  "disposition": "scored",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "bb1a7dc3e264139a0711e6fd03b3f603208cc68a2b5e15c38786112a44e558b4",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "rules",
+  "output": {
+    "alternatives": [],
+    "candidate_template_id": "scale_deployment",
+    "cause_category": "traffic_latency_errors",
+    "contradicting_evidence_ids": [],
+    "limitations": [
+      "Deterministic rules comparator; it does not establish semantic quality.",
+      "Rules output is advisory and grants no approval, execution or recovery authority."
+    ],
+    "missing_evidence": [],
+    "next_steps": [
+      "Compare traffic, error ratio and latency; confirm causality manually."
+    ],
+    "ruled_out_hypotheses": [],
+    "runbook_citation_ids": [
+      "K001"
+    ],
+    "schema_version": "RCAAdvice/v1",
+    "status": "supported",
+    "summary": "Traffic, error ratio and latency rise together; causality is unproven.",
+    "supporting_evidence_ids": [
+      "E001",
+      "E007",
+      "E009"
+    ],
+    "unverified_checks": [
+      {
+        "check": "Traffic cause",
+        "reason": "Confirm the service bottleneck and capacity before any change."
+      }
+    ]
+  },
+  "output_sha256": "7a1b108ef933b974e41b8679dea4990b545b7a1c174b58f12a7d4e792c857d7f",
+  "reasons": [],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": 1,
+      "stage": "analyze",
+      "state": "observed"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

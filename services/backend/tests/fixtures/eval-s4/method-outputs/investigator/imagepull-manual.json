@@ -1,0 +1,87 @@
+{
+  "alternatives": [],
+  "candidate_template_id": null,
+  "cause_category": "image_pull",
+  "context_digest": "caa3e322d9635696e3167136df81b10af7207054c29ebfd653297b253015cd9d",
+  "context_version": "e06.context/v2",
+  "contradicting": [],
+  "incident_id": "1f9e20fb-ecee-5c9e-a97c-032b156b806a",
+  "limitations": [
+    "Deterministic rules comparator; it does not establish semantic quality.",
+    "Rules output is advisory and grants no approval, execution or recovery authority."
+  ],
+  "machine_validation": "structural_v1",
+  "missing_evidence": [],
+  "next_steps": [
+    "Check the image reference and registry access; keep remediation manual."
+  ],
+  "policy_version": "1",
+  "prompt_version": "e06.rca_prompt/v3",
+  "quality": "not_established",
+  "ruled_out": [],
+  "run_id": "33320a67-8602-5328-8400-026b1d71f2aa",
+  "runbook_citations": [
+    {
+      "alias": "K001",
+      "reference": {
+        "chunk_id": "2456da66-2c54-504a-8f47-235b328decfd",
+        "chunk_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+        "chunker_version": "markdown/v1",
+        "document_key": "image-pull",
+        "document_sha256": "fc43b6c05833499c71d777b5e7472f78b5cf111aa507ec50d42c030b27fa956e",
+        "document_version_id": "b194169a-2fbd-52ba-bec7-bc004ce04bcc",
+        "kind": "runbook",
+        "metadata_sha256": "19227095cb1bc96b5a72506b77c20b4cfb27f05bfcd1bfd9bf04b9808d0260c0",
+        "schema_version": "KnowledgeRef/v1",
+        "version": "1"
+      },
+      "selection_id": "0b9496f0-0f54-5ddc-9463-5c0574de6607"
+    }
+  ],
+  "schema_version": "RCAResult/v1",
+  "status": "supported",
+  "summary": "Image pull evidence shows a registry or image reference failure.",
+  "supporting": [
+    {
+      "alias": "E001",
+      "citation": {
+        "evidence_id": "245d9dd6-3bfd-510b-a532-b78dd18912c3",
+        "locator": {
+          "key": "v1_009f73b2b691387d01c446f489354451a6f6c834470612be6b1e6425bc09ac91",
+          "kind": "field"
+        },
+        "run_id": "33320a67-8602-5328-8400-026b1d71f2aa"
+      },
+      "coverage_status": "available",
+      "entry_digest": "5ccf3e853ad969072bf457d51720a89a69e1c1de2b28a5f33228e08e2c586f73",
+      "evidence_sha256": "251e5488d155e347d91064a3218a4faf0e8371025fa3b79f0618026e9fc64205",
+      "source_class": "kubernetes_state",
+      "source_key": "kubernetes.state",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E004",
+      "citation": {
+        "evidence_id": "0cd5c4ca-1842-5d96-a79a-a4d1d1d8d25b",
+        "locator": {
+          "key": "v1_f631092d7ce5ab69b04285d209386f31ff81d0d3784ffeedd140ca242f4556dd",
+          "kind": "event"
+        },
+        "run_id": "33320a67-8602-5328-8400-026b1d71f2aa"
+      },
+      "coverage_status": "available",
+      "entry_digest": "f6fd576a0384b5f2ee952ba47b53489a024bf6be5b72ae1f4dc0f271dcfa6e1a",
+      "evidence_sha256": "3754ad2a86e7b4c40c905cab63582a616fa63a15344a14b89948565db57d8bc5",
+      "source_class": "kubernetes_events",
+      "source_key": "kubernetes.events",
+      "time_relation": "within_requested_window"
+    }
+  ],
+  "unverified_checks": [
+    {
+      "check": "Registry access",
+      "reason": "Confirm image reference and registry credentials manually."
+    }
+  ],
+  "validator_version": "e06.validator/v1"
+}

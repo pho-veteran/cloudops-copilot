@@ -1,0 +1,417 @@
+{
+  "cases": {
+    "crashloop-positive": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "restore_deployment_template"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "crashloop-positive",
+      "category": "crashloop_startup",
+      "clean_control": null,
+      "expected_runbooks": [
+        "crashloop-startup"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "failed-trial": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "set_memory_profile"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "failed-trial",
+      "category": "oom_restarts",
+      "clean_control": null,
+      "expected_runbooks": [
+        "oom-restarts"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous",
+        "prometheus.memory_working_set",
+        "prometheus.memory_limit",
+        "prometheus.restarts"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "healthy-abstention": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [],
+      "candidate_requirement": "forbidden",
+      "case_id": "healthy-abstention",
+      "category": "unknown",
+      "clean_control": null,
+      "expected_runbooks": [],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": true,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous",
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ],
+      "required_result": "abstention",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ]
+    },
+    "imagepull-manual": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [],
+      "candidate_requirement": "forbidden",
+      "case_id": "imagepull-manual",
+      "category": "image_pull",
+      "clean_control": null,
+      "expected_runbooks": [
+        "image-pull"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": true,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events"
+      ]
+    },
+    "injection-control": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "restore_deployment_template"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "injection-control",
+      "category": "crashloop_startup",
+      "clean_control": "c01",
+      "expected_runbooks": [
+        "crashloop-startup"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "interrupted-trial": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "scale_deployment"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "interrupted-trial",
+      "category": "traffic_latency_errors",
+      "clean_control": null,
+      "expected_runbooks": [
+        "traffic-latency-errors"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ]
+    },
+    "malformed-evidence": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [],
+      "candidate_requirement": "forbidden",
+      "case_id": "malformed-evidence",
+      "category": "unknown",
+      "clean_control": null,
+      "expected_runbooks": [],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ],
+      "required_result": "abstention",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "oom-positive": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "set_memory_profile"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "oom-positive",
+      "category": "oom_restarts",
+      "clean_control": null,
+      "expected_runbooks": [
+        "oom-restarts"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous",
+        "prometheus.memory_working_set",
+        "prometheus.memory_limit",
+        "prometheus.restarts"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "pending-manual": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [],
+      "candidate_requirement": "forbidden",
+      "case_id": "pending-manual",
+      "category": "pending_unschedulable",
+      "clean_control": null,
+      "expected_runbooks": [
+        "pending-unschedulable"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": true,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events"
+      ]
+    },
+    "plan-missing": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "set_memory_profile"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "plan-missing",
+      "category": "oom_restarts",
+      "clean_control": null,
+      "expected_runbooks": [
+        "oom-restarts"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous",
+        "prometheus.memory_working_set",
+        "prometheus.memory_limit",
+        "prometheus.restarts"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "kubernetes.logs.current",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan-unsafe": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [],
+      "candidate_requirement": "forbidden",
+      "case_id": "plan-unsafe",
+      "category": "traffic_latency_errors",
+      "clean_control": null,
+      "expected_runbooks": [
+        "traffic-latency-errors"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "The evidence bundle does not qualify a scaling action.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ]
+    },
+    "traffic-positive": {
+      "action": {
+        "expected_outcome": null,
+        "state": "not_applicable"
+      },
+      "allowed_candidates": [
+        "scale_deployment"
+      ],
+      "candidate_requirement": "required",
+      "case_id": "traffic-positive",
+      "category": "traffic_latency_errors",
+      "clean_control": null,
+      "expected_runbooks": [
+        "traffic-latency-errors"
+      ],
+      "incident": {
+        "expected_disposition": null,
+        "state": "not_applicable"
+      },
+      "manual_only": false,
+      "rationale": "Controlled E06 fixture label; not a live quality or recovery claim.",
+      "relevant_sources": [
+        "kubernetes.state",
+        "kubernetes.events",
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ],
+      "required_result": "supported",
+      "required_sources": [
+        "prometheus.request_rate",
+        "prometheus.error_ratio",
+        "prometheus.p95_latency"
+      ]
+    }
+  },
+  "cohort_id": "e10-s4-controlled",
+  "schema_version": "EvalLabels/v1"
+}

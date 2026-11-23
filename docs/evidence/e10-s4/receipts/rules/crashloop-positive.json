@@ -1,0 +1,126 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "787dd56ca4c30130192167af4039ebe6152e2f467f41bfa5ccca36a1d57347f7",
+  "case_id": "crashloop-positive",
+  "context_digest": "8b0fc2a562ff833edc336d7762e5c5843f97b9b3319a412a6c0ddd77d4f7e318",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "pass",
+      "reasons": []
+    }
+  ],
+  "disposition": "scored",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "018b267e65563d5f3d085ab9ed33c838811f85501429fd49ab6e11e624d87f0d",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "rules",
+  "output": {
+    "alternatives": [],
+    "candidate_template_id": "restore_deployment_template",
+    "cause_category": "crashloop_startup",
+    "contradicting_evidence_ids": [],
+    "limitations": [
+      "Deterministic rules comparator; it does not establish semantic quality.",
+      "Rules output is advisory and grants no approval, execution or recovery authority."
+    ],
+    "missing_evidence": [],
+    "next_steps": [
+      "Review startup configuration and the previous container logs manually."
+    ],
+    "ruled_out_hypotheses": [],
+    "runbook_citation_ids": [
+      "K001"
+    ],
+    "schema_version": "RCAAdvice/v1",
+    "status": "supported",
+    "summary": "Workload evidence shows repeated startup failure.",
+    "supporting_evidence_ids": [
+      "E001",
+      "E005",
+      "E006",
+      "E007"
+    ],
+    "unverified_checks": [
+      {
+        "check": "Rollout history",
+        "reason": "Review the current and previous rollout before any change."
+      }
+    ]
+  },
+  "output_sha256": "1fb50b41293d100d5d9e909aaa8ab5c3e5c55b7963668851a4afaf31d52d5858",
+  "reasons": [],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": 1,
+      "stage": "analyze",
+      "state": "observed"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

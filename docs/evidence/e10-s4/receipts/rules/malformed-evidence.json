@@ -1,0 +1,96 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "8adf750f4f8266449f6f06c21d95d8eb9db1cf88a44eab9cd4a453355b95984c",
+  "case_id": "malformed-evidence",
+  "context_digest": "202166bb28156cfbe5e1a3f1f9f39fd4089f8f4ca53ec7e49c166ff719199f86",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "blocked",
+      "reasons": []
+    }
+  ],
+  "disposition": "blocked",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "94bbd15067e9d56a2f3f80b4bcb8739c0cf68881d289435316eeef2b72e43f8a",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "rules",
+  "output": null,
+  "output_sha256": null,
+  "reasons": [
+    "required_source_unavailable"
+  ],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": 1,
+      "stage": "analyze",
+      "state": "observed"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

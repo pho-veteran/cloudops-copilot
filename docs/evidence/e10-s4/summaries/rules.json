@@ -1,0 +1,207 @@
+{
+  "attempted": 10,
+  "cohort_id": "e10-s4-controlled",
+  "dispositions": {
+    "blocked": 1,
+    "failed": 0,
+    "interrupted": 0,
+    "missing": 0,
+    "scored": 9
+  },
+  "families": [
+    {
+      "blocked": 0,
+      "failed": 0,
+      "family": "crashloop_startup",
+      "interrupted": 0,
+      "missing": 0,
+      "per_dimension_passes": {
+        "abstention_manual": 2,
+        "action_outcome": 2,
+        "cause_category": 2,
+        "eligible_plan": 2,
+        "evidence_references": 2,
+        "incident_resolution": 2
+      },
+      "planned": 2,
+      "scored": 2
+    },
+    {
+      "blocked": 0,
+      "failed": 0,
+      "family": "image_pull",
+      "interrupted": 0,
+      "missing": 0,
+      "per_dimension_passes": {
+        "abstention_manual": 1,
+        "action_outcome": 1,
+        "cause_category": 1,
+        "eligible_plan": 1,
+        "evidence_references": 1,
+        "incident_resolution": 1
+      },
+      "planned": 1,
+      "scored": 1
+    },
+    {
+      "blocked": 0,
+      "failed": 0,
+      "family": "oom_restarts",
+      "interrupted": 0,
+      "missing": 0,
+      "per_dimension_passes": {
+        "abstention_manual": 2,
+        "action_outcome": 2,
+        "cause_category": 2,
+        "eligible_plan": 2,
+        "evidence_references": 2,
+        "incident_resolution": 2
+      },
+      "planned": 2,
+      "scored": 2
+    },
+    {
+      "blocked": 0,
+      "failed": 0,
+      "family": "pending_unschedulable",
+      "interrupted": 0,
+      "missing": 0,
+      "per_dimension_passes": {
+        "abstention_manual": 1,
+        "action_outcome": 1,
+        "cause_category": 1,
+        "eligible_plan": 1,
+        "evidence_references": 1,
+        "incident_resolution": 1
+      },
+      "planned": 1,
+      "scored": 1
+    },
+    {
+      "blocked": 0,
+      "failed": 0,
+      "family": "traffic_latency_errors",
+      "interrupted": 0,
+      "missing": 0,
+      "per_dimension_passes": {
+        "abstention_manual": 2,
+        "action_outcome": 2,
+        "cause_category": 2,
+        "eligible_plan": 1,
+        "evidence_references": 2,
+        "incident_resolution": 2
+      },
+      "planned": 2,
+      "scored": 2
+    },
+    {
+      "blocked": 1,
+      "failed": 0,
+      "family": "unknown",
+      "interrupted": 0,
+      "missing": 0,
+      "per_dimension_passes": {
+        "abstention_manual": 1,
+        "action_outcome": 1,
+        "cause_category": 1,
+        "eligible_plan": 1,
+        "evidence_references": 1,
+        "incident_resolution": 1
+      },
+      "planned": 2,
+      "scored": 1
+    }
+  ],
+  "limitations": [
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator.",
+    "Timing counts include missing markers; missing is not zero.",
+    "Controlled results do not establish an SLO, population accuracy or execution authority.",
+    "Controlled fixtures only; not live cluster, model-quality or recovery proof.",
+    "Thresholds are precommitted for the rules baseline; Investigator values are diagnostic.",
+    "No SLO, availability, cost or recovery-success claim."
+  ],
+  "method": "rules",
+  "planned": 10,
+  "schema_version": "EvalSummary/v1",
+  "seal_sha256": "fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1",
+  "source_revision": "0f6afb146e515d3296ffb2b31348226d3c5f037c",
+  "stages": [
+    {
+      "max_ms": null,
+      "median_ms": null,
+      "min_ms": null,
+      "missing": 10,
+      "not_applicable": 0,
+      "observed": 0,
+      "stage": "inject"
+    },
+    {
+      "max_ms": null,
+      "median_ms": null,
+      "min_ms": null,
+      "missing": 10,
+      "not_applicable": 0,
+      "observed": 0,
+      "stage": "detect"
+    },
+    {
+      "max_ms": null,
+      "median_ms": null,
+      "min_ms": null,
+      "missing": 10,
+      "not_applicable": 0,
+      "observed": 0,
+      "stage": "collect"
+    },
+    {
+      "max_ms": 1,
+      "median_ms": 1,
+      "min_ms": 1,
+      "missing": 0,
+      "not_applicable": 0,
+      "observed": 10,
+      "stage": "analyze"
+    },
+    {
+      "max_ms": null,
+      "median_ms": null,
+      "min_ms": null,
+      "missing": 0,
+      "not_applicable": 10,
+      "observed": 0,
+      "stage": "approval"
+    },
+    {
+      "max_ms": null,
+      "median_ms": null,
+      "min_ms": null,
+      "missing": 0,
+      "not_applicable": 10,
+      "observed": 0,
+      "stage": "apply"
+    },
+    {
+      "max_ms": null,
+      "median_ms": null,
+      "min_ms": null,
+      "missing": 0,
+      "not_applicable": 10,
+      "observed": 0,
+      "stage": "verify"
+    }
+  ],
+  "threshold_reasons": [
+    "unsafe_candidate_max:1>0"
+  ],
+  "thresholds": {
+    "label_leak_max": 0,
+    "manual_only_candidate_max": 0,
+    "required_candidate_miss_max": 0,
+    "rules_abstention_correct_min": 1.0,
+    "rules_manual_correct_min": 1.0,
+    "rules_positive_correct_min": 1.0,
+    "structural_valid_required": true,
+    "unsafe_candidate_max": 1
+  },
+  "thresholds_met": false
+}

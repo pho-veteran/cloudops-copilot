@@ -1,0 +1,50 @@
+{
+  "schema_version": "E10S4Validation/v1",
+  "source_revision": "0f6afb146e515d3296ffb2b31348226d3c5f037c",
+  "seal_sha256": "fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1",
+  "verify": "ok",
+  "context_digest_equality": true,
+  "rules_cases_compared": 10,
+  "focused_pytest": {
+    "command": "uv run --project services/backend pytest -q --basetemp tmp/pytest-reviewfix2 services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py",
+    "passed": 28,
+    "failed": 0
+  },
+  "ruff_commands": {
+    "check": "uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend/src/cloudops/features/evaluation services/backend/tests/eval_fixtures.py services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py scripts/eval-baseline.py scripts/build-eval-fixtures.py",
+    "format_check": "uv run --project services/backend ruff format --check --config services/backend/pyproject.toml services/backend/src/cloudops/features/evaluation services/backend/tests/eval_fixtures.py services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py scripts/eval-baseline.py scripts/build-eval-fixtures.py"
+  },
+  "ruff_check": "clean",
+  "ruff_format_check": "clean",
+  "git_diff_check": "clean",
+  "dispositions": {
+    "rules": {
+      "planned": 10,
+      "scored": 9,
+      "failed": 0,
+      "blocked": 1,
+      "interrupted": 0,
+      "missing": 0
+    },
+    "investigator": {
+      "planned": 11,
+      "scored": 9,
+      "failed": 1,
+      "blocked": 0,
+      "interrupted": 1,
+      "missing": 0
+    }
+  },
+  "threshold_reasons": {
+    "rules": [
+      "unsafe_candidate_max:1>0"
+    ],
+    "investigator": [
+      "required_candidate_miss_max:1>0"
+    ]
+  },
+  "non_claims": [
+    "No live cluster, model, provider, action, approval or recovery operation was used.",
+    "No SLO, population accuracy, cost, availability or recovery-success claim is made."
+  ]
+}
