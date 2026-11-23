@@ -1,4 +1,8 @@
 {
+  "approval_under_quarantine": {
+    "code": "target_quarantined",
+    "status": 409
+  },
   "deployments_unchanged": true,
   "enable_attempt": {
     "status": "unavailable",
@@ -6,11 +10,12 @@
   },
   "enter": "applied",
   "executor": {
+    "exit_code": 1,
     "refused_missing_pin": true,
-    "state": "exited 0",
+    "status": "exited",
     "up_returncode": 0
   },
-  "manual_handoff": "Writer authority is missing, so every target stays quarantined and product writes stay disabled. Handle the incident manually outside the product. Restore requires the original executor journal and pin or a deployment-owner reconciliation; a new authority is never initialized over retained history.",
+  "manual_handoff": "Writer authority is missing, so every target stays quarantined and product writes stay disabled. Handle the incident manually outside the product. Recovery requires the original executor journal and pin, or a deployment-owner reconciliation of the writer scope; a new authority is never initialized over retained history.",
   "proposal_without_authority": {
     "code": "executor_unavailable",
     "status": 503
