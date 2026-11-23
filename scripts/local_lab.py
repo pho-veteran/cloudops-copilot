@@ -28,11 +28,21 @@ if PROJECT == OWNED_PROJECT:
 # Optional: run a separate disposable project from verified release bundle images.
 RELEASE_BUNDLE = os.environ.get("CLOUDOPS_RELEASE_BUNDLE")
 if RELEASE_BUNDLE:
-    if PROJECT == OWNED_PROJECT:
-        raise SystemExit("The retained testing lab builds its own images; use another project.")
+    if PROJECT in (OWNED_PROJECT, "cloudops-e01-https") or not os.environ.get(
+        "CLOUDOPS_LAB_PROJECT"
+    ):
+        raise SystemExit(
+            "Set CLOUDOPS_LAB_PROJECT to a new project for release images; the default and "
+            "retained lab projects build their own images."
+        )
+    inherited = sorted(name for name in os.environ if name.startswith("RELEASE_"))
+    if inherited:
+        raise SystemExit(f"Unset {', '.join(inherited)}; the bundle images.env selects images.")
     HOST_ENV = os.environ.get("CLOUDOPS_HOST_ENV")
     if not HOST_ENV:
         raise SystemExit("Set CLOUDOPS_HOST_ENV to the private host.env for this release project.")
+    # Generated reader, writer and dispatch credentials stay owner-only.
+    os.umask(0o077)
     COMPOSE[2:2] = [
         "--env-file",
         str(Path(HOST_ENV).resolve()),

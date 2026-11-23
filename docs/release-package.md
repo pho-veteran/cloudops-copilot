@@ -22,13 +22,14 @@ python3 "$verifier" verify "$bundle" &&
 
 ## Start and stop
 
-Create a private `host.env` with a URL-safe `POSTGRES_PASSWORD` for this project. Choose an unused Compose project for a first install. Use that same project and its core installation volume across later starts, upgrades and stops. Unset inherited `RELEASE_BACKEND_IMAGE`, `RELEASE_DB_IMAGE` and `RELEASE_HTTPS_IMAGE` variables before using the bundle's environment file. Start only the core scope below. The only published listener is loopback `https://localhost:8443`. Keep the exact origin, with approved trust for its local CA. For remote transport, use the exact loopback origin through the authorized management connection.
+Create a private `host.env` with a URL-safe `POSTGRES_PASSWORD` for this project, outside every install directory so later upgrades reuse it. Choose an unused Compose project for a first install. Use that same project and its core installation volume across later starts, upgrades and stops. Unset inherited `RELEASE_BACKEND_IMAGE`, `RELEASE_DB_IMAGE` and `RELEASE_HTTPS_IMAGE` variables before using the bundle's environment file. Start only the core scope below. The only published listener is loopback `https://localhost:8443`. Keep the exact origin, with approved trust for its local CA. For remote transport, use the exact loopback origin through the authorized management connection.
 
 ```sh
 release_project=cloudops-release-OWNED_NAME
+host_env=/path/to/private/host.env
 unset RELEASE_BACKEND_IMAGE RELEASE_DB_IMAGE RELEASE_HTTPS_IMAGE
 compose() {
-  docker compose -p "$release_project" --env-file ./host.env --env-file "$bundle/images.env" \
+  docker compose -p "$release_project" --env-file "$host_env" --env-file "$bundle/images.env" \
     -f compose.yaml -f compose.https.yaml -f compose.release.yaml "$@"
 }
 python3 "$verifier" verify "$bundle" --loaded &&
@@ -67,7 +68,7 @@ Measured sizes, idle use and the qualified environment for a specific candidate 
 
 ## Upgrade a populated core project
 
-Run each step with the same `release_project` and `host.env`. Stage the new bundle while the current release still serves.
+Run each step with the same `release_project` and `host_env`. Stage the new bundle while the current release still serves.
 
 ```sh
 new=/path/to/cloudops-NEW_REVISION
@@ -78,12 +79,13 @@ python3 "$verifier" verify "$new" &&
   tar -xf "$new/source.tar" -C /path/to/cloudops-install-NEW
 ```
 
-From the current install directory, back up the database to private storage. If a dispatch permit exists, close dispatch first. Then stop the consumers.
+From the current install directory, record the dispatch state, close dispatch if a permit exists and stop the consumers. Then back up the database, which is still running, to private storage.
 
 ```sh
-compose exec -T db pg_dump -U cloudops -d cloudops -Fc > /path/to/private/before-upgrade.dump
+compose run --rm -T dispatch-admin status > /path/to/private/dispatch-before-upgrade.json
 compose run --rm dispatch-admin enter-recovery --reason "Upgrade to NEW_REVISION" --evidence "local://operator/upgrade"
 compose stop worker api https
+compose exec -T db pg_dump -U cloudops -d cloudops -Fc > /path/to/private/before-upgrade.dump
 ```
 
 From the new install directory, select the new bundle in the same `compose` function and start it. Migration runs before the API and worker start. A repeated start applies no further migration.
@@ -94,7 +96,7 @@ compose up -d --no-build --pull never --wait --wait-timeout 120 api worker https
 compose exec -T api alembic -c services/backend/alembic.ini current
 ```
 
-Check readiness, the HTTPS smoke and saved records. Then resume dispatch explicitly with `exit-recovery` and the same reason/evidence form. Keep the old bundle and backup until the new release is accepted.
+Check readiness, the HTTPS smoke and saved records. Then restore the recorded dispatch state explicitly with the same reason/evidence form. If it was `normal`, use `exit-recovery`. If it was already `recovery`, use `resume --class` only for each class it allowed, and never open a class that was closed. Keep the old bundle and backup until the new release is accepted.
 
 ## Restart and stop checks
 
@@ -113,6 +115,7 @@ Never use `down --volumes` on a retained release project.
 Use the disposable [E01 integration lab](e01-local-lab.md#start-the-isolated-lab) from an install directory to qualify reader, monitoring and writer separation with the bundle images. Stop the core project first because both use port 8443. Use a separate project and private `host.env`. `compose.release-lab.yaml` runs the executor and its initialization from the bundle backend image and selects `live_kubernetes` collection. The lab scripts add the release overlays when these variables are set:
 
 ```sh
+umask 077
 export CLOUDOPS_LAB_PROJECT=cloudops-release-lab-OWNED_NAME
 export CLOUDOPS_RELEASE_BUNDLE="$bundle" CLOUDOPS_HOST_ENV=/path/to/private/host-lab.env
 unset RELEASE_BACKEND_IMAGE RELEASE_DB_IMAGE RELEASE_HTTPS_IMAGE
@@ -126,7 +129,7 @@ lab up -d --no-build --pull never --wait --wait-timeout 240 api worker executor 
 uv run --project services/backend python scripts/probe-lab-credentials.py
 ```
 
-Generated credentials stay under the install directory's ignored `tmp/e01-integration`. The executor starts in recovery mode with every target disabled. KRR, Prometheus and the retained owned testing lab are outside the bundle, and the owned lab refuses these variables.
+Generated credentials stay owner-only under the install directory's ignored `tmp/e01-integration`; the scripts also apply `umask 077` in release mode. The scripts refuse release mode without an explicit new `CLOUDOPS_LAB_PROJECT`, for the default or retained lab projects, or with an inherited `RELEASE_*` variable. The executor starts in recovery mode with every target disabled. KRR, Prometheus and the retained owned testing lab are outside the bundle, and `manage-local-lab.py` exits before any change when `CLOUDOPS_RELEASE_BUNDLE` is set.
 
 ## Dependency advisories
 
