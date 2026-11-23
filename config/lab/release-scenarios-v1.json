@@ -1,0 +1,183 @@
+{
+  "schema": "E10ReleaseScenarioCatalog/v1",
+  "version": "1.0.0",
+  "source_baseline": "dc0dbb8b1a53d681c9ef9cd638b55651fbd4124f",
+  "evidence_contract": "E10TrialResetReceipt/v1",
+  "receipt_schema": "config/lab/e10-s3-trial-reset-receipt.schema.json",
+  "qualification_receipt_schema": "config/lab/e10-s3-qualification-receipt.schema.json",
+  "receipt_schema_sha256": "44fb3eecb5fe16d3246b37359b88c72dfc85efe10bcfb3f33d5e6568e85df427",
+  "qualification_receipt_schema_sha256": "ad595fd5451e1e13bfa1da61db3d402c9239b37d2e4a8e487555ff9f2e4acbba",
+  "sealed_oracle": {
+    "path": "services/backend/tests/fixtures/e10_s3/oracle.json",
+    "sha256": "4a69e494e6838d232fbd2f4a80bc4896ae8ef4cab041777afd52e2b958950571"
+  },
+  "source_fixtures": {
+    "e06_cases": {
+      "path": "services/backend/tests/fixtures/e06/cases.json",
+      "sha256": "1c1bce8bbc83d4a2f9e02897902b3a41802477ffab940b00581f9b7aecf5278c"
+    },
+    "e06_oracle": {
+      "path": "services/backend/tests/fixtures/e06/oracle.json",
+      "sha256": "2e85af63b06c82978be966eefa809802c04c7c9494b6d6d4d663c1fbe7464123"
+    },
+    "e07_integrated": {
+      "path": "docs/evidence/e07-integrated.json",
+      "sha256": "6fd75ab8e4243602e06ad0c45eea182109d2913dc8439cd97cbd2610c6b16644"
+    },
+    "e10_s3_inputs": {
+      "path": "services/backend/tests/fixtures/e10_s3/inputs.json",
+      "sha256": "f526c7a7a8f23dbfba18451ff30b09964d19381dd09fc7b52d10993fc90ee9f2"
+    },
+    "e10_s3_controls": {
+      "path": "services/backend/tests/fixtures/e10_s3/controls.json",
+      "sha256": "bf5dc193c3af32acee4ee39a9efe81d5c666e94aae9a1cac114998e6c4a10da6"
+    }
+  },
+  "scenario_sets": {
+    "recovery": [
+      "recovery-oom-memory",
+      "recovery-bad-rollout-restore",
+      "recovery-traffic-scale"
+    ],
+    "pending_imagepull": [
+      "pending-insufficient-cpu",
+      "pending-untolerated-taint",
+      "imagepull-missing-manifest",
+      "imagepull-unauthorized"
+    ],
+    "negative": [
+      "negative-healthy",
+      "negative-insufficient-evidence",
+      "negative-untrusted-log",
+      "negative-out-of-scope",
+      "negative-provider-unavailable-quota"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "recovery-oom-memory",
+      "kind": "recovery",
+      "input_refs": ["E06:c03", "E06:c04"],
+      "evidence_ref": "E07:docs/evidence/e07-integrated.json#/fresh_live_model_recovery/memory",
+      "control_ref": "E10S3:controls/recovery-oom-memory",
+      "qualification_required": true,
+      "reset_ref": "scripts/manage-local-lab.py#reset",
+      "post_check": "keep offered load and fault treatment fixed through the positive verification window"
+    },
+    {
+      "id": "recovery-bad-rollout-restore",
+      "kind": "recovery",
+      "input_refs": ["E10S3:recovery-bad-rollout-restore"],
+      "evidence_ref": "E07:docs/evidence/e07-integrated.json#/fresh_live_model_recovery/restore",
+      "control_ref": "E10S3:controls/recovery-bad-rollout-restore",
+      "qualification_required": true,
+      "reset_ref": "scripts/manage-local-lab.py#reset",
+      "post_check": "capture and qualify the known-good image and healthy baseline before fault injection"
+    },
+    {
+      "id": "recovery-traffic-scale",
+      "kind": "recovery",
+      "input_refs": ["E06:c05", "E06:c06"],
+      "evidence_ref": "E07:docs/evidence/e07-integrated.json#/fresh_post_restore_verified_scale",
+      "control_ref": "E10S3:controls/recovery-traffic-scale",
+      "qualification_required": true,
+      "reset_ref": "scripts/manage-local-lab.py#reset",
+      "post_check": "keep offered load and fault treatment fixed through the positive verification window"
+    },
+    {
+      "id": "pending-insufficient-cpu",
+      "kind": "observation",
+      "input_refs": ["E06:c07"],
+      "control_ref": "E10S3:controls/pending-insufficient-cpu",
+      "qualification_required": false,
+      "reset_ref": "scripts/manage-local-lab.py#reset"
+    },
+    {
+      "id": "pending-untolerated-taint",
+      "kind": "observation",
+      "input_refs": ["E06:c08"],
+      "control_ref": "E10S3:controls/pending-untolerated-taint",
+      "qualification_required": false,
+      "reset_ref": "scripts/manage-local-lab.py#reset"
+    },
+    {
+      "id": "imagepull-missing-manifest",
+      "kind": "observation",
+      "input_refs": ["E06:c09"],
+      "control_ref": "E10S3:controls/imagepull-missing-manifest",
+      "qualification_required": false,
+      "reset_ref": "scripts/manage-local-lab.py#reset"
+    },
+    {
+      "id": "imagepull-unauthorized",
+      "kind": "observation",
+      "input_refs": ["E06:c10"],
+      "control_ref": "E10S3:controls/imagepull-unauthorized",
+      "qualification_required": false,
+      "reset_ref": "scripts/manage-local-lab.py#reset"
+    },
+    {
+      "id": "negative-healthy",
+      "kind": "negative",
+      "input_refs": ["E06:n-healthy"],
+      "control_ref": "E10S3:controls/negative-healthy",
+      "qualification_required": false
+    },
+    {
+      "id": "negative-insufficient-evidence",
+      "kind": "negative",
+      "input_refs": ["E10S3:negative-insufficient-evidence"],
+      "control_ref": "E10S3:controls/negative-insufficient-evidence",
+      "qualification_required": false
+    },
+    {
+      "id": "negative-untrusted-log",
+      "kind": "negative",
+      "input_refs": ["E06:c01", "E06:n-injection"],
+      "control_ref": "E10S3:controls/negative-untrusted-log",
+      "qualification_required": false
+    },
+    {
+      "id": "negative-out-of-scope",
+      "kind": "negative",
+      "input_refs": ["E10S3:negative-out-of-scope"],
+      "control_ref": "E10S3:controls/negative-out-of-scope",
+      "qualification_required": false
+    },
+    {
+      "id": "negative-provider-unavailable-quota",
+      "kind": "negative",
+      "input_refs": ["E10S3:negative-provider-unavailable-quota"],
+      "control_ref": "E10S3:controls/negative-provider-unavailable-quota",
+      "qualification_required": false
+    }
+  ],
+  "receipt_requirements": [
+    "trial_id",
+    "run_id",
+    "window_id",
+    "reset_id",
+    "scenario_id",
+    "scope",
+    "target_uid",
+    "source_binding_sha256",
+    "image_digests",
+    "declared_resources",
+    "surge_headroom",
+    "baseline_at",
+    "observed_at",
+    "source_limits",
+    "residual_eligible_actions",
+    "duplicate_targeted_loads",
+    "receipt_status"
+  ],
+  "timing_stages": [
+    "inject",
+    "detect",
+    "collect",
+    "analyze",
+    "approval",
+    "apply",
+    "verify"
+  ]
+}

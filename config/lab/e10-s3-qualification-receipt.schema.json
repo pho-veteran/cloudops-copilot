@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloudops-copilot.invalid/schemas/E10RecoveryQualificationReceipt-v1.json",
+  "title": "E10 S3 Recovery Qualification Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "scenario_id",
+    "qualified",
+    "target_uid",
+    "source_binding_sha256",
+    "profile_digest",
+    "image_digests",
+    "declared_resources",
+    "surge_headroom"
+  ],
+  "properties": {
+    "schema": {"const": "E10RecoveryQualificationReceipt/v1"},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "qualified": {"const": true},
+    "target_uid": {"type": "string", "minLength": 1},
+    "source_binding_sha256": {"$ref": "#/$defs/sha256"},
+    "profile_digest": {"$ref": "#/$defs/sha256"},
+    "image_digests": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "declared_resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["replicas", "template", "rolling_update"],
+      "properties": {
+        "replicas": {"type": "integer", "minimum": 1},
+        "template": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["image", "resources", "imagePullPolicy", "mode", "initContainers"],
+          "properties": {
+            "image": {"type": "string", "minLength": 1},
+            "resources": {"type": "object"},
+            "imagePullPolicy": {"type": "string", "minLength": 1},
+            "mode": {
+              "oneOf": [
+                {"type": "null"},
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "value"],
+                  "properties": {
+                    "name": {"const": "LAB_MODE"},
+                    "value": {"type": "string"}
+                  }
+                }
+              ]
+            },
+            "initContainers": {"type": ["array", "null"]}
+          }
+        },
+        "rolling_update": {"type": "object"}
+      }
+    },
+    "surge_headroom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_cpu_millicores", "required_memory_bytes"],
+      "properties": {
+        "required_cpu_millicores": {"type": "integer", "minimum": 0},
+        "required_memory_bytes": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}
