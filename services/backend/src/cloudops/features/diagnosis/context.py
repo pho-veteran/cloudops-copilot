@@ -14,7 +14,6 @@ from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
 
 from cloudops.features.diagnosis.egress import EgressPolicy
 from cloudops.features.diagnosis.messages import Message, MessageError, serialize_payload
@@ -41,9 +40,6 @@ from cloudops.features.investigations.locators import (
 )
 from cloudops.features.investigations.locators import project as project_payload
 from cloudops.features.investigations.locators import timestamp as normalize_timestamp
-from cloudops.features.investigations.models import Evidence, InvestigationRun
-from cloudops.features.investigations.storage import evidence_views
-from cloudops.features.knowledge.guidance import analysis_selection, run_scope
 from cloudops.features.knowledge.guidance_schemas import (
     KnowledgeRef,
     KnowledgeRunScope,
@@ -97,6 +93,9 @@ class FamilyAssessment(BaseModel):
 
 
 def resolve_scope(db, incident_id: UUID, run_id: UUID) -> ContextScope | None:
+    from cloudops.features.investigations.models import InvestigationRun
+    from cloudops.features.knowledge.guidance import run_scope
+
     knowledge = run_scope(db, incident_id, run_id)
     if knowledge is None:
         return None
@@ -131,6 +130,11 @@ def _missing(slot: str) -> SlotMaterial:
 
 
 def load_materials(db, scope: ContextScope) -> list[SlotMaterial]:
+    from sqlalchemy import select
+
+    from cloudops.features.investigations.models import Evidence
+    from cloudops.features.investigations.storage import evidence_views
+
     rows = list(
         db.scalars(
             select(Evidence).where(
@@ -1308,6 +1312,8 @@ def build(
     profile: ModelProfile,
     analysis_identity: str,
 ) -> PreparedContext | InsufficientContext:
+    from cloudops.features.knowledge.guidance import analysis_selection
+
     scope = resolve_scope(db, incident_id, run_id)
     if scope is None:
         return _insufficient(

@@ -1,0 +1,96 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "bb11898d4c0f4799e701f160859c2fbaa723afa64b41ec9b03cfb976b1b8b34f",
+  "case_id": "interrupted-trial",
+  "context_digest": "98ae8a52e05934e3f68b5ac43cb33eb1b1765920eab13e4ccc72c5db61a12014",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "blocked",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "blocked",
+      "reasons": []
+    }
+  ],
+  "disposition": "interrupted",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "a5c23dfac0dc5bae7f7dbe8d16a90f73660c53668402c13779d946d6ffc74f28",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "investigator",
+  "output": null,
+  "output_sha256": null,
+  "reasons": [
+    "operator_stopped"
+  ],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "analyze",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

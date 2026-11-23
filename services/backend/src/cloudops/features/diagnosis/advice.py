@@ -33,8 +33,6 @@ from cloudops.features.investigations.locators import (
 )
 from cloudops.features.investigations.locators import digest as entry_digest
 from cloudops.features.investigations.locators import project as project_payload
-from cloudops.features.investigations.service import evidence_content
-from cloudops.features.knowledge import guidance
 from cloudops.features.knowledge.guidance_schemas import KnowledgeRef
 from cloudops.shared.errors import DomainError
 
@@ -612,6 +610,7 @@ def _exact_entry(content, target: ContextTarget):
 
 def _resolve_evidence(db, context: PreparedContext, alias: str, target: ContextTarget):
     from cloudops.features.investigations import comparison_service
+    from cloudops.features.investigations.service import evidence_content
 
     resolution = comparison_service.citation(
         db,
@@ -649,6 +648,8 @@ def _resolve_evidence(db, context: PreparedContext, alias: str, target: ContextT
 
 
 def _resolve_runbook(db, context: PreparedContext, alias: str, runbook):
+    from cloudops.features.knowledge import guidance
+
     resolved = guidance.resolve_selection_chunk(
         db,
         context.incident_id,

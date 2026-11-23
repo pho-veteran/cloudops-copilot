@@ -1,0 +1,125 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "2c89b7b39aa165c11957c2b0d7534070240ac31c0881f54f98e0e39eaf03541f",
+  "case_id": "pending-manual",
+  "context_digest": "62a061fb9c5008e159363b27a0f87c790b4d4bccabe057ec82f113dbc438c955",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "pass",
+      "reasons": []
+    }
+  ],
+  "disposition": "scored",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "8cfd721b6f7d8b792bb7558e9cabc34936325f4b96236cfa25b720f8e6d8a754",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "rules",
+  "output": {
+    "alternatives": [],
+    "candidate_template_id": null,
+    "cause_category": "pending_unschedulable",
+    "contradicting_evidence_ids": [],
+    "limitations": [
+      "Deterministic rules comparator; it does not establish semantic quality.",
+      "Rules output is advisory and grants no approval, execution or recovery authority."
+    ],
+    "missing_evidence": [],
+    "next_steps": [
+      "Review resource requests, node capacity and taints manually."
+    ],
+    "ruled_out_hypotheses": [],
+    "runbook_citation_ids": [
+      "K001"
+    ],
+    "schema_version": "RCAAdvice/v1",
+    "status": "supported",
+    "summary": "Scheduling evidence shows the workload cannot be placed.",
+    "supporting_evidence_ids": [
+      "E002",
+      "E003",
+      "E004"
+    ],
+    "unverified_checks": [
+      {
+        "check": "Scheduling capacity",
+        "reason": "Confirm requests, taints and available capacity manually."
+      }
+    ]
+  },
+  "output_sha256": "37df0a97932e24f2c80621f9262c98c19ef2702f7c8a5e72bb6b9658863f0bf7",
+  "reasons": [],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": 1,
+      "stage": "analyze",
+      "state": "observed"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

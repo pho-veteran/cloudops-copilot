@@ -1,0 +1,172 @@
+{
+  "alternatives": [],
+  "candidate_template_id": "set_memory_profile",
+  "cause_category": "oom_restarts",
+  "context_digest": "9d7cd15211d534be0fa2f74813e0373386d0fd057f733268663c78426b3d14f0",
+  "context_version": "e06.context/v2",
+  "contradicting": [],
+  "incident_id": "9276bbdc-48c1-53e5-81ba-a91459de8ef2",
+  "limitations": [
+    "Deterministic rules comparator; it does not establish semantic quality.",
+    "Rules output is advisory and grants no approval, execution or recovery authority."
+  ],
+  "machine_validation": "structural_v1",
+  "missing_evidence": [],
+  "next_steps": [
+    "Compare memory use with its limit and review a bounded profile manually."
+  ],
+  "policy_version": "1",
+  "prompt_version": "e06.rca_prompt/v3",
+  "quality": "not_established",
+  "ruled_out": [],
+  "run_id": "92f43354-c211-508a-9b88-1e421ea2362c",
+  "runbook_citations": [
+    {
+      "alias": "K001",
+      "reference": {
+        "chunk_id": "eafb2dc0-19ab-5319-9342-8097d1fb8ae5",
+        "chunk_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+        "chunker_version": "markdown/v1",
+        "document_key": "oom-restarts",
+        "document_sha256": "50d883ff46e917e0d73d1da73e0cebeae650c75e647ff25b1cda7b9ce20d10ff",
+        "document_version_id": "e7d7152e-93cf-5a05-9764-da500c030038",
+        "kind": "runbook",
+        "metadata_sha256": "7040037504d8cd391003b0b583ad0deaa7f4127ea9c41f6d47e1b687fccdf6be",
+        "schema_version": "KnowledgeRef/v1",
+        "version": "2"
+      },
+      "selection_id": "ed30afa1-92a5-537a-8235-3f9cb0f07d9c"
+    }
+  ],
+  "schema_version": "RCAResult/v1",
+  "status": "supported",
+  "summary": "Workload evidence shows memory termination or exit code 137.",
+  "supporting": [
+    {
+      "alias": "E003",
+      "citation": {
+        "evidence_id": "64f3bb92-3597-51fc-bb4f-b347e2e09e9f",
+        "locator": {
+          "key": "v1_a508df5d3768a2dbce0f522ec07703afb24d614f10cc42f35bc6bd415128a41c",
+          "kind": "field"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "21e0594d6b8dedf47c93543416e74ec19f1198a47f50f54cded361a53c520d0b",
+      "evidence_sha256": "db98017ee283df1375cd618cf8784f9ad9785279e52d5ec6a5eb623025838d53",
+      "source_class": "kubernetes_state",
+      "source_key": "kubernetes.state",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E005",
+      "citation": {
+        "evidence_id": "64f3bb92-3597-51fc-bb4f-b347e2e09e9f",
+        "locator": {
+          "key": "v1_de62171e592f546816fd09a48b3e8df47053d913be7ed811694978f535f78b39",
+          "kind": "field"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "d80eae6e96d148b3b2abbbc6760077b66c4ea071f847dab573d507a32c4d99a5",
+      "evidence_sha256": "db98017ee283df1375cd618cf8784f9ad9785279e52d5ec6a5eb623025838d53",
+      "source_class": "kubernetes_state",
+      "source_key": "kubernetes.state",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E006",
+      "citation": {
+        "evidence_id": "a3616678-ad71-540c-ba85-a7d6424b6802",
+        "locator": {
+          "key": "v1_f631092d7ce5ab69b04285d209386f31ff81d0d3784ffeedd140ca242f4556dd",
+          "kind": "event"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "504f98725d5bb588c540ece0957bad6fc54214915b1804d41a48ca850a33fb55",
+      "evidence_sha256": "b106ecafd1fb7897a72ef9457e4be860b08ccdd1882aa8c992195fd262ee8fd0",
+      "source_class": "kubernetes_events",
+      "source_key": "kubernetes.events",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E007",
+      "citation": {
+        "evidence_id": "4959d4f9-0130-5973-a1fe-5ade78ab6cc2",
+        "locator": {
+          "key": "v1_6527b73644877fef717ba171e3444556f8af5cdc2feddaf8bfc6910e0a99f982",
+          "kind": "log_segment"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "80d8164c1546a524aa433028f1e8e093a83036ba36ae845153e9bc71c3d60964",
+      "evidence_sha256": "ddf50b109e2b7b0d0aceae2925fe8eb3248c47a60d868bae5699a29159346322",
+      "source_class": "container_logs",
+      "source_key": "kubernetes.logs.current",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E008",
+      "citation": {
+        "evidence_id": "60ce5275-76fe-5453-af22-1151587fd94f",
+        "locator": {
+          "key": "v1_e0ef85f3263b4e9bf12e504b199e03c3d17b30b0784e7d7c5ae228c307638617",
+          "kind": "log_segment"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "19b9e186be8d7d556b6cbb0aa12d415c11b850d055d3c63a50808f6a4f153dfe",
+      "evidence_sha256": "afd27bc46cc44f9ee13b3f1b581d852034b5d711230f3cb55b143e4f822dc950",
+      "source_class": "container_logs",
+      "source_key": "kubernetes.logs.previous",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E011",
+      "citation": {
+        "evidence_id": "46ff4db3-9794-5eca-9a64-442902076224",
+        "locator": {
+          "key": "v1_66ed16bb5f97c36a2e6adee73ccc0a909c39e2c160a2eeb4138d3ccf02ebf657",
+          "kind": "sample"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "efc2a522d1bd2ac5211b9e6b6ccffc9ebaecf1a26446b107667176346e5f796a",
+      "evidence_sha256": "01f9e8d4d9f0cf549e883925b5b80e3d11c8ef9daad1042b4d63bc88df2e4b35",
+      "source_class": "prometheus_series",
+      "source_key": "prometheus.memory_working_set",
+      "time_relation": "within_requested_window"
+    },
+    {
+      "alias": "E016",
+      "citation": {
+        "evidence_id": "6b858f58-2d79-5388-a178-7a2a7d061dda",
+        "locator": {
+          "key": "v1_f325a545fcd0d67fe8159c05664f1b6c735d57bd333366a8082ab7c7e4485afe",
+          "kind": "sample"
+        },
+        "run_id": "92f43354-c211-508a-9b88-1e421ea2362c"
+      },
+      "coverage_status": "available",
+      "entry_digest": "efc2a522d1bd2ac5211b9e6b6ccffc9ebaecf1a26446b107667176346e5f796a",
+      "evidence_sha256": "648dda838e7344bbe35813622a2d5c6a8c60e62f9095bcf228c363627e79c783",
+      "source_class": "prometheus_series",
+      "source_key": "prometheus.memory_limit",
+      "time_relation": "within_requested_window"
+    }
+  ],
+  "unverified_checks": [
+    {
+      "check": "Memory change",
+      "reason": "Confirm a bounded profile and resource headroom before any change."
+    }
+  ],
+  "validator_version": "e06.validator/v1"
+}

@@ -31,7 +31,7 @@ Retain all initial failures and abstentions. Review semantic correctness and the
 
 Only after a passing primary cohort may the deployment owner install `DiagnosisQualification/v1` with that exact primary identity, cohort ID and evidence reference. Then the `smoke` phase uses the same bounded worker path on a fresh operational Run; evaluation artifacts are never adopted as operational results. It requires completed evaluation and exact trusted qualification, counts against the same ledger, and persists its start before admission so a post-send read failure cannot enable a repeated smoke. Keep the secondary unqualified. Changing model/destination/wire/budget/prompt/context/policy invalidates the affected qualification.
 
-Inspect the new stored operational result/citations, Connections identity and export in the persisted UI. Reuse the process/restore and role/session evidence at their actual fingerprints. E07 consumes bounded advice only; E09 may consume stored observations; E10 retains the rules comparator, live traffic/load/recovery campaign and consolidated release qualification.
+Inspect the new stored operational result/citations, Connections identity and export in the persisted UI. Reuse the process/restore and role/session evidence at their actual fingerprints. E07 consumes bounded advice only; E09 may consume stored observations; E10 retains the rules comparator, live traffic/load/recovery campaign and consolidated release qualification. E10 S4 retains the evaluation-only rules comparator and sealed scoring contract in [evaluation-baseline.md](evaluation-baseline.md); the finite live cohort and scores remain owned by S6.
 
 ## Retained prompt-contract failure and correction
 

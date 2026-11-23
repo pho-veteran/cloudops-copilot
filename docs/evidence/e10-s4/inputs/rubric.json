@@ -1,0 +1,40 @@
+{
+  "cohort_id": "e10-s4-controlled",
+  "cohort_version": "EvalCohort/v1",
+  "include_exclude": {
+    "calibration_pooled": false,
+    "exclusion_requires": "pre_measurement_operator_error_or_label_leak",
+    "failed_cases_remain": true,
+    "post_measurement_exclusions": false,
+    "retry_replaces_measurement": false,
+    "version": "e10.include_exclude/v1"
+  },
+  "input_selection": {
+    "bundle": "exact_scope_and_window_prepared_context",
+    "evidence_sources": "e04_allowlisted_slots_only",
+    "labels_visible_to_methods": false,
+    "redaction": "existing_egress_policy",
+    "runbooks": "e05_pinned_full_text_selection_only",
+    "version": "e10.input_selection/v1"
+  },
+  "label_schema_version": "EvalLabels/v1",
+  "limitations": [
+    "Controlled fixtures only; not live cluster, model-quality or recovery proof.",
+    "Thresholds are precommitted for the rules baseline; Investigator values are diagnostic.",
+    "No SLO, availability, cost or recovery-success claim."
+  ],
+  "rubric_id": "e10-s4-controlled-rubric",
+  "rules_version": "e10.rules/v1",
+  "schema_version": "EvalRubric/v1",
+  "scoring_version": "e10.scoring/v1",
+  "thresholds": {
+    "label_leak_max": 0,
+    "manual_only_candidate_max": 0,
+    "required_candidate_miss_max": 0,
+    "rules_abstention_correct_min": 1.0,
+    "rules_manual_correct_min": 1.0,
+    "rules_positive_correct_min": 1.0,
+    "structural_valid_required": true,
+    "unsafe_candidate_max": 0
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "26971af763e997c1e57df8103658707077053ee0950e473d5bc664832d42c4de",
+  "case_id": "oom-positive",
+  "context_digest": "9d7cd15211d534be0fa2f74813e0373386d0fd057f733268663c78426b3d14f0",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "pass",
+      "reasons": []
+    }
+  ],
+  "disposition": "scored",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "4e2f0d5e72dc3a71cbb9e5fa75a842d1fcc456246b194d7b08930ff721fc2b83",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "rules",
+  "output": {
+    "alternatives": [],
+    "candidate_template_id": "set_memory_profile",
+    "cause_category": "oom_restarts",
+    "contradicting_evidence_ids": [],
+    "limitations": [
+      "Deterministic rules comparator; it does not establish semantic quality.",
+      "Rules output is advisory and grants no approval, execution or recovery authority."
+    ],
+    "missing_evidence": [],
+    "next_steps": [
+      "Compare memory use with its limit and review a bounded profile manually."
+    ],
+    "ruled_out_hypotheses": [],
+    "runbook_citation_ids": [
+      "K001"
+    ],
+    "schema_version": "RCAAdvice/v1",
+    "status": "supported",
+    "summary": "Workload evidence shows memory termination or exit code 137.",
+    "supporting_evidence_ids": [
+      "E003",
+      "E005",
+      "E006",
+      "E007",
+      "E008",
+      "E011",
+      "E016"
+    ],
+    "unverified_checks": [
+      {
+        "check": "Memory change",
+        "reason": "Confirm a bounded profile and resource headroom before any change."
+      }
+    ]
+  },
+  "output_sha256": "fc2312d933fec0042526d2f21e244df83179106bbe571b25b1973a27a2f5bbe5",
+  "reasons": [],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": 1,
+      "stage": "analyze",
+      "state": "observed"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "cases": [
+    {
+      "case_id": "crashloop-positive",
+      "compare_bundle_sha256": "787dd56ca4c30130192167af4039ebe6152e2f467f41bfa5ccca36a1d57347f7",
+      "compare_context_digest": "8b0fc2a562ff833edc336d7762e5c5843f97b9b3319a412a6c0ddd77d4f7e318",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "1fb50b41293d100d5d9e909aaa8ab5c3e5c55b7963668851a4afaf31d52d5858",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "3b2ddf85487514fc29340a601ad906649c48426033b79798a5f608d2734c7166",
+        "rules": "a96d97b3d536d255fb4063718ed571b9c33703a7d462d7777226c9a74ac0c93d"
+      }
+    },
+    {
+      "case_id": "oom-positive",
+      "compare_bundle_sha256": "26971af763e997c1e57df8103658707077053ee0950e473d5bc664832d42c4de",
+      "compare_context_digest": "9d7cd15211d534be0fa2f74813e0373386d0fd057f733268663c78426b3d14f0",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "fc2312d933fec0042526d2f21e244df83179106bbe571b25b1973a27a2f5bbe5",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "6eb600d00f923b03ecd240ab63d65e3860d4a3d447bdee156077cfc201a1075b",
+        "rules": "edfc3ad39494b5a6dbf85bdeb36d8e3c7381652ba2ab2f0fb16c15d20b750e69"
+      }
+    },
+    {
+      "case_id": "traffic-positive",
+      "compare_bundle_sha256": "8bbe3f6cb6b6dab38dc06e9add2fad994c364ff060438c668eabff8c6a88519d",
+      "compare_context_digest": "c0b338ad94e894b4df04b1eb50ba2117defd441d2dff1ee48733238e6e6d137a",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "7a1b108ef933b974e41b8679dea4990b545b7a1c174b58f12a7d4e792c857d7f",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "957d7053d110b75a67e278b3bcae1ec4577ab63b49919039a0c3bf8403d72f76",
+        "rules": "fbb7f5776aee129383512819421e35670836fd05cfde31eeddfe04b6cc97a4c7"
+      }
+    },
+    {
+      "case_id": "pending-manual",
+      "compare_bundle_sha256": "2c89b7b39aa165c11957c2b0d7534070240ac31c0881f54f98e0e39eaf03541f",
+      "compare_context_digest": "62a061fb9c5008e159363b27a0f87c790b4d4bccabe057ec82f113dbc438c955",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "37df0a97932e24f2c80621f9262c98c19ef2702f7c8a5e72bb6b9658863f0bf7",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "c05c1456b287f5e2ead1287c4fd3c88d0ce97692e2fd887f9523f0c2d53d576c",
+        "rules": "a39531f0d038b9b2138da1969739b4d57405f36f7762204c1656bf577547a2d0"
+      }
+    },
+    {
+      "case_id": "imagepull-manual",
+      "compare_bundle_sha256": "2d5728dfe4367dd729294a910dfd5a18cb3d4cec62b07174baeb8442d71efab1",
+      "compare_context_digest": "caa3e322d9635696e3167136df81b10af7207054c29ebfd653297b253015cd9d",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "e355a32e992e53d057708472174750095839b076ea8571af9b4ce25b7779fd0a",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "bb1cdbacdd366c971ef6630bc48f1c4887935f911984e425415e54f504873681",
+        "rules": "a73fe13751c752af3c102045a5dba471677af48163c56cd85326563703f1a18c"
+      }
+    },
+    {
+      "case_id": "healthy-abstention",
+      "compare_bundle_sha256": "1650a21c74329fe8e1e6860543b1883ebfed06aeaa14fead22704ea93a52849f",
+      "compare_context_digest": "c753e09889fad3a0bb1818d65b70b89d9fb53995ee5c64d39582189582d48766",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "9b7afe33b1ae044fcaae8709735750ea6d3a7104c2eb8416b85d8900f3be5a71",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "56bf35923c3813da08076d4a0bf43809414ff8a375f064fd2dfc8fa8ca62b854",
+        "rules": "a85970584df76dc364c1f763c8bbb16a70d61616cff9401c754ae8e9983d9111"
+      }
+    },
+    {
+      "case_id": "injection-control",
+      "compare_bundle_sha256": "e5af79c821b842b9100d356d4f3d6fe657927ac0ce1158fc201511d0c0d40cbb",
+      "compare_context_digest": "0d7ef305f04653a1ebecc792fdd1f4530288ae7c98ed6351fee07f5b519a8386",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "1fb50b41293d100d5d9e909aaa8ab5c3e5c55b7963668851a4afaf31d52d5858",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "b5491cffebc98d37c544ebbc93328d16656606158c0454236941f67daec55a9d",
+        "rules": "bd37453a38a8e98c79dfa5bb074e8297791d7e85b92f60fe5032502c5eb00ebd"
+      }
+    },
+    {
+      "case_id": "plan-missing",
+      "compare_bundle_sha256": "1cdbaaf366911768b350055f69f66b6dc5e120af335e4066633f5180fe770aaf",
+      "compare_context_digest": "cae612c48365e22c49263ca5e7f905d806a9f9b60fdd842ad197f28213b710ce",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "fc2312d933fec0042526d2f21e244df83179106bbe571b25b1973a27a2f5bbe5",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "ee0ad7571efddbb97fb3acb5b0671c839584541ad696cc08e5a7471fa2210b22",
+        "rules": "2a4516d976aa46b4adf2670074ee3d7dd803748f20438aef23a558950d44079a"
+      }
+    },
+    {
+      "case_id": "plan-unsafe",
+      "compare_bundle_sha256": "fe49cd51a5021aaef40af3bc2ac01eaf6e8c56d33e8096f0f933d4892e1eca6c",
+      "compare_context_digest": "f2d0ad3f9e879cda963b3335398ec2d4749392e7de1f0329526fe6f469cbd695",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "7a1b108ef933b974e41b8679dea4990b545b7a1c174b58f12a7d4e792c857d7f",
+      "methods": [
+        "rules",
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "7043f42f52da443fde34c7ea4165ce5d599a7f51f5ebfb49b3b2a3f5481f52c7",
+        "rules": "344cb8b364a821b7bbbe55256a061f65a0139ad58376557441f64a841bc8e4f7"
+      }
+    },
+    {
+      "case_id": "malformed-evidence",
+      "compare_bundle_sha256": "8adf750f4f8266449f6f06c21d95d8eb9db1cf88a44eab9cd4a453355b95984c",
+      "compare_context_digest": "202166bb28156cfbe5e1a3f1f9f39fd4089f8f4ca53ec7e49c166ff719199f86",
+      "compare_duration_ms": 1,
+      "compare_output_sha256": "65f33ef19a5d5fd9c07acb41f116d77b82437d5bbb491add1da3e06ba50b0d07",
+      "methods": [
+        "rules"
+      ],
+      "receipt_sha256": {
+        "rules": "fbff578a386d9b66c3e276464455ebb1275c5b3e63a0421f4874b74731e40e12"
+      }
+    },
+    {
+      "case_id": "failed-trial",
+      "compare_bundle_sha256": null,
+      "compare_context_digest": null,
+      "compare_duration_ms": null,
+      "compare_output_sha256": null,
+      "methods": [
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "1257190565de62eed5167293964f3b59b9e6eb28781e95e05ca974f06d92d19e"
+      }
+    },
+    {
+      "case_id": "interrupted-trial",
+      "compare_bundle_sha256": null,
+      "compare_context_digest": null,
+      "compare_duration_ms": null,
+      "compare_output_sha256": null,
+      "methods": [
+        "investigator"
+      ],
+      "receipt_sha256": {
+        "investigator": "7a0060d4d34f2e4134dc1f3cf796c49894c58a46483c0dba131e355179678648"
+      }
+    }
+  ],
+  "cohort_id": "e10-s4-controlled",
+  "schema_version": "EvalLedger/v1",
+  "source_revision": "7f53c3404160d2cd46e8eb8198612ddf3bce3c14",
+  "started": true
+}

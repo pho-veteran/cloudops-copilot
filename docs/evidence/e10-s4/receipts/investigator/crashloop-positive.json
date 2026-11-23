@@ -1,0 +1,214 @@
+{
+  "action": {
+    "outcome": null,
+    "state": "not_applicable"
+  },
+  "bundle_sha256": "787dd56ca4c30130192167af4039ebe6152e2f467f41bfa5ccca36a1d57347f7",
+  "case_id": "crashloop-positive",
+  "context_digest": "8b0fc2a562ff833edc336d7762e5c5843f97b9b3319a412a6c0ddd77d4f7e318",
+  "dimensions": [
+    {
+      "dimension": "cause_category",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "evidence_references",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "abstention_manual",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "eligible_plan",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "action_outcome",
+      "outcome": "pass",
+      "reasons": []
+    },
+    {
+      "dimension": "incident_resolution",
+      "outcome": "pass",
+      "reasons": []
+    }
+  ],
+  "disposition": "scored",
+  "incident": {
+    "disposition": "not_applicable"
+  },
+  "label_sha256": "018b267e65563d5f3d085ab9ed33c838811f85501429fd49ab6e11e624d87f0d",
+  "limitations": [
+    "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+    "Rules execution grants no approval, execution, provider or recovery authority.",
+    "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+  ],
+  "method": "investigator",
+  "output": {
+    "alternatives": [],
+    "candidate_template_id": "restore_deployment_template",
+    "cause_category": "crashloop_startup",
+    "context_digest": "8b0fc2a562ff833edc336d7762e5c5843f97b9b3319a412a6c0ddd77d4f7e318",
+    "context_version": "e06.context/v2",
+    "contradicting": [],
+    "incident_id": "1c8c296c-00ee-5957-87d7-a39fc1d219b7",
+    "limitations": [
+      "Deterministic rules comparator; it does not establish semantic quality.",
+      "Rules output is advisory and grants no approval, execution or recovery authority."
+    ],
+    "machine_validation": "structural_v1",
+    "missing_evidence": [],
+    "next_steps": [
+      "Review startup configuration and the previous container logs manually."
+    ],
+    "policy_version": "1",
+    "prompt_version": "e06.rca_prompt/v3",
+    "quality": "not_established",
+    "ruled_out": [],
+    "run_id": "09b8f266-93fa-50dc-b338-2e35016935b1",
+    "runbook_citations": [
+      {
+        "alias": "K001",
+        "reference": {
+          "chunk_id": "bba48f1d-2586-51c5-983a-ef4576157167",
+          "chunk_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+          "chunker_version": "markdown/v1",
+          "document_key": "crashloop-startup",
+          "document_sha256": "67a0520b87b630106f73736c08b75517925506fb37439a362cbb1eacf610e609",
+          "document_version_id": "364fcc18-f16a-548f-bc8e-02d86024cf6c",
+          "kind": "runbook",
+          "metadata_sha256": "045010c7f5d0a0477b8421f7089207e2438006119288f21d0c6d051471ceeac4",
+          "schema_version": "KnowledgeRef/v1",
+          "version": "1"
+        },
+        "selection_id": "7a4e48b8-a3f5-5c04-9c50-6a5a5411bbc2"
+      }
+    ],
+    "schema_version": "RCAResult/v1",
+    "status": "supported",
+    "summary": "Workload evidence shows repeated startup failure.",
+    "supporting": [
+      {
+        "alias": "E001",
+        "citation": {
+          "evidence_id": "56867a37-901a-5c85-b1bd-3ca1b0be4d7f",
+          "locator": {
+            "key": "v1_009f73b2b691387d01c446f489354451a6f6c834470612be6b1e6425bc09ac91",
+            "kind": "field"
+          },
+          "run_id": "09b8f266-93fa-50dc-b338-2e35016935b1"
+        },
+        "coverage_status": "available",
+        "entry_digest": "d92469cbd3b62240f1d250f4612cf4207a2e3f536c00e192e638626b16b2e28c",
+        "evidence_sha256": "a7f4cea92d21e255397cb25143369fd0629cc9feed239c2a099b190fba0c2f25",
+        "source_class": "kubernetes_state",
+        "source_key": "kubernetes.state",
+        "time_relation": "within_requested_window"
+      },
+      {
+        "alias": "E005",
+        "citation": {
+          "evidence_id": "737a6afa-26f8-5450-890c-1c80d177b21d",
+          "locator": {
+            "key": "v1_f631092d7ce5ab69b04285d209386f31ff81d0d3784ffeedd140ca242f4556dd",
+            "kind": "event"
+          },
+          "run_id": "09b8f266-93fa-50dc-b338-2e35016935b1"
+        },
+        "coverage_status": "available",
+        "entry_digest": "44df804f01ba4786b9330d6ebf39a6dd3387bfe248db40929bc46e667162079f",
+        "evidence_sha256": "6e7c218def582e86183d317bb6ff19de20dad48fa81bba03f79678289cf012af",
+        "source_class": "kubernetes_events",
+        "source_key": "kubernetes.events",
+        "time_relation": "within_requested_window"
+      },
+      {
+        "alias": "E006",
+        "citation": {
+          "evidence_id": "3cc84749-4deb-562b-885f-b8cf9941edc8",
+          "locator": {
+            "key": "v1_339ad9c0f1cc4e1aa4bd474ec553173ab594cac96a63afaa3ab239e30062f0b1",
+            "kind": "log_segment"
+          },
+          "run_id": "09b8f266-93fa-50dc-b338-2e35016935b1"
+        },
+        "coverage_status": "available",
+        "entry_digest": "5f268117f339ff6b806b55c5b33dc1a7f1b535265256665d54bfb42c137d730c",
+        "evidence_sha256": "f48c57432803d8e6f0e7027e42b05bae263df0bb621b2e36a98835917405d399",
+        "source_class": "container_logs",
+        "source_key": "kubernetes.logs.current",
+        "time_relation": "within_requested_window"
+      },
+      {
+        "alias": "E007",
+        "citation": {
+          "evidence_id": "8f3be7ce-c22d-5c75-98d9-c69a93c7f1e3",
+          "locator": {
+            "key": "v1_339ad9c0f1cc4e1aa4bd474ec553173ab594cac96a63afaa3ab239e30062f0b1",
+            "kind": "log_segment"
+          },
+          "run_id": "09b8f266-93fa-50dc-b338-2e35016935b1"
+        },
+        "coverage_status": "available",
+        "entry_digest": "5f268117f339ff6b806b55c5b33dc1a7f1b535265256665d54bfb42c137d730c",
+        "evidence_sha256": "f48c57432803d8e6f0e7027e42b05bae263df0bb621b2e36a98835917405d399",
+        "source_class": "container_logs",
+        "source_key": "kubernetes.logs.previous",
+        "time_relation": "within_requested_window"
+      }
+    ],
+    "unverified_checks": [
+      {
+        "check": "Rollout history",
+        "reason": "Review the current and previous rollout before any change."
+      }
+    ],
+    "validator_version": "e06.validator/v1"
+  },
+  "output_sha256": "dd0338f985c88901dfc3825d7177d12118448f6ff1dd0027a74f72041d74dea2",
+  "reasons": [],
+  "rubric_sha256": "c89384dd335f5308089b9369ab983b9754f8306a9468f30a34133c41235ba489",
+  "schema_version": "EvalReceipt/v1",
+  "timing": [
+    {
+      "duration_ms": null,
+      "stage": "inject",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "detect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "collect",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "analyze",
+      "state": "missing"
+    },
+    {
+      "duration_ms": null,
+      "stage": "approval",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "apply",
+      "state": "not_applicable"
+    },
+    {
+      "duration_ms": null,
+      "stage": "verify",
+      "state": "not_applicable"
+    }
+  ]
+}
