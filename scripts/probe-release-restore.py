@@ -961,11 +961,16 @@ def phase_manual_exit(args):
     with client() as operator:
         oh = login(operator, "operator", operator_password)
         primary = data["primary_incident"]["incident_id"]
-        response = propose(operator, oh, primary, 1)
-        receipt["proposal_without_authority"] = {
-            "status": response.status_code,
-            "code": response.json().get("error", {}).get("code"),
-        }
+        # The fresh path just wrote this target; wait out the admission cooldown so the
+        # response reflects the missing authority rather than the cooldown.
+        deadline = time.monotonic() + 90
+        while True:
+            response = propose(operator, oh, primary, 1)
+            code = response.json().get("error", {}).get("code")
+            if code != "target_cooldown" or time.monotonic() > deadline:
+                break
+            time.sleep(5)
+        receipt["proposal_without_authority"] = {"status": response.status_code, "code": code}
         receipt["reads"] = {"incident": operator.get(f"/api/incidents/{primary}").status_code}
     receipt["deployments_unchanged"] = not any(written(before, deployments()).values())
     receipt["manual_handoff"] = (
