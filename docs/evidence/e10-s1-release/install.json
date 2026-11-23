@@ -11,41 +11,41 @@
   "candidate_fresh_install": {
     "alembic_head": "0020_operations_quota_wait_index (head)",
     "bundle": {
-      "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+      "revision": "dc840ac25727d66d30153675a31d23f8eae855d3",
       "sha256": {
-        "images.env": "623ae7ca0f16c963f9b2f26265e199a80c7528687ecaa30feeabe4eba6f0cff4",
-        "images.tar": "3b68aba86ba11b85536830d6d3507501ccf76308ebe001374d0d68aa7d42f222",
-        "source.tar": "edd583b202474187f62f0e530afba7efdd0e292dcee46e0c13c91ed70a36c970"
+        "images.env": "397fa1fc52c6ee419016cbf6603471dd9aa7bf675c5b009666209fa4ee1c801b",
+        "images.tar": "81a59fe63f1a5a2bdae7950ed570575510fded45a513274a0be6054f0ade1e37",
+        "source.tar": "4945325e63f1a8a908fae9d7fd6421f1d8b056bdeb2b326fd34b537ebe1331cf"
       }
     },
     "containers": [
       {
-        "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
-        "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+        "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
         "service": "api",
         "state": "running"
       },
       {
         "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-        "image": "cloudops-release-db:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+        "image": "cloudops-release-db:dc840ac25727d66d30153675a31d23f8eae855d3-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
         "service": "db",
         "state": "running"
       },
       {
-        "id": "sha256:3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
-        "image": "cloudops-release-https:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
+        "id": "sha256:e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
+        "image": "cloudops-release-https:dc840ac25727d66d30153675a31d23f8eae855d3-e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
         "service": "https",
         "state": "running"
       },
       {
-        "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
-        "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+        "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
         "service": "migrate",
         "state": "exited"
       },
       {
-        "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
-        "image": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+        "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
         "service": "worker",
         "state": "running"
       }
@@ -63,14 +63,14 @@
     },
     "https_smoke": {
       "record": {
-        "incident_id": "72f1aa6b-8a3f-4ea1-8922-1ee4ae177355",
+        "incident_id": "7d4b4d47-1a87-4913-9ad3-8c364b068474",
         "queue_reason": null,
-        "run_id": "855b8a5e-6db0-4a79-8d0f-d59a1187e579",
+        "run_id": "cbc9b06a-a7ad-409b-9838-0c21b1e4b44a",
         "state": "queued",
         "window": {
-          "end": "2026-11-23T08:45:55.708422Z",
+          "end": "2026-11-23T10:22:12.056475Z",
           "source": "legacy_default",
-          "start": "2026-11-23T08:15:55.708422Z"
+          "start": "2026-11-23T09:52:12.056475Z"
         }
       },
       "result": "passed"
@@ -82,9 +82,9 @@
       "https 127.0.0.1:8443->8443/tcp",
       "worker "
     ],
-    "startup_seconds": 15
+    "startup_seconds": 16
   },
-  "clean_load": "Release-tagged images were removed before loading images.tar; the target project and its volumes did not exist. Start used --no-build --pull never from an install directory containing only the extracted source.tar.",
+  "clean_load": "Release-tagged images were removed before loading images.tar; the target project and its volumes did not exist. Start used --no-build --pull never from an install directory containing only the extracted source.tar. The install ran on the build engine: the backend and https image IDs were absent before load, while the PostgreSQL image ID was still present through its upstream tag. This proves the project and image binding, not a never-seen engine; #121 owns the separate-host install.",
   "containers": [
     {
       "id": "sha256:6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
@@ -133,7 +133,7 @@
       "generation": 1,
       "mode": "normal",
       "operation": "bootstrap",
-      "valid_until": "2026-12-23T08:37:38.866498Z"
+      "valid_until": "2026-12-23T10:16:32.321681Z"
     },
     "initial": {
       "denial": "permit_missing",
@@ -163,29 +163,29 @@
     },
     "tables": 45
   },
-  "https_root_ca_sha256": "ff19044b54add3bd2e7b5b7c315e47bf22ad23f838914924aa4f7635a68877b6",
+  "https_root_ca_sha256": "c0de85247d816aa44d48125bcebdcfd561dbba71c010aa893e8fd6747b54f317",
   "https_smoke": {
     "records": [
       {
-        "incident_id": "52767f19-a59e-40a3-8272-045c2b71b32d",
+        "incident_id": "07d47f39-a4ce-4451-895e-584840ba9880",
         "queue_reason": null,
-        "run_id": "98e10833-925c-4605-8062-c02e75d5c9f5",
+        "run_id": "0f4ce144-1b7f-4aad-9d66-8b5388964370",
         "state": "queued",
         "window": {
-          "end": "2026-11-23T08:36:31.127644Z",
+          "end": "2026-11-23T10:15:26.073917Z",
           "source": "legacy_default",
-          "start": "2026-11-23T08:06:31.127644Z"
+          "start": "2026-11-23T09:45:26.073917Z"
         }
       },
       {
-        "incident_id": "2ee83636-c2bd-427a-9b51-f7b803213b43",
+        "incident_id": "70341ee8-d2ef-4aaf-b814-62aa54e67fe3",
         "queue_reason": null,
-        "run_id": "1cc87c61-0d93-4c90-90e7-2992ecce5204",
+        "run_id": "63035f4a-a922-44f6-85f4-2f1fe57d9192",
         "state": "queued",
         "window": {
-          "end": "2026-11-23T08:37:41.181417Z",
+          "end": "2026-11-23T10:16:34.722472Z",
           "source": "legacy_default",
-          "start": "2026-11-23T08:07:41.181417Z"
+          "start": "2026-11-23T09:46:34.722472Z"
         }
       }
     ],
@@ -249,34 +249,39 @@
     ],
     "ready_status": 200
   },
+  "manifest_image_ids_present_before_load": {
+    "backend": "absent",
+    "db": "present",
+    "https": "absent"
+  },
   "populated_records": [
     {
-      "incident_id": "dc74f6da-0c55-4a3e-ba78-6185e9b7b7bb",
-      "note_id": "6d799556-0f22-4f7c-bbb2-2632953162c0",
+      "incident_id": "adbba226-bb97-4540-ba93-79fdf47e9bd4",
+      "note_id": "b9a0cf1e-3c81-4994-94a3-68c0e60c6fe0",
       "queue_reason": null,
-      "run_id": "e8381325-5b0f-4d61-9649-e6d641519d5f",
+      "run_id": "ae352f80-5006-4c3b-b59b-69cf76120aea",
       "state": "queued",
       "status": null,
       "window": {
-        "end": "2026-11-23T08:37:40.851950Z",
+        "end": "2026-11-23T10:16:34.345690Z",
         "source": "legacy_default",
-        "start": "2026-11-23T08:07:40.851950Z"
+        "start": "2026-11-23T09:46:34.345690Z"
       },
-      "workload_id": "29ec0d57-c289-44e7-a37d-afc0457e6689"
+      "workload_id": "d6e5bfa3-69cd-4def-b4c8-0091b2584426"
     },
     {
-      "incident_id": "2dd28a5a-9bc2-498f-b37c-25f104ffcf4c",
-      "note_id": "e1421fcb-7f94-40b0-a10f-cf04f92d85b4",
+      "incident_id": "5cbe427b-d2a9-49bd-8879-04e39220bfc4",
+      "note_id": "1d5ee935-bf4f-435e-9b67-c23713e93ac5",
       "queue_reason": null,
-      "run_id": "7e941e1c-3333-4fb4-bc97-f7a2ad0e8cfe",
+      "run_id": "59072bad-bd15-4bed-b5c6-cd89b30c995d",
       "state": "queued",
       "status": null,
       "window": {
-        "end": "2026-11-23T08:37:41.517644Z",
+        "end": "2026-11-23T10:16:35.061136Z",
         "source": "legacy_default",
-        "start": "2026-11-23T08:07:41.517644Z"
+        "start": "2026-11-23T09:46:35.061136Z"
       },
-      "workload_id": "29ec0d57-c289-44e7-a37d-afc0457e6689"
+      "workload_id": "d6e5bfa3-69cd-4def-b4c8-0091b2584426"
     }
   ],
   "project": "cloudops-release-s1",
@@ -350,7 +355,7 @@
     "insufficient_evidence": "4"
   },
   "schema": "CloudOpsReleaseInstallReceipt/v1",
-  "startup_seconds": 16,
+  "startup_seconds": 17,
   "verify": [
     "verify: passed",
     "verify --loaded: passed"

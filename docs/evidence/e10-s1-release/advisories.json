@@ -8,7 +8,7 @@
     "applicability": {
       "backend": "14 Debian bookworm findings have no fixed version. The 6 PyPI findings (urllib3, msgpack, setuptools) are copies vendored inside the base image's system pip under /usr/local/lib/python3.13/site-packages/pip/_vendor; the application virtual environment cannot import them and pip is not run at runtime.",
       "db": "PostgreSQL 17.12 is the newest 17 patch. Remaining findings are 20 Debian items without a fix and the Go stdlib of the gosu entrypoint helper, which only drops privileges at container start; no newer upstream image changes them. PostgreSQL is unpublished on the private Compose network.",
-      "https": "Caddy 2.11.9 is the newest upstream image. Its remaining Alpine (zlib, openssl, musl) and Go module (x/net, klauspost/compress) fixes are not yet in a published Caddy image; one high has no fix. The listener is loopback-only."
+      "https": "Caddy 2.11.9 is the newest upstream image. /usr/bin/caddy is a static binary (ldd: not a dynamic program), so the Alpine zlib, openssl and musl findings are in libraries used only by image tools such as curl and apk, which the runtime and health check do not run. The Go module findings (x/net, klauspost/compress) are inside the Caddy binary and await a published Caddy image; one high has no fix. The listener is loopback-only."
     },
     "baseline_bases": {
       "caddy:2.10.2-alpine https": {
@@ -281,7 +281,7 @@
       }
     ],
     "candidate": [],
-    "fix": "uv lock --upgrade-package opentelemetry-api==1.45.2 (lock-only; FastAPI transitive). The application uses FastAPI's native trace context extraction only from HTTP headers, which cannot carry the newline the ReDoS needs; it was still patched because the package ships in the runtime image. Linux backend suite on the lock change: 2289 passed. Inside the refreshed backend image (Python 3.13.18, PostgreSQL 17.12): 2274 passed; the other 14 tests need git or .env.example, which the runtime image intentionally lacks, and pass on the host and in CI.",
+    "fix": "uv lock --upgrade-package opentelemetry-api==1.45.2 (lock-only; FastAPI transitive). The application uses FastAPI's native trace context extraction only from HTTP headers, which cannot carry the newline the ReDoS needs; it was still patched because the package ships in the runtime image. See tests in the evidence README for the candidate suite results.",
     "tool": "pip-audit 2.10.1 on uv export --frozen (30 locked runtime and development packages)"
   },
   "schema": "CloudOpsReleaseAdvisoryReceipt/v1"

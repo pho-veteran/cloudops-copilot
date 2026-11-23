@@ -2,20 +2,20 @@
   "bundles": [
     {
       "builder": "default",
-      "bundle": "cloudops-3a94d13",
+      "bundle": "cloudops-dc840ac",
       "content": {
-        "backend_app_files": 303,
-        "backend_app_tree_sha256": "374a18a97e2df83416105b2b1071272eeaf1a067c412a2bb60fb7a3c70b54687",
+        "backend_app_files": 304,
+        "backend_app_tree_sha256": "42c80a29f0c2ca410e77d7438ab427c10aae64446569588bdff01268c60ded70",
         "backend_python_package_count": 32,
         "backend_python_packages_sha256": "ace49b078f13239c890a6c48185e65604883b54535d0cdd26d43d1e0410312a3",
         "caddyfile_sha256": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
         "images": {
           "backend": {
-            "created": "2026-11-23T08:16:40.885401259Z",
-            "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
+            "created": "2026-11-23T09:41:14.871965569Z",
+            "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
             "os_arch": "linux/amd64",
-            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
-            "size_bytes": 385153976
+            "revision_label": "dc840ac25727d66d30153675a31d23f8eae855d3",
+            "size_bytes": 385242373
           },
           "db": {
             "created": "2026-11-18T21:30:01.517652951Z",
@@ -26,9 +26,9 @@
           },
           "https": {
             "created": "2026-11-23T08:17:03.865379868Z",
-            "id": "sha256:3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
+            "id": "sha256:e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
             "os_arch": "linux/amd64",
-            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+            "revision_label": "dc840ac25727d66d30153675a31d23f8eae855d3",
             "size_bytes": 92948268
           }
         },
@@ -38,32 +38,32 @@
       },
       "file_sizes": {
         "images.env": 445,
-        "images.tar": 262641152,
+        "images.tar": 262659584,
         "manifest.json": 1867,
         "source.tar": 21944320
       },
       "manifest": {
         "images": {
           "backend": {
-            "id": "sha256:86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38",
-            "ref": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-86917b7c9d10705a4fc8d3836f31cfe7fff08405723add93acc7943cbf0abf38"
+            "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+            "ref": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af"
           },
           "db": {
             "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-            "ref": "cloudops-release-db:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b"
+            "ref": "cloudops-release-db:dc840ac25727d66d30153675a31d23f8eae855d3-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b"
           },
           "https": {
-            "id": "sha256:3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5",
-            "ref": "cloudops-release-https:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-3cde299fb7cd040427b6855a18c5d82f4568184ad9904ebd71fa2291810a97e5"
+            "id": "sha256:e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
+            "ref": "cloudops-release-https:dc840ac25727d66d30153675a31d23f8eae855d3-e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3"
           }
         },
         "platform": "linux/amd64",
-        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+        "revision": "dc840ac25727d66d30153675a31d23f8eae855d3",
         "schema": "CloudOpsReleaseBundle/v1",
         "sha256": {
-          "images.env": "623ae7ca0f16c963f9b2f26265e199a80c7528687ecaa30feeabe4eba6f0cff4",
-          "images.tar": "3b68aba86ba11b85536830d6d3507501ccf76308ebe001374d0d68aa7d42f222",
-          "source.tar": "edd583b202474187f62f0e530afba7efdd0e292dcee46e0c13c91ed70a36c970"
+          "images.env": "397fa1fc52c6ee419016cbf6603471dd9aa7bf675c5b009666209fa4ee1c801b",
+          "images.tar": "81a59fe63f1a5a2bdae7950ed570575510fded45a513274a0be6054f0ade1e37",
+          "source.tar": "4945325e63f1a8a908fae9d7fd6421f1d8b056bdeb2b326fd34b537ebe1331cf"
         },
         "upstream": {
           "caddy:2.11.9-alpine": "caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0",
@@ -89,31 +89,31 @@
         "services/backend/uv.lock": "a32ccb4d45881919892a8d58e794634949324dc12a19d9fe91f761d9c593852d",
         "tools/contracts/package-lock.json": "4c6acc0cb08e79b28deec80aae1fc2dd76e131038926d628448597f53f1dc35a"
       },
-      "source_files": 970,
+      "source_files": 971,
       "source_sensitive_paths": [],
       "timing": {
         "builder": "default",
-        "finished": "2026-11-23T08:17:26Z",
-        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
-        "started": "2026-11-23T08:16:23Z"
+        "finished": "2026-11-23T09:41:40Z",
+        "revision": "dc840ac25727d66d30153675a31d23f8eae855d3",
+        "started": "2026-11-23T09:41:01Z"
       }
     },
     {
       "builder": "cloudops-release-clean (docker-container, empty cache)",
-      "bundle": "cloudops-3a94d13-clean",
+      "bundle": "cloudops-dc840ac-clean",
       "content": {
-        "backend_app_files": 303,
-        "backend_app_tree_sha256": "374a18a97e2df83416105b2b1071272eeaf1a067c412a2bb60fb7a3c70b54687",
+        "backend_app_files": 304,
+        "backend_app_tree_sha256": "42c80a29f0c2ca410e77d7438ab427c10aae64446569588bdff01268c60ded70",
         "backend_python_package_count": 32,
         "backend_python_packages_sha256": "ace49b078f13239c890a6c48185e65604883b54535d0cdd26d43d1e0410312a3",
         "caddyfile_sha256": "75e62428d463b31dd2c27a78176feee83f7c6532db9b2e65ae17b6262e94c448",
         "images": {
           "backend": {
-            "created": "2026-11-23T08:17:55.153385208Z",
-            "id": "sha256:820f977782caf73c6ad831b266c88fa9fffed8ca6c455e6edf5c87279cbd730e",
+            "created": "2026-11-23T09:42:06.273801416Z",
+            "id": "sha256:28481dbdc69e74768397da20746c5c16dd8381c64962f860c247f3b2073b5826",
             "os_arch": "linux/amd64",
-            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
-            "size_bytes": 385158164
+            "revision_label": "dc840ac25727d66d30153675a31d23f8eae855d3",
+            "size_bytes": 385163123
           },
           "db": {
             "created": "2026-11-18T21:30:01.517652951Z",
@@ -123,11 +123,11 @@
             "size_bytes": 645641149
           },
           "https": {
-            "created": "2026-11-23T08:18:46.225338258Z",
-            "id": "sha256:940656003e68e938ac57867caea3a3202c37b64b5493159e5b3fa75a4aa0e2ae",
+            "created": "2026-11-23T09:42:50.166635695Z",
+            "id": "sha256:5e9c9b9a73b690f471c3f18cc14b1eb849e8391c3a8e577846800d36bab76426",
             "os_arch": "linux/amd64",
-            "revision_label": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
-            "size_bytes": 92948267
+            "revision_label": "dc840ac25727d66d30153675a31d23f8eae855d3",
+            "size_bytes": 92948258
           }
         },
         "opentelemetry_api": "1.45.2",
@@ -136,32 +136,32 @@
       },
       "file_sizes": {
         "images.env": 445,
-        "images.tar": 262633472,
+        "images.tar": 262629888,
         "manifest.json": 1867,
         "source.tar": 21944320
       },
       "manifest": {
         "images": {
           "backend": {
-            "id": "sha256:820f977782caf73c6ad831b266c88fa9fffed8ca6c455e6edf5c87279cbd730e",
-            "ref": "cloudops-release-backend:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-820f977782caf73c6ad831b266c88fa9fffed8ca6c455e6edf5c87279cbd730e"
+            "id": "sha256:28481dbdc69e74768397da20746c5c16dd8381c64962f860c247f3b2073b5826",
+            "ref": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-28481dbdc69e74768397da20746c5c16dd8381c64962f860c247f3b2073b5826"
           },
           "db": {
             "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
-            "ref": "cloudops-release-db:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b"
+            "ref": "cloudops-release-db:dc840ac25727d66d30153675a31d23f8eae855d3-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b"
           },
           "https": {
-            "id": "sha256:940656003e68e938ac57867caea3a3202c37b64b5493159e5b3fa75a4aa0e2ae",
-            "ref": "cloudops-release-https:3a94d1319e6dbd5d5b64d0c220a5fd85850c96af-940656003e68e938ac57867caea3a3202c37b64b5493159e5b3fa75a4aa0e2ae"
+            "id": "sha256:5e9c9b9a73b690f471c3f18cc14b1eb849e8391c3a8e577846800d36bab76426",
+            "ref": "cloudops-release-https:dc840ac25727d66d30153675a31d23f8eae855d3-5e9c9b9a73b690f471c3f18cc14b1eb849e8391c3a8e577846800d36bab76426"
           }
         },
         "platform": "linux/amd64",
-        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
+        "revision": "dc840ac25727d66d30153675a31d23f8eae855d3",
         "schema": "CloudOpsReleaseBundle/v1",
         "sha256": {
-          "images.env": "3ec2ae7bc9820618ee027449e94846b9020328aefdeb0ddea75f858901602c90",
-          "images.tar": "bc8719e9b725a8656953d0137609b2ce433dcedc3c7f757516e5b449b5dfda56",
-          "source.tar": "edd583b202474187f62f0e530afba7efdd0e292dcee46e0c13c91ed70a36c970"
+          "images.env": "755f4507732aabc63ed7fcb210d9f9d3b9d9262c9c8276a3d3d39524e0f78c93",
+          "images.tar": "a8412e3c4a7a588350376e379986aab2576f22dd9f8022608e61a8d930b11f05",
+          "source.tar": "4945325e63f1a8a908fae9d7fd6421f1d8b056bdeb2b326fd34b537ebe1331cf"
         },
         "upstream": {
           "caddy:2.11.9-alpine": "caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0",
@@ -187,13 +187,13 @@
         "services/backend/uv.lock": "a32ccb4d45881919892a8d58e794634949324dc12a19d9fe91f761d9c593852d",
         "tools/contracts/package-lock.json": "4c6acc0cb08e79b28deec80aae1fc2dd76e131038926d628448597f53f1dc35a"
       },
-      "source_files": 970,
+      "source_files": 971,
       "source_sensitive_paths": [],
       "timing": {
         "builder": "cloudops-release-clean",
-        "finished": "2026-11-23T08:19:01Z",
-        "revision": "3a94d1319e6dbd5d5b64d0c220a5fd85850c96af",
-        "started": "2026-11-23T08:17:27Z"
+        "finished": "2026-11-23T09:43:04Z",
+        "revision": "dc840ac25727d66d30153675a31d23f8eae855d3",
+        "started": "2026-11-23T09:41:41Z"
       }
     },
     {
