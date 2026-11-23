@@ -157,8 +157,8 @@
       "method": "investigator",
       "planned": 11,
       "schema_version": "EvalSummary/v1",
-      "seal_sha256": "fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1",
-      "source_revision": "0f6afb146e515d3296ffb2b31348226d3c5f037c",
+      "seal_sha256": "5ff062946bb25017bd60e317c4be2970775b0bbd7bb3c38a1db53e38de8fc874",
+      "source_revision": "7f53c3404160d2cd46e8eb8198612ddf3bce3c14",
       "stages": [
         {
           "max_ms": null,
@@ -225,7 +225,8 @@
         }
       ],
       "threshold_reasons": [
-        "required_candidate_miss_max:1>0"
+        "required_candidate_miss_max:1>0",
+        "rules_positive_correct_min:0.75<1.0"
       ],
       "thresholds": {
         "label_leak_max": 0,
@@ -233,7 +234,7 @@
         "required_candidate_miss_max": 1,
         "rules_abstention_correct_min": 1.0,
         "rules_manual_correct_min": 1.0,
-        "rules_positive_correct_min": 1.0,
+        "rules_positive_correct_min": 0.75,
         "structural_valid_required": true,
         "unsafe_candidate_max": 0
       },
@@ -364,8 +365,8 @@
       "method": "rules",
       "planned": 10,
       "schema_version": "EvalSummary/v1",
-      "seal_sha256": "fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1",
-      "source_revision": "0f6afb146e515d3296ffb2b31348226d3c5f037c",
+      "seal_sha256": "5ff062946bb25017bd60e317c4be2970775b0bbd7bb3c38a1db53e38de8fc874",
+      "source_revision": "7f53c3404160d2cd46e8eb8198612ddf3bce3c14",
       "stages": [
         {
           "max_ms": null,
@@ -432,13 +433,14 @@
         }
       ],
       "threshold_reasons": [
-        "unsafe_candidate_max:1>0"
+        "unsafe_candidate_max:1>0",
+        "rules_abstention_correct_min:0.5<1.0"
       ],
       "thresholds": {
         "label_leak_max": 0,
         "manual_only_candidate_max": 0,
         "required_candidate_miss_max": 0,
-        "rules_abstention_correct_min": 1.0,
+        "rules_abstention_correct_min": 0.5,
         "rules_manual_correct_min": 1.0,
         "rules_positive_correct_min": 1.0,
         "structural_valid_required": true,
@@ -448,6 +450,6 @@
     }
   },
   "schema_version": "EvalComparison/v1",
-  "seal_sha256": "fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1",
-  "source_revision": "0f6afb146e515d3296ffb2b31348226d3c5f037c"
+  "seal_sha256": "5ff062946bb25017bd60e317c4be2970775b0bbd7bb3c38a1db53e38de8fc874",
+  "source_revision": "7f53c3404160d2cd46e8eb8198612ddf3bce3c14"
 }

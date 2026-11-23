@@ -2,10 +2,10 @@
 
 ## Identity and boundary
 
-- Source revision: `0f6afb146e515d3296ffb2b31348226d3c5f037c`
-- Seal SHA-256: fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1
+- Source revision: `7f53c3404160d2cd46e8eb8198612ddf3bce3c14`, the commit whose evaluation code produced this campaign. The CLI records this value; the hashed `source/` snapshot is the binding code identity.
+- Seal SHA-256: `5ff062946bb25017bd60e317c4be2970775b0bbd7bb3c38a1db53e38de8fc874`
 - Cohort: `e10-s4-controlled` (12 planned cases)
-- Verification: `eval-baseline.py verify` returned `verify:ok`; the evidence folder retains the frozen inputs and pinned source snapshot.
+- Verification: at that revision, `verify` and `verify --snapshot-only` both returned OK. The seal hashes text with LF line endings, so it verifies on any Git checkout.
 
 This campaign uses synthetic E06-shaped fixtures. Investigator outputs are controlled `RCAResult/v1` clones of the rules output, not model inference. No live cluster, model, provider, action, approval, recovery operation or private telemetry was used. Labels are stored under `inputs/` for the scorer and reviewer; the methods receive only the frozen bundles.
 
@@ -20,29 +20,31 @@ uv run --project services/backend python scripts/build-eval-fixtures.py --output
 uv run --project services/backend pytest -q --basetemp tmp/pytest-e10 services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py
 uv run --project services/backend ruff check --config services/backend/pyproject.toml services/backend/src/cloudops/features/evaluation services/backend/tests/eval_fixtures.py services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py scripts/eval-baseline.py scripts/build-eval-fixtures.py
 uv run --project services/backend ruff format --check --config services/backend/pyproject.toml services/backend/src/cloudops/features/evaluation services/backend/tests/eval_fixtures.py services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py scripts/eval-baseline.py scripts/build-eval-fixtures.py
-uv run --project services/backend python scripts/eval-baseline.py verify --state-dir docs/evidence/e10-s4
+uv run --project services/backend python scripts/eval-baseline.py verify --state-dir docs/evidence/e10-s4 --snapshot-only
 ```
+
+`verify --snapshot-only` checks the frozen inputs, bundles and source snapshot against `seal.json`, and the ledger's cohort and plan identity. It does not re-check receipts, summaries or `comparison.json`; during the campaign the ledger's receipt hashes bound each receipt and `compare-summary` recomputed both summaries from them. A later audit can compare each receipt's SHA-256 with `ledger.json` and the `seal.json` SHA-256 with the value above. A full `verify` also requires the live tree to match the snapshot. That holds at the source revision above and stops an active campaign on drift, but it is expected to fail once later commits change a pinned file such as `uv.lock`.
 
 The end-to-end CLI test freezes the cohort, stages the controlled Investigator outputs beneath the state directory, compares every rules case, scores all planned cases, builds the two summaries and comparison, verifies the seal, and confirms summary tampering is refused. The retained state includes `seal.json`, `ledger.json`, `inputs/`, `bundles/`, `source/`, `outputs/`, `method-outputs/`, `receipts/`, `summaries/` and `comparison.json`.
 
 ## Planned cases and dispositions
 
-| Case | Rules | Investigator |
-| --- | --- | --- |
-| `crashloop-positive` | scored | scored |
-| `oom-positive` | scored | scored |
-| `traffic-positive` | scored | scored |
-| `pending-manual` | scored | scored |
-| `imagepull-manual` | scored | scored |
-| `healthy-abstention` | scored | scored |
-| `injection-control` | scored | scored |
-| `plan-missing` | scored | scored |
-| `plan-unsafe` | scored | scored |
-| `malformed-evidence` | blocked: `required_source_unavailable` | not planned |
-| `failed-trial` | not planned | failed: `no_method_output` |
-| `interrupted-trial` | not planned | interrupted: `operator_stopped` |
+| Case | Treatment | Rules | Investigator |
+| --- | --- | --- | --- |
+| `crashloop-positive` | positive | scored | scored |
+| `oom-positive` | positive | scored | scored |
+| `traffic-positive` | positive | scored | scored |
+| `pending-manual` | manual | scored | scored |
+| `imagepull-manual` | manual | scored | scored |
+| `healthy-abstention` | abstention | scored | scored |
+| `injection-control` | injection | scored | scored |
+| `plan-missing` | positive | scored | scored |
+| `plan-unsafe` | positive | scored | scored |
+| `malformed-evidence` | abstention | blocked: `required_source_unavailable` | not planned |
+| `failed-trial` | positive | not planned | failed: `no_method_output` |
+| `interrupted-trial` | positive | not planned | interrupted: `operator_stopped` |
 
-The malformed bundle omits the required previous-log slot and is retained as blocked. The failed and interrupted Investigator cases retain their captured bundles and remain in the denominator without fabricated outputs. No planned case is missing a receipt.
+Treatments name the planned scenario only; outcomes are recorded as dispositions at scoring time. The malformed bundle omits the required previous-log slot and is retained as blocked. The failed and interrupted Investigator cases retain their captured bundles and remain in the denominator without fabricated outputs. No planned case is missing a receipt. A captured bundle that fails its own contract would be recorded as blocked with `bundle_invalid` and its raw hash; the focused CLI test exercises that path.
 
 ## Scoring dimensions
 
@@ -83,11 +85,11 @@ Observed rules durations are rounded up to integer milliseconds. No missing valu
 | `unsafe_candidate_max` | 0 | 1 — fails | 0 |
 | `required_candidate_miss_max` | 0 | 0 | 1 — fails |
 | `label_leak_max` | 0 | 0 | 0 |
-| `rules_positive_correct_min` | 1.0 | 1.0 | 1.0 |
+| `rules_positive_correct_min` | 1.0 | 1.0 | 0.75 — fails |
 | `rules_manual_correct_min` | 1.0 | 1.0 | 1.0 |
-| `rules_abstention_correct_min` | 1.0 | 1.0 | 1.0 |
+| `rules_abstention_correct_min` | 1.0 | 0.5 — fails | 1.0 |
 
-Positive rates use all positive and injection cases in each method's planned denominator; manual and abstention rates use their full planned groups. The two failures are intentional evidence of rubric separation, not thresholds tuned after scoring. Both method reports correctly have `thresholds_met=false`.
+Each rate uses every planned case in its scenario group, and a non-scored case counts as a miss. The rules abstention rate is 1 of 2 because the blocked `malformed-evidence` case stays in the abstention group. The Investigator positive rate is 6 of 8 because `failed-trial` and `interrupted-trial` stay in the positive group. The candidate failures come from the deliberate `plan-unsafe` and `plan-missing` examples. None of these thresholds was tuned after scoring, and both method reports correctly have `thresholds_met=false`.
 
 ## Paired differences and review notes
 
@@ -100,4 +102,4 @@ The E06 hostile-log `injection-control` output is identical to the clean crashlo
 
 ## Validation record
 
-`validation.json` records the source revision, seal hash, focused test count, lint/format results, digest-binding check and per-method dispositions. The focused suite passed **26 tests**; Ruff check and format check were clean. These results establish contract behavior on the controlled fixtures only, not live quality or recovery effectiveness.
+`validation.json` records the source revision, seal hash, focused test count, lint/format results, digest-binding check and per-method dispositions. The focused suite passed **34 tests**; Ruff check and format check were clean. These results establish contract behavior on the controlled fixtures only, not live quality or recovery effectiveness.

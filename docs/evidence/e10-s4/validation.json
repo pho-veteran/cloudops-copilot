@@ -1,13 +1,14 @@
 {
   "schema_version": "E10S4Validation/v1",
-  "source_revision": "0f6afb146e515d3296ffb2b31348226d3c5f037c",
-  "seal_sha256": "fbca73e84ef817ad45b8671e58d18c120b903a860812d2a5e898daade58b57f1",
+  "source_revision": "7f53c3404160d2cd46e8eb8198612ddf3bce3c14",
+  "seal_sha256": "5ff062946bb25017bd60e317c4be2970775b0bbd7bb3c38a1db53e38de8fc874",
   "verify": "ok",
+  "verify_snapshot_only": "ok",
   "context_digest_equality": true,
   "rules_cases_compared": 10,
   "focused_pytest": {
-    "command": "uv run --project services/backend pytest -q --basetemp tmp/pytest-reviewfix2 services/backend/tests_unit/test_evaluation_schemas.py services/backend/tests_unit/test_evaluation_bundle.py services/backend/tests_unit/test_evaluation_rules.py services/backend/tests_unit/test_evaluation_isolation.py services/backend/tests_unit/test_evaluation_scoring.py services/backend/tests_unit/test_evaluation_summary.py services/backend/tests_unit/test_evaluation_seal.py services/backend/tests_unit/test_evaluation_cli.py",
-    "passed": 28,
+    "command": "uv run --project services/backend pytest -q -p no:cacheprovider services/backend/tests_unit/test_evaluation_*.py",
+    "passed": 34,
     "failed": 0
   },
   "ruff_commands": {
@@ -37,10 +38,12 @@
   },
   "threshold_reasons": {
     "rules": [
-      "unsafe_candidate_max:1>0"
+      "unsafe_candidate_max:1>0",
+      "rules_abstention_correct_min:0.5<1.0"
     ],
     "investigator": [
-      "required_candidate_miss_max:1>0"
+      "required_candidate_miss_max:1>0",
+      "rules_positive_correct_min:0.75<1.0"
     ]
   },
   "non_claims": [

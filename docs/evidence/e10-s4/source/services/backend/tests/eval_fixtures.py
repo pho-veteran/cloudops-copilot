@@ -221,7 +221,7 @@ CASES = (
         "malformed-evidence",
         "c01",
         "unknown",
-        "malformed",
+        "abstention",
         ("rules",),
         False,
         ("kubernetes.logs.previous",),
@@ -236,7 +236,7 @@ CASES = (
         "failed-trial",
         "c03",
         "oom_restarts",
-        "failed",
+        "positive",
         ("investigator",),
         False,
         (),
@@ -251,7 +251,7 @@ CASES = (
         "interrupted-trial",
         "c05",
         "traffic_latency_errors",
-        "interrupted",
+        "positive",
         ("investigator",),
         False,
         (),
@@ -264,6 +264,12 @@ CASES = (
     ),
 )
 CASE_BY_ID = {item.case_id: item for item in CASES}
+# Controlled trial outcomes recorded at scoring time. They are not part of the
+# frozen plan: a measured campaign cannot know beforehand that a trial fails.
+CONTROLLED_OUTCOMES = {
+    "failed-trial": ("failed", "no_method_output"),
+    "interrupted-trial": ("interrupted", "operator_stopped"),
+}
 
 
 def _policy() -> EgressPolicy:
@@ -604,9 +610,12 @@ def write_corpus(output: Path) -> None:
 
     def write_json(path: Path, value) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False) + "\n",
-            encoding="utf-8",
+        # Write bytes so the corpus is LF-only on every platform; the seal hashes these bytes.
+        path.write_bytes(
+            (
+                json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False)
+                + "\n"
+            ).encode("utf-8")
         )
 
     write_json(output / "cohort.json", cohort().model_dump(mode="json"))
@@ -615,7 +624,7 @@ def write_corpus(output: Path) -> None:
     for spec in CASES:
         bundle, _ = bundle_for(spec.case_id)
         write_bundle(output / "bundles" / f"{spec.case_id}.json", bundle)
-        if "investigator" not in spec.methods or spec.treatment in {"failed", "interrupted"}:
+        if "investigator" not in spec.methods or spec.case_id in CONTROLLED_OUTCOMES:
             continue
         advice = compare(bundle.context)
         if spec.case_id in {"plan-missing", "plan-unsafe"}:
