@@ -1,0 +1,259 @@
+{
+  "containers": [
+    {
+      "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "service": "api",
+      "state": "running"
+    },
+    {
+      "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+      "image": "cloudops-release-db:dc840ac25727d66d30153675a31d23f8eae855d3-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+      "service": "db",
+      "state": "running"
+    },
+    {
+      "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "service": "executor",
+      "state": "running"
+    },
+    {
+      "id": "sha256:e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
+      "image": "cloudops-release-https:dc840ac25727d66d30153675a31d23f8eae855d3-e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
+      "service": "https",
+      "state": "running"
+    },
+    {
+      "id": "sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "image": "rancher/k3s:v1.37.1-k3s1@sha256:ca7f37d993d82ef0dcdcfecb2e0e2618ea541dbaffc620c8cedebe01a82acd0d",
+      "service": "k3s",
+      "state": "running"
+    },
+    {
+      "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "service": "migrate",
+      "state": "exited"
+    },
+    {
+      "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+      "service": "worker",
+      "state": "running"
+    }
+  ],
+  "docker_socket_mounts": 0,
+  "executor_initial_status": {
+    "audit_entries": 0,
+    "targets": [
+      {
+        "enabled": false,
+        "historical_unknown_count": 0,
+        "reason": "Initial target quarantine.",
+        "recovery_mode": true,
+        "uid": "10e1cccb-c028-4304-8893-9e7fa86c5c77"
+      }
+    ],
+    "unknown_attributions": 0
+  },
+  "health": [
+    {
+      "component": "database",
+      "reason_code": "database_connected",
+      "source": "runtime",
+      "status": "available"
+    },
+    {
+      "component": "worker",
+      "reason_code": "heartbeat_fresh",
+      "source": "runtime",
+      "status": "fresh"
+    },
+    {
+      "component": "collector",
+      "reason_code": "collector_configured",
+      "source": "collection_configuration",
+      "status": "configured"
+    },
+    {
+      "component": "kubernetes",
+      "reason_code": "no_matching_observation",
+      "source": "live_kubernetes",
+      "status": "never_observed"
+    },
+    {
+      "component": "diagnosis",
+      "reason_code": "model_feature_view",
+      "source": "feature_view",
+      "status": "see_feature"
+    },
+    {
+      "component": "executor",
+      "reason_code": "executor_feature_view",
+      "source": "feature_view",
+      "status": "see_feature"
+    },
+    {
+      "component": "krr_runner",
+      "reason_code": "runner_not_observed",
+      "source": "live_krr",
+      "status": "unknown"
+    },
+    {
+      "component": "krr_report",
+      "reason_code": "report_not_observed",
+      "source": "live_krr",
+      "status": "never_observed"
+    }
+  ],
+  "image_content": [
+    "run_entries=lock ",
+    "credential_files=0",
+    "backend history_secret_matches=0",
+    "https history_secret_matches=0",
+    "db history_secret_matches=0"
+  ],
+  "lab_directory_modes": [
+    "700 d ",
+    "700 d dispatcher",
+    "600 f dispatcher/key",
+    "700 d intake-api",
+    "600 f intake-api/config.json",
+    "700 d intake-sender",
+    "600 f intake-sender/token",
+    "700 d krr",
+    "600 f krr/key",
+    "700 d prometheus",
+    "600 f prometheus/workload.json",
+    "600 f prometheus/workloads.json",
+    "700 d reader",
+    "600 f reader/client.json",
+    "600 f reader/kubeconfig.json",
+    "600 f reader/workloads.json",
+    "700 d writer",
+    "600 f writer/client.json",
+    "600 f writer/kubeconfig.json",
+    "600 f writer/workloads.json"
+  ],
+  "mount_destinations": [
+    "api: /run/cloudops-job-permit(ro) /run/cloudops-reader(ro)",
+    "db: /var/lib/postgresql/data(rw)",
+    "executor: /run/cloudops-dispatch(rw) /run/cloudops-executor-identity(ro) /run/cloudops-writer(ro) /var/lib/cloudops-executor(rw)",
+    "https: /config(rw) /data(rw)",
+    "k3s: /var/log(rw) /var/lib/cni(rw) /var/lib/kubelet(rw) /var/lib/rancher/k3s(rw)",
+    "worker: /run/cloudops-dispatch(ro) /run/cloudops-job-permit(ro) /run/cloudops-krr(ro) /run/cloudops-reader(ro)"
+  ],
+  "no_local_build": true,
+  "not_exercised": "No target was enabled, no plan was approved and no Kubernetes write was attempted. KRR, Prometheus and the observer were not started.",
+  "probe_lab_credentials": {
+    "mounts": {
+      "api": {
+        "/run/cloudops-dispatch/key": false,
+        "/run/cloudops-reader/client.json": true,
+        "/run/cloudops-writer/client.json": false,
+        "/var/lib/cloudops-executor/maintenance.sock": false
+      },
+      "worker": {
+        "/run/cloudops-dispatch/key": true,
+        "/run/cloudops-reader/client.json": true,
+        "/run/cloudops-writer/client.json": false,
+        "/var/lib/cloudops-executor/maintenance.sock": false
+      }
+    },
+    "reader_denials": {
+      "deployment_patch": 403,
+      "secret_read": 403
+    },
+    "writer_denials": {
+      "other_target_patch": 403,
+      "secret_read": 403
+    }
+  },
+  "project": "cloudops-release-s1-lab",
+  "published_ports": [
+    "api ",
+    "db 5432/tcp",
+    "executor ",
+    "https 127.0.0.1:8443->8443/tcp",
+    "k3s 127.0.0.1:6445->6443/tcp",
+    "worker "
+  ],
+  "schema": "CloudOpsReleaseSeparationReceipt/v1",
+  "scoped_collection": {
+    "incident_id": "70e9b1cd-a3d7-43d3-9889-69b3f62e2ea4",
+    "outcome_code": "analysis_unavailable",
+    "run_id": "d3cea975-0c18-4b0d-94eb-4e6a5ef1f251",
+    "run_state": "insufficient_evidence",
+    "sources": [
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "development_fixture"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "kubernetes.configmap.metadata"
+      },
+      {
+        "coverage": "available",
+        "sha256": "1015474955d390d3ab2ba3ab0f27bcc3f7eefc48b3b720f2e1a79e90dfcb5ef3",
+        "source_key": "kubernetes.events"
+      },
+      {
+        "coverage": "available",
+        "sha256": "a7c0d025aee7dbcbacb90280211c13c09c524960c1236dd9c9cbb4e7c840caad",
+        "source_key": "kubernetes.logs.current"
+      },
+      {
+        "coverage": "partial",
+        "sha256": "535e298962ae1afc3309e509de821ab58574708bbb93d19b99e5dc63a91469e0",
+        "source_key": "kubernetes.logs.previous"
+      },
+      {
+        "coverage": "available",
+        "sha256": "afd37e849d33aa76bf37cee4eef7193cbffd4ee9b483b7219f8cc000737e3842",
+        "source_key": "kubernetes.state"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "prometheus.error_ratio"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "prometheus.memory_limit"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "prometheus.memory_working_set"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "prometheus.p95_latency"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "prometheus.request_rate"
+      },
+      {
+        "coverage": "unavailable",
+        "sha256": null,
+        "source_key": "prometheus.restarts"
+      }
+    ],
+    "workload": {
+      "id": "63151ae4-fd59-4376-b324-a13be242fa7e",
+      "name": "checkout-crashloop",
+      "namespace": "demo",
+      "source": "live_kubernetes",
+      "uid": "f0629776-c862-4ff8-839f-fd6aaa1d5484"
+    }
+  },
+  "topology": "compose.yaml + compose.https.yaml + compose.integration.yaml + compose.release.yaml + compose.release-lab.yaml from the B2 install directory; K3s v1.37.1-k3s1 by digest"
+}

@@ -1,0 +1,363 @@
+{
+  "alembic_head_after_fresh_install": "0020_operations_quota_wait_index",
+  "bundle": {
+    "revision": "86649c0faec1bf8b5dde7fe1e16b371ef2967a1f",
+    "sha256": {
+      "images.env": "4871908bf202356ed83ddadabdcde72e277746a263788fd3df7bfc933fe07283",
+      "images.tar": "41659810974061e7c84e8794e371b4daccf8d3ea897e3a217600ec095de5fd52",
+      "source.tar": "e34ea359ab9723cb5b8d7750fc170eb4494124cacbca03145c66333e7980bc68"
+    }
+  },
+  "candidate_fresh_install": {
+    "alembic_head": "0020_operations_quota_wait_index (head)",
+    "bundle": {
+      "revision": "dc840ac25727d66d30153675a31d23f8eae855d3",
+      "sha256": {
+        "images.env": "397fa1fc52c6ee419016cbf6603471dd9aa7bf675c5b009666209fa4ee1c801b",
+        "images.tar": "81a59fe63f1a5a2bdae7950ed570575510fded45a513274a0be6054f0ade1e37",
+        "source.tar": "4945325e63f1a8a908fae9d7fd6421f1d8b056bdeb2b326fd34b537ebe1331cf"
+      }
+    },
+    "containers": [
+      {
+        "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "service": "api",
+        "state": "running"
+      },
+      {
+        "id": "sha256:837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+        "image": "cloudops-release-db:dc840ac25727d66d30153675a31d23f8eae855d3-837bed18782820fe967067cb5328b02b0d9992c1be9a37ee0c9c492cfc03af3b",
+        "service": "db",
+        "state": "running"
+      },
+      {
+        "id": "sha256:e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
+        "image": "cloudops-release-https:dc840ac25727d66d30153675a31d23f8eae855d3-e767ec6bfc38bdf6a6e1e9417874d42f1d013f8c7712537fa45e3db42f8f27c3",
+        "service": "https",
+        "state": "running"
+      },
+      {
+        "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "service": "migrate",
+        "state": "exited"
+      },
+      {
+        "id": "sha256:40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "image": "cloudops-release-backend:dc840ac25727d66d30153675a31d23f8eae855d3-40949a63b440f65d41c324954c2520a25917dbd99168ef6dc495d24c3d70c5af",
+        "service": "worker",
+        "state": "running"
+      }
+    ],
+    "dispatch_initial": {
+      "denial": "permit_missing",
+      "permit": null
+    },
+    "health": {
+      "collection_dispatch": {
+        "reason_code": "permit_missing",
+        "status": "paused"
+      },
+      "ready_status": 200
+    },
+    "https_smoke": {
+      "record": {
+        "incident_id": "7d4b4d47-1a87-4913-9ad3-8c364b068474",
+        "queue_reason": null,
+        "run_id": "cbc9b06a-a7ad-409b-9838-0c21b1e4b44a",
+        "state": "queued",
+        "window": {
+          "end": "2026-11-23T10:22:12.056475Z",
+          "source": "legacy_default",
+          "start": "2026-11-23T09:52:12.056475Z"
+        }
+      },
+      "result": "passed"
+    },
+    "project": "cloudops-release-s1-fresh (disposable, removed after the check)",
+    "published_ports": [
+      "api ",
+      "db 5432/tcp",
+      "https 127.0.0.1:8443->8443/tcp",
+      "worker "
+    ],
+    "startup_seconds": 16
+  },
+  "clean_load": "Release-tagged images were removed before loading images.tar; the target project and its volumes did not exist. Start used --no-build --pull never from an install directory containing only the extracted source.tar. The install ran on the build engine: the backend and https image IDs were absent before load, while the PostgreSQL image ID was still present through its upstream tag. This proves the project and image binding, not a never-seen engine; #121 owns the separate-host install.",
+  "containers": [
+    {
+      "id": "sha256:6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+      "image": "cloudops-release-backend:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+      "service": "api",
+      "state": "running"
+    },
+    {
+      "id": "sha256:665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+      "image": "cloudops-release-db:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-665dc7b37ac52a17e298511414c21d23ffa4e6a6ef6225b3e5d59c7afb35e994",
+      "service": "db",
+      "state": "running"
+    },
+    {
+      "id": "sha256:03b2fec0699189b3e238253fd104311a993ddc124306aa9b432993381c6b5916",
+      "image": "cloudops-release-https:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-03b2fec0699189b3e238253fd104311a993ddc124306aa9b432993381c6b5916",
+      "service": "https",
+      "state": "running"
+    },
+    {
+      "id": "sha256:6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+      "image": "cloudops-release-backend:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+      "service": "migrate",
+      "state": "exited"
+    },
+    {
+      "id": "sha256:6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+      "image": "cloudops-release-backend:86649c0faec1bf8b5dde7fe1e16b371ef2967a1f-6ec146a949fe2f89caa0390a34a74ea9a4b9a6ca4f86eff425015e45078bc069",
+      "service": "worker",
+      "state": "running"
+    }
+  ],
+  "dispatch": {
+    "after_permit_health": {
+      "reason_code": null,
+      "status": "allowed"
+    },
+    "after_trusted_fresh_install": {
+      "allowed_job_kinds": [
+        "analysis",
+        "collection",
+        "recommendation",
+        "recovery_execution"
+      ],
+      "denial": null,
+      "generation": 1,
+      "mode": "normal",
+      "operation": "bootstrap",
+      "valid_until": "2026-12-23T10:16:32.321681Z"
+    },
+    "initial": {
+      "denial": "permit_missing",
+      "permit": null
+    },
+    "initial_health": {
+      "reason_code": "permit_missing",
+      "status": "paused"
+    }
+  },
+  "fingerprint": {
+    "alembic_head": "0020_operations_quota_wait_index",
+    "non_empty_rows": {
+      "admissions": 4,
+      "alembic_version": 1,
+      "evidence": 48,
+      "incident_activity": 4,
+      "incidents": 4,
+      "investigation_runs": 4,
+      "job_attempts": 4,
+      "job_checkpoints": 4,
+      "jobs": 4,
+      "users": 2,
+      "worker_heartbeats": 1,
+      "workload_scope_state": 1,
+      "workloads": 1
+    },
+    "tables": 45
+  },
+  "https_root_ca_sha256": "c0de85247d816aa44d48125bcebdcfd561dbba71c010aa893e8fd6747b54f317",
+  "https_smoke": {
+    "records": [
+      {
+        "incident_id": "07d47f39-a4ce-4451-895e-584840ba9880",
+        "queue_reason": null,
+        "run_id": "0f4ce144-1b7f-4aad-9d66-8b5388964370",
+        "state": "queued",
+        "window": {
+          "end": "2026-11-23T10:15:26.073917Z",
+          "source": "legacy_default",
+          "start": "2026-11-23T09:45:26.073917Z"
+        }
+      },
+      {
+        "incident_id": "70341ee8-d2ef-4aaf-b814-62aa54e67fe3",
+        "queue_reason": null,
+        "run_id": "63035f4a-a922-44f6-85f4-2f1fe57d9192",
+        "state": "queued",
+        "window": {
+          "end": "2026-11-23T10:16:34.722472Z",
+          "source": "legacy_default",
+          "start": "2026-11-23T09:46:34.722472Z"
+        }
+      }
+    ],
+    "result": "passed twice: certificate chain and hostname validated with the project CA, compiled /assets/ page, anonymous 401, foreign Origin 403, invalid CSRF 403 with no admission, Secure HttpOnly SameSite=Lax Path=/ host-only cookie, no-store login, Operator admission, Viewer read and 403 writes, logout cookie deletion and old-token replay 401",
+    "script": "scripts/smoke-https.py from the trusted checkout at the candidate revision"
+  },
+  "initial_health": {
+    "collection_dispatch": {
+      "reason_code": "permit_missing",
+      "status": "paused"
+    },
+    "observations": [
+      {
+        "component": "database",
+        "reason_code": "database_connected",
+        "source": "runtime",
+        "status": "available"
+      },
+      {
+        "component": "worker",
+        "reason_code": "heartbeat_fresh",
+        "source": "runtime",
+        "status": "fresh"
+      },
+      {
+        "component": "collector",
+        "reason_code": "collector_unconfigured",
+        "source": "collection_configuration",
+        "status": "unconfigured"
+      },
+      {
+        "component": "kubernetes",
+        "reason_code": "fixture_target",
+        "source": "development_fixture",
+        "status": "unavailable"
+      },
+      {
+        "component": "diagnosis",
+        "reason_code": "model_feature_view",
+        "source": "feature_view",
+        "status": "see_feature"
+      },
+      {
+        "component": "executor",
+        "reason_code": "executor_unconfigured",
+        "source": "feature_view",
+        "status": "unconfigured"
+      },
+      {
+        "component": "krr_runner",
+        "reason_code": "runner_unconfigured",
+        "source": "live_krr",
+        "status": "unconfigured"
+      },
+      {
+        "component": "krr_report",
+        "reason_code": "report_not_observed",
+        "source": "live_krr",
+        "status": "never_observed"
+      }
+    ],
+    "ready_status": 200
+  },
+  "manifest_image_ids_present_before_load": {
+    "backend": "absent",
+    "db": "present",
+    "https": "absent"
+  },
+  "populated_records": [
+    {
+      "incident_id": "adbba226-bb97-4540-ba93-79fdf47e9bd4",
+      "note_id": "b9a0cf1e-3c81-4994-94a3-68c0e60c6fe0",
+      "queue_reason": null,
+      "run_id": "ae352f80-5006-4c3b-b59b-69cf76120aea",
+      "state": "queued",
+      "status": null,
+      "window": {
+        "end": "2026-11-23T10:16:34.345690Z",
+        "source": "legacy_default",
+        "start": "2026-11-23T09:46:34.345690Z"
+      },
+      "workload_id": "d6e5bfa3-69cd-4def-b4c8-0091b2584426"
+    },
+    {
+      "incident_id": "5cbe427b-d2a9-49bd-8879-04e39220bfc4",
+      "note_id": "1d5ee935-bf4f-435e-9b67-c23713e93ac5",
+      "queue_reason": null,
+      "run_id": "59072bad-bd15-4bed-b5c6-cd89b30c995d",
+      "state": "queued",
+      "status": null,
+      "window": {
+        "end": "2026-11-23T10:16:35.061136Z",
+        "source": "legacy_default",
+        "start": "2026-11-23T09:46:35.061136Z"
+      },
+      "workload_id": "d6e5bfa3-69cd-4def-b4c8-0091b2584426"
+    }
+  ],
+  "project": "cloudops-release-s1",
+  "published_ports": [
+    "api ",
+    "db 5432/tcp",
+    "https 127.0.0.1:8443->8443/tcp",
+    "worker "
+  ],
+  "readiness_vs_worker": {
+    "health_with_worker_stopped_past_45s": {
+      "collection_dispatch": {
+        "reason_code": "permit_missing",
+        "status": "paused"
+      },
+      "observations": [
+        {
+          "component": "database",
+          "reason_code": "database_connected",
+          "source": "runtime",
+          "status": "available"
+        },
+        {
+          "component": "worker",
+          "reason_code": "heartbeat_stale",
+          "source": "runtime",
+          "status": "stale"
+        },
+        {
+          "component": "collector",
+          "reason_code": "collector_unconfigured",
+          "source": "collection_configuration",
+          "status": "unconfigured"
+        },
+        {
+          "component": "kubernetes",
+          "reason_code": "fixture_target",
+          "source": "development_fixture",
+          "status": "unavailable"
+        },
+        {
+          "component": "diagnosis",
+          "reason_code": "model_feature_view",
+          "source": "feature_view",
+          "status": "see_feature"
+        },
+        {
+          "component": "executor",
+          "reason_code": "executor_unconfigured",
+          "source": "feature_view",
+          "status": "unconfigured"
+        },
+        {
+          "component": "krr_runner",
+          "reason_code": "runner_unconfigured",
+          "source": "live_krr",
+          "status": "unconfigured"
+        },
+        {
+          "component": "krr_report",
+          "reason_code": "report_not_observed",
+          "source": "live_krr",
+          "status": "never_observed"
+        }
+      ],
+      "ready_status": 200
+    },
+    "ready_with_worker_stopped": 200
+  },
+  "run_states_with_collection_none": {
+    "insufficient_evidence": "4"
+  },
+  "schema": "CloudOpsReleaseInstallReceipt/v1",
+  "startup_seconds": 17,
+  "verify": [
+    "verify: passed",
+    "verify --loaded: passed"
+  ]
+}

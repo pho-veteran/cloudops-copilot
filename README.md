@@ -26,7 +26,7 @@ The [scoped diagnosis context contract](docs/diagnosis-context.md) fixes the evi
 
 ## Quick start
 
-Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.11, Node 24.21.0 and PostgreSQL 17.11; Python and npm dependency lockfiles are committed.
+Prerequisites: Docker Engine with Docker Compose v2.20 or newer, Git, and available loopback ports 5173 and 8000. The container path requires no host Python/Node, paid account, model key or cluster credentials. Images pin Python 3.13.18, Node 24.21.0 and PostgreSQL 17.12; Python and npm dependency lockfiles are committed.
 
 From the repository root:
 

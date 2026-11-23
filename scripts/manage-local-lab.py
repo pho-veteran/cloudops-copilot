@@ -2434,6 +2434,10 @@ class Lab:
 
 
 def main():
+    if os.environ.get("CLOUDOPS_RELEASE_BUNDLE"):
+        raise SystemExit(
+            "The retained owned lab builds its own images; unset CLOUDOPS_RELEASE_BUNDLE."
+        )
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", choices=[OWNED_PROJECT], required=True)
     parser.add_argument("--directory", type=Path, default=DIRECTORY)
