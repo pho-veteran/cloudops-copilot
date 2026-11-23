@@ -1098,6 +1098,116 @@ def phase_fresh(args):
     print(write("fresh-path.json", receipt))
 
 
+def phase_late_writer(args):
+    """Hold a real admitted patch past a real fence; Kubernetes must reject it afterwards."""
+    data = bound_state()
+    operator_password, _ = passwords()
+    primary = writer_targets()[0]
+    dc("stop", "worker")
+    dc("cp", str(ROOT / "scripts/probe-late-writer.py"), "executor:/tmp/probe-late-writer.py")
+    dc(
+        "exec",
+        "-T",
+        "executor",
+        "rm",
+        "-f",
+        "/tmp/e01-late-request.json",
+        "/tmp/e01-late-proof.json",
+        "/tmp/late-writer.log",
+    )
+    dc(
+        "exec",
+        "-T",
+        "-d",
+        "executor",
+        "sh",
+        "-c",
+        "python /tmp/probe-late-writer.py > /tmp/late-writer.log 2>&1",
+    )
+    deadline = time.monotonic() + 60
+    while "READY" not in out("exec", "-T", "executor", "cat", "/tmp/late-writer.log", check=False):
+        if time.monotonic() > deadline:
+            die("the late-writer probe did not become ready.")
+        time.sleep(1)
+    # The probe's own gateway start quarantined every target; reconcile through the root CLI.
+    evidence = ["local://release-restore/late-writer.json"]
+    opened = {}
+    for target in writer_targets():
+        opened[target["name"]] = maintenance(
+            "enable_target",
+            targets=[target["uid"]],
+            evidence=evidence,
+            reason="Reconciled before the controlled late-writer drill.",
+        ).get("status")
+    opened["exit_recovery_mode"] = maintenance(
+        "exit_recovery_mode",
+        evidence=evidence,
+        reason="Open the target for the controlled late-writer drill.",
+    ).get("status")
+    if set(opened.values()) != {"applied"}:
+        die(f"targets could not be opened for the drill: {opened}")
+    before = deployments()
+    with client() as operator:
+        oh = login(operator, "operator", operator_password)
+        incident_id = data["primary_incident"]["incident_id"]
+        current = before[primary["name"]]["replicas"]
+        response = propose(operator, oh, incident_id, 1 if current != 1 else 2, wait_cooldown=True)
+        if response.status_code != 201:
+            die(f"drill proposal returned {response.status_code}: {response.text[:300]}")
+        plan = response.json()
+        decision = approve(operator, oh, plan)
+        if decision.status_code != 200:
+            die(f"drill approval returned {decision.status_code}: {decision.text[:300]}")
+        rows = operator.get(f"/api/incidents/{incident_id}/executions").json()
+        execution_id = rows[0]["id"]
+        run(
+            [
+                *LAB.COMPOSE,
+                "exec",
+                "-T",
+                "executor",
+                "sh",
+                "-c",
+                "cat > /tmp/e01-late-request.json",
+            ],
+            stdin=json.dumps({"execution_id": execution_id}),
+        )
+        deadline = time.monotonic() + 180
+        log = ""
+        while time.monotonic() < deadline:
+            log = out("exec", "-T", "executor", "cat", "/tmp/late-writer.log", check=False)
+            if "PASS" in log or "Traceback" in log or "AssertionError" in log:
+                break
+            time.sleep(2)
+        if "PASS" not in log:
+            die(f"the late-writer probe did not pass: {log[-800:]}")
+        proof = json.loads(out("exec", "-T", "executor", "cat", "/tmp/e01-late-proof.json"))
+        execution = next(e for e in executions() if e["id"] == execution_id)
+        status = next(t for t in maintenance("status")["targets"] if t["uid"] == primary["uid"])
+    after = deployments()
+    dc("up", "-d", "--no-build", "--pull", "never", "--wait", "worker")
+    receipt = {
+        "plan_id": plan["id"],
+        "execution_id": execution_id,
+        "dispatch_outcome": proof["dispatch"]["outcome"],
+        "fence_excluded_attempt": execution_id
+        in proof["maintenance"]["proofs"][primary["uid"]]["excluded_attempts"],
+        "late_patch": proof["late_patch"],
+        "replicas_before": before[primary["name"]]["replicas"],
+        "replicas_after": after[primary["name"]]["replicas"],
+        "retired_epoch_denied": proof["retired_epoch_denied"],
+        "late_worker_preserved_unknown": proof["late_worker_preserved_unknown"],
+        "execution_after": execution,
+        "target_after_probe": {
+            k: status[k] for k in ("enabled", "recovery_mode", "historical_unknown_count")
+        },
+        "journal_unknown": [
+            a for a in maintenance("status")["unknown_attributions"] if a["id"] == execution_id
+        ],
+    }
+    print(write("late-writer.json", receipt))
+
+
 def phase_manual_exit(args):
     data = bound_state()
     operator_password, _ = passwords()
@@ -1188,6 +1298,7 @@ def main():
     restore = sub.add_parser("restore")
     restore.add_argument("name", choices=["d1", "d2", "d3"])
     sub.add_parser("fresh")
+    sub.add_parser("late-writer")
     sub.add_parser("manual-exit")
     args = parser.parse_args()
     global LAB, ROOT, OUT, PRIVATE
@@ -1202,6 +1313,7 @@ def main():
         "activity": phase_activity,
         "restore": phase_restore,
         "fresh": phase_fresh,
+        "late-writer": phase_late_writer,
         "manual-exit": phase_manual_exit,
     }[args.phase](args)
 

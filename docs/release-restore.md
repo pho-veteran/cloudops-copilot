@@ -19,7 +19,7 @@ The procedure applies to an installation with the scoped writer topology. Start 
 
 Restore drills must not touch application data. Run them in a separate disposable project, and add `-f compose.release-restore.yaml` last. That overlay points every service, including `restore-admin`, at `cloudops_restore_test`. In the examples below, set `database=cloudops` for an installation or `database=cloudops_restore_test` for a drill. Writer target UIDs are listed in the lab directory's `writer/workloads.json`.
 
-**Core-only installation (no executor).** A core-only install has no writer, no journal and no recovery executions; a plan cannot be proposed without an executor. Skip steps 2 and 6 and the reconciliation section. After the database restore, run `compose run --rm --no-deps api python -m cloudops.entrypoints.cli revoke-all-sessions`. Then run `compose run --rm --no-deps api python -m cloudops.entrypoints.diagnosis_recovery`; the API service already mounts the permit read-only. The qualification run did not exercise this core-only path.
+**Core-only installation (no executor).** A core-only install has no writer, no journal and no recovery executions, because a plan cannot be proposed without an executor. Skip steps 2 and 6 and the reconciliation section. After the database restore, run `compose run --rm --no-deps api python -m cloudops.entrypoints.cli revoke-all-sessions`, then `compose run --rm --no-deps api python -m cloudops.entrypoints.diagnosis_recovery`; the API service already mounts the permit read-only. Restore host dispatch to the saved state afterwards. `scripts/probe-release-core-restore.py` qualifies this path in a disposable core project with `compose.release-core-restore.yaml`.
 
 ## Back up
 
@@ -178,6 +178,7 @@ probe=(uv run --project services/backend --frozen python scripts/probe-release-r
 "${probe[@]}" restore d1                 # then d3, then d2 (journal ahead of the database)
 "${probe[@]}" reconcile --label after-d2 --dispatch-exit --prove-failure checkout-standby
 "${probe[@]}" fresh                      # one new approved execution
+"${probe[@]}" late-writer                 # a real admitted patch held past a real fence
 "${probe[@]}" manual-exit                # authority loss keeps quarantine
 ```
 
@@ -185,6 +186,7 @@ What the phases do:
 
 - **`prepare`** applies `config/lab/restore-standby.yaml`. This adds a second healthy writer target with no application execution history.
 - **`--prove-failure`** scales that target to zero before enabling it. This is a deliberate out-of-protocol lab action. It records the denied enablement, then restores one replica.
+- **`late-writer`** runs `scripts/probe-late-writer.py` inside the executor. It delays one admitted scale patch, fences the target with `release_uncertain_target`, then releases the delayed patch, which Kubernetes must reject. The unknown outcome stays in the journal and the application.
 - **`manual-exit`** deletes the project's executor pin. Run it last, and only in a disposable project; every destructive phase refuses a project it did not prepare.
 
 Receipts go to the ignored `tmp/release-restore/`. Dumps, cookies and other private files go to `tmp/release-restore/private/`.
