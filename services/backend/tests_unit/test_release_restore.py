@@ -231,7 +231,11 @@ def test_core_drill_overlay_connects_only_to_the_restore_database():
     "values",
     [
         {},
-        {"CLOUDOPS_CORE_PROJECT": "cloudops-local"},
+        {
+            "CLOUDOPS_CORE_PROJECT": "cloudops-local",
+            "CLOUDOPS_RELEASE_BUNDLE": "bundle",
+            "CLOUDOPS_HOST_ENV": "host.env",
+        },
         {"CLOUDOPS_CORE_PROJECT": "cloudops-release-core-test"},
     ],
     ids=["no-project", "reserved-project", "no-bundle"],

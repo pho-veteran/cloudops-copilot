@@ -135,6 +135,10 @@ def main():
             headers=headers,
         )
         d.wait_run(session, first["incident_id"], first["run_id"])
+        # Leave one collection job queued at the cutoff: the restored worker must not claim it
+        # while dispatch is in recovery, and must claim it after the saved state returns.
+        d.dc("stop", "worker")
+        pending = d.incident(session, headers, workload, "Core record queued at the cutoff")
         cookie = session.cookies.get("cloudops_session")
     # Cutoff: consistent dump with table digests checked before and after.
     d.PRIVATE.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -177,7 +181,7 @@ def main():
     with d.client() as session:
         headers = d.login(session, "operator", operator_password)
         later = d.incident(session, headers, workload, "Core post-cutoff record")
-        d.wait_run(session, later["incident_id"], later["run_id"])
+        receipt["post_cutoff_incident"] = later["incident_id"]
     live = {"fingerprint": d.fingerprint()}
     # Restore.
     receipt["permit_before"] = d.permit()
@@ -255,7 +259,13 @@ def main():
     d.dc("up", "-d", "--no-build", "--pull", "never", "worker")
     time.sleep(25)
     alive = d.worker_alive()
+    with d.client() as session:
+        d.login(session, "viewer", viewer_password)
+        queued_view = session.get(
+            f"/api/incidents/{pending['incident_id']}/runs/{pending['run_id']}"
+        ).json()
     receipt["old_worker"] = {
+        "queued_run_state_under_recovery": queued_view.get("state"),
         "jobs_unchanged": d.sql(d.digest_query("jobs")) == jobs_before,
         "attempts_unchanged": d.sql(d.digest_query("job_attempts")) == attempts_before,
         "container": alive["container"],
@@ -271,6 +281,8 @@ def main():
     receipt["permit_end"] = d.permit()
     with d.client() as session:
         headers = d.login(session, "operator", operator_password)
+        claimed = d.wait_run(session, pending["incident_id"], pending["run_id"])
+        receipt["queued_run_state_after_exit"] = claimed.get("state")
         fresh = d.incident(session, headers, workload, "Core record after restore")
         view = d.wait_run(session, fresh["incident_id"], fresh["run_id"])
         receipt["fresh_admission"] = {"run_state": view.get("state")}

@@ -1172,7 +1172,8 @@ def phase_late_writer(args):
                 "executor",
                 "sh",
                 "-c",
-                "cat > /tmp/e01-late-request.json",
+                "cat > /tmp/e01-late-request.json.tmp && "
+                "mv /tmp/e01-late-request.json.tmp /tmp/e01-late-request.json",
             ],
             stdin=json.dumps({"execution_id": execution_id}),
         )
@@ -1190,6 +1191,9 @@ def phase_late_writer(args):
         status = next(t for t in maintenance("status")["targets"] if t["uid"] == primary["uid"])
     after = deployments()
     dc("up", "-d", "--no-build", "--pull", "never", "--wait", "worker")
+    # The real worker now sees the still-queued recovery job; it must not dispatch it.
+    time.sleep(25)
+    after_worker = deployments()
     receipt = {
         "plan_id": plan["id"],
         "execution_id": execution_id,
@@ -1201,7 +1205,12 @@ def phase_late_writer(args):
         "replicas_after": after[primary["name"]]["replicas"],
         "retired_epoch_denied": proof["retired_epoch_denied"],
         "late_worker_preserved_unknown": proof["late_worker_preserved_unknown"],
-        "execution_after": execution,
+        "execution_after_probe": execution,
+        "execution_after_real_worker": next(e for e in executions() if e["id"] == execution_id),
+        "no_write_after_real_worker": not any(written(after, after_worker).values()),
+        "journal_attempts_for_execution": sum(
+            1 for i in journal()["attempt_ids"] if i == execution_id
+        ),
         "target_after_probe": {
             k: status[k] for k in ("enabled", "recovery_mode", "historical_unknown_count")
         },
