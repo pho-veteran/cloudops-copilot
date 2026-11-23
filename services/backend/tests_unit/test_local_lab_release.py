@@ -107,9 +107,18 @@ def test_release_bundle_refuses_ambiguous_targets(tmp_path, values):
 
 
 @pytest.mark.skipif(os.name != "posix", reason="The owned lab driver requires POSIX locks.")
-def test_owned_lab_driver_refuses_release_images(tmp_path):
-    env = {key: value for key, value in os.environ.items() if not key.startswith("CLOUDOPS_")}
+@pytest.mark.parametrize("complete", [False, True], ids=["import-guard", "driver-guard"])
+def test_owned_lab_driver_refuses_release_images(tmp_path, complete):
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(("CLOUDOPS_", "RELEASE_"))
+    }
     env["CLOUDOPS_RELEASE_BUNDLE"] = str(tmp_path)
+    if complete:
+        host = tmp_path / "host.env"
+        host.write_text("POSTGRES_PASSWORD=test-only\n")
+        env.update(CLOUDOPS_LAB_PROJECT="cloudops-release-lab-test", CLOUDOPS_HOST_ENV=str(host))
     result = subprocess.run(
         [
             sys.executable,
@@ -126,7 +135,7 @@ def test_owned_lab_driver_refuses_release_images(tmp_path):
         timeout=30,
     )
     assert result.returncode != 0
-    assert "CLOUDOPS_RELEASE_BUNDLE" in result.stderr
+    assert ("CLOUDOPS_RELEASE_BUNDLE" if complete else "CLOUDOPS_LAB_PROJECT") in result.stderr
     assert not (tmp_path / "lab").exists()
 
 
