@@ -553,7 +553,7 @@ print(json.dumps(result))
 
 
 def phase_prepare(args):
-    if LAB.PROJECT in ("cloudops-e01-https", LAB.OWNED_PROJECT):
+    if LAB.PROJECT in ("cloudops-e01-https", *LAB.OWNED_PROJECTS):
         die("use a new disposable project.")
     if (
         run(

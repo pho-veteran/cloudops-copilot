@@ -21,7 +21,12 @@ FILES = (
     "compose.release.yaml",
     "compose.release-core-restore.yaml",
 )
-RESERVED = {"cloudops-local", "cloudops-e01-https", "cloudops-local-testing-lab"}
+RESERVED = {
+    "cloudops-local",
+    "cloudops-e01-https",
+    "cloudops-local-testing-lab",
+    "cloudops-e10-s3-lab",
+}
 
 
 def load_driver():

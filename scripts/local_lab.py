@@ -6,9 +6,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 # A separate disposable project keeps an existing lab's volumes untouched.
 PROJECT = os.environ.get("CLOUDOPS_LAB_PROJECT", "cloudops-e01-https")
-OWNED_PROJECT = "cloudops-local-testing-lab"
+# Owned labs managed by manage-local-lab.py. The E10 S3 lab runs the qualified E07
+# recovery sample beside, never inside, the retained general-purpose owned lab.
+OWNED_PROJECTS = {
+    "cloudops-local-testing-lab": "tmp/local-testing-lab",
+    "cloudops-e10-s3-lab": "tmp/e10-s3-lab",
+}
+RECOVERY_LAB_PROJECT = "cloudops-e10-s3-lab"
+OWNED_PROJECT = PROJECT if PROJECT in OWNED_PROJECTS else "cloudops-local-testing-lab"
 LAB_DIR = (
-    ROOT / "tmp/local-testing-lab" if PROJECT == OWNED_PROJECT else ROOT / "tmp/e01-integration"
+    ROOT / OWNED_PROJECTS[PROJECT] if PROJECT in OWNED_PROJECTS else ROOT / "tmp/e01-integration"
 )
 COMPOSE = [
     "docker",
@@ -22,13 +29,15 @@ COMPOSE = [
     "-f",
     "compose.integration.yaml",
 ]
-if PROJECT == OWNED_PROJECT:
+if PROJECT in OWNED_PROJECTS:
     COMPOSE[2:2] = ["--env-file", str(LAB_DIR / "lab.env")]
     COMPOSE += ["-f", "compose.alertmanager.yaml", "-f", "compose.lab.yaml"]
+    if PROJECT == RECOVERY_LAB_PROJECT:
+        COMPOSE += ["-f", "compose.lab-recovery.yaml"]
 # Optional: run a separate disposable project from verified release bundle images.
 RELEASE_BUNDLE = os.environ.get("CLOUDOPS_RELEASE_BUNDLE")
 if RELEASE_BUNDLE:
-    if PROJECT in (OWNED_PROJECT, "cloudops-e01-https") or not os.environ.get(
+    if PROJECT in (*OWNED_PROJECTS, "cloudops-e01-https") or not os.environ.get(
         "CLOUDOPS_LAB_PROJECT"
     ):
         raise SystemExit(

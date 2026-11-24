@@ -1,0 +1,1375 @@
+{
+  "schema": "E10S3LiveAcceptance/v1",
+  "project": "cloudops-e10-s3-lab",
+  "source_commits": [
+    "a76e7184247d9ca49babb311159de3355b64bc76"
+  ],
+  "working_diff_sha256": [
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  ],
+  "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+  "recovery_config": {
+    "image_id": "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4",
+    "policy_digest": "8f4ed123ca3afd66d23cf271289b135cf4cf00dbd02817028d80398e81198ce7",
+    "profile_digests": {
+      "recovery-traffic-scale": "19a61a5db96eed3ec47c58c2c19fb78084a19b3d6e742a725035fa4d79fe636b",
+      "recovery-oom-memory": "2ee2603918ca2d171019458cd460debea06862df8d94d7e247562087d25aaece",
+      "recovery-bad-rollout-restore": "166a0ee90cc10c6af710b889d6fb05d00c5f6bcd12f4479768131378e44a8baf"
+    },
+    "source_digest": "5de048bd5b826359d97c63d8896d303c2d1f103dccf07dd3854468a4dc7bbd43",
+    "source_version": "076a768b325016a05573db32b6dad14d02bb5c32c95b34bd32b5a5fe90689cb9",
+    "loaded_by_api": true
+  },
+  "calibrations": [
+    {
+      "scenario_id": "recovery-traffic-scale",
+      "profile_digest": "19a61a5db96eed3ec47c58c2c19fb78084a19b3d6e742a725035fa4d79fe636b",
+      "rate_rps": 30,
+      "action_state": {
+        "replicas": 2,
+        "resources": {
+          "requests": {
+            "cpu": "50m",
+            "memory": "192Mi"
+          },
+          "limits": {
+            "cpu": "100m",
+            "memory": "256Mi"
+          }
+        }
+      },
+      "passed": true,
+      "samples": [
+        {
+          "at": "2026-11-24T13:28:15.688774+07:00",
+          "request_rate": 30.3126,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2429,
+          "offered_rate": 31.1294,
+          "resets": 0.0,
+          "sample_time": 1.9996,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T13:28:46.598872+07:00",
+          "request_rate": 31.0015,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2429,
+          "offered_rate": 31.1552,
+          "resets": 0.0,
+          "sample_time": 3.7953,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T13:29:17.514246+07:00",
+          "request_rate": 31.2998,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2427,
+          "offered_rate": 31.0932,
+          "resets": 0.0,
+          "sample_time": 4.4822,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T13:29:48.601451+07:00",
+          "request_rate": 31.2198,
+          "error_ratio": 0.0012,
+          "p95_latency": 0.2433,
+          "offered_rate": 31.141,
+          "resets": 0.0,
+          "sample_time": 2.6956,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T13:30:19.596077+07:00",
+          "request_rate": 30.7941,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2427,
+          "offered_rate": 30.931,
+          "resets": 0.0,
+          "sample_time": 4.5934,
+          "serving_pods": 2
+        }
+      ]
+    },
+    {
+      "scenario_id": "recovery-oom-memory",
+      "profile_digest": "2ee2603918ca2d171019458cd460debea06862df8d94d7e247562087d25aaece",
+      "rate_rps": 8,
+      "action_state": {
+        "replicas": 1,
+        "resources": {
+          "requests": {
+            "cpu": "50m",
+            "memory": "192Mi"
+          },
+          "limits": {
+            "cpu": "100m",
+            "memory": "256Mi"
+          }
+        }
+      },
+      "passed": true,
+      "samples": [
+        {
+          "at": "2026-11-24T13:32:32.730129+07:00",
+          "request_rate": 8.2919,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3056,
+          "resets": 0.0,
+          "sample_time": 2.107,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:33:03.550449+07:00",
+          "request_rate": 8.2503,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3025,
+          "resets": 0.0,
+          "sample_time": 3.926,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:33:34.46416+07:00",
+          "request_rate": 8.3008,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3008,
+          "resets": 0.0,
+          "sample_time": 0.6938,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:34:05.319642+07:00",
+          "request_rate": 8.0003,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3029,
+          "resets": 0.0,
+          "sample_time": 2.4986,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:34:36.233143+07:00",
+          "request_rate": 8.2953,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.2953,
+          "resets": 0.0,
+          "sample_time": 4.4924,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:35:07.311514+07:00",
+          "request_rate": 8.3036,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3043,
+          "resets": 0.0,
+          "sample_time": 1.3896,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:35:38.302514+07:00",
+          "request_rate": 8.3012,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3012,
+          "resets": 0.0,
+          "sample_time": 3.394,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:36:09.405449+07:00",
+          "request_rate": 8.2483,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.2477,
+          "resets": 0.0,
+          "sample_time": 0.1906,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:36:40.26603+07:00",
+          "request_rate": 8.3112,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3112,
+          "resets": 0.0,
+          "sample_time": 1.9947,
+          "serving_pods": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "recovery-bad-rollout-restore",
+      "profile_digest": "166a0ee90cc10c6af710b889d6fb05d00c5f6bcd12f4479768131378e44a8baf",
+      "rate_rps": 8,
+      "action_state": {
+        "replicas": 1,
+        "resources": {
+          "requests": {
+            "cpu": "50m",
+            "memory": "192Mi"
+          },
+          "limits": {
+            "cpu": "100m",
+            "memory": "256Mi"
+          }
+        }
+      },
+      "passed": true,
+      "samples": [
+        {
+          "at": "2026-11-24T13:38:21.149936+07:00",
+          "request_rate": 8.3022,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3029,
+          "resets": 0.0,
+          "sample_time": 1.4978,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:38:52.005173+07:00",
+          "request_rate": 8.3022,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3022,
+          "resets": 0.0,
+          "sample_time": 3.2956,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:39:22.886523+07:00",
+          "request_rate": 8.0003,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.2522,
+          "resets": 0.0,
+          "sample_time": 0.0987,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:39:53.765178+07:00",
+          "request_rate": 7.9997,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.307,
+          "resets": 0.0,
+          "sample_time": 1.9107,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:40:24.644492+07:00",
+          "request_rate": 8.3105,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3098,
+          "resets": 0.0,
+          "sample_time": 3.9431,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:40:55.755211+07:00",
+          "request_rate": 8.3063,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.306,
+          "resets": 0.0,
+          "sample_time": 0.9437,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:41:26.840125+07:00",
+          "request_rate": 8.2517,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3043,
+          "resets": 0.0,
+          "sample_time": 2.8967,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:41:57.877409+07:00",
+          "request_rate": 8.3046,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.2522,
+          "resets": 0.0,
+          "sample_time": 4.6063,
+          "serving_pods": 1
+        },
+        {
+          "at": "2026-11-24T13:42:28.68237+07:00",
+          "request_rate": 8.3005,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 8.3001,
+          "resets": 0.0,
+          "sample_time": 1.2441,
+          "serving_pods": 1
+        }
+      ]
+    }
+  ],
+  "qualifications": {
+    "recovery-bad-rollout-restore": {
+      "receipt_sha256": "dc729c2564000777b7ed08c44d1f1a37238d18470e69b265ebf4a45d14347f01",
+      "profile_digest": "166a0ee90cc10c6af710b889d6fb05d00c5f6bcd12f4479768131378e44a8baf",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "declared_replicas": 1,
+      "rate_rps": 8,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "required_memory_bytes": 201326592
+      }
+    },
+    "recovery-oom-memory": {
+      "receipt_sha256": "4351501231e0ee9d8628ca2e4058512b88631c7ffe0934996c4ad65e495c6433",
+      "profile_digest": "2ee2603918ca2d171019458cd460debea06862df8d94d7e247562087d25aaece",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "declared_replicas": 1,
+      "rate_rps": 8,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "required_memory_bytes": 201326592
+      }
+    },
+    "recovery-traffic-scale": {
+      "receipt_sha256": "23501d223a7da17466f70e8d516f262d66c027c3ce43f2fcc045c832964e4e23",
+      "profile_digest": "19a61a5db96eed3ec47c58c2c19fb78084a19b3d6e742a725035fa4d79fe636b",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "declared_replicas": 2,
+      "rate_rps": 30,
+      "surge_headroom": {
+        "required_cpu_millicores": 100,
+        "required_memory_bytes": 402653184
+      }
+    }
+  },
+  "steps": [
+    {
+      "at_utc": "06:26:46",
+      "exit": 0,
+      "step": "start a fresh recovery lab at the committed head"
+    },
+    {
+      "at_utc": "06:26:48",
+      "exit": 0,
+      "step": "provision the Operator account"
+    },
+    {
+      "at_utc": "06:26:58",
+      "exit": 0,
+      "step": "generate trusted E07 configuration"
+    },
+    {
+      "at_utc": "06:31:24",
+      "exit": 0,
+      "step": "qualify traffic scale (2 replicas, 30 rps, 180 s window)"
+    },
+    {
+      "at_utc": "06:37:12",
+      "exit": 0,
+      "step": "qualify memory profile (8 rps, 300 s window)"
+    },
+    {
+      "at_utc": "06:43:01",
+      "exit": 0,
+      "step": "qualify known-good restore (8 rps, 300 s window)"
+    },
+    {
+      "at_utc": "06:44:02",
+      "exit": 0,
+      "step": "healthy: begin Pending trial"
+    },
+    {
+      "at_utc": "06:45:05",
+      "exit": 0,
+      "step": "healthy: reset without a fault"
+    },
+    {
+      "at_utc": "06:46:05",
+      "exit": 0,
+      "step": "pending: begin"
+    },
+    {
+      "at_utc": "06:46:14",
+      "exit": 0,
+      "step": "pending: inject CPU request"
+    },
+    {
+      "at_utc": "06:46:47",
+      "exit": 0,
+      "step": "pending: observe Unschedulable"
+    },
+    {
+      "at_utc": "06:47:58",
+      "exit": 0,
+      "step": "pending: reset"
+    },
+    {
+      "at_utc": "06:48:59",
+      "exit": 0,
+      "step": "imagepull: begin"
+    },
+    {
+      "at_utc": "06:49:07",
+      "exit": 0,
+      "step": "imagepull: inject missing manifest"
+    },
+    {
+      "at_utc": "06:49:41",
+      "exit": 0,
+      "step": "imagepull: observe ImagePullBackOff"
+    },
+    {
+      "at_utc": "06:50:50",
+      "exit": 0,
+      "step": "imagepull: reset"
+    },
+    {
+      "at_utc": "06:51:51",
+      "exit": 0,
+      "step": "interrupted: begin Pending trial"
+    },
+    {
+      "at_utc": "06:51:59",
+      "exit": 0,
+      "step": "interrupted: inject without observation"
+    },
+    {
+      "at_utc": "06:53:26",
+      "exit": 0,
+      "step": "interrupted: reset --interrupted"
+    },
+    {
+      "at_utc": "06:54:26",
+      "exit": 0,
+      "step": "unqualified recovery: begin without qualification"
+    },
+    {
+      "at_utc": "06:54:28",
+      "exit": 1,
+      "step": "unqualified recovery: fault is refused",
+      "refusal": "This trial is manual or incomplete; fault injection is refused."
+    },
+    {
+      "at_utc": "06:55:31",
+      "exit": 0,
+      "step": "unqualified recovery: manual reset"
+    },
+    {
+      "at_utc": "06:56:31",
+      "exit": 0,
+      "step": "oom: begin qualified"
+    },
+    {
+      "at_utc": "06:56:33",
+      "exit": 1,
+      "step": "oom: a load at an unqualified rate is refused",
+      "refusal": "The trial load must use the exact rate its post-action state was qualified at."
+    },
+    {
+      "at_utc": "06:56:43",
+      "exit": 0,
+      "step": "oom: start 8 rps load"
+    },
+    {
+      "at_utc": "06:57:31",
+      "exit": 0,
+      "step": "oom: settle load"
+    },
+    {
+      "at_utc": "06:57:50",
+      "exit": 0,
+      "step": "oom: inject 128Mi limit"
+    },
+    {
+      "at_utc": "06:58:28",
+      "exit": 0,
+      "step": "oom: observe OOMKilled"
+    },
+    {
+      "at_utc": "06:58:34",
+      "exit": 0,
+      "step": "oom: interrupt load (no approved model analysis)"
+    },
+    {
+      "at_utc": "06:59:42",
+      "exit": 0,
+      "step": "oom: reset --interrupted"
+    },
+    {
+      "at_utc": "06:59:49",
+      "exit": 0,
+      "step": "bad rollout: confirm the known-good baseline"
+    },
+    {
+      "at_utc": "07:00:50",
+      "exit": 0,
+      "step": "bad rollout: begin qualified"
+    },
+    {
+      "at_utc": "07:01:00",
+      "exit": 0,
+      "step": "bad rollout: start 8 rps load"
+    },
+    {
+      "at_utc": "07:01:48",
+      "exit": 0,
+      "step": "bad rollout: settle load"
+    },
+    {
+      "at_utc": "07:02:08",
+      "exit": 0,
+      "step": "bad rollout: inject bad image"
+    },
+    {
+      "at_utc": "07:02:46",
+      "exit": 0,
+      "step": "bad rollout: observe startup retries"
+    },
+    {
+      "at_utc": "07:02:52",
+      "exit": 0,
+      "step": "bad rollout: interrupt load (no approved model analysis)"
+    },
+    {
+      "at_utc": "07:04:03",
+      "exit": 0,
+      "step": "bad rollout: reset --interrupted"
+    },
+    {
+      "at_utc": "07:05:04",
+      "exit": 0,
+      "step": "traffic: begin qualified"
+    },
+    {
+      "at_utc": "07:05:06",
+      "exit": 1,
+      "step": "traffic: a second targeted load is refused",
+      "refusal": "A recovery trial owns the target's offered load; no other targeted load may run."
+    },
+    {
+      "at_utc": "07:05:15",
+      "exit": 0,
+      "step": "traffic: start 30 rps load"
+    },
+    {
+      "at_utc": "07:05:18",
+      "exit": 1,
+      "step": "traffic: duplicate recovery load is refused",
+      "refusal": "This trial already has an offered-load record."
+    },
+    {
+      "at_utc": "07:06:16",
+      "exit": 0,
+      "step": "traffic: settle load"
+    },
+    {
+      "at_utc": "07:06:35",
+      "exit": 0,
+      "step": "traffic: inject overload (load only)"
+    },
+    {
+      "at_utc": "07:06:40",
+      "exit": 0,
+      "step": "traffic: observe error ratio"
+    },
+    {
+      "at_utc": "07:06:43",
+      "exit": 1,
+      "step": "traffic: reset refused while load runs",
+      "refusal": "Recovery offered load must finish or be explicitly stopped before reset."
+    },
+    {
+      "at_utc": "07:06:51",
+      "exit": 0,
+      "step": "traffic: open writer"
+    },
+    {
+      "at_utc": "07:10:00",
+      "exit": 0,
+      "step": "traffic: E07 propose/review/approve/verify"
+    },
+    {
+      "at_utc": "07:10:15",
+      "exit": 0,
+      "step": "traffic: bind positive post-check"
+    },
+    {
+      "at_utc": "07:10:24",
+      "exit": 0,
+      "step": "traffic: re-quarantine writer"
+    },
+    {
+      "at_utc": "07:10:30",
+      "exit": 0,
+      "step": "traffic: finalize load"
+    },
+    {
+      "at_utc": "07:13:43",
+      "exit": 0,
+      "step": "traffic: wait for approved plan expiry"
+    },
+    {
+      "at_utc": "07:15:19",
+      "exit": 0,
+      "step": "traffic: reset"
+    }
+  ],
+  "observations": [
+    {
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "phase": "Pending",
+      "conditions": [
+        "Unschedulable"
+      ],
+      "waiting": [],
+      "last_terminated": [],
+      "restart_counts": [],
+      "measured_error_ratio": null,
+      "event_reasons": [
+        "FailedScheduling"
+      ],
+      "logs": []
+    },
+    {
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "phase": "Pending",
+      "conditions": [
+        "ContainersNotReady",
+        "ContainersNotReady"
+      ],
+      "waiting": [
+        "ErrImagePull"
+      ],
+      "last_terminated": [
+        null
+      ],
+      "restart_counts": [
+        0
+      ],
+      "measured_error_ratio": null,
+      "event_reasons": [
+        "BackOff",
+        "Failed",
+        "Pulling",
+        "Scheduled"
+      ],
+      "logs": []
+    },
+    {
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "phase": "Running",
+      "conditions": [
+        "ContainersNotReady",
+        "ContainersNotReady"
+      ],
+      "waiting": [
+        null
+      ],
+      "last_terminated": [
+        "OOMKilled"
+      ],
+      "restart_counts": [
+        1
+      ],
+      "measured_error_ratio": null,
+      "event_reasons": [
+        "Created",
+        "Pulled",
+        "Scheduled",
+        "Started",
+        "Unhealthy"
+      ],
+      "logs": [
+        {
+          "previous": false,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "timestamped_nonempty": false
+        },
+        {
+          "previous": true,
+          "bytes": 79,
+          "sha256": "a19d4a38d7f9e78b9a83984a99430110d6ecbdd23a19235c7670bf392f791c86",
+          "timestamped_nonempty": true
+        }
+      ]
+    },
+    {
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "phase": "Running",
+      "conditions": [
+        "ContainersNotReady",
+        "ContainersNotReady"
+      ],
+      "waiting": [
+        null
+      ],
+      "last_terminated": [
+        "Error"
+      ],
+      "restart_counts": [
+        1
+      ],
+      "measured_error_ratio": null,
+      "event_reasons": [
+        "BackOff",
+        "Created",
+        "Pulled",
+        "Scheduled",
+        "Started",
+        "Unhealthy"
+      ],
+      "logs": [
+        {
+          "previous": false,
+          "bytes": 84,
+          "sha256": "f21514348220b783fc3f5af904d2d82c882b91aaf80efd60d47ec56a38128e7b",
+          "timestamped_nonempty": true
+        },
+        {
+          "previous": true,
+          "bytes": 115,
+          "sha256": "8f17f869a1ec5c9fd5b0404256d646fe763c93f81300beb1a8152092a2886d8c",
+          "timestamped_nonempty": false
+        }
+      ]
+    },
+    {
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "phase": null,
+      "conditions": [],
+      "waiting": [],
+      "last_terminated": [],
+      "restart_counts": [],
+      "measured_error_ratio": true,
+      "event_reasons": [
+        "ScalingReplicaSet"
+      ],
+      "logs": []
+    }
+  ],
+  "trials": [
+    {
+      "scenario_id": "pending-insufficient-cpu",
+      "trial_id": "27de882b-4577-4971-9a99-ad201336c4c6",
+      "run_id": "608360ff-e459-4d91-9905-461d92ca5981",
+      "window_id": "7f27dc5d-75a2-4b3e-bd91-72c3ca4efada",
+      "reset_id": "a534910b-e02a-478d-b211-6fbdb66babd0",
+      "reset_state": "healthy",
+      "receipt_status": "reset_complete",
+      "incomplete_reason": null,
+      "trial_disposition": "healthy_reset",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T13:44:02.157864+07:00",
+      "observed_at": "2026-11-24T13:44:07.889509+07:00",
+      "phases": {
+        "baseline": "2026-11-24T13:44:02.157864+07:00",
+        "inject": null,
+        "detect": null,
+        "collect": "2026-11-24T13:44:02.157864+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": "2026-11-24T13:44:07.889509+07:00",
+        "reset": "2026-11-24T13:44:07.889509+07:00"
+      },
+      "fault": null,
+      "offered_load": null,
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "ee6d1f44-6a99-4e86-8116-e37fb8d8c708"
+      ],
+      "reset_pod_uids": [
+        "ee6d1f44-6a99-4e86-8116-e37fb8d8c708"
+      ],
+      "private_receipt_sha256": "3f02c48f0ffcf774d24cc940aeaeb56e5e0cad1047d352cef36b914f71731e1d"
+    },
+    {
+      "scenario_id": "pending-insufficient-cpu",
+      "trial_id": "d6b1d639-b643-4a4b-af55-8852fd474fc7",
+      "run_id": "1ff275bc-c017-42af-a98b-d1ae21337f7a",
+      "window_id": "c168af3c-2ebd-422e-b79d-1d9c4258d159",
+      "reset_id": "dc85f3fa-7e02-492c-b13a-4e0702941733",
+      "reset_state": "faulted",
+      "receipt_status": "reset_complete",
+      "incomplete_reason": null,
+      "trial_disposition": "observed",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T13:46:05.956731+07:00",
+      "observed_at": "2026-11-24T13:47:00.706227+07:00",
+      "phases": {
+        "baseline": "2026-11-24T13:46:05.956731+07:00",
+        "inject": "2026-11-24T13:46:13.758919+07:00",
+        "detect": "2026-11-24T13:46:47.193735+07:00",
+        "collect": "2026-11-24T13:46:47.193735+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": "2026-11-24T13:47:00.706227+07:00",
+        "reset": "2026-11-24T13:47:00.706227+07:00"
+      },
+      "fault": {
+        "operation": "pending",
+        "observed_at": "2026-11-24T13:46:47.193735+07:00",
+        "observation_sha256": "c18bb9b887bc893e1c2e65c97fa63f1030f902d1fe0c2b63aec17aa0338649c7"
+      },
+      "offered_load": null,
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "ee6d1f44-6a99-4e86-8116-e37fb8d8c708"
+      ],
+      "reset_pod_uids": [
+        "d2560885-e550-4e07-aa39-3d973531868e"
+      ],
+      "private_receipt_sha256": "ac7b5ece4b65e02fefb00d70bdd84f63969323b1e35c356bd3c94fb1b43e79ff"
+    },
+    {
+      "scenario_id": "imagepull-missing-manifest",
+      "trial_id": "4c899ce0-04f8-45d1-8cb0-105bcf483aef",
+      "run_id": "47b8bf46-8ab2-491a-8803-37ab56a80fd8",
+      "window_id": "0f6f43f4-f3da-409a-a517-8944c78b9a38",
+      "reset_id": "282f4aea-cba5-4ee7-9c11-bb04d48bc313",
+      "reset_state": "faulted",
+      "receipt_status": "reset_complete",
+      "incomplete_reason": null,
+      "trial_disposition": "observed",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T13:48:59.117069+07:00",
+      "observed_at": "2026-11-24T13:49:53.43495+07:00",
+      "phases": {
+        "baseline": "2026-11-24T13:48:59.117069+07:00",
+        "inject": "2026-11-24T13:49:07.176884+07:00",
+        "detect": "2026-11-24T13:49:41.177025+07:00",
+        "collect": "2026-11-24T13:49:41.177025+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": "2026-11-24T13:49:53.43495+07:00",
+        "reset": "2026-11-24T13:49:53.43495+07:00"
+      },
+      "fault": {
+        "operation": "imagepull",
+        "observed_at": "2026-11-24T13:49:41.177025+07:00",
+        "observation_sha256": "12b3749cb834f7961a296658244a0d440db477037904a74d6832f8b6d43958c3"
+      },
+      "offered_load": null,
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "d2560885-e550-4e07-aa39-3d973531868e"
+      ],
+      "reset_pod_uids": [
+        "1974da17-0f95-44d5-b2ea-bc78bd0a9c13"
+      ],
+      "private_receipt_sha256": "d9e113c93d12a89c571e6c748ace3cf189fc5e69c62ae28a0f4bc57627c9b1ea"
+    },
+    {
+      "scenario_id": "pending-insufficient-cpu",
+      "trial_id": "d40bfd66-472f-4d15-886c-e71f107a84d9",
+      "run_id": "1257e92c-4d6f-4ed6-a91f-c3f0be07782d",
+      "window_id": "3cc82424-31cd-4ff0-93d4-cbc2f1c7e099",
+      "reset_id": "b0f9a6fd-0021-4b23-a9f0-aecab1bf93a4",
+      "reset_state": "interrupted",
+      "receipt_status": "reset_complete",
+      "incomplete_reason": null,
+      "trial_disposition": "incomplete_observation",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T13:51:50.916734+07:00",
+      "observed_at": "2026-11-24T13:52:29.784102+07:00",
+      "phases": {
+        "baseline": "2026-11-24T13:51:50.916734+07:00",
+        "inject": "2026-11-24T13:51:59.258209+07:00",
+        "detect": null,
+        "collect": "2026-11-24T13:51:50.916734+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": "2026-11-24T13:52:29.784102+07:00",
+        "reset": "2026-11-24T13:52:29.784102+07:00"
+      },
+      "fault": {
+        "operation": "pending",
+        "observed_at": null,
+        "observation_sha256": null
+      },
+      "offered_load": null,
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "1974da17-0f95-44d5-b2ea-bc78bd0a9c13"
+      ],
+      "reset_pod_uids": [
+        "c67345e2-7ad9-4dd0-9370-ae1d8ad23351"
+      ],
+      "private_receipt_sha256": "51607c3e672db63d253fb9e72ab013e4d57230bf8d87937ba90e74f42c23e4bc"
+    },
+    {
+      "scenario_id": "recovery-oom-memory",
+      "trial_id": "cc057bb2-848c-4cac-8843-4f3a481c60b3",
+      "run_id": "47dcff5d-63dd-437e-9348-a15f24c5c7e1",
+      "window_id": "56e1c56f-9c9e-43d4-a84e-6fc731ead82c",
+      "reset_id": "54035357-201a-477b-82a3-17762c538124",
+      "reset_state": "healthy",
+      "receipt_status": "manual",
+      "incomplete_reason": "No exact target/source/image qualification receipt was supplied.",
+      "trial_disposition": "healthy_reset",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T13:54:26.35699+07:00",
+      "observed_at": "2026-11-24T13:54:34.237716+07:00",
+      "phases": {
+        "baseline": "2026-11-24T13:54:26.35699+07:00",
+        "inject": null,
+        "detect": null,
+        "collect": "2026-11-24T13:54:26.35699+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-24T13:54:34.237716+07:00"
+      },
+      "fault": null,
+      "offered_load": null,
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "c67345e2-7ad9-4dd0-9370-ae1d8ad23351"
+      ],
+      "reset_pod_uids": [
+        "c67345e2-7ad9-4dd0-9370-ae1d8ad23351"
+      ],
+      "private_receipt_sha256": "c18e75b399dc5346314fa918e6aa06896c1ef2f86ad59a18f4a8ff7e738914b8"
+    },
+    {
+      "scenario_id": "recovery-oom-memory",
+      "trial_id": "c69193d5-91a8-4d29-b808-f58a45fa636e",
+      "run_id": "1976c5e6-0dc2-4316-a1cd-427a69997cff",
+      "window_id": "9ecc3f77-7045-46aa-810c-b191cc396598",
+      "reset_id": "db90a715-85c3-48f9-b691-671623bbfd50",
+      "reset_state": "interrupted",
+      "receipt_status": "incomplete",
+      "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+      "trial_disposition": "observed",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T13:56:31.345136+07:00",
+      "observed_at": "2026-11-24T13:58:45.741735+07:00",
+      "phases": {
+        "baseline": "2026-11-24T13:56:31.345136+07:00",
+        "inject": "2026-11-24T13:57:50.011157+07:00",
+        "detect": "2026-11-24T13:58:27.99396+07:00",
+        "collect": "2026-11-24T13:58:27.99396+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-24T13:58:45.741735+07:00"
+      },
+      "fault": {
+        "operation": "memory-limit",
+        "observed_at": "2026-11-24T13:58:27.99396+07:00",
+        "observation_sha256": "661a2d2aa5f2198c6a2841a658ad0dcee782902ce1aeecb3ce0595d2cb1ea0b0"
+      },
+      "offered_load": {
+        "rate": 8,
+        "seconds": 900,
+        "state": "interrupted",
+        "started_at": "2026-11-24T13:56:42.869799+07:00",
+        "finished_at": "2026-11-24T13:58:34.217034+07:00",
+        "observations": [
+          {
+            "phase": "pre-injection",
+            "expected_rate_rps": 8,
+            "observed_rate_rps": 8.31186102568365
+          },
+          {
+            "phase": "fault-observation",
+            "expected_rate_rps": 8,
+            "observed_rate_rps": 8.309788931361142
+          }
+        ]
+      },
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "c67345e2-7ad9-4dd0-9370-ae1d8ad23351"
+      ],
+      "reset_pod_uids": [
+        "f8b8f10c-f6d8-4c91-bd7e-70584f5f9149"
+      ],
+      "private_receipt_sha256": "143272c707b2d6ae197016c242d40cdc5001597f6837fcb382edc58ca2515ee3"
+    },
+    {
+      "scenario_id": "recovery-bad-rollout-restore",
+      "trial_id": "06e6a1fa-41ce-4873-9e71-7631501a3ab4",
+      "run_id": "5c571d35-5ce3-49f5-90e4-aff492097a7f",
+      "window_id": "6bd329ab-16d6-4309-ac18-b3895b7a4037",
+      "reset_id": "6cacab17-1a7c-4a7c-8368-1128917d8db4",
+      "reset_state": "interrupted",
+      "receipt_status": "incomplete",
+      "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+      "trial_disposition": "observed",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 50,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 201326592,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T14:00:50.777551+07:00",
+      "observed_at": "2026-11-24T14:03:06.875207+07:00",
+      "phases": {
+        "baseline": "2026-11-24T14:00:50.777551+07:00",
+        "inject": "2026-11-24T14:02:07.56326+07:00",
+        "detect": "2026-11-24T14:02:45.868027+07:00",
+        "collect": "2026-11-24T14:02:45.868027+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-24T14:03:06.875207+07:00"
+      },
+      "fault": {
+        "operation": "bad-rollout",
+        "observed_at": "2026-11-24T14:02:45.868027+07:00",
+        "observation_sha256": "83b43a68e74a827b983666dccc07921a2b0ceb028bc80a16b361bb904fbe6ae0"
+      },
+      "offered_load": {
+        "rate": 8,
+        "seconds": 900,
+        "state": "interrupted",
+        "started_at": "2026-11-24T14:01:00.320539+07:00",
+        "finished_at": "2026-11-24T14:02:52.09694+07:00",
+        "observations": [
+          {
+            "phase": "pre-injection",
+            "expected_rate_rps": 8,
+            "observed_rate_rps": 8.30702774547267
+          },
+          {
+            "phase": "fault-observation",
+            "expected_rate_rps": 8,
+            "observed_rate_rps": 8.327781479013991
+          }
+        ]
+      },
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": {
+        "id": "7f7735e5-5356-497d-a675-a535a43a51c7",
+        "digest": "bf9531424cf00bea7dcf8636d717852bab26ced058f1afc71ffc5f1bb8614c5e",
+        "confirmed_at": "2026-11-24T13:59:49.446129+07:00"
+      },
+      "baseline_pod_uids": [
+        "f8b8f10c-f6d8-4c91-bd7e-70584f5f9149"
+      ],
+      "reset_pod_uids": [
+        "ac4ea238-b19c-49d0-a3ce-a2df473cf99d"
+      ],
+      "private_receipt_sha256": "3377afeeae3886eeecc2cff966546bd7b6c3cc8ede8c72607b1828fe1ec87510"
+    },
+    {
+      "scenario_id": "recovery-traffic-scale",
+      "trial_id": "666f68ff-0229-478f-a877-5431c4d47e8a",
+      "run_id": "3cc100b5-0d09-4e61-8a73-b02c3bec4817",
+      "window_id": "73f5e7bd-4194-46a4-82f7-608b3a71f75a",
+      "reset_id": "25852bd2-99fd-4f57-a546-fd6c9338d562",
+      "reset_state": "faulted",
+      "receipt_status": "incomplete",
+      "incomplete_reason": "Recovery offered load must be finalized before reset.",
+      "trial_disposition": null,
+      "lab_state": null,
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 100,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 402653184,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T14:05:03.990356+07:00",
+      "observed_at": "2026-11-24T14:06:43.663213+07:00",
+      "phases": {
+        "baseline": "2026-11-24T14:05:03.990356+07:00",
+        "inject": "2026-11-24T14:05:15.560663+07:00",
+        "detect": "2026-11-24T14:06:39.379409+07:00",
+        "collect": "2026-11-24T14:06:39.379409+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": null
+      },
+      "fault": null,
+      "offered_load": {
+        "rate": 30,
+        "seconds": 900,
+        "state": "running",
+        "started_at": "2026-11-24T14:05:15.560663+07:00",
+        "finished_at": null,
+        "observations": [
+          {
+            "phase": "pre-injection",
+            "expected_rate_rps": 30,
+            "observed_rate_rps": 31.213584151822875
+          },
+          {
+            "phase": "fault-observation",
+            "expected_rate_rps": 30,
+            "observed_rate_rps": 31.21228515543718
+          }
+        ]
+      },
+      "readiness_load": null,
+      "known_good_baseline": null,
+      "baseline_pod_uids": null,
+      "reset_pod_uids": null,
+      "private_receipt_sha256": "abf79d9a79512947419279711e2aa1d1e87a00de5e1b2426c93785dd0b0f1a71"
+    },
+    {
+      "scenario_id": "recovery-traffic-scale",
+      "trial_id": "666f68ff-0229-478f-a877-5431c4d47e8a",
+      "run_id": "3cc100b5-0d09-4e61-8a73-b02c3bec4817",
+      "window_id": "73f5e7bd-4194-46a4-82f7-608b3a71f75a",
+      "reset_id": "8e9a2632-9e50-4799-9544-343937b0cebf",
+      "reset_state": "faulted",
+      "receipt_status": "reset_complete",
+      "incomplete_reason": null,
+      "trial_disposition": "observed",
+      "lab_state": "restored_baseline",
+      "target_uid": "20446ae1-76a3-4e85-9ae3-77ae410edc33",
+      "source_binding_sha256": "7f0455af5bd8e864bdfe212ea08874b89c72f7b92b765c69fd5c2e1a1788ea9d",
+      "image_digests": [
+        "sha256:b9fc1bd6ab8cf28eb1de3a748c9f4208a8b230172ca63ee8e56dd17d388585f4"
+      ],
+      "residual_eligible_actions": 0,
+      "duplicate_targeted_loads": 0,
+      "surge_headroom": {
+        "required_cpu_millicores": 100,
+        "available_cpu_millicores": 2675,
+        "required_memory_bytes": 402653184,
+        "available_memory_bytes": 2805989376,
+        "qualified": true
+      },
+      "baseline_at": "2026-11-24T14:05:03.990356+07:00",
+      "observed_at": "2026-11-24T14:14:22.198411+07:00",
+      "phases": {
+        "baseline": "2026-11-24T14:05:03.990356+07:00",
+        "inject": "2026-11-24T14:05:15.560663+07:00",
+        "detect": "2026-11-24T14:06:39.379409+07:00",
+        "collect": "2026-11-24T14:06:39.379409+07:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-24T14:06:55.7527+07:00",
+        "verify": "2026-11-24T14:09:56.200566+07:00",
+        "reset": "2026-11-24T14:14:22.198411+07:00"
+      },
+      "fault": {
+        "operation": "overload",
+        "observed_at": "2026-11-24T14:06:39.379409+07:00",
+        "observation_sha256": "4cbd7610f02ecc342d3faedbba526bad8c1832d465964fc332c7b25c9147b3c1"
+      },
+      "offered_load": {
+        "rate": 30,
+        "seconds": 900,
+        "state": "stopped_after_post_check",
+        "started_at": "2026-11-24T14:05:15.560663+07:00",
+        "finished_at": "2026-11-24T14:10:30.143989+07:00",
+        "observations": [
+          {
+            "phase": "pre-injection",
+            "expected_rate_rps": 30,
+            "observed_rate_rps": 31.213584151822875
+          },
+          {
+            "phase": "fault-observation",
+            "expected_rate_rps": 30,
+            "observed_rate_rps": 31.21228515543718
+          },
+          {
+            "phase": "positive-post-check",
+            "expected_rate_rps": 30,
+            "observed_rate_rps": 30.97253768325418
+          }
+        ]
+      },
+      "readiness_load": {
+        "200": 200
+      },
+      "known_good_baseline": null,
+      "baseline_pod_uids": [
+        "ac4ea238-b19c-49d0-a3ce-a2df473cf99d"
+      ],
+      "reset_pod_uids": [
+        "ac4ea238-b19c-49d0-a3ce-a2df473cf99d"
+      ],
+      "private_receipt_sha256": "9db0e42a1e88e8dafef36562fbcb0c8ffa76abc81703e8cf87dcdb92cb1da434",
+      "post_check": {
+        "status": "passed",
+        "execution_id": "5eacef5a-19b8-417f-8409-c55c6117a714",
+        "verification_profile_digest": "19a61a5db96eed3ec47c58c2c19fb78084a19b3d6e742a725035fa4d79fe636b",
+        "verification_acknowledged_at": "2026-11-24T14:06:55.7527+07:00",
+        "verification_deadline": "2026-11-24T14:09:55.7527+07:00",
+        "verification_finalized_at": "2026-11-24T14:09:56.200566+07:00",
+        "verification_window_seconds": 180,
+        "expected_rollout_samples": 5,
+        "valid_rollout_samples": 5,
+        "requested_rate_rps": 30,
+        "observed_rate_rps": 30.97253768325418,
+        "offered_window_rate_rps": 31.174661235347912,
+        "execution_receipt_sha256": "c8d8558d2452fc16c2221b36db72a6e8414ae70215b3ecd47a59e70a1cdf7bf3",
+        "verification_receipt_sha256": "3566570adb2bf82517ddbdc2330d86a304988e7afc45bb7665739ace67678a2f",
+        "load_final_state": "stopped_after_post_check"
+      }
+    }
+  ],
+  "e07_product_action": {
+    "execution_id": "5eacef5a-19b8-417f-8409-c55c6117a714",
+    "execution_state": "succeeded",
+    "template": "scale_deployment",
+    "profile_digest": "19a61a5db96eed3ec47c58c2c19fb78084a19b3d6e742a725035fa4d79fe636b",
+    "verification_state": "passed",
+    "acknowledged_at": "2026-11-24T07:06:55.7527Z",
+    "deadline": "2026-11-24T07:09:55.7527Z",
+    "finalized_at": "2026-11-24T07:09:56.200566Z",
+    "expected_rollout_samples": 5,
+    "valid_rollout_samples": 5,
+    "application": {
+      "state": "passed",
+      "offered_rps": 31.174661235347912,
+      "coverage": 1.0
+    },
+    "execution_receipt_sha256": "c8d8558d2452fc16c2221b36db72a6e8414ae70215b3ecd47a59e70a1cdf7bf3"
+  },
+  "known_good_baseline": {
+    "id": "7f7735e5-5356-497d-a675-a535a43a51c7",
+    "digest": "bf9531424cf00bea7dcf8636d717852bab26ced058f1afc71ffc5f1bb8614c5e",
+    "profile": "deployment-images-resources/v1",
+    "confirmed_at": "2026-11-24T06:59:49.446129Z"
+  },
+  "non_claims": [
+    "Owned single-node local K3s only; no shared, cloud or production target.",
+    "Memory and known-good restore positives need an approved E06 analysis and model budget; they remain for S6.",
+    "Untolerated-taint and registry-authorization variants are fixture evidence only.",
+    "No fifteen-run campaign, scoring, SLO or recovery-success rate is claimed."
+  ]
+}

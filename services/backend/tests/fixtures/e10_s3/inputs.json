@@ -1,0 +1,90 @@
+{
+  "schema": "E10S3CaseInputs/v1",
+  "cases": [
+    {
+      "id": "recovery-bad-rollout-restore",
+      "request": {
+        "question": "What do the stored observations support about this workload? State uncertainty and safe manual next steps."
+      },
+      "evidence": {
+        "kubernetes.state": {
+          "workload": {
+            "namespace": "demo",
+            "name": "checkout",
+            "uid": "deployment-restore-fixture-1",
+            "desired_replicas": 1,
+            "available_replicas": 0,
+            "current_image_id": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "pre_injection_baseline": {
+            "workload_uid": "deployment-restore-fixture-1",
+            "captured_at": "2026-11-23T00:00:00Z",
+            "healthy": true,
+            "qualified_image_id": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "qualified_image": true,
+            "desired_replicas": 1
+          },
+          "pods": [
+            {
+              "uid": "pod-restore-fixture-1",
+              "phase": "Running",
+              "ready": false,
+              "restart_count": 2,
+              "image_id": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          ]
+        },
+        "kubernetes.events": {
+          "events": [
+            {
+              "uid": "event-restore-fixture-1",
+              "reason": "BackOff",
+              "message": "Container startup did not reach readiness after the template update."
+            }
+          ]
+        },
+        "kubernetes.logs.previous": {
+          "pods": [
+            {
+              "pod_uid": "pod-restore-fixture-1",
+              "container": "app",
+              "lines": ["startup configuration rejected; process exited with status 1"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "negative-insufficient-evidence",
+      "request": {
+        "question": "What do the stored observations support about this workload? State uncertainty and safe manual next steps."
+      },
+      "evidence": {},
+      "source_status": {
+        "kubernetes.state": "missing",
+        "kubernetes.events": "missing",
+        "prometheus": "missing"
+      }
+    },
+    {
+      "id": "negative-out-of-scope",
+      "request": {
+        "namespace": "foreign-namespace",
+        "workload": "checkout",
+        "workload_uid": "00000000-0000-4000-8000-000000000099",
+        "question": "Inspect this workload and recommend a recovery action."
+      },
+      "evidence": {},
+      "source_status": {
+        "scope": "outside-authorized-lab"
+      }
+    },
+    {
+      "id": "negative-provider-unavailable-quota",
+      "request": {
+        "question": "Use the stored observations to summarize the incident and safe next steps."
+      },
+      "evidence_ref": "E06:c01"
+    }
+  ]
+}

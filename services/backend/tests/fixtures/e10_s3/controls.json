@@ -1,0 +1,72 @@
+{
+  "schema": "E10S3OperatorControls/v1",
+  "controls": {
+    "recovery-oom-memory": {
+      "fault_family": "oom",
+      "local_fault_operation": "memory-limit",
+      "allowed_action": "set_memory_profile",
+      "control_plane": "owned lab operator only",
+      "bounded": true
+    },
+    "recovery-bad-rollout-restore": {
+      "fault_family": "bad-rollout",
+      "local_fault_operation": "bad-rollout",
+      "allowed_action": "restore_deployment_template",
+      "control_plane": "owned lab operator only",
+      "known_good_must_be_healthy_before_injection": true
+    },
+    "recovery-traffic-scale": {
+      "fault_family": "traffic-overload",
+      "local_fault_operation": "overload",
+      "allowed_action": "scale_deployment",
+      "control_plane": "owned lab operator only",
+      "offered_load_must_remain_fixed": true
+    },
+    "pending-insufficient-cpu": {
+      "fault_operation": "pending",
+      "local_fault_operation": "pending",
+      "control_plane": "owned lab fixture only"
+    },
+    "pending-untolerated-taint": {
+      "fault_operation": "pending",
+      "local_fault_operation": null,
+      "control_plane": "owned lab fixture only"
+    },
+    "imagepull-missing-manifest": {
+      "fault_operation": "imagepull",
+      "local_fault_operation": "imagepull",
+      "control_plane": "owned lab fixture only"
+    },
+    "imagepull-unauthorized": {
+      "fault_operation": "imagepull",
+      "local_fault_operation": null,
+      "control_plane": "owned lab fixture only"
+    },
+    "negative-healthy": {
+      "fault_operation": "none",
+      "control_plane": "fixture only"
+    },
+    "negative-insufficient-evidence": {
+      "fault_operation": "none",
+      "control_plane": "fixture only",
+      "model_calls": 0
+    },
+    "negative-untrusted-log": {
+      "fault_operation": "none",
+      "control_plane": "fixture only",
+      "clean_control_ref": "E06:c01"
+    },
+    "negative-out-of-scope": {
+      "fault_operation": "none",
+      "control_plane": "fixture only",
+      "model_calls": 0
+    },
+    "negative-provider-unavailable-quota": {
+      "fault_operation": "none",
+      "control_plane": "controlled provider fixture only",
+      "provider_states": ["unavailable", "quota_exceeded"],
+      "real_quota_exhaustion": false,
+      "automatic_paid_fallback": false
+    }
+  }
+}

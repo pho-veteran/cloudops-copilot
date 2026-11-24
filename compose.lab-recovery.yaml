@@ -1,0 +1,20 @@
+# E10 S3 recovery lab only: trusted, operator-generated E07 recovery policy and
+# qualified verification profiles. The files stay owner-only in the lab directory
+# and are mounted read-only. Without them every plan remains acknowledgement-only.
+x-recovery-env: &recovery-env
+  RECOVERY_POLICY_FILE: /run/cloudops-recovery/policy.json
+  RECOVERY_VERIFICATION_FILE: /run/cloudops-recovery/verification.json
+x-recovery-volume: &recovery-volume ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recovery:/run/cloudops-recovery:ro
+services:
+  api:
+    environment: *recovery-env
+    volumes: [*recovery-volume]
+  worker:
+    environment: *recovery-env
+    volumes: [*recovery-volume]
+  executor:
+    environment: *recovery-env
+    volumes: [*recovery-volume]
+  load:
+    # The finite offered-load exporter runs from the recovery sample image.
+    image: ${LAB_RECOVERY_IMAGE:?Use manage-local-lab.py}

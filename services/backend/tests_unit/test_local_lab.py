@@ -48,6 +48,9 @@ def lab(driver, monkeypatch):
     }
     value.save()
     monkeypatch.setattr(value, "resources", lambda: {"container": [], "volume": [], "network": []})
+    # Trial guards read live PostgreSQL/Docker state; individual tests override them.
+    monkeypatch.setattr(value, "eligible_action_count", lambda: 0)
+    monkeypatch.setattr(value, "readiness_load", lambda **kwargs: {"stub": True})
     return value
 
 
@@ -566,6 +569,11 @@ def test_reset_preserves_unrelated_env_annotations_and_does_not_rewrite_authorit
     monkeypatch.setattr(lab, "patch", lambda resource, changes: patches.extend(changes))
     monkeypatch.setattr(lab, "kube", lambda *args, **kwargs: "")
     monkeypatch.setattr(lab, "receipt", lambda *args: None)
+    monkeypatch.setattr(lab, "active_loads", lambda: [])
+    monkeypatch.setattr(lab, "wait_settled", lambda: None)
+    # Outside an E10 trial, reset keeps its restore-only contract: no load or telemetry proof.
+    for name in ("readiness_load", "verify", "containment", "healthy_target"):
+        monkeypatch.setattr(lab, name, lambda *a, name=name, **k: pytest.fail(name))
     lab.reset()
     env = next(change["value"] for change in patches if change["path"].endswith("/env"))
     assert env == [{"name": "KEEP", "value": "preserved"}, {"name": "ADDED", "value": "also keep"}]

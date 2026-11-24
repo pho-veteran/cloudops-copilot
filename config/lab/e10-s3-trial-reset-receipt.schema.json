@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cloudops-copilot.invalid/schemas/E10TrialResetReceipt-v1.json",
+  "title": "E10 S3 Trial Reset Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "trial_id",
+    "run_id",
+    "window_id",
+    "reset_id",
+    "scenario_id",
+    "reset_state",
+    "scope",
+    "target_uid",
+    "source_binding_sha256",
+    "image_digests",
+    "declared_resources",
+    "surge_headroom",
+    "baseline_at",
+    "observed_at",
+    "source_limits",
+    "residual_eligible_actions",
+    "duplicate_targeted_loads",
+    "receipt_status",
+    "phases"
+  ],
+  "properties": {
+    "schema": {"const": "E10TrialResetReceipt/v1"},
+    "trial_id": {"type": "string", "format": "uuid"},
+    "run_id": {"type": "string", "format": "uuid"},
+    "window_id": {"type": "string", "format": "uuid"},
+    "reset_id": {"type": "string", "format": "uuid"},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "reset_state": {"enum": ["healthy", "interrupted", "faulted"]},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "namespace", "scope_manifest_sha256"],
+      "properties": {
+        "project": {"type": "string", "minLength": 1},
+        "namespace": {"type": "string", "minLength": 1},
+        "scope_manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "target_uid": {"type": "string", "minLength": 1},
+    "source_binding_sha256": {"$ref": "#/$defs/sha256"},
+    "image_digests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "declared_resources": {"$ref": "#/$defs/declaredResources"},
+    "surge_headroom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_cpu_millicores",
+        "available_cpu_millicores",
+        "required_memory_bytes",
+        "available_memory_bytes",
+        "qualified"
+      ],
+      "properties": {
+        "required_cpu_millicores": {"type": "integer", "minimum": 0},
+        "available_cpu_millicores": {"type": "integer", "minimum": 0},
+        "required_memory_bytes": {"type": "integer", "minimum": 0},
+        "available_memory_bytes": {"type": "integer", "minimum": 0},
+        "qualified": {"type": "boolean"}
+      }
+    },
+    "baseline_at": {"type": "string", "format": "date-time"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "source_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_timeout_seconds", "response_bytes", "series_limit"],
+      "properties": {
+        "request_timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "response_bytes": {"type": "integer", "minimum": 1},
+        "series_limit": {"type": "integer", "minimum": 1}
+      }
+    },
+    "residual_eligible_actions": {"type": ["integer", "null"], "minimum": 0},
+    "duplicate_targeted_loads": {"type": ["integer", "null"], "minimum": 0},
+    "receipt_status": {"enum": ["reset_complete", "manual", "incomplete"]},
+    "incomplete_reason": {"type": ["string", "null"]},
+    "phases": {
+      "type": "object",
+      "additionalProperties": {"type": ["string", "null"], "format": "date-time"}
+    },
+    "evidence": {"type": "object"},
+    "post_check": {"$ref": "#/$defs/postCheck"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "resourcePair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu", "memory"],
+      "properties": {
+        "cpu": {"type": ["string", "number"]},
+        "memory": {"type": ["string", "number"]}
+      }
+    },
+    "containerResources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requests", "limits"],
+      "properties": {
+        "requests": {"$ref": "#/$defs/resourcePair"},
+        "limits": {"$ref": "#/$defs/resourcePair"}
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["image", "resources", "imagePullPolicy", "mode", "initContainers"],
+      "properties": {
+        "image": {"type": "string", "minLength": 1},
+        "resources": {"$ref": "#/$defs/containerResources"},
+        "imagePullPolicy": {"type": "string", "minLength": 1},
+        "mode": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "value"],
+              "properties": {"name": {"const": "LAB_MODE"}, "value": {"type": "string"}}
+            }
+          ]
+        },
+        "initContainers": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "required": ["resources"],
+            "properties": {"resources": {"$ref": "#/$defs/containerResources"}}
+          }
+        }
+      }
+    },
+    "rollingUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxSurge": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]{1,3}%$"}]},
+        "maxUnavailable": {"oneOf": [{"type": "integer", "minimum": 0}, {"type": "string", "pattern": "^[0-9]{1,3}%$"}]}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["replicas", "template", "rolling_update"],
+      "properties": {
+        "replicas": {"type": "integer", "minimum": 1, "maximum": 3},
+        "template": {"$ref": "#/$defs/template"},
+        "rolling_update": {"$ref": "#/$defs/rollingUpdate"}
+      }
+    },
+    "declaredResources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["replicas", "template", "rolling_update"],
+      "properties": {
+        "replicas": {"type": "integer", "minimum": 1, "maximum": 3},
+        "template": {"$ref": "#/$defs/template"},
+        "rolling_update": {"$ref": "#/$defs/rollingUpdate"},
+        "qualified_action": {"$ref": "#/$defs/action"},
+        "qualification_profile_digest": {"$ref": "#/$defs/sha256"}
+      },
+      "allOf": [
+        {
+          "if": {"required": ["qualified_action"]},
+          "then": {"required": ["qualification_profile_digest"]}
+        },
+        {
+          "if": {"required": ["qualification_profile_digest"]},
+          "then": {"required": ["qualified_action"]}
+        }
+      ]
+    },
+    "postCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "status", "trial_id", "run_id", "window_id", "target_uid", "execution_id",
+        "verification_profile_digest", "execution_receipt_sha256", "verification_receipt_sha256",
+        "fault_observation_sha256", "fault_treatment_sha256", "action_state", "load_started_at",
+        "verification_acknowledged_at", "verification_deadline", "verification_finalized_at",
+        "verification_window_seconds", "expected_rollout_samples", "valid_rollout_samples",
+        "post_check_observed_at", "offered_sample_at", "load_stopped_at", "load_final_state",
+        "requested_rate_rps", "observed_rate_rps", "offered_window_rate_rps"
+      ],
+      "properties": {
+        "schema": {"const": "E10RecoveryPostCheck/v1"},
+        "status": {"const": "passed"},
+        "trial_id": {"type": "string", "format": "uuid"},
+        "run_id": {"type": "string", "format": "uuid"},
+        "window_id": {"type": "string", "format": "uuid"},
+        "target_uid": {"type": "string", "minLength": 1},
+        "execution_id": {"type": "string", "format": "uuid"},
+        "verification_profile_digest": {"$ref": "#/$defs/sha256"},
+        "execution_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "verification_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "fault_observation_sha256": {"$ref": "#/$defs/sha256"},
+        "fault_treatment_sha256": {"$ref": "#/$defs/sha256"},
+        "action_state": {"$ref": "#/$defs/action"},
+        "load_started_at": {"type": "string", "format": "date-time"},
+        "verification_acknowledged_at": {"type": "string", "format": "date-time"},
+        "verification_deadline": {"type": "string", "format": "date-time"},
+        "verification_finalized_at": {"type": "string", "format": "date-time"},
+        "verification_window_seconds": {"enum": [180, 300]},
+        "expected_rollout_samples": {"type": "integer", "minimum": 1},
+        "valid_rollout_samples": {"type": "integer", "minimum": 1},
+        "post_check_observed_at": {"type": "string", "format": "date-time"},
+        "offered_sample_at": {"type": "string", "format": "date-time"},
+        "load_stopped_at": {"type": "string", "format": "date-time"},
+        "load_final_state": {"enum": ["complete", "stopped_after_post_check"]},
+        "requested_rate_rps": {"type": "integer", "minimum": 1, "maximum": 30},
+        "observed_rate_rps": {"type": "number", "exclusiveMinimum": 0},
+        "offered_window_rate_rps": {"type": "number", "exclusiveMinimum": 0}
+      }
+    }
+  }
+}
