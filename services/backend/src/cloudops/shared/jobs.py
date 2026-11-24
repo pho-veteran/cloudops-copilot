@@ -118,18 +118,22 @@ class Claim:
     permit_generation: int | None = None
 
 
-def claim_next(handlers: dict[str, JobHandler], gate: DispatchGate) -> Claim | None:
+def claim_next(
+    handlers: dict[str, JobHandler], gate: DispatchGate, *, subject_id: UUID | None = None
+) -> Claim | None:
     """Claim one permitted job. Denied kinds are not touched and consume no attempt."""
     with gate.admitted() as admission, sessions()() as db, db.begin():
         kinds = [kind for kind in handlers if kind in admission.kinds]
         if not kinds:
             return None
         now = database_now(db)
+        subject_filters = () if subject_id is None else (Job.subject_id == subject_id,)
         while True:
             job = db.scalar(
                 select(Job)
                 .where(
                     Job.kind.in_(kinds),
+                    *subject_filters,
                     or_(Job.due_at.is_(None), Job.due_at <= now),
                     or_(
                         Job.state == "queued",

@@ -6,6 +6,39 @@ x-recovery-env: &recovery-env
   RECOVERY_VERIFICATION_FILE: /run/cloudops-recovery/verification.json
 x-recovery-volume: &recovery-volume ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recovery:/run/cloudops-recovery:ro
 services:
+  lab-audit-init:
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-e10-s3-lab}-backend
+    profiles: [lab-tools]
+    labels: {io.cloudops.lab.owner: '${CLOUDOPS_LAB_OWNER:?Use manage-local-lab.py}'}
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.25
+    volumes:
+      - k3s_data:/data
+      - ./config/lab/recovery-audit-policy.yaml:/policy.yaml:ro
+    command:
+      - python
+      - -c
+      - "from pathlib import Path; p=Path('/data/server/recovery-audit-policy.yaml'); p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(Path('/policy.yaml').read_bytes()); p.chmod(0o600)"
+  k3s:
+    command:
+      - server
+      - --node-name=cloudops-local
+      - --tls-san=k3s
+      - --disable=traefik
+      - --disable=servicelb
+      - --cluster-cidr=10.244.0.0/16
+      - --service-cidr=10.245.0.0/16
+      - --kubelet-arg=kube-reserved=cpu=500m,memory=768Mi
+      - --kubelet-arg=system-reserved=cpu=${LAB_SYSTEM_CPU:?Use preflight},memory=${LAB_SYSTEM_MEMORY:?Use preflight}
+      - --kube-apiserver-arg=audit-policy-file=/var/lib/rancher/k3s/server/recovery-audit-policy.yaml
+      - --kube-apiserver-arg=audit-log-path=/var/log/cloudops-recovery-audit.jsonl
+      - --kube-apiserver-arg=audit-log-maxage=7
+      - --kube-apiserver-arg=audit-log-maxbackup=10
+      - --kube-apiserver-arg=audit-log-maxsize=100
   api:
     environment: *recovery-env
     volumes: [*recovery-volume]

@@ -95,3 +95,129 @@ Accuracy rates use their complete planned groups: positive plus injection treatm
 ## Non-claims
 
 The controlled fixture corpus checks contract behavior and scorer accounting. It establishes no live cluster causality, model quality, population accuracy, SLO, availability, cost, recovery success or execution authority. S6 owns the final live cohort and its operational evidence.
+
+## S6 recovery evidence handoff
+
+Freeze a private S4 state directory with one case ID per planned recovery slot. Leave each
+recovery bundle absent at freeze time. Use the same single-writer procedure for S4 and S6.
+On Linux, set `umask 077` before freezing. On Windows, use an owner-restricted directory
+on a filesystem that supports hard links. Keep this state and any context export out of
+source control.
+
+`scripts/e10_campaign.py capture` takes a separately recorded trial binding and the private
+E06 `PreparedContext/v1` JSON. Use the exact worker snapshot while it exists. The binding
+names the planned case, S3 trial/run/window IDs and source binding digest, plus the
+product Incident/Run/Analysis IDs, Deployment UID, absolute window bounds and stored context
+digest. Its `profile_digest` is the canonical SHA-256 of the full credential-free E06
+`CallIdentity`. Collect the binding from trusted lab state and product records. The tool
+checks the supplied binding against the context and preserves the S3 identifiers for
+receipt reconciliation.
+
+Set the private input paths and run the commands from the checkout.
+
+```sh
+uv run --project services/backend --frozen python scripts/e10_campaign.py capture \
+  --state-dir "$state" --binding "$binding" --context "$context"
+uv run --project services/backend --frozen python scripts/e10_campaign.py record-outcome \
+  --state-dir "$state" --case-id "$case" --disposition blocked --reason qualification_unavailable
+```
+
+The capture command writes the planned `bundles/<case_id>.json` path and
+`campaign/captures/<case_id>.json`. A retry with the same binding and context can finish an
+interrupted artifact write. A changed binding, changed context or reused trial identity is
+rejected. Use the bundle with the existing S4 `compare` and `score` commands.
+
+Record the actual operational disposition with `record-outcome`. The blocked example
+applies when qualification is unavailable. The record is retained even if no context
+exists. S4 separately records a planned method without a bundle as `missing`.
+A `completed` operational record requires a matching capture and says only that the attempt
+finished. Use the scorer and the action and incident receipts to report the actual outcomes.
+
+The handoff consumes an existing snapshot. Live qualification and authority for provider
+calls, dispatch, approvals and recovery remain with the existing lab and product gates.
+
+### S6 operational sequence
+
+Use the source-built owned `cloudops-e10-s3-lab` and record the reviewed revision, built
+image IDs, exact scope, credential-free diagnosis identity, E07 policy/profile digests
+and separately approved budget. Use the S3 guide to configure and qualify the exact
+UID/image/source bindings. Preserve a private application backup, dispatch authority
+status and executor reconciliation evidence before fault work. Confirm independent
+cluster mutation evidence is being retained from before the first fault. The
+release-package path and EC2 walkthrough have their own procedures.
+
+1. Stop the ordinary worker in this lab. Compose the API and one-shot worker with
+   `compose.diagnosis.yaml`, and retain the worker-only secret file. The API needs the
+   read-only profile, egress and qualification files. Leave recovery dispatch and the
+   gateway closed while gathering evidence. Record the actual installed configuration.
+2. Freeze an owner-only state directory with `scripts/e10_campaign_plan.py --state-dir
+   "$state" --cohort-id "$cohort" --source-revision "$revision"`. The plan creates five
+   slots per S3 recovery scenario, four observation cases, five negatives and a clean
+   control. Give the authorizer the printed campaign source digest, which binds this
+   seal and the reviewed worker and Compose inputs. Qualification and rehearsal use
+   separate receipts and state.
+3. Start and observe the S3 bounded load/fault. Use
+   `probe-e10-s3-recovery.py s6-open --start "$start" --end "$end"` with the declared UTC
+   evidence window. Use the trial's fresh window and the same selection rule in all
+   repetitions. The incident request never carries an oracle or case ID.
+4. Resume the independent E04 `analysis` permit class before the collection worker
+   finalizes the Run, keeping the ordinary worker stopped and the gateway closed.
+   Analysis admission records the current permit generation. Use the opening receipt
+   with `e10_campaign_worker.py --phase collection --opening <file>`, then create the
+   product/lab binding with `probe-e10-s3-recovery.py s6-admission`. Invoke
+   `e10_campaign_worker.py --phase analysis --admission <file> --authorization <file>`.
+   The trusted worker requires an `E10S6Authorization/v1` with an approval reference,
+   UTC expiry, authorized source revision, `campaign_source_sha256`, Deployment UID,
+   canonical SHA-256 of `Deployment.identity()` and full `CallIdentity`, and separate
+   request, token and spend bounds. Use one approved provider authority directory for
+   the authorization file, lock and durable counters. Preserve that directory outside
+   restored campaign state and databases. The per-request token reserve must cover
+   the outgoing request byte count plus the pinned completion bound. The authorizer
+   establishes that token estimate and the conservative micro-USD reserve. A missing
+   usage, unsettled send, wrong served model or a provider failure stops further sends.
+   Usage receipts retain the reserved and observed quantities, with actual charges
+   supplied by the owner.
+5. Read and retain the typed Investigator result. For an eligible plan, open the
+   S3 writer for the active trial, then use `s6-propose --admission <file>`. The
+   Operator reviews the exact plan and uses `s6-approve --admission <file> --plan <id>
+   --digest <reviewed digest>`. Run `--phase recovery --admission <file> --plan <id>` and use
+   `s6-evidence --admission <file> --plan <id>` to save execution, verification and
+   incident state. Keep the original load running through S3 post-check. Quarantine
+   the writer and archive the bound S3 reset through `record-outcome --reset-receipt
+   <file>` before admitting the next slot. A failed or interrupted slot retains its
+   original disposition.
+6. Record product UTC phase timestamps and use the existing S4 timing inputs for
+   durations. Score each planned method and retain the action and incident states
+   from the product receipts. The recovery scorecard
+   `scripts/e10_campaign_report.py --state-dir "$state" --authorization <file>` keeps
+   the denominator at 15. A counted recovery slot requires matching capture, settled
+   provider and stored product result receipts, and an independent S3 reset. The scorecard reports timing
+   availability, pair differences, descriptive Wilson intervals and provider
+   reservations separately. Retain actual request and spend receipts, including
+   evidence of no paid fallback.
+
+Run each finite worker phase inside the owned Linux worker container with a read-only
+bind of the reviewed checkout at `/candidate` and
+`PYTHONPATH=/candidate/services/backend/src`. Set
+`CLOUDOPS_LAB_PROJECT=cloudops-e10-s3-lab` and run
+`python /candidate/scripts/e10_campaign_worker.py` with the arguments above and
+`--state-dir`, `--active-trial` and `--seconds`. Mount private state and the separate
+provider authority directory read-write and only the active trial record read-only.
+Use the existing worker's narrow read,
+dispatch and socket mounts. Keep other lab files, gateway credentials and the Docker
+socket outside this worker. Allow enough of S3's 900-second offered-load maximum for
+collection, approval and the full verification window.
+
+For the observation and negative groups, preserve S3 evidence classes and use
+controlled provider responses for quota/unavailable behavior. Review 4/4 observation
+outcomes for evidence and manual guidance, and 5/5 negative outcomes for denial of
+ineligible executable plans. Store each reviewed, sanitized artifact at
+`campaign/controls/<case-or-guard>.evidence.json` with its SHA-256, source revision,
+evidence class and disposition in `campaign/controls/<case-or-guard>.json`. The report
+also compares the scored hostile and clean bundles for unchanged scope and advice.
+Keep guarded-role, stale/expiry, race, controller,
+restart/ambiguity and inverse evidence tied to the installed candidate. Independently
+reconcile approved writes with the gateway journal and owned cluster mutation evidence,
+including trusted fault/reset operations. Missing cluster coverage leaves the zero
+uncontrolled writes gate unverified. Keep the E04/E07 dispatch close, all-target
+quarantine, journal and late-write exclusion steps in the run-specific abort procedure.

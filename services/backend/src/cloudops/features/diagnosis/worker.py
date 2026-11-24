@@ -293,17 +293,22 @@ def _wait(db, claim, analysis, run, mode, due, reason):
     defer_owned(db, claim, None if mode == "resume_required" else due)
 
 
-def analyze(claim, gate, slot, lease_lost):
+def analyze(claim, gate, slot, lease_lost, *, before_request=None, after_request=None):
     prepared = _prepare(claim, gate, slot)
     if prepared is None:
         return
     context_snapshot, deployment, checked = prepared
     credential = deployment.profile.credential
     secret = os.environ.get(credential.name) if credential else None
-    call = ModelClient(deployment.profile).send(
-        list(checked.messages),
-        before_send=lambda: _reserve(claim, gate, slot, checked, lease_lost, context_snapshot),
-    )
+
+    def admit_request():
+        if before_request is not None:
+            before_request(context_snapshot, deployment, checked.digest, checked.byte_size)
+        _reserve(claim, gate, slot, checked, lease_lost, context_snapshot)
+
+    call = ModelClient(deployment.profile).send(list(checked.messages), before_send=admit_request)
+    if after_request is not None:
+        after_request(call, deployment)
     # Exact-reference validation occurs before settlement, never checkpoint raw output.
     validated = None
     if call.kind == "text":

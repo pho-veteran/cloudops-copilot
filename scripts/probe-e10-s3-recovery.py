@@ -17,10 +17,12 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import local_lab as LAB  # noqa: E402
+from e10_campaign import CampaignError, RECOVERY_CASES, TrialAdmission, check_window  # noqa: E402
+from cloudops.features.evaluation.hashing import content_sha256  # noqa: E402
 
 ORIGIN = "https://localhost:8443"
 OUT = LAB.LAB_DIR / "product"
@@ -262,6 +264,192 @@ def phase_act(args):
         )
 
 
+S6_TEMPLATES = {
+    "recovery-oom-memory": "set_memory_profile",
+    "recovery-bad-rollout-restore": "restore_deployment_template",
+    "recovery-traffic-scale": "scale_deployment",
+}
+
+
+def s6_trial():
+    trial = json.loads((LAB.LAB_DIR / "trial.json").read_text())
+    if (
+        trial.get("status") != "observed"
+        or trial.get("scenario_id") not in S6_TEMPLATES
+        or not trial.get("qualification")
+        or (trial.get("load") or {}).get("state") != "running"
+    ):
+        die("S6 requires one observed, qualified recovery trial with its bounded load running.")
+    return trial
+
+
+def product(response, statuses=(200,)):
+    if response.status_code not in statuses:
+        die(f"product request returned {response.status_code}.")
+    return response.json()
+
+
+def s6_open(args):
+    trial = s6_trial()
+    try:
+        check_window(trial, datetime.fromisoformat(args.start), datetime.fromisoformat(args.end))
+    except (CampaignError, ValueError):
+        die("the window must cover this trial's fault and detection while its load is active.")
+    with client() as session:
+        headers = login(session)
+        workload = checkout_workload(session)
+        if workload["uid"] != trial["target_uid"]:
+            die("the target UID changed.")
+        request = incident_request(workload["id"])
+        request["question"] = "What do the stored observations support about this workload?"
+        request["window"] = {"start": args.start, "end": args.end}
+        admitted = product(
+            session.post(
+                "/api/incidents",
+                json=request,
+                headers={**headers, "Idempotency-Key": trial["trial_id"]},
+            ),
+            (200, 201),
+        )
+        path = save(
+            f"s6-incident-{trial['trial_id']}.json", {**admitted, "trial_id": trial["trial_id"]}
+        )
+        print(path)
+
+
+def s6_admission(args):
+    trial = s6_trial()
+    if args.case_id not in RECOVERY_CASES[trial["scenario_id"]]:
+        die("the case ID is outside this scenario's five planned slots.")
+    incident = json.loads((OUT / f"s6-incident-{trial['trial_id']}.json").read_text())
+    run = f"/api/incidents/{incident['incident_id']}/runs/{incident['run_id']}"
+    with client() as session:
+        login(session)
+        analysis = product(session.get(f"{run}/analysis"))
+    if analysis["status"] != "pending" or not analysis["analysis_id"]:
+        die("the operational Analysis is not awaiting its first send.")
+    if content_sha256(analysis["identity"]) != args.deployment_digest:
+        die("the admitted deployment differs from the authorized deployment.")
+    # The full profile digest is taken from the separately approved credential-free profile.
+    admission = TrialAdmission(
+        case_id=args.case_id,
+        trial_id=trial["trial_id"],
+        lab_run_id=trial["run_id"],
+        lab_window_id=trial["window_id"],
+        incident_id=incident["incident_id"],
+        run_id=incident["run_id"],
+        analysis_id=analysis["analysis_id"],
+        workload_uid=trial["target_uid"],
+        window_start=incident["window"]["start"],
+        window_end=incident["window"]["end"],
+        profile_digest=args.profile_digest,
+        source_binding_sha256=trial["source_binding_sha256"],
+    )
+    print(save(f"s6-admission-{trial['trial_id']}.json", admission.model_dump(mode="json")))
+
+
+def s6_action(args):
+    trial = s6_trial()
+    binding = TrialAdmission.model_validate_json(args.admission.read_bytes())
+    if (
+        str(binding.trial_id) != trial["trial_id"]
+        or str(binding.lab_run_id) != trial["run_id"]
+        or str(binding.lab_window_id) != trial["window_id"]
+        or binding.workload_uid != trial["target_uid"]
+        or binding.source_binding_sha256 != trial["source_binding_sha256"]
+    ):
+        die("the action does not belong to the active trial.")
+    if args.phase != "s6-evidence":
+        try:
+            check_window(trial, binding.window_start, binding.window_end)
+        except CampaignError:
+            die("the active trial's change or expired load invalidates this action.")
+    template = S6_TEMPLATES[trial["scenario_id"]]
+    incident = f"/api/incidents/{binding.incident_id}"
+    with client() as session:
+        headers = login(session)
+        if args.phase == "s6-propose":
+            analysis = product(session.get(f"{incident}/runs/{binding.run_id}/analysis"))
+            if analysis["analysis_id"] != str(binding.analysis_id) or not analysis.get("result"):
+                die("the trial has no matching Investigator result.")
+            result = analysis["result"]
+            print(save(f"s6-investigator-{binding.case_id}.json", result))
+            if result.get("candidate_template_id") != template:
+                die("the Investigator did not advise this trial's qualified action.")
+            selector = {
+                "scale_deployment": lambda: {
+                    "replicas": trial["qualification"]["declared_resources"]["replicas"]
+                },
+                "restore_deployment_template": lambda: {
+                    "baseline_id": trial["known_good_baseline"]["id"]
+                },
+                "set_memory_profile": lambda: {"profile_id": "e10-s3-recovery-memory"},
+            }[template]()
+            plan = product(
+                session.post(
+                    f"{incident}/plans",
+                    json={
+                        "origin": "analysis_advice",
+                        "run_id": str(binding.run_id),
+                        "analysis_id": str(binding.analysis_id),
+                        "template": template,
+                        "rationale": "Apply the Investigator's qualified recovery recommendation.",
+                        **selector,
+                    },
+                    headers=headers,
+                ),
+                (201,),
+            )
+            print(save(f"s6-plan-{binding.case_id}.json", plan))
+            return
+
+        if args.phase == "s6-evidence":
+            executions = product(session.get(f"{incident}/executions"))
+            matches = [item for item in executions if item["plan_id"] == str(args.plan)]
+            if len(matches) != 1:
+                die("no unique execution matches the reviewed plan.")
+            execution = f"/api/executions/{matches[0]['id']}"
+            print(save(f"s6-execution-{binding.case_id}.json", product(session.get(execution))))
+            print(
+                save(
+                    f"s6-verification-{binding.case_id}.json",
+                    product(session.get(f"{execution}/verification")),
+                )
+            )
+            print(
+                save(f"s6-incident-outcome-{binding.case_id}.json", product(session.get(incident)))
+            )
+            return
+
+        review = product(session.get(f"/api/plans/{args.plan}"))
+        plan = review["plan"]
+        if (
+            plan["digest"] != args.digest
+            or plan["incident_id"] != str(binding.incident_id)
+            or plan["source_analysis_id"] != str(binding.analysis_id)
+            or plan["template"] != template
+            or plan["content"]["workload"]["uid"] != binding.workload_uid
+            or plan["content"].get("execution_capability") != "conditional_dispatch_v2"
+            or plan["content"].get("verification_profile_digest")
+            != trial["qualification"]["profile_digest"]
+            or not review.get("review_token")
+        ):
+            die("the current review is not the exact approved candidate.")
+        decision = product(
+            session.post(
+                f"/api/plans/{args.plan}/decision",
+                json={
+                    "version": plan["version"],
+                    "digest": args.digest,
+                    "review_token": review["review_token"],
+                    "decision": "approve",
+                },
+                headers=headers,
+            )
+        )
+        print(save(f"s6-approval-{binding.case_id}.json", decision))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="phase", required=True)
@@ -270,9 +458,34 @@ def main():
     act = sub.add_parser("act")
     act.add_argument("--scenario", required=True)
     act.add_argument("--wait", type=int, default=480)
+    open_run = sub.add_parser("s6-open")
+    open_run.add_argument("--start", required=True)
+    open_run.add_argument("--end", required=True)
+    admission = sub.add_parser("s6-admission")
+    admission.add_argument("--case-id", required=True)
+    admission.add_argument("--deployment-digest", required=True)
+    admission.add_argument("--profile-digest", required=True)
+    propose = sub.add_parser("s6-propose")
+    approve = sub.add_parser("s6-approve")
+    evidence = sub.add_parser("s6-evidence")
+    for action in (propose, approve, evidence):
+        action.add_argument("--admission", type=Path, required=True)
+    for action in (approve, evidence):
+        action.add_argument("--plan", type=UUID, required=True)
+    approve.add_argument("--digest", required=True)
     args = parser.parse_args()
     guard()
-    {"accounts": phase_accounts, "baseline": phase_baseline, "act": phase_act}[args.phase](args)
+    phases = {
+        "accounts": phase_accounts,
+        "baseline": phase_baseline,
+        "act": phase_act,
+        "s6-open": s6_open,
+        "s6-admission": s6_admission,
+        "s6-propose": s6_action,
+        "s6-approve": s6_action,
+        "s6-evidence": s6_action,
+    }
+    phases[args.phase](args)
 
 
 if __name__ == "__main__":

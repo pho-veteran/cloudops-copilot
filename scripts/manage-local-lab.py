@@ -584,7 +584,9 @@ class Lab:
             "LAB_SAMPLE_IMAGE": SAMPLE_IMAGE,
             **({"LAB_RECOVERY_IMAGE": RECOVERY_IMAGES["healthy"]} if RECOVERY_LAB else {}),
             "LAB_SYSTEM_CPU": f"{host['cpus'] * 1000 - 3500}m",
-            "LAB_SYSTEM_MEMORY": str(host["memory_bytes"] - 4 * GIB + 256 * 1024**2),
+            # Kubelet capacity rounds the host total to KiB. Leave room for that
+            # rounding so a nominal 3 GiB allocation never exceeds the hard gate.
+            "LAB_SYSTEM_MEMORY": str(host["memory_bytes"] - 4 * GIB + 272 * 1024**2),
         }
         private_write(
             self.directory / "lab.env",
@@ -1145,6 +1147,8 @@ class Lab:
         raise RuntimeError("K3s readiness and Node IP did not converge within the startup bound.")
 
     def start_k3s(self, recreate=False, *, pull_missing=True):
+        if RECOVERY_LAB:
+            self.dc("run", "--rm", "-T", "--no-deps", "lab-audit-init", timeout=60)
         args = [
             "up",
             "-d",
@@ -3227,18 +3231,19 @@ print(json.dumps({
                 f"cloudops-e10s3-q-{uuid4().hex[:8]}", seconds, rate, uid
             )
             require(container["State"]["Running"], "Qualification load did not start.")
-            time.sleep(profile["warmup_seconds"])
+            load_clock = time.monotonic()
             slots = (profile["window_seconds"] - profile["warmup_seconds"]) // profile[
                 "step_seconds"
             ] + 1
-            for _ in range(slots):
+            for index in range(slots):
+                sample_at = load_clock + profile["warmup_seconds"] + index * profile["step_seconds"]
+                time.sleep(max(0, sample_at - time.monotonic()))
                 samples.append(
                     {
                         "at": datetime.now(timezone.utc).isoformat(),
                         **self.profile_sample(profile, uid),
                     }
                 )
-                time.sleep(profile["step_seconds"])
         finally:
             if container_id:
                 self.command(["docker", "stop", "--time", "3", container_id], timeout=20)
