@@ -17,7 +17,8 @@ pytestmark = pytest.mark.skipif(
 )
 PROBE = (
     "import json, os, sys; sys.path.insert(0, sys.argv[1]); import local_lab; "
-    "print(json.dumps({'compose': local_lab.COMPOSE, 'umask': os.umask(0)}))"
+    "print(json.dumps({'compose': local_lab.COMPOSE, 'lab_dir': str(local_lab.LAB_DIR), "
+    "'umask': os.umask(0)}))"
 )
 
 
@@ -95,10 +96,18 @@ def test_release_bundle_adds_env_files_and_overlays_in_order(tmp_path):
         {"CLOUDOPS_LAB_PROJECT": None},
         {"CLOUDOPS_LAB_PROJECT": "cloudops-e01-https"},
         {"CLOUDOPS_LAB_PROJECT": "cloudops-local-testing-lab"},
+        {"CLOUDOPS_LAB_PROJECT": "cloudops-e10-s3-lab"},
         {"CLOUDOPS_HOST_ENV": None},
         {"RELEASE_BACKEND_IMAGE": "cloudops-release-backend:other"},
     ],
-    ids=["implicit-project", "default-project", "owned-project", "no-host-env", "inherited-image"],
+    ids=[
+        "implicit-project",
+        "default-project",
+        "owned-project",
+        "recovery-lab",
+        "no-host-env",
+        "inherited-image",
+    ],
 )
 def test_release_bundle_refuses_ambiguous_targets(tmp_path, values):
     result, _, _ = release(tmp_path, **values)
@@ -144,6 +153,7 @@ class ComposeLoader(yaml.SafeLoader):
 
 
 ComposeLoader.add_constructor("!reset", lambda loader, node: None)
+ComposeLoader.add_constructor("!override", lambda loader, node: loader.construct_sequence(node))
 
 
 def test_release_lab_overlay_runs_bundle_images_only():
@@ -159,3 +169,34 @@ def test_release_lab_overlay_runs_bundle_images_only():
         assert "volumes" not in services[name] and "environment" not in services[name]
     for name in ("migrate", "api", "worker"):
         assert services[name] == {"environment": {"COLLECTION_SOURCE_MODE": "live_kubernetes"}}
+
+
+@pytest.mark.parametrize(
+    ("project", "directory", "recovery"),
+    [
+        ("cloudops-local-testing-lab", "tmp/local-testing-lab", False),
+        ("cloudops-e10-s3-lab", "tmp/e10-s3-lab", True),
+    ],
+)
+def test_owned_labs_use_separate_directories_and_overlays(tmp_path, project, directory, recovery):
+    result = lab(tmp_path, CLOUDOPS_LAB_PROJECT=project)
+    assert result.returncode == 0, result.stderr
+    value = json.loads(result.stdout)
+    assert value["lab_dir"] == str(ROOT / directory)
+    assert value["compose"][2:6] == ["--env-file", str(ROOT / directory / "lab.env"), "-p", project]
+    assert ("compose.lab-recovery.yaml" in value["compose"]) is recovery
+
+
+def test_owned_lab_images_are_named_by_project():
+    overlay = yaml.load((ROOT / "compose.lab.yaml").read_text(), Loader=ComposeLoader)
+    for name in ("api", "worker", "executor", "migrate", "https"):
+        assert overlay["services"][name]["image"].startswith(
+            "${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-"
+        )
+    recovery = yaml.safe_load((ROOT / "compose.lab-recovery.yaml").read_text())
+    for name in ("api", "worker", "executor"):
+        service = recovery["services"][name]
+        assert service["environment"]["RECOVERY_POLICY_FILE"].startswith("/run/cloudops-recovery/")
+        assert service["volumes"] == [
+            "${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recovery:/run/cloudops-recovery:ro"
+        ]

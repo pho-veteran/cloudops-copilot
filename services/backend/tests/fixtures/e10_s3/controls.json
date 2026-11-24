@@ -3,21 +3,21 @@
   "controls": {
     "recovery-oom-memory": {
       "fault_family": "oom",
-      "local_fault_operation": "oom",
+      "local_fault_operation": "memory-limit",
       "allowed_action": "set_memory_profile",
       "control_plane": "owned lab operator only",
       "bounded": true
     },
     "recovery-bad-rollout-restore": {
       "fault_family": "bad-rollout",
-      "local_fault_operation": "crashloop",
+      "local_fault_operation": "bad-rollout",
       "allowed_action": "restore_deployment_template",
       "control_plane": "owned lab operator only",
       "known_good_must_be_healthy_before_injection": true
     },
     "recovery-traffic-scale": {
       "fault_family": "traffic-overload",
-      "local_fault_operation": "traffic",
+      "local_fault_operation": "overload",
       "allowed_action": "scale_deployment",
       "control_plane": "owned lab operator only",
       "offered_load_must_remain_fixed": true

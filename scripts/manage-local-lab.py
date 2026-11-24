@@ -25,7 +25,7 @@ from uuid import UUID, uuid4
 
 import yaml
 
-from local_lab import OWNED_PROJECT, ROOT, private_write
+from local_lab import OWNED_PROJECT, OWNED_PROJECTS, RECOVERY_LAB_PROJECT, ROOT, private_write
 from release_scenarios import (
     load_catalog,
     read_json,
@@ -36,11 +36,13 @@ from release_scenarios import (
     validate_trial_receipt,
 )
 
-DIRECTORY = ROOT / "tmp/local-testing-lab"
+DIRECTORY = ROOT / OWNED_PROJECTS[OWNED_PROJECT]
+# The E10 S3 lab runs the qualified E07 recovery sample for its recovery scenarios.
+RECOVERY_LAB = OWNED_PROJECT == RECOVERY_LAB_PROJECT
 OWNER_LABEL = "io.cloudops.lab.owner"
 GIB = 1024**3
 SAMPLE_IMAGE = (
-    "cloudops-local-testing-lab-sample:"
+    f"{OWNED_PROJECT}-sample:"
     + hashlib.sha256(
         b"".join(
             (ROOT / file).read_bytes()
@@ -54,6 +56,36 @@ SAMPLE_IMAGE = (
     ).hexdigest()[:16]
 )
 SAMPLE_CTR_IMAGE = "docker.io/library/" + SAMPLE_IMAGE
+RECOVERY_SOURCES = (
+    "config/lab/Dockerfile.recovery",
+    "config/lab/recovery_app.py",
+    "config/lab/sample_app.py",
+    "config/lab/load.py",
+    "config/lab/recovery_load.py",
+)
+RECOVERY_SOURCE_VERSION = hashlib.sha256(
+    b"".join((ROOT / file).read_bytes() for file in RECOVERY_SOURCES)
+).hexdigest()
+RECOVERY_IMAGES = {
+    variant: f"{OWNED_PROJECT}-recovery:{RECOVERY_SOURCE_VERSION[:16]}-{variant}"
+    for variant in ("healthy", "bad-image")
+}
+# E07-qualified healthy envelope for the 160 MiB resident recovery sample.
+RECOVERY_RESOURCES = {
+    "requests": {"cpu": "50m", "memory": "192Mi"},
+    "limits": {"cpu": "100m", "memory": "256Mi"},
+}
+# The local fault for each recovery scenario. The action repairs the fault itself;
+# the fixed offered load is the treatment that must stay in place.
+RECOVERY_FAULTS = {
+    "recovery-oom-memory": "memory-limit",
+    "recovery-bad-rollout-restore": "bad-rollout",
+    "recovery-traffic-scale": "overload",
+}
+RECOVERY_POLICY_ID = "e10-s3-request-health/v1"
+FAULT_MEMORY_LIMIT = "128Mi"
+# Per-container containment bound; the recovery sample's qualified limit is 256 MiB.
+SAMPLE_MEMORY_ENVELOPE = (512 if RECOVERY_LAB else 160) * 1024**2
 APP_SERVICES = ("api", "worker", "observer", "executor")
 FILES = (
     "compose.yaml",
@@ -61,6 +93,7 @@ FILES = (
     "compose.integration.yaml",
     "compose.alertmanager.yaml",
     "compose.lab.yaml",
+    *(("compose.lab-recovery.yaml",) if RECOVERY_LAB else ()),
 )
 
 
@@ -537,6 +570,8 @@ class Lab:
             "deployments": {},
             "sample_image": SAMPLE_IMAGE,
         }
+        if RECOVERY_LAB:
+            self.marker["recovery_images"] = RECOVERY_IMAGES
         self.save()
         values = {
             "POSTGRES_PASSWORD": secrets.token_urlsafe(32),
@@ -562,6 +597,7 @@ class Lab:
             "prometheus",
             "monitoring",
             "receipts",
+            *(("recovery",) if RECOVERY_LAB else ()),
         ):
             (self.directory / name).mkdir(mode=0o700)
         private_write(self.directory / "krr/key", secrets.token_urlsafe(32))
@@ -619,6 +655,7 @@ class Lab:
             "apps/web/Dockerfile.https",
             "services/krr/Dockerfile",
             "config/lab/Dockerfile.sample",
+            *(("config/lab/Dockerfile.recovery",) if RECOVERY_LAB else ()),
         ):
             for line in (ROOT / file).read_text().splitlines():
                 if line.startswith("FROM "):
@@ -791,6 +828,16 @@ class Lab:
                 },
             )
             container["readinessProbe"]["httpGet"]["path"] = "/health"
+            if RECOVERY_LAB and name == "checkout":
+                # The E07-qualified recovery sample: bounded resident memory, two serving
+                # slots and an image variant that rejects startup. Recreate keeps one Pod so
+                # a fault cannot hide behind an old ready Pod during a template rollout.
+                container.update(
+                    image="docker.io/library/" + RECOVERY_IMAGES["healthy"],
+                    command=["python", "/app/recovery_app.py"],
+                    resources=copy.deepcopy(RECOVERY_RESOURCES),
+                )
+                template["spec"]["strategy"] = {"type": "Recreate"}
             live = (
                 self.deployment(name)
                 if name in self.marker["deployments"]
@@ -1225,6 +1272,28 @@ class Lab:
             self.dc("stop", "worker", "observer", "api")
         for service in ("api", "https", "sample"):
             self.dc("build", service, timeout=600)
+        if RECOVERY_LAB:
+            require(
+                self.marker.get("recovery_images") == RECOVERY_IMAGES,
+                "Recovery sample source changed; review its qualification before starting.",
+            )
+            for variant, tag in RECOVERY_IMAGES.items():
+                self.command(
+                    [
+                        "docker",
+                        "build",
+                        "--file",
+                        "config/lab/Dockerfile.recovery",
+                        "--build-arg",
+                        f"SAMPLE_VARIANT={variant}",
+                        "--label",
+                        f"{OWNER_LABEL}={self.marker['owner']}",
+                        "--tag",
+                        tag,
+                        ".",
+                    ],
+                    timeout=600,
+                )
         self.dc(
             "up",
             "-d",
@@ -1240,7 +1309,15 @@ class Lab:
         archive = self.directory / "sample.tar"
         try:
             with archive.open("wb") as output:
-                self.command(["docker", "save", SAMPLE_IMAGE], stdout=output)
+                self.command(
+                    [
+                        "docker",
+                        "save",
+                        SAMPLE_IMAGE,
+                        *(RECOVERY_IMAGES.values() if RECOVERY_LAB else ()),
+                    ],
+                    stdout=output,
+                )
             with archive.open("rb") as source:
                 result = subprocess.run(
                     [
@@ -1455,10 +1532,26 @@ class Lab:
             "alertmanager",
         ):
             container = self.service(service)
-            image = json.loads(self.command(["docker", "image", "inspect", container["Image"]]))[0]
+            try:
+                image = json.loads(
+                    self.command(["docker", "image", "inspect", container["Image"]])
+                )[0]
+                resolved_by = "runtime_id"
+            except RuntimeError:
+                # The containerd image store reports a container's config digest, which it
+                # cannot inspect directly; resolve the exact reference the container uses.
+                image = json.loads(
+                    self.command(["docker", "image", "inspect", container["Config"]["Image"]])
+                )[0]
+                resolved_by = "reference"
             values[service] = {
                 "image_id": container["Image"],
                 "repo_digests": image.get("RepoDigests", []),
+                **(
+                    {"reference": container["Config"]["Image"], "image_store_id": image["Id"]}
+                    if resolved_by == "reference"
+                    else {}
+                ),
             }
         return values
 
@@ -1911,7 +2004,7 @@ class Lab:
                     limits = spec.get("resources", {}).get("limits", {})
                     require(
                         quantity(limits.get("cpu", "1000")) <= Decimal("0.4")
-                        and quantity(limits.get("memory", str(4 * GIB))) <= 160 * 1024**2,
+                        and quantity(limits.get("memory", str(4 * GIB))) <= SAMPLE_MEMORY_ENVELOPE,
                         "Sample limits exceed the approved workload envelope.",
                     )
                     for resource in sample_limits:
@@ -1952,7 +2045,7 @@ class Lab:
                     container_path = pod_cgroup(matches[0][0], matches[0][1], parent)
                     limit = (container_path / "memory.max").read_text().strip()
                     require(
-                        limit != "max" and int(limit) <= 160 * 1024**2,
+                        limit != "max" and int(limit) <= SAMPLE_MEMORY_ENVELOPE,
                         "Sample container memory is not bounded.",
                     )
                     pod_quota, pod_period = (container_path / "cpu.max").read_text().split()
@@ -2028,7 +2121,9 @@ class Lab:
             )
         )
 
-    def verify(self):
+    def verify(self, finite_uids=None):
+        # Trial operations prove the fixed target; an idle peer may have a 0/0 ratio.
+        finite = set(finite_uids or self.marker["deployments"].values())
         self.credentials_valid()
         self.dc(
             "exec",
@@ -2114,9 +2209,9 @@ class Lab:
                 all(
                     math.isfinite(float(row["value"][1]))
                     for row in rows
-                    if row["metric"].get("deployment_uid") in self.marker["deployments"].values()
+                    if row["metric"].get("deployment_uid") in finite
                 ),
-                "Metric has no finite observation; load both workloads and warm the window.",
+                "Metric has no finite observation; load the target and warm the window.",
             )
             queries[metric] = [{"labels": row["metric"], "value": row["value"]} for row in rows]
         result = {
@@ -2137,6 +2232,58 @@ class Lab:
         self.receipt("verify", result)
         return result
 
+    def readiness_load(self, seconds=40, rate=5):
+        """Offer short fresh traffic so the target's health is measured, never assumed."""
+        require(not self.active_loads(), "A targeted load is already running.")
+        result = json.loads(
+            self.dc(
+                "run",
+                "--rm",
+                "-T",
+                "--no-deps",
+                "load",
+                "--target",
+                "checkout",
+                "--seconds",
+                str(seconds),
+                "--rate",
+                str(rate),
+                timeout=seconds + 60,
+            )
+        )
+        require(
+            result.get("completed_nominal_load") is True,
+            "The bounded readiness load did not complete.",
+        )
+        return {
+            "target": "checkout",
+            "seconds": seconds,
+            "rate": rate,
+            "started_at": result["started_at"],
+            "finished_at": result["finished_at"],
+            "responses": result["responses"],
+        }
+
+    def wait_settled(self, seconds=180):
+        """Wait until the target's old Pods are gone, not merely until the rollout reports done."""
+
+        def settled():
+            deployment = self.deployment("checkout")
+            pods = json.loads(
+                self.kube("get", "pods", "-n", "demo", "-l", "app=checkout", "-o", "json")
+            )["items"]
+            return len(pods) == int(deployment["spec"].get("replicas", 1)) and not any(
+                pod["metadata"].get("deletionTimestamp") for pod in pods
+            )
+
+        self.kube(
+            "rollout", "status", "deployment/checkout", "-n", "demo", "--timeout=180s", timeout=200
+        )
+        self.wait(settled, "settled target Pods", seconds)
+
+    def trial_target_uids(self):
+        return {self.marker["deployments"]["checkout"]}
+
     def active_loads(self):
         return [
             item
@@ -2155,6 +2302,21 @@ class Lab:
             ROOT / "config/lab/Dockerfile.sample",
             ROOT / "config/lab/recovery_load.py",
         )
+        if RECOVERY_LAB:
+            # The qualified sample and the trusted E07 configuration are part of the binding.
+            paths += tuple(
+                ROOT / file
+                for file in RECOVERY_SOURCES
+                if file not in {"config/lab/recovery_load.py"}
+            )
+            paths += tuple(
+                path
+                for path in (
+                    self.directory / "recovery/policy.json",
+                    self.directory / "recovery/verification.json",
+                )
+                if path.exists()
+            )
         require(
             all(path.is_file() and not path.is_symlink() for path in paths),
             "Exact reader/metrics source binding is incomplete.",
@@ -2404,22 +2566,20 @@ class Lab:
         from cloudops.features.workloads.kubernetes import quantity
         from cloudops.shared.errors import DomainError
 
+        require(
+            RECOVERY_LAB,
+            "Recovery scenarios need the E10 S3 recovery lab and its qualified sample.",
+        )
         baseline_template = owned_fields(deployment)
         template = action_state["template"]
+        # Every action returns to the captured healthy image; only the field it repairs
+        # (replicas or bounded memory) may differ from the healthy baseline.
         require(
             template["image"] == baseline_template["image"]
             and template["imagePullPolicy"] == baseline_template["imagePullPolicy"]
-            and template["initContainers"] == baseline_template["initContainers"],
-            "Qualified recovery may not change the captured image, pull policy or init containers.",
-        )
-        expected_mode = {
-            "recovery-oom-memory": {"name": "LAB_MODE", "value": "oom"},
-            "recovery-bad-rollout-restore": baseline_template["mode"],
-            "recovery-traffic-scale": {"name": "LAB_MODE", "value": "slow"},
-        }[scenario_id]
-        require(
-            template["mode"] == expected_mode,
-            "Qualified action state does not preserve the fixed scenario treatment.",
+            and template["initContainers"] == baseline_template["initContainers"]
+            and template["mode"] == baseline_template["mode"],
+            "Qualified recovery may not change the captured image, pull policy, mode or init containers.",
         )
         baseline_replicas = int(deployment["spec"].get("replicas", 1))
         require(
@@ -2440,9 +2600,8 @@ class Lab:
             )
         else:
             require(
-                template["resources"] != baseline_template["resources"]
-                and action_state["replicas"] == baseline_replicas,
-                "Qualified memory recovery must change bounded memory resources and retain replicas.",
+                action_state["replicas"] == baseline_replicas,
+                "Qualified memory recovery must retain the captured replica count.",
             )
             resources = template["resources"]
             require(
@@ -2464,8 +2623,8 @@ class Lab:
                 "Qualified memory profile exceeds the local CPU/memory bounds.",
             )
             require(
-                action_state["replicas"] == baseline_replicas,
-                "Qualified memory recovery must retain the captured replica count.",
+                memory_limit > quantity(FAULT_MEMORY_LIMIT),
+                "Qualified memory profile does not lift the injected memory limit.",
             )
 
     def trial_spec_matches_baseline(self, trial, deployment):
@@ -2485,6 +2644,10 @@ class Lab:
             "Fixture-only negative cases do not start a live lab trial.",
         )
         require(
+            scenario["kind"] != "recovery" or RECOVERY_LAB,
+            "Recovery scenarios need the E10 S3 recovery lab and its qualified sample.",
+        )
+        require(
             not self.trial_path.exists(),
             "An unfinished trial receipt must be reset first.",
         )
@@ -2502,7 +2665,8 @@ class Lab:
             "An unexpired eligible action exists; retire it through the supported path first.",
         )
         containment = self.containment(read_only=True)
-        verification = self.verify()
+        readiness = self.readiness_load()
+        verification = self.verify(self.trial_target_uids())
         deployment = self.deployment("checkout")
         health = self.healthy_target(deployment)
         metrics = self.target_metric_snapshot(verification, health["target_uid"])
@@ -2630,6 +2794,7 @@ class Lab:
                 "owned_fields": owned,
                 "metrics": metrics,
                 "containment": containment,
+                "readiness_load": readiness,
             },
             "qualification": qualification,
             "phases": {
@@ -2666,6 +2831,440 @@ class Lab:
         )
         return trial
 
+    def start_offered_load(self, name, seconds, rate, uid):
+        """Start the finite owned offered-load exporter bound to one Deployment UID."""
+        container_id = self.dc(
+            "run",
+            "--detach",
+            "--no-deps",
+            "--use-aliases",
+            "--name",
+            name,
+            "--entrypoint",
+            "python",
+            "load",
+            "/app/recovery_load.py",
+            "--seconds",
+            str(seconds),
+            "--rate",
+            str(rate),
+            "--deployment-uid",
+            uid,
+        ).strip()
+        require(
+            re.fullmatch(r"[a-f0-9]{12,64}", container_id) is not None,
+            "Load did not return a container identity.",
+        )
+        container = json.loads(self.command(["docker", "inspect", container_id]))[0]
+        labels = container.get("Config", {}).get("Labels", {})
+        require(
+            labels.get(OWNER_LABEL) == self.marker["owner"]
+            and labels.get("com.docker.compose.project") == OWNED_PROJECT
+            and labels.get("com.docker.compose.service") == "load"
+            and labels.get("com.docker.compose.project.working_dir") == str(ROOT),
+            "Recovery load container is outside the owned project.",
+        )
+        return container_id, container
+
+    def recovery_healthy_fields(self):
+        return {
+            "image": "docker.io/library/" + RECOVERY_IMAGES["healthy"],
+            "resources": RECOVERY_RESOURCES,
+            "imagePullPolicy": "Never",
+            "mode": None,
+            "initContainers": None,
+        }
+
+    def require_idle_recovery_lab(self):
+        require(RECOVERY_LAB, "This operation belongs to the E10 S3 recovery lab.")
+        require(not self.trial_path.exists(), "Reset the active trial first.")
+        require(not (self.directory / "fault.json").exists(), "Reset the recorded fault first.")
+        require(not self.active_loads(), "A targeted load is running.")
+        self.no_execution()
+        require(self.eligible_action_count() == 0, "An unexpired eligible action exists.")
+
+    def recovery_config(self):
+        """Write the trusted E07 policy and verification profiles for the healthy target."""
+        self.require_idle_recovery_lab()
+        deployment = self.deployment("checkout")
+        require(
+            owned_fields(deployment) == self.recovery_healthy_fields()
+            and int(deployment["spec"].get("replicas", 1)) == 1
+            and deployment["spec"].get("strategy", {}).get("type") == "Recreate",
+            "Configure recovery only from the captured healthy one-Pod recovery sample.",
+        )
+        health = self.healthy_target(deployment)
+        require(len(health["image_digests"]) == 1, "Expected one runtime image identity.")
+        image_id = health["image_digests"][0].rsplit("@", 1)[-1]
+        uid = health["target_uid"]
+        queries = {
+            "request_rate": (
+                "requests/s",
+                "sum by(namespace,deployment_uid) (cloudops_requests_per_second{{{s}}})",
+            ),
+            "error_ratio": (
+                "ratio",
+                "sum by(namespace,deployment_uid) (cloudops_error_ratio{{{s}}})",
+            ),
+            "p95_latency": (
+                "seconds",
+                "sum by(namespace,deployment_uid) (cloudops_p95_latency_seconds{{{s}}})",
+            ),
+            "requests": (
+                "count",
+                "lab_http_request_duration_seconds_count{{{s}}} and (time() - "
+                "timestamp(lab_http_request_duration_seconds_count{{{s}}}) < 10)",
+            ),
+            "sample_time": (
+                "timestamp",
+                "timestamp(lab_http_request_duration_seconds_count{{{s}}}) and (time() - "
+                "timestamp(lab_http_request_duration_seconds_count{{{s}}}) < 10)",
+            ),
+            "resets": (
+                "count",
+                "resets(lab_http_request_duration_seconds_count{{{s}}}[30s]) and (time() - "
+                "timestamp(lab_http_request_duration_seconds_count{{{s}}}) < 10)",
+            ),
+            "offered_rate": (
+                "requests/s",
+                "sum by(namespace,deployment_uid) (rate(lab_offered_requests_total{{{s}}}[30s]))",
+            ),
+            "offered_sample_time": (
+                "timestamp",
+                "max by(namespace,deployment_uid) (timestamp(lab_offered_requests_total{{{s}}}))",
+            ),
+        }
+        selector = 'namespace="{{namespace}}",deployment_uid="{{workload_uid}}"'
+        plans = {
+            "recovery-traffic-scale": ("scale_deployment", [2], 180, 25.0),
+            "recovery-oom-memory": ("set_memory_profile", [1], 300, 7.0),
+            "recovery-bad-rollout-restore": ("restore_deployment_template", [1], 300, 7.0),
+        }
+        profiles = [
+            {
+                "schema_version": "RecoveryVerificationProfile/v1",
+                "id": RECOVERY_POLICY_ID,
+                "version": f"{scenario}/{RECOVERY_SOURCE_VERSION[:16]}",
+                "workload_uid": uid,
+                "template": template,
+                "containers": "SELECTED",
+                "image_ids": {"app": image_id},
+                "replicas": replicas,
+                "source_version": RECOVERY_SOURCE_VERSION,
+                "source_digest": "SOURCE",
+                "qualification_reference": f"local://e10-s3/qualification/{scenario}.json",
+                "window_seconds": window,
+                "minimum_coverage": 0.9,
+                "minimum_rps": minimum,
+                "minimum_load_ratio": 0.9,
+                "maximum_error_ratio": 0.05,
+                "maximum_p95_seconds": 0.5,
+                "queries": {
+                    key: {"query": query.format(s=selector), "unit": unit}
+                    for key, (unit, query) in queries.items()
+                },
+            }
+            for scenario, (template, replicas, window, minimum) in plans.items()
+        ]
+        policy = {
+            "schema_version": "RecoveryPolicy/v1",
+            "id": "e10-s3-recovery",
+            "version": RECOVERY_SOURCE_VERSION[:16],
+            "workload_uids": [uid],
+            "max_cpu": "500m",
+            "max_memory": "512Mi",
+            "qualified_images": [
+                RECOVERY_IMAGES["healthy"],
+                self.recovery_healthy_fields()["image"],
+            ],
+            "memory_profiles": [
+                {
+                    "id": "e10-s3-recovery-memory",
+                    "version": RECOVERY_SOURCE_VERSION[:16],
+                    "workload_uid": uid,
+                    "containers": ["app"],
+                    "request": RECOVERY_RESOURCES["requests"]["memory"],
+                    "limit": RECOVERY_RESOURCES["limits"]["memory"],
+                    "qualification_reference": "local://e10-s3/qualification/recovery-oom-memory.json",
+                }
+            ],
+            "verification_policy": RECOVERY_POLICY_ID,
+            "inverse_policy": "unavailable/v1",
+        }
+        # The API process derives the exact selected containers, source digest and
+        # canonical digests; the manager never re-implements those contracts.
+        script = """
+import json, sys
+from cloudops.features.recovery.fields import selected
+from cloudops.features.recovery.policy import RecoveryPolicy
+from cloudops.features.recovery.verification_policy import VerificationProfile, source_digest
+value = json.load(sys.stdin)
+containers, _ = selected(value["deployment"])
+source = source_digest()
+profiles = []
+for raw in value["profiles"]:
+    raw["containers"] = containers
+    raw["source_digest"] = source
+    profiles.append(VerificationProfile.model_validate(raw))
+policy = RecoveryPolicy.model_validate(value["policy"])
+print(json.dumps({
+    "policy": policy.model_dump(mode="json"),
+    "policy_digest": policy.digest(),
+    "profiles": [p.model_dump(mode="json") for p in profiles],
+    "profile_digests": [p.digest() for p in profiles],
+    "source_digest": source,
+}))
+"""
+        result = json.loads(
+            self.dc(
+                "exec",
+                "-T",
+                "api",
+                "python",
+                "-c",
+                script,
+                body=json.dumps({"deployment": deployment, "profiles": profiles, "policy": policy}),
+            )
+            .strip()
+            .splitlines()[-1]
+        )
+        folder = self.directory / "recovery"
+        folder.mkdir(mode=0o700, exist_ok=True)
+        private_write(folder / "policy.json", json.dumps(result["policy"], indent=2) + "\n")
+        private_write(folder / "verification.json", json.dumps(result["profiles"], indent=2) + "\n")
+        digests = {
+            scenario: digest
+            for scenario, digest in zip(plans, result["profile_digests"], strict=True)
+        }
+        private_write(
+            folder / "profiles.json",
+            json.dumps({"target_uid": uid, "image_id": image_id, "digests": digests}, indent=2)
+            + "\n",
+        )
+        published = json.loads(
+            self.dc(
+                "exec",
+                "-T",
+                "api",
+                "python",
+                "-c",
+                "import json;from cloudops.features.recovery.verification_policy import "
+                "configured_profiles;print(json.dumps([p.digest() for p in configured_profiles()]))",
+            )
+            .strip()
+            .splitlines()[-1]
+        )
+        require(
+            sorted(published) == sorted(digests.values()),
+            "The API does not load exactly the generated qualified profiles.",
+        )
+        self.receipt(
+            "recovery-config",
+            {
+                "target_uid": uid,
+                "image_id": image_id,
+                "policy_digest": result["policy_digest"],
+                "profile_digests": digests,
+                "source_digest": result["source_digest"],
+                "source_version": RECOVERY_SOURCE_VERSION,
+                "loaded_by_api": True,
+            },
+        )
+
+    def qualified_profile(self, scenario_id):
+        folder = self.directory / "recovery"
+        profiles = json.loads((folder / "verification.json").read_text())
+        digests = json.loads((folder / "profiles.json").read_text())["digests"]
+        template = {
+            "recovery-traffic-scale": "scale_deployment",
+            "recovery-oom-memory": "set_memory_profile",
+            "recovery-bad-rollout-restore": "restore_deployment_template",
+        }[scenario_id]
+        matches = [profile for profile in profiles if profile["template"] == template]
+        require(len(matches) == 1, "Exactly one generated profile must match the scenario.")
+        return matches[0], digests[scenario_id]
+
+    def profile_sample(self, profile, uid):
+        values = {}
+        for key in ("request_rate", "error_ratio", "p95_latency", "offered_rate"):
+            query = (
+                profile["queries"][key]["query"]
+                .replace("{{namespace}}", "demo")
+                .replace("{{workload_uid}}", uid)
+            )
+            rows = self.prom("/api/v1/query?" + urlencode({"query": query}))["data"]["result"]
+            values[key] = float(rows[0]["value"][1]) if len(rows) == 1 else None
+        return values
+
+    def qualify(self, scenario_id, rate, seconds):
+        """Measure the exact post-action state under the fixed offered load before any trial.
+
+        This is a trusted operator calibration of the profile's desired state, not a product
+        action and not credit for a recovery. The baseline is restored before returning.
+        """
+        self.require_idle_recovery_lab()
+        require(scenario_id in RECOVERY_FAULTS, "Unknown recovery scenario.")
+        require(1 <= rate <= 30 and 120 <= seconds <= 900, "Qualification load bounds exceeded.")
+        profile, profile_digest = self.qualified_profile(scenario_id)
+        deployment = self.deployment("checkout")
+        baseline = owned_fields(deployment)
+        require(
+            baseline == self.recovery_healthy_fields()
+            and int(deployment["spec"].get("replicas", 1)) == 1,
+            "Qualification starts only from the captured healthy recovery baseline.",
+        )
+        health = self.healthy_target(deployment)
+        uid = health["target_uid"]
+        template = copy.deepcopy(baseline)
+        template["resources"] = profile["containers"][0]["resources"]
+        action_state = {
+            "replicas": profile["replicas"][0],
+            "template": template,
+            "rolling_update": deployment["spec"].get("strategy", {}).get("rollingUpdate", {}),
+        }
+        self.validate_qualified_recovery_action(scenario_id, deployment, action_state)
+        proof = self.containment(read_only=True)
+        source = self.source_binding()
+        changes = []
+        if action_state["replicas"] != 1:
+            changes.append({"op": "replace", "path": "/spec/replicas", "value": 2})
+        if template != baseline:
+            changes += field_changes(deployment, template)
+        samples = []
+        container_id = None
+        started_at = datetime.now(timezone.utc).isoformat()
+        try:
+            if changes:
+                self.patch(deployment, changes)
+            self.wait_settled()
+            container_id, container = self.start_offered_load(
+                f"cloudops-e10s3-q-{uuid4().hex[:8]}", seconds, rate, uid
+            )
+            require(container["State"]["Running"], "Qualification load did not start.")
+            time.sleep(profile["warmup_seconds"])
+            slots = (seconds - profile["warmup_seconds"] - 15) // profile["step_seconds"]
+            for _ in range(max(1, slots)):
+                samples.append(
+                    {
+                        "at": datetime.now(timezone.utc).isoformat(),
+                        **self.profile_sample(profile, uid),
+                    }
+                )
+                time.sleep(profile["step_seconds"])
+        finally:
+            if container_id:
+                self.command(["docker", "stop", "--time", "3", container_id], timeout=20)
+                self.command(["docker", "rm", container_id], timeout=20)
+            live = self.deployment("checkout")
+            restore = []
+            if int(live["spec"].get("replicas", 1)) != 1:
+                restore.append({"op": "replace", "path": "/spec/replicas", "value": 1})
+            if owned_fields(live) != baseline:
+                restore += field_changes(live, baseline)
+            if restore:
+                self.patch(live, restore)
+            self.wait_settled()
+        restored = self.deployment("checkout")
+        require(
+            owned_fields(restored) == baseline
+            and int(restored["spec"].get("replicas", 1)) == 1
+            and restored["metadata"]["uid"] == uid,
+            "Qualification did not restore the captured baseline.",
+        )
+
+        def passing(sample):
+            values = [sample[key] for key in sample if key != "at"]
+            return (
+                all(value is not None and math.isfinite(value) for value in values)
+                and sample["request_rate"] >= profile["minimum_rps"]
+                and sample["offered_rate"] >= rate * 0.8
+                and sample["request_rate"] >= sample["offered_rate"] * profile["minimum_load_ratio"]
+                and sample["error_ratio"] <= profile["maximum_error_ratio"]
+                and sample["p95_latency"] <= profile["maximum_p95_seconds"]
+            )
+
+        passed = bool(samples) and all(passing(sample) for sample in samples)
+        demand = self.recovery_surge_demand(deployment, action_state)
+        calibration = {
+            "schema": "E10RecoveryCalibration/v1",
+            "scenario_id": scenario_id,
+            "target_uid": uid,
+            "profile_digest": profile_digest,
+            "rate_rps": rate,
+            "seconds": seconds,
+            "started_at": started_at,
+            "action_state": action_state,
+            "samples": samples,
+            "passed": passed,
+            "containment": proof,
+            "note": "Operator calibration of the desired post-action state; not a recovery result.",
+        }
+        folder = self.directory / "qualification"
+        folder.mkdir(mode=0o700, exist_ok=True)
+        private_write(
+            folder / f"{scenario_id}-calibration-{time.time_ns()}.json",
+            json.dumps(calibration, indent=2) + "\n",
+        )
+        self.receipt("recovery-calibration", calibration)
+        require(passed, "The desired state did not meet its profile; the target stays manual.")
+        qualification = validate_qualification_receipt(
+            {
+                "schema": "E10RecoveryQualificationReceipt/v1",
+                "scenario_id": scenario_id,
+                "qualified": True,
+                "target_uid": uid,
+                "source_binding_sha256": source["sha256"],
+                "profile_digest": profile_digest,
+                "image_digests": health["image_digests"],
+                "declared_resources": action_state,
+                "surge_headroom": demand,
+            }
+        )
+        private_write(folder / f"{scenario_id}.json", json.dumps(qualification, indent=2) + "\n")
+        print(json.dumps({"qualification": str(folder / f"{scenario_id}.json")}))
+
+    def writer(self, operation):
+        """Open or close the isolated writer around one explicitly approved product action."""
+        require(RECOVERY_LAB, "Writer lifecycle commands belong to the E10 S3 recovery lab.")
+        if operation == "enable":
+            require(self.trial_path.is_file(), "Enable the writer only for an active trial.")
+            trial = json.loads(self.trial_path.read_text())
+            require(
+                trial["scenario_kind"] == "recovery" and trial["status"] == "observed",
+                "Enable the writer only after a qualified recovery fault is observed.",
+            )
+            permit = json.loads(
+                self.dc("run", "--rm", "-T", "--no-deps", "dispatch-admin", "status")
+            )["permit"]
+            if permit["mode"] == "recovery":
+                self.dispatch("resume", "--class", "recovery_execution")
+            else:
+                require(
+                    "recovery_execution" in permit.get("allowed_job_kinds", []),
+                    "Recovery execution dispatch is not permitted.",
+                )
+            results = {
+                operation_name: self.maintenance(operation_name).get("status")
+                for operation_name in ("enable_target", "exit_recovery_mode")
+            }
+        else:
+            self.dispatch("enter-recovery")
+            results = {"enter_recovery": self.maintenance("enter_recovery").get("status")}
+            for kind in ("collection", "recommendation"):
+                self.dispatch("resume", "--class", kind)
+        status = self.maintenance()
+        self.receipt("writer-" + operation, {"results": results, "targets": status["targets"]})
+        if operation == "enable":
+            require(set(results.values()) == {"applied"}, "Writer enablement was not applied.")
+        else:
+            require(
+                all(
+                    not target["enabled"] and target["recovery_mode"]
+                    for target in status["targets"]
+                ),
+                "Writer did not return to quarantine.",
+            )
+
     def load(self, target, seconds, rate, *, recovery=False, detach=False):
         if recovery:
             require(
@@ -2697,37 +3296,8 @@ class Lab:
                 "An unexpired eligible action exists.",
             )
             proof = self.containment(read_only=True)
-            container_name = f"cloudops-e10s3-{trial['trial_id'][:12]}"
-            container_id = self.dc(
-                "run",
-                "--detach",
-                "--no-deps",
-                "--use-aliases",
-                "--name",
-                container_name,
-                "--entrypoint",
-                "python",
-                "load",
-                "/app/recovery_load.py",
-                "--seconds",
-                str(seconds),
-                "--rate",
-                str(rate),
-                "--deployment-uid",
-                trial["target_uid"],
-            ).strip()
-            require(
-                re.fullmatch(r"[a-f0-9]{12,64}", container_id) is not None,
-                "Load did not return a container identity.",
-            )
-            container = json.loads(self.command(["docker", "inspect", container_id]))[0]
-            labels = container.get("Config", {}).get("Labels", {})
-            require(
-                labels.get(OWNER_LABEL) == self.marker["owner"]
-                and labels.get("com.docker.compose.project") == OWNED_PROJECT
-                and labels.get("com.docker.compose.service") == "load"
-                and labels.get("com.docker.compose.project.working_dir") == str(ROOT),
-                "Recovery load container is outside the owned project.",
+            container_id, container = self.start_offered_load(
+                f"cloudops-e10s3-{trial['trial_id'][:12]}", seconds, rate, trial["target_uid"]
             )
             running = container.get("State", {}).get("Running") is True
             trial["load"] = {
@@ -2759,6 +3329,12 @@ class Lab:
             return
 
         require(not detach, "Detached load is reserved for a qualified E10 recovery trial.")
+        if self.trial_path.is_file():
+            require(
+                json.loads(self.trial_path.read_text()).get("scenario_kind") != "recovery",
+                "A recovery trial owns the target's offered load; no other targeted load may run.",
+            )
+        require(not self.active_loads(), "A targeted load is already running.")
         proof = self.containment(read_only=True)
         result = json.loads(
             self.dc(
@@ -2922,7 +3498,7 @@ class Lab:
             and health["image_digests"] == trial["image_digests"],
             "Post-check target UID or runtime images changed.",
         )
-        verification = self.verify()
+        verification = self.verify(self.trial_target_uids())
         metrics = self.target_metric_snapshot(verification, trial["target_uid"])
         source = self.source_binding()
         require(
@@ -3042,7 +3618,7 @@ class Lab:
                     and current_health["image_digests"] == trial["image_digests"],
                     "Recovery target UID or qualified runtime images changed before injection.",
                 )
-                current_metrics = self.verify()
+                current_metrics = self.verify(self.trial_target_uids())
                 self.target_metric_snapshot(current_metrics, trial["target_uid"])
                 offered = self.offered_rate_snapshot(trial["target_uid"], load["rate"])
                 trial["load"].setdefault("observations", []).append(
@@ -3055,7 +3631,19 @@ class Lab:
                 "Trial target, fields or source binding changed after readiness.",
             )
         wanted = copy.deepcopy(fields)
-        if scenario in {"crashloop", "oom", "traffic"}:
+        if scenario in set(RECOVERY_FAULTS.values()):
+            require(
+                RECOVERY_LAB and trial is not None and trial["scenario_kind"] == "recovery",
+                "Recovery faults require a ready recovery trial in the E10 S3 recovery lab.",
+            )
+            if scenario == "memory-limit":
+                # A real OOM: the 160 MiB resident working set cannot fit this limit.
+                wanted["resources"]["requests"]["memory"] = FAULT_MEMORY_LIMIT
+                wanted["resources"]["limits"]["memory"] = FAULT_MEMORY_LIMIT
+            elif scenario == "bad-rollout":
+                wanted["image"] = "docker.io/library/" + RECOVERY_IMAGES["bad-image"]
+            # overload: the fixed offered load alone is the fault; no field changes.
+        elif scenario in {"crashloop", "oom", "traffic"}:
             wanted["mode"] = {
                 "name": "LAB_MODE",
                 "value": {"crashloop": "crash", "oom": "oom", "traffic": "slow"}[scenario],
@@ -3108,7 +3696,8 @@ class Lab:
                 }
             )
         private_write(self.directory / "fault.json", json.dumps(record))
-        self.patch(before, field_changes(before, wanted))
+        if wanted != fields:
+            self.patch(before, field_changes(before, wanted))
         record["state"] = "injected"
         private_write(self.directory / "fault.json", json.dumps(record))
         if trial is not None:
@@ -3275,15 +3864,7 @@ class Lab:
                 )
             if changes:
                 self.patch(live, changes)
-            self.kube(
-                "rollout",
-                "status",
-                "deployment/checkout",
-                "-n",
-                "demo",
-                "--timeout=180s",
-                timeout=200,
-            )
+            self.wait_settled()
         else:
             if trial and (
                 trial["status"] not in {"ready", "manual"}
@@ -3310,7 +3891,8 @@ class Lab:
 
         reset_at = datetime.now(timezone.utc).isoformat()
         try:
-            verification = self.verify()
+            readiness = self.readiness_load()
+            verification = self.verify(self.trial_target_uids())
             containment = self.containment(read_only=True)
             live = self.deployment("checkout")
             require(
@@ -3372,6 +3954,9 @@ class Lab:
             reasons.append(trial["manual_reason"])
             if receipt_status != "incomplete":
                 receipt_status = "manual"
+        # The baseline itself was restored and verified. A recovery trial without a positive
+        # post-check stays an incomplete trial, but it must not wedge the next fresh trial.
+        lab_restored = receipt_status != "incomplete"
         if trial and trial["scenario_kind"] == "recovery" and receipt_status == "reset_complete":
             post_check = trial.get("post_check") or {}
             load = trial.get("load") or {}
@@ -3424,6 +4009,8 @@ class Lab:
                     "reset_pod_uids": health["pod_uids"],
                     "baseline_owned_fields": trial["baseline"]["owned_fields"],
                     "reset_owned_fields": owned_fields(live),
+                    "readiness_load": readiness,
+                    "lab_state": "restored_baseline" if lab_restored else "retained_for_inspection",
                     "metrics": metrics,
                     "source_files": source["files"],
                     "containment": containment,
@@ -3451,7 +4038,7 @@ class Lab:
                 json.dumps(trial_receipt, indent=2) + "\n",
             )
             self.receipt("trial-reset", {"trial_receipt": trial_receipt})
-            if receipt_status != "incomplete":
+            if lab_restored:
                 self.trial_path.unlink(missing_ok=True)
                 fault_path.unlink(missing_ok=True)
         else:
@@ -3501,10 +4088,10 @@ class Lab:
                 for status in statuses:
                     waiting = status.get("state", {}).get("waiting", {}).get("reason")
                     terminated = status.get("lastState", {}).get("terminated", {}).get("reason")
-                    if record["scenario"] == "oom" and terminated == "OOMKilled":
+                    if record["scenario"] in {"oom", "memory-limit"} and terminated == "OOMKilled":
                         return pod
                     if (
-                        record["scenario"] in {"crashloop", "init-retry"}
+                        record["scenario"] in {"crashloop", "init-retry", "bad-rollout"}
                         and status.get("restartCount", 0) > 0
                     ):
                         retries = json.loads(
@@ -3531,7 +4118,7 @@ class Lab:
                     for c in pod.get("status", {}).get("conditions", [])
                 ):
                     return pod
-            if record["scenario"] == "traffic":
+            if record["scenario"] in {"traffic", "overload"}:
                 query = 'cloudops_error_ratio{deployment_uid="' + record["uid"] + '"}>0.1'
                 if self.prom("/api/v1/query?" + urlencode({"query": query}))["data"]["result"]:
                     return {
@@ -3565,7 +4152,7 @@ class Lab:
         if record["scenario"] in {"pending", "imagepull"}:
             require(events, "Runtime event evidence is absent.")
         logs = []
-        if record["scenario"] in {"oom", "crashloop", "init-retry"}:
+        if record["scenario"] in {"oom", "crashloop", "init-retry", "memory-limit", "bad-rollout"}:
             container = "setup" if record["scenario"] == "init-retry" else "app"
             for previous in (False, True):
                 args = [
@@ -3734,7 +4321,7 @@ def main():
             "The retained owned lab builds its own images; unset CLOUDOPS_RELEASE_BUNDLE."
         )
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project", choices=[OWNED_PROJECT], required=True)
+    parser.add_argument("--project", choices=sorted(OWNED_PROJECTS), required=True)
     parser.add_argument("--directory", type=Path, default=DIRECTORY)
     sub = parser.add_subparsers(dest="operation", required=True)
     for name in (
@@ -3779,7 +4366,15 @@ def main():
     fault = sub.add_parser("fault")
     fault.add_argument(
         "scenario",
-        choices=["crashloop", "oom", "traffic", "pending", "imagepull", "init-retry"],
+        choices=[
+            "crashloop",
+            "oom",
+            "traffic",
+            "pending",
+            "imagepull",
+            "init-retry",
+            *RECOVERY_FAULTS.values(),
+        ],
     )
     reset = sub.add_parser("reset")
     reset.add_argument(
@@ -3799,7 +4394,22 @@ def main():
     renew.add_argument("identity", choices=["reader", "writer", "monitoring"])
     cleanup = sub.add_parser("cleanup")
     cleanup.add_argument("--confirm-owner", required=True)
+    sub.add_parser(
+        "recovery-config", help="Write the trusted E07 policy/profiles for the recovery lab."
+    )
+    qualify = sub.add_parser(
+        "qualify", help="Calibrate one recovery scenario's exact post-action state."
+    )
+    qualify.add_argument("scenario_id", choices=sorted(RECOVERY_FAULTS))
+    qualify.add_argument("--rate", type=int, required=True)
+    qualify.add_argument("--seconds", type=int, default=240)
+    writer = sub.add_parser("writer", help="Open or re-quarantine the isolated writer.")
+    writer.add_argument("writer_operation", choices=["enable", "quarantine"])
     args = parser.parse_args()
+    require(
+        args.project == OWNED_PROJECT,
+        "Select this owned project with CLOUDOPS_LAB_PROJECT as well as --project.",
+    )
     require(
         1 <= getattr(args, "seconds", 1) <= 21600 and 1 <= getattr(args, "rate", 1) <= 30,
         "Load bounds exceeded.",
@@ -3864,6 +4474,12 @@ def main():
             lab.renew(args.identity)
         elif args.operation == "renew-readers":
             lab.receipt("renew-readers", lab.renew_readers())
+        elif args.operation == "recovery-config":
+            lab.recovery_config()
+        elif args.operation == "qualify":
+            lab.qualify(args.scenario_id, args.rate, args.seconds)
+        elif args.operation == "writer":
+            lab.writer(args.writer_operation)
         elif args.operation == "cleanup":
             lab.cleanup(args.confirm_owner)
         elif args.operation == "containment":

@@ -59,7 +59,7 @@ def receipt(scenarios, *, recovery=False):
         "scenario_id": "recovery-oom-memory" if recovery else "pending-insufficient-cpu",
         "reset_state": "faulted" if recovery else "healthy",
         "scope": {
-            "project": "cloudops-local-testing-lab",
+            "project": "cloudops-e10-s3-lab" if recovery else "cloudops-local-testing-lab",
             "namespace": "demo",
             "scope_manifest_sha256": "c" * 64,
         },
@@ -297,3 +297,19 @@ def test_recovery_post_check_rejects_unqualified_evidence(scenarios, mutation):
             load=load,
             fault_observed_at=(start + timedelta(minutes=1)).isoformat(),
         )
+
+
+def test_recovery_receipts_must_come_from_the_recovery_lab(scenarios):
+    value = receipt(scenarios, recovery=True)
+    value["scope"]["project"] = "cloudops-local-testing-lab"
+    with pytest.raises(ValueError, match="E10 S3 recovery lab"):
+        scenarios.validate_trial_receipt(value)
+
+
+def test_observation_receipts_are_accepted_from_either_owned_lab(scenarios):
+    value = receipt(scenarios)
+    value["scope"]["project"] = "cloudops-e10-s3-lab"
+    assert scenarios.validate_trial_receipt(value)["scope"]["project"] == "cloudops-e10-s3-lab"
+    value["scope"]["project"] = "cloudops-unowned"
+    with pytest.raises(ValueError, match="owned lab"):
+        scenarios.validate_trial_receipt(value)

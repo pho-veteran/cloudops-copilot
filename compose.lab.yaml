@@ -47,7 +47,7 @@ services:
         aliases: [prometheus, cloudops-local]
   migrate:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     environment: *app-env
     mem_limit: 512m
     memswap_limit: 512m
@@ -56,7 +56,7 @@ services:
       - ./runbooks:/workspace/runbooks:ro
   api:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     environment: *app-env
     mem_limit: 512m
     memswap_limit: 512m
@@ -66,7 +66,7 @@ services:
       - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recommendations:/run/cloudops-recommendations:ro
   worker:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     environment: *app-env
     mem_limit: 512m
     memswap_limit: 512m
@@ -76,14 +76,14 @@ services:
       - ${CLOUDOPS_LAB_DIR:?Use generated lab.env}/recommendations:/run/cloudops-recommendations:ro
   observer:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     environment: *app-env
     mem_limit: 256m
     memswap_limit: 256m
     cpus: 0.25
   executor:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     environment:
       DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Use generated lab.env}@db:5432/cloudops_lab
     mem_limit: 256m
@@ -91,19 +91,19 @@ services:
     cpus: 0.25
   executor-init:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     mem_limit: 256m
     memswap_limit: 256m
     cpus: 0.25
   dispatch-admin:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     mem_limit: 256m
     memswap_limit: 256m
     cpus: 0.25
   https:
     <<: *lab
-    image: cloudops-local-testing-lab-https
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-https
     mem_limit: 128m
     memswap_limit: 128m
     cpus: 0.125
@@ -139,7 +139,7 @@ services:
       k3s: {condition: service_healthy}
   krr:
     <<: *lab
-    image: cloudops-local-testing-lab-krr
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-krr
     profiles: [lab-krr]
     mem_limit: 768m
     memswap_limit: 768m
@@ -162,7 +162,7 @@ services:
     cpus: 0.25
   test:
     <<: *lab
-    image: cloudops-local-testing-lab-backend
+    image: ${CLOUDOPS_LAB_PROJECT:-cloudops-local-testing-lab}-backend
     environment:
       <<: *app-env
       TEST_DATABASE_URL: postgresql+psycopg://cloudops:${POSTGRES_PASSWORD:?Use generated lab.env}@db:5432/cloudops_checks_test

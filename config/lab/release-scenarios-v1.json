@@ -30,7 +30,7 @@
     },
     "e10_s3_controls": {
       "path": "services/backend/tests/fixtures/e10_s3/controls.json",
-      "sha256": "bf5dc193c3af32acee4ee39a9efe81d5c666e94aae9a1cac114998e6c4a10da6"
+      "sha256": "3f9c48932837e56b8dea047bbd186c015c2f60f6805fb0e7de6847eee68ef115"
     }
   },
   "scenario_sets": {
