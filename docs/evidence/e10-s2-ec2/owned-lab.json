@@ -49,9 +49,33 @@
       "cloudops-local-testing-lab_prometheus_data"
     ]
   },
+  "collect": {
+    "pack_coverage": {
+      "crashloop_startup": "available",
+      "image_pull": "available",
+      "oom_restarts": "available",
+      "pending_unschedulable": "available",
+      "traffic_latency_errors": "available"
+    },
+    "run_state": "insufficient_evidence",
+    "sources": {
+      "development_fixture": "unavailable",
+      "kubernetes.configmap.metadata": "unavailable",
+      "kubernetes.events": "available",
+      "kubernetes.logs.current": "available",
+      "kubernetes.logs.previous": "not_applicable",
+      "kubernetes.state": "available",
+      "prometheus.error_ratio": "available",
+      "prometheus.memory_limit": "available",
+      "prometheus.memory_working_set": "available",
+      "prometheus.p95_latency": "available",
+      "prometheus.request_rate": "available",
+      "prometheus.restarts": "available"
+    }
+  },
   "first_attempts": [
     "c6a.2xlarge: sample pods could not read /app/sample_app.py because the checkout was cloned under umask 077; re-cloned under umask 022 after ownership-scoped cleanup",
-    "Docker Hub anonymous pull limit (100 per hour per public IPv4) reached during registry verification; a stop/start gave a new address",
+    "Docker Hub anonymous limit (100 manifest requests per hour per public IPv4) reached during registry verification; the 11:52 stop/start obtained a new address, which sidesteps a per-address provider limit and is no longer the documented procedure",
     "after the type change the existing node had been sized for the earlier host memory, so containment refused; the lab was stopped, cleaned up and started fresh"
   ],
   "preflight": {
@@ -68,7 +92,10 @@
       "stored baseline evidence_unchanged=true"
     ],
     "deployment_uids_unchanged": true,
-    "docker_volumes_unchanged": true,
+    "docker_volumes": {
+      "before_stop": 26,
+      "unchanged_after_start": true
+    },
     "owner_unchanged": true
   },
   "start_seconds": 89

@@ -110,6 +110,7 @@
       "running_containers": 0
     }
   },
+  "setup_duration": "apply started 11:21:07Z; populated core record created 11:33:19Z (about 12 minutes of instance time)",
   "transfer": {
     "bundle": "cloudops-6ac5bf9 built on the WSL builder, about 274 MB, copied over SSH in 55 s with matching SHA-256",
     "tooling": "git bundle of the same revision for the trusted verifier, smoke and lab scripts"

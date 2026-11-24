@@ -4,12 +4,13 @@
     "at": "2026-11-24T11:52Z..12:20Z",
     "c6a_start_attempts": 17,
     "result": "InsufficientInstanceCapacity for c6a.2xlarge in us-east-1a on every attempt",
-    "tofu_note": "A plan taken while the instance is stopped shows associate_public_ip_address false -> true and forces replacement. Plan only while running, or review any replacement carefully."
+    "tofu_note": "A plan taken while the instance is stopped shows associate_public_ip_address false -> true and forces replacement. Plan only while running, or review any replacement carefully.",
+    "variables": "the private variables were then set to c5a.2xlarge; a refresh shows the instance_type change made outside OpenTofu"
   },
   "destroy": {
     "applied_at": "2026-11-24T14:31:10Z..14:31:40Z",
     "result": "Apply complete! Resources: 0 added, 0 changed, 10 destroyed.",
-    "retained_root_volume": "matched by ID, Project tag and Name cloudops-e10-s2-retained-root while available and unattached, then deleted"
+    "retained_root_volume": "ID taken from the tofu retained_root_volume_id output at apply; matched by that ID, Project tag and Name cloudops-e10-s2-retained-root while available and unattached, then deleted"
   },
   "final_inventory": {
     "elastic_ips": 0,
@@ -24,9 +25,10 @@
     "project_tagged_resources": 0,
     "spot_requests": 0,
     "tofu_state_resources": 0,
+    "unrelated_resources": "the unrelated snapshot, VPC and key pair were present and unchanged",
     "volumes": 0
   },
-  "host_key": "pinned from the instance console output (SSH HOST KEY KEYS block) before the first connection; unchanged across both restarts",
+  "host_key": "pinned from the full instance console output (SSH HOST KEY KEYS block) before the first connection; every later connection used StrictHostKeyChecking=yes with that pin, so the key was unchanged across all three restarts",
   "inputs": {
     "account": "0581.7594",
     "ami": {
@@ -36,7 +38,7 @@
       "owner": "136693071363 (Debian)"
     },
     "availability_zone": "us-east-1a",
-    "instance_type": "c6a.2xlarge at apply; c5a.2xlarge after the capacity event below",
+    "instance_type": "c6a.2xlarge at apply; c5a.2xlarge after the capacity event below. Apply, host preparation, the core install, the tunnel smoke and the release-lab separation ran on c6a. The owned lab, all measurements and the recorded restarts ran on c5a.",
     "root_volume": "gp3 50 GiB, encrypted, delete_on_termination=false",
     "ssh": "new ed25519 key pair cloudops-e10-s2; ingress TCP 22 from one operator /32; egress TCP 443 only"
   },
@@ -51,9 +53,37 @@
     "apply": "Plan: 10 to add, 0 to change, 0 to destroy",
     "destroy": "Plan: 0 to add, 0 to change, 10 to destroy"
   },
+  "shutdown_timer": [
+    {
+      "armed_at": "2026-11-24T11:30:38Z",
+      "stop_at": "16:30:38Z"
+    },
+    {
+      "armed_at": "2026-11-24T12:22:10Z",
+      "stop_at": "16:52:10Z"
+    },
+    {
+      "armed_at": "2026-11-24T12:33:01Z",
+      "stop_at": "16:33:01Z"
+    },
+    {
+      "armed_at": "2026-11-24T14:28:24Z",
+      "stop_at": "16:28:24Z"
+    }
+  ],
   "source_revision": "6ac5bf92d44559066a677bdc3efe1f01656cc473",
   "state": "local private state outside the checkout (mode 0700), retained empty after destroy",
+  "static_checks": "tofu fmt -check passed and tofu validate reported Success! The configuration is valid. before each saved plan",
   "stop_start": [
+    {
+      "elastic_ips": 0,
+      "note": "c6a start refused for capacity; started as c5a. This stop was also made to obtain a new public address after the Docker Hub anonymous limit; see the evidence README.",
+      "public_ipv4": null,
+      "root_volume": "attached",
+      "start_at": "2026-11-24T12:21:41Z",
+      "state": "stopped",
+      "stop_at": "2026-11-24T11:52:14Z"
+    },
     {
       "elastic_ips": 0,
       "new_public_ipv4": true,

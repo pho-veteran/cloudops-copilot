@@ -48,6 +48,7 @@
     "k3s 127.0.0.1:6445->6443/tcp"
   ],
   "scoped_collection": {
+    "note": "The release lab omits Prometheus and KRR by design, so prometheus.* sources are unavailable and the Run ends insufficient_evidence. The monitoring input is shown in the owned lab (owned-lab.json and measurements.json).",
     "run_state": "insufficient_evidence",
     "sources": {
       "development_fixture": "unavailable",

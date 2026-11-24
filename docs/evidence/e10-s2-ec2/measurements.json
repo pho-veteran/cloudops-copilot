@@ -305,7 +305,7 @@
       160
     ]
   },
-  "headroom": "Under 30 rps the host stayed under 19% CPU and 2.2 GiB used memory, with at least 13.4 GiB available, no swap and zero memory/IO pressure. K3s is capped at 4 CPU / 4 GiB and its node advertises 3 CPU / 3 GiB allocatable.",
+  "headroom": "Under 30 rps the host stayed under 19% CPU and 2.2 GiB used memory, with at least 13.2 GiB available, no swap and zero memory/IO pressure. K3s is capped at 4 CPU / 4 GiB and its node advertises 3 CPU / 3 GiB allocatable.",
   "host": "c5a.2xlarge, 8 vCPU, 15.4 GiB, no swap, gp3 50 GiB",
   "idle_10_min": {
     "containers": {
@@ -406,7 +406,8 @@
       "0"
     ]
   },
-  "pressure_note": "Host CPU PSI some avg10 stayed between 11% and 12.5% even when idle. Host CPU use was 3-6%, so this reflects short waits from CFS quota throttling of the capped containers rather than host saturation. Memory and IO pressure were zero.",
+  "metrics_note": "metrics_after_load follows a 120 s warm-up at 10 rps across both Deployments (5 rps each). The lab-offered-load scrape target is only up while a load container runs, so it was down at verify.",
+  "pressure_note": "Host CPU PSI some avg10 stayed between 11% and 12.5% even when idle, while host CPU use was 3-6%. This is likely short waits under the capped containers' CFS quotas rather than host saturation; throttling counters were not sampled. Memory and IO pressure were zero.",
   "scrape_targets": [
     {
       "health": "up",
@@ -428,5 +429,15 @@
       "health": "up",
       "job": "sample"
     }
-  ]
+  ],
+  "surge_headroom": {
+    "basis": "source-inspected manifests plus the measured allocatable and pod memory limits; no rollout surge was exercised",
+    "measured_working_set_mib_per_pod": [
+      15.5,
+      15.6
+    ],
+    "not_counted": "CoreDNS, metrics-server, local-path-provisioner and kube-state-metrics (requests 25m / 32Mi, limits 100m / 128Mi)",
+    "sample_pods": "2 (checkout, history), each requests 50m / 32Mi and limits 400m / 160Mi; default RollingUpdate adds 1 surge Pod per Deployment",
+    "with_surge_at_limits": "4 sample Pods use 1.6 CPU and 640 MiB of the node's 3 CPU / 3 GiB allocatable"
+  }
 }

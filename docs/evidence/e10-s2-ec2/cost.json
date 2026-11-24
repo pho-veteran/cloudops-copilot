@@ -81,17 +81,43 @@
     "name": "cloudops-e10-s2",
     "subscriber": "account owner email",
     "type": "monthly cost budget excluding credits",
-    "why": "The account already had USD 5.54 of pre-credit spend this month, so alerts sit at that baseline plus the approved ceiling"
+    "why": "The account already had USD 5.54 of pre-credit spend this month. Alerts sit at that baseline plus the expected estimate (9), the upper estimate (11.5) and the approved ceiling (15.5)."
   },
+  "cleanup_owner": "the account owner (GitHub MinhKhoa2209), who approved full disposal after evidence",
   "credits": "Charges are expected to draw down the account's Free Tier credits (USD 60.58 remaining before apply, expiring 2027-04-11); confirm on the Bills page after the daily billing refresh.",
   "date": "2026-11-24",
   "estimate_before_apply": {
-    "expected_usd": 3.5,
-    "running_hours_cap": 16,
-    "running_hours_expected": 10,
-    "upper_usd": 5.9
+    "expected": {
+      "compute": "10 h x 0.306 = 3.06",
+      "gp3": "3 days = 0.39",
+      "public_ipv4": "10 h = 0.05",
+      "snapshots": 0,
+      "total_usd": 3.5,
+      "transfer": 0
+    },
+    "upper": {
+      "compute": "16 h x 0.306 = 4.90",
+      "gp3": "7 days = 0.92",
+      "public_ipv4": "16 h = 0.08",
+      "snapshots": 0,
+      "total_usd": 5.9,
+      "transfer": 0
+    }
+  },
+  "forecast": {
+    "later_use": "S6 #125 and S7 #126 redeploy from the same variables. Estimates: #126 walkthrough about 7.5 running hours (about USD 2.60); a demo rehearsal or the demo about 4.5 running hours each (about USD 1.53). Each redeploy needs its own dated owner approval and destroy deadline.",
+    "s2": "completed 2026-11-24 in one session: 2.66 running hours against 10 expected, destroyed the same day"
   },
   "over_budget_rule": "Do not apply when the estimate exceeds the approved ceiling or approval is missing; stop and request renewed approval for any increase.",
+  "rates_usd": {
+    "c5a.2xlarge_hour": 0.308,
+    "c6a.2xlarge_hour": 0.306,
+    "gp3_gb_month": 0.08,
+    "public_ipv4_hour": 0.005,
+    "snapshot_gb_month": 0.05,
+    "stopped_retention": "gp3 50 GiB only: 4.00 per month, about 0.13 per day; no compute or IPv4 charge while stopped",
+    "transfer_out_gb": "first 100 GB per month free, then 0.09"
+  },
   "region": "us-east-1",
   "residual_after_destroy_usd_per_month": 0,
   "source": "AWS Price List API list prices effective 2026-11-01; per-second Linux billing; no Cost Explorer queries"
