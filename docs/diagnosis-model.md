@@ -76,7 +76,7 @@ Guaranteed:
 - certificate verification on; no profile field disables it;
 - bounded serialized input and response body; responses with a non-identity content encoding are rejected before reading or decompressing their body;
 - whole-call deadline, including header and body trickle (except a blocking synchronous admission callback);
-- no upstream error body, provider text or credential in the returned classification.
+- no upstream error body, provider text or credential in the returned classification. The one exception is opt-in: trusted diagnostic tooling may construct `ModelClient(..., capture_provider_error=True)` to keep a bounded `ModelCall.provider_error` (see [reasoning effort and connectivity probes](diagnosis-reasoning-effort.md)). The product worker never enables it, and its receipts never store it.
 
 The default trust store can be influenced by process-level `SSL_CERT_FILE`/`SSL_CERT_DIR`; deployments that require a fixed root must set `tls.ca_file`. A relative `tls.ca_file` is resolved against the profile file loaded by `ModelProfile.load`.
 
