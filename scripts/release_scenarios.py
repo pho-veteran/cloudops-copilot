@@ -1115,6 +1115,10 @@ def validate_qualification_receipt(value):
             "Invalid qualified surge demand.",
         )
     _require(
+        type(value["rate_rps"]) is int and 1 <= value["rate_rps"] <= 30,
+        "Qualification must bind the fixed offered rate it was measured at.",
+    )
+    _require(
         not (
             {"authorization", "password", "private_key", "secret", "token"} & set(_walk_keys(value))
         ),

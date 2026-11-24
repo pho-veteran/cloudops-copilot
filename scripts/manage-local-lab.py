@@ -50,7 +50,6 @@ SAMPLE_IMAGE = (
                 "config/lab/Dockerfile.sample",
                 "config/lab/sample_app.py",
                 "config/lab/load.py",
-                "config/lab/recovery_load.py",
             )
         )
     ).hexdigest()[:16]
@@ -280,6 +279,7 @@ class Lab:
             not in {
                 "POSTGRES_PASSWORD",
                 "LAB_SAMPLE_IMAGE",
+                "LAB_RECOVERY_IMAGE",
                 "DOCKER_CONTEXT",
                 "BUILDX_CONFIG",
                 "BUILDX_BUILDER",
@@ -295,6 +295,9 @@ class Lab:
         self.env["DOCKER_HOST"] = "unix:///var/run/docker.sock"
         self.env["DOCKER_CONFIG"] = str(self.directory / "docker-config")
         self.env["CLOUDOPS_LAB_PROJECT"] = OWNED_PROJECT
+        if RECOVERY_LAB:
+            # The recovery sample image carries recovery_load.py; the general sample does not.
+            self.env["LAB_RECOVERY_IMAGE"] = RECOVERY_IMAGES["healthy"]
         self.compose = [
             "docker",
             "compose",
@@ -2281,6 +2284,41 @@ class Lab:
         )
         self.wait(settled, "settled target Pods", seconds)
 
+    def known_good_baseline(self, uid):
+        """Return the latest confirmed E02 baseline when it equals the healthy recovery sample."""
+        script = """
+import json, sys
+from sqlalchemy import select
+from cloudops.features.workloads.models import Baseline, Workload
+from cloudops.shared.database import sessions
+uid = sys.argv[1]
+with sessions()() as db:
+    ids = db.scalars(select(Workload.id).where(Workload.uid == uid)).all()
+    row = db.scalars(
+        select(Baseline).where(Baseline.workload_id.in_(ids))
+        .order_by(Baseline.confirmed_at.desc(), Baseline.id.desc()).limit(1)
+    ).first() if ids else None
+    print(json.dumps(None if row is None else {
+        "id": str(row.id), "digest": row.digest, "confirmed_at": row.confirmed_at.isoformat(),
+        "uid": (row.snapshot.get("identity") or {}).get("uid"),
+        "containers": row.snapshot.get("containers"),
+    }))
+"""
+        value = json.loads(
+            self.dc("exec", "-T", "api", "python", "-c", script, uid).strip().splitlines()[-1]
+        )
+        healthy = self.recovery_healthy_fields()
+        if (
+            value is None
+            or value["uid"] != uid
+            or not value["containers"]
+            or len(value["containers"]) != 1
+            or value["containers"][0].get("image") != healthy["image"]
+            or value["containers"][0].get("resources") != healthy["resources"]
+        ):
+            return None
+        return {key: value[key] for key in ("id", "digest", "confirmed_at")}
+
     def trial_target_uids(self):
         return {self.marker["deployments"]["checkout"]}
 
@@ -2473,7 +2511,6 @@ class Lab:
 
     def target_metric_snapshot(self, verification, uid):
         result = {}
-        now = time.time()
         for metric, rows in verification["metrics"].items():
             target_rows = [row for row in rows if row["labels"].get("deployment_uid") == uid]
             require(
@@ -2481,13 +2518,20 @@ class Lab:
                 f"Current application metric {metric} is not bound to the target UID.",
             )
             newest = max(target_rows, key=lambda row: float(row["value"][0]))
-            observed = float(newest["value"][0])
+            # An instant query's value time is its evaluation time; the sample's own
+            # timestamp shows whether the series is still being produced.
+            stamps = self.prom(
+                "/api/v1/query?"
+                + urlencode({"query": f'timestamp({metric}{{deployment_uid="{uid}"}})'})
+            )["data"]["result"]
+            require(stamps, f"Current application metric {metric} has no sample time.")
+            observed = max(float(row["value"][1]) for row in stamps)
             require(
-                0 <= now - observed <= 120,
+                -5 <= time.time() - observed <= 120,
                 f"Current application metric {metric} is stale.",
             )
             result[metric] = {
-                "timestamp": newest["value"][0],
+                "timestamp": observed,
                 "value": newest["value"][1],
             }
         return result
@@ -2673,6 +2717,15 @@ class Lab:
         source = self.source_binding()
         headroom = self.surge_headroom(deployment)
         owned = owned_fields(deployment)
+        if RECOVERY_LAB:
+            require(
+                owned == self.recovery_healthy_fields()
+                and int(deployment["spec"].get("replicas", 1)) == 1,
+                "The recovery lab target is not at its captured healthy one-Pod baseline.",
+            )
+        known_good = None
+        if scenario_id == "recovery-bad-rollout-restore":
+            known_good = self.known_good_baseline(health["target_uid"])
         resources = {
             "replicas": deployment["spec"].get("replicas", 1),
             "template": owned,
@@ -2750,6 +2803,7 @@ class Lab:
                 qualification = {
                     "path_sha256": sha256_file(qualification_path),
                     "profile_digest": profile_digest,
+                    "rate_rps": qualification["rate_rps"],
                     "declared_resources": declared,
                     "required_surge_cpu_millicores": required_cpu,
                     "required_surge_memory_bytes": required_memory,
@@ -2757,6 +2811,11 @@ class Lab:
         if not headroom["qualified"]:
             status = "manual"
             manual_reason = manual_reason or "Measured rollout surge headroom is insufficient."
+        if scenario_id == "recovery-bad-rollout-restore" and known_good is None:
+            status = "manual"
+            manual_reason = manual_reason or (
+                "No confirmed known-good baseline matches the healthy target before injection."
+            )
         now = datetime.now(timezone.utc).isoformat()
         trial = {
             "schema": "E10S3TrialState/v1",
@@ -2797,6 +2856,7 @@ class Lab:
                 "readiness_load": readiness,
             },
             "qualification": qualification,
+            "known_good_baseline": known_good,
             "phases": {
                 "baseline": now,
                 "inject": None,
@@ -3085,15 +3145,34 @@ print(json.dumps({
         return matches[0], digests[scenario_id]
 
     def profile_sample(self, profile, uid):
+        """Read the profile's own queries once: rates, ratio, p95, per-Pod resets and freshness."""
         values = {}
-        for key in ("request_rate", "error_ratio", "p95_latency", "offered_rate"):
+        for key in (
+            "request_rate",
+            "error_ratio",
+            "p95_latency",
+            "offered_rate",
+            "resets",
+            "sample_time",
+        ):
             query = (
                 profile["queries"][key]["query"]
                 .replace("{{namespace}}", "demo")
                 .replace("{{workload_uid}}", uid)
             )
             rows = self.prom("/api/v1/query?" + urlencode({"query": query}))["data"]["result"]
-            values[key] = float(rows[0]["value"][1]) if len(rows) == 1 else None
+            if key in {"resets", "sample_time"}:
+                # Per-Pod series: every serving Pod must report and none may have reset.
+                numbers = [float(row["value"][1]) for row in rows]
+                values[key] = (
+                    (max(numbers) if key == "resets" else time.time() - min(numbers))
+                    if numbers
+                    else None
+                )
+                if key == "sample_time":
+                    values["serving_pods"] = len(numbers)
+            else:
+                values[key] = float(rows[0]["value"][1]) if len(rows) == 1 else None
         return values
 
     def qualify(self, scenario_id, rate, seconds):
@@ -3104,8 +3183,12 @@ print(json.dumps({
         """
         self.require_idle_recovery_lab()
         require(scenario_id in RECOVERY_FAULTS, "Unknown recovery scenario.")
-        require(1 <= rate <= 30 and 120 <= seconds <= 900, "Qualification load bounds exceeded.")
         profile, profile_digest = self.qualified_profile(scenario_id)
+        # The calibration covers the profile's full fixed window, not a shorter sample set.
+        require(
+            1 <= rate <= 30 and profile["window_seconds"] + 30 <= seconds <= 900,
+            "Qualification needs 1..30 rps and a load covering the profile window plus 30 s.",
+        )
         deployment = self.deployment("checkout")
         baseline = owned_fields(deployment)
         require(
@@ -3127,7 +3210,9 @@ print(json.dumps({
         source = self.source_binding()
         changes = []
         if action_state["replicas"] != 1:
-            changes.append({"op": "replace", "path": "/spec/replicas", "value": 2})
+            changes.append(
+                {"op": "replace", "path": "/spec/replicas", "value": action_state["replicas"]}
+            )
         if template != baseline:
             changes += field_changes(deployment, template)
         samples = []
@@ -3142,8 +3227,10 @@ print(json.dumps({
             )
             require(container["State"]["Running"], "Qualification load did not start.")
             time.sleep(profile["warmup_seconds"])
-            slots = (seconds - profile["warmup_seconds"] - 15) // profile["step_seconds"]
-            for _ in range(max(1, slots)):
+            slots = (profile["window_seconds"] - profile["warmup_seconds"]) // profile[
+                "step_seconds"
+            ] + 1
+            for _ in range(slots):
                 samples.append(
                     {
                         "at": datetime.now(timezone.utc).isoformat(),
@@ -3176,6 +3263,9 @@ print(json.dumps({
             values = [sample[key] for key in sample if key != "at"]
             return (
                 all(value is not None and math.isfinite(value) for value in values)
+                and sample["serving_pods"] == action_state["replicas"]
+                and sample["resets"] == 0
+                and sample["sample_time"] <= profile["source_age_seconds"]
                 and sample["request_rate"] >= profile["minimum_rps"]
                 and sample["offered_rate"] >= rate * 0.8
                 and sample["request_rate"] >= sample["offered_rate"] * profile["minimum_load_ratio"]
@@ -3218,6 +3308,7 @@ print(json.dumps({
                 "image_digests": health["image_digests"],
                 "declared_resources": action_state,
                 "surge_headroom": demand,
+                "rate_rps": rate,
             }
         )
         private_write(folder / f"{scenario_id}.json", json.dumps(qualification, indent=2) + "\n")
@@ -3232,6 +3323,14 @@ print(json.dumps({
             require(
                 trial["scenario_kind"] == "recovery" and trial["status"] == "observed",
                 "Enable the writer only after a qualified recovery fault is observed.",
+            )
+            load = trial.get("load") or {}
+            active = self.active_loads()
+            require(
+                load.get("state") == "running"
+                and len(active) == 1
+                and active[0]["Id"] == load.get("container_id"),
+                "The trial's exact offered load must still be running.",
             )
             permit = json.loads(
                 self.dc("run", "--rm", "-T", "--no-deps", "dispatch-admin", "status")
@@ -3288,6 +3387,10 @@ print(json.dumps({
             require(
                 trial.get("load") is None,
                 "This trial already has an offered-load record.",
+            )
+            require(
+                rate == (trial.get("qualification") or {}).get("rate_rps"),
+                "The trial load must use the exact rate its post-action state was qualified at.",
             )
             require(not self.active_loads(), "A targeted load is already running.")
             self.no_execution()
@@ -3702,7 +3805,10 @@ print(json.dumps({
         private_write(self.directory / "fault.json", json.dumps(record))
         if trial is not None:
             trial["status"] = "injected"
-            trial["phases"]["inject"] = record["at"]
+            # Overload changes no field: the fault began when its fixed offered load started.
+            trial["phases"]["inject"] = (
+                trial["load"]["started_at"] if scenario == "overload" else record["at"]
+            )
             private_write(self.trial_path, json.dumps(trial, indent=2) + "\n")
         self.receipt(
             "fault",
@@ -3726,7 +3832,8 @@ print(json.dumps({
         except (RuntimeError, OSError, ValueError):
             residual_actions = None
         try:
-            duplicate_loads = len(self.active_loads())
+            own = (trial.get("load") or {}).get("container_id")
+            duplicate_loads = len([item for item in self.active_loads() if item["Id"] != own])
         except (RuntimeError, OSError, ValueError):
             duplicate_loads = None
         reset_at = datetime.now(timezone.utc).isoformat()
@@ -3755,6 +3862,7 @@ print(json.dumps({
             "evidence": {
                 "reset_attempt": "refused before completion",
                 "offered_load": trial.get("load"),
+                "known_good_baseline": trial.get("known_good_baseline"),
             },
         }
         validate_trial_receipt(payload)
@@ -3865,6 +3973,27 @@ print(json.dumps({
             if changes:
                 self.patch(live, changes)
             self.wait_settled()
+            if trial is None:
+                # A fault outside an E10 trial keeps the general lab's restore-only contract.
+                require(
+                    owned_fields(self.deployment("checkout")) == baseline_fields,
+                    "Reset target fields changed before completion; keep the fault record.",
+                )
+                private_write(
+                    self.directory / "receipts" / f"{time.time_ns()}-reset-private.json",
+                    json.dumps(record, indent=2) + "\n",
+                )
+                self.receipt(
+                    "reset",
+                    {
+                        "target_uid": record["uid"],
+                        "restored_owned_fields": True,
+                        "history": "preserved",
+                        "writer": "still quarantined",
+                    },
+                )
+                fault_path.unlink()
+                return
         else:
             if trial and (
                 trial["status"] not in {"ready", "manual"}
@@ -4021,6 +4150,7 @@ print(json.dumps({
                         record.get("observation_sha256") if record else None
                     ),
                     "offered_load": trial.get("load"),
+                    "known_good_baseline": trial.get("known_good_baseline"),
                     "trial_disposition": (
                         "observed"
                         if record and record.get("observation_sha256")
@@ -4041,21 +4171,6 @@ print(json.dumps({
             if lab_restored:
                 self.trial_path.unlink(missing_ok=True)
                 fault_path.unlink(missing_ok=True)
-        else:
-            private_write(
-                self.directory / "receipts" / f"{time.time_ns()}-reset-private.json",
-                json.dumps(record, indent=2) + "\n",
-            )
-            self.receipt(
-                "reset",
-                {
-                    "target_uid": record["uid"],
-                    "restored_owned_fields": True,
-                    "history": "preserved",
-                    "writer": "still quarantined",
-                },
-            )
-            fault_path.unlink()
 
     def observe(self):
         record = json.loads((self.directory / "fault.json").read_text())

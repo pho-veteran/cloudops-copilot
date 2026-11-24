@@ -15,6 +15,7 @@ import ssl
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -106,12 +107,59 @@ def phase_accounts(_args):
     print(json.dumps({"operator": "provisioned", "ca": str(OUT / "ca.crt")}))
 
 
+def incident_request(workload_id):
+    """A neutral operator request; scenario IDs, controls and labels stay out of the Run."""
+    return {
+        "workload_id": workload_id,
+        "title": "Checkout requests are failing",
+        "description": "Investigate the current checkout health and the supported recovery options.",
+    }
+
+
 def checkout_workload(session):
     uid = json.loads((LAB.LAB_DIR / "owner.json").read_text())["deployments"]["checkout"]
     items = [item for item in session.get("/api/workloads").json()["items"] if item["uid"] == uid]
     if len(items) != 1:
         die("the owned checkout UID is not exactly one configured workload.")
     return items[0]
+
+
+def phase_baseline(_args):
+    """Confirm the healthy recovery sample as the known-good baseline before any bad rollout."""
+    if (LAB.LAB_DIR / "trial.json").exists() or (LAB.LAB_DIR / "fault.json").exists():
+        die("confirm the known-good baseline only from the idle healthy target.")
+    with client() as session:
+        headers = login(session)
+        workload = checkout_workload(session)
+        first = session.get(f"/api/workloads/{workload['id']}/baseline-candidate")
+        if first.status_code != 200:
+            die(f"baseline candidate returned {first.status_code}: {first.text[:300]}")
+        candidate = first.json()
+        wait = (
+            datetime.fromisoformat(candidate["confirm_after"])
+            - datetime.fromisoformat(candidate["server_time"])
+        ).total_seconds()
+        time.sleep(max(0.0, wait) + 1)
+        confirmed = session.post(
+            f"/api/workloads/{workload['id']}/baseline",
+            json={"candidate_id": candidate["id"], "digest": candidate["digest"]},
+            headers=headers,
+        )
+        if confirmed.status_code != 201:
+            die(f"baseline confirmation returned {confirmed.status_code}: {confirmed.text[:300]}")
+        baseline = confirmed.json()
+        path = save("baseline.json", baseline)
+        print(
+            json.dumps(
+                {
+                    "baseline_id": baseline["id"],
+                    "digest": baseline["digest"],
+                    "confirmed_at": baseline["confirmed_at"],
+                    "path": str(path),
+                },
+                indent=2,
+            )
+        )
 
 
 def phase_act(args):
@@ -127,11 +175,7 @@ def phase_act(args):
             die("the configured workload UID differs from the trial target.")
         opened = session.post(
             "/api/incidents",
-            json={
-                "workload_id": workload["id"],
-                "title": f"E10 S3 {args.scenario} trial {trial['trial_id'][:8]}",
-                "description": "Owned-lab recovery trial with a fixed offered load.",
-            },
+            json=incident_request(workload["id"]),
             headers={**headers, "Idempotency-Key": str(uuid4())},
         )
         if opened.status_code != 201:
@@ -222,12 +266,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="phase", required=True)
     sub.add_parser("accounts")
+    sub.add_parser("baseline")
     act = sub.add_parser("act")
     act.add_argument("--scenario", required=True)
     act.add_argument("--wait", type=int, default=480)
     args = parser.parse_args()
     guard()
-    {"accounts": phase_accounts, "act": phase_act}[args.phase](args)
+    {"accounts": phase_accounts, "baseline": phase_baseline, "act": phase_act}[args.phase](args)
 
 
 if __name__ == "__main__":

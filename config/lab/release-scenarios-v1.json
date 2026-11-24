@@ -6,7 +6,7 @@
   "receipt_schema": "config/lab/e10-s3-trial-reset-receipt.schema.json",
   "qualification_receipt_schema": "config/lab/e10-s3-qualification-receipt.schema.json",
   "receipt_schema_sha256": "44fb3eecb5fe16d3246b37359b88c72dfc85efe10bcfb3f33d5e6568e85df427",
-  "qualification_receipt_schema_sha256": "ad595fd5451e1e13bfa1da61db3d402c9239b37d2e4a8e487555ff9f2e4acbba",
+  "qualification_receipt_schema_sha256": "b47260142bed1b9fb7ec143627267eaef5385fb474c0981d3b21160cfc7245b4",
   "sealed_oracle": {
     "path": "services/backend/tests/fixtures/e10_s3/oracle.json",
     "sha256": "4a69e494e6838d232fbd2f4a80bc4896ae8ef4cab041777afd52e2b958950571"

@@ -15,3 +15,6 @@ services:
   executor:
     environment: *recovery-env
     volumes: [*recovery-volume]
+  load:
+    # The finite offered-load exporter runs from the recovery sample image.
+    image: ${LAB_RECOVERY_IMAGE:?Use manage-local-lab.py}

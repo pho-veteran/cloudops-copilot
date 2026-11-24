@@ -569,15 +569,11 @@ def test_reset_preserves_unrelated_env_annotations_and_does_not_rewrite_authorit
     monkeypatch.setattr(lab, "patch", lambda resource, changes: patches.extend(changes))
     monkeypatch.setattr(lab, "kube", lambda *args, **kwargs: "")
     monkeypatch.setattr(lab, "receipt", lambda *args: None)
-    # Completion proof after the restore patch is exercised by the live lab.
     monkeypatch.setattr(lab, "active_loads", lambda: [])
     monkeypatch.setattr(lab, "wait_settled", lambda: None)
-    monkeypatch.setattr(lab, "verify", lambda *args: {"metrics": {}})
-    monkeypatch.setattr(lab, "containment", lambda **kwargs: {})
-    monkeypatch.setattr(lab, "healthy_target", lambda live: {"target_uid": "original"})
-    monkeypatch.setattr(lab, "target_metric_snapshot", lambda *args: {})
-    monkeypatch.setattr(lab, "source_binding", lambda: {"sha256": "0" * 64, "files": {}})
-    monkeypatch.setattr(lab, "surge_headroom", lambda live: {"qualified": True})
+    # Outside an E10 trial, reset keeps its restore-only contract: no load or telemetry proof.
+    for name in ("readiness_load", "verify", "containment", "healthy_target"):
+        monkeypatch.setattr(lab, name, lambda *a, name=name, **k: pytest.fail(name))
     lab.reset()
     env = next(change["value"] for change in patches if change["path"].endswith("/env"))
     assert env == [{"name": "KEEP", "value": "preserved"}, {"name": "ADDED", "value": "also keep"}]

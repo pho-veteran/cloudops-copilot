@@ -1,6 +1,6 @@
 FROM python:3.13.11-slim-bookworm
 WORKDIR /app
-COPY config/lab/sample_app.py config/lab/load.py config/lab/recovery_load.py /app/
+COPY config/lab/sample_app.py config/lab/load.py /app/
 USER 10001:10001
 ENV PYTHONUNBUFFERED=1
 CMD ["python", "/app/sample_app.py"]

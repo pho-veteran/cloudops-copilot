@@ -85,7 +85,13 @@ def ready_trial(driver, scenario_id):
         "image_digests": ["sha256:" + "a" * 64],
         "source_binding_sha256": "b" * 64,
         "baseline": {"owned_fields": driver.owned_fields(deployment)},
-        "load": {"state": "running", "container_id": "load-1", "rate": 8},
+        "load": {
+            "state": "running",
+            "container_id": "load-1",
+            "rate": 8,
+            "started_at": "2026-01-01T00:00:00+00:00",
+        },
+        "qualification": {"rate_rps": 8},
         "phases": {"inject": None},
     }
 
@@ -148,6 +154,9 @@ def test_recovery_faults_change_only_the_field_the_action_repairs(
         assert expected["resources"] == before["resources"]
     else:
         assert expected == before and patches == []
+        # The overload began with its fixed load, not with this bookkeeping step.
+        stored = json.loads(lab.trial_path.read_text())
+        assert stored["phases"]["inject"] == trial["load"]["started_at"]
     assert expected["mode"] is None and record["trial_id"] == trial["trial_id"]
 
 
@@ -291,3 +300,96 @@ def test_no_other_targeted_load_during_a_recovery_trial(lab, driver, monkeypatch
     monkeypatch.setattr(lab, "active_loads", lambda: [{"Id": "other"}])
     with pytest.raises(RuntimeError, match="already running"):
         lab.load("checkout", 30, 5)
+
+
+def test_recovery_load_must_use_the_qualified_rate(lab, driver, monkeypatch):
+    monkeypatch.setattr(driver, "RECOVERY_LAB", True)
+    trial = ready_trial(driver, "recovery-traffic-scale")
+    trial["load"] = None
+    trial["qualification"] = {"rate_rps": 30}
+    lab.trial_path.write_text(json.dumps(trial))
+    monkeypatch.setattr(lab, "active_loads", lambda: [])
+    monkeypatch.setattr(lab, "start_offered_load", lambda *args: pytest.fail("Unexpected load"))
+    with pytest.raises(RuntimeError, match="exact rate"):
+        lab.load("checkout", 900, 8, recovery=True, detach=True)
+
+
+def test_qualification_covers_the_full_profile_window(lab, driver, monkeypatch):
+    monkeypatch.setattr(driver, "RECOVERY_LAB", True)
+    monkeypatch.setattr(lab, "active_loads", lambda: [])
+    monkeypatch.setattr(
+        lab,
+        "qualified_profile",
+        lambda scenario_id: ({"window_seconds": 300, "warmup_seconds": 60}, "e" * 64),
+    )
+    monkeypatch.setattr(lab, "patch", lambda *args: pytest.fail("Unexpected write"))
+    with pytest.raises(RuntimeError, match="profile window"):
+        lab.qualify("recovery-oom-memory", 8, 240)
+
+
+@pytest.mark.parametrize(
+    ("stored", "matches"),
+    [
+        ("healthy", True),
+        ("other-image", False),
+        ("missing", False),
+    ],
+)
+def test_known_good_baseline_must_equal_the_healthy_sample(
+    lab, driver, monkeypatch, stored, matches
+):
+    monkeypatch.setattr(driver, "RECOVERY_LAB", True)
+    healthy_fields = lab.recovery_healthy_fields()
+    row = {
+        "id": str(uuid4()),
+        "digest": "f" * 64,
+        "confirmed_at": "2026-01-01T00:00:00+00:00",
+        "uid": "original",
+        "containers": [
+            {
+                "name": "app",
+                "image": healthy_fields["image"] if stored == "healthy" else "docker.io/library/x",
+                "resources": healthy_fields["resources"],
+            }
+        ],
+    }
+    output = json.dumps(None if stored == "missing" else row)
+    monkeypatch.setattr(lab, "dc", lambda *args, **kwargs: output + "\n")
+    result = lab.known_good_baseline("original")
+    assert (result is not None) is matches
+    if matches:
+        assert result == {key: row[key] for key in ("id", "digest", "confirmed_at")}
+
+
+def test_incomplete_receipt_does_not_count_the_trial_load_as_a_duplicate(lab, driver, monkeypatch):
+    trial = ready_trial(driver, "recovery-traffic-scale")
+    trial.update(
+        scope={},
+        declared_resources={},
+        surge_headroom={},
+        baseline_at="",
+        source_limits={},
+    )
+    monkeypatch.setattr(lab, "active_loads", lambda: [{"Id": "load-1"}, {"Id": "other"}])
+    receipts = []
+    monkeypatch.setattr(driver, "validate_trial_receipt", lambda value: receipts.append(value))
+    lab.incomplete_trial_reset(trial, "Recovery offered load must be finalized before reset.")
+    assert receipts[-1]["duplicate_targeted_loads"] == 1
+
+
+def test_probe_incident_request_carries_no_scenario_or_control_text():
+    spec = importlib.util.spec_from_file_location(
+        "probe_e10_s3", ROOT / "scripts/probe-e10-s3-recovery.py"
+    )
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    text = json.dumps(probe.incident_request("workload-id")).lower()
+    catalog = json.loads((ROOT / "config/lab/release-scenarios-v1.json").read_text())
+    controls = json.loads(
+        (ROOT / "services/backend/tests/fixtures/e10_s3/controls.json").read_text()
+    )
+    words = {item["id"] for item in catalog["scenarios"]}
+    for control in controls["controls"].values():
+        words.update(str(value) for value in control.values() if isinstance(value, str))
+    words |= {"e10", "trial", "scenario", "fault", "oom", "overload", "bad-image", "rollout"}
+    assert not [word for word in words if word.lower() in text]
