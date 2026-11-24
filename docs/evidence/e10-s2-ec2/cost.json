@@ -1,0 +1,98 @@
+{
+  "actual_usage": {
+    "compute_segments": [
+      {
+        "from": "2026-11-24T11:22:13Z",
+        "hours": 0.5,
+        "to": "2026-11-24T11:52:14Z",
+        "type": "c6a.2xlarge",
+        "usd": 0.153,
+        "usd_per_hour": 0.306
+      },
+      {
+        "from": "2026-11-24T12:21:41Z",
+        "hours": 0.17,
+        "to": "2026-11-24T12:31:53Z",
+        "type": "c5a.2xlarge",
+        "usd": 0.052,
+        "usd_per_hour": 0.308
+      },
+      {
+        "from": "2026-11-24T12:32:10Z",
+        "hours": 1.917,
+        "to": "2026-11-24T14:27:12Z",
+        "type": "c5a.2xlarge",
+        "usd": 0.591,
+        "usd_per_hour": 0.308
+      },
+      {
+        "from": "2026-11-24T14:27:32Z",
+        "hours": 0.069,
+        "to": "2026-11-24T14:31:40Z",
+        "type": "c5a.2xlarge",
+        "usd": 0.021,
+        "usd_per_hour": 0.308
+      }
+    ],
+    "compute_usd": 0.82,
+    "data_transfer_out": "SSH management, tunnel checks and evidence download, well under 1 GB; inside the 100 GB monthly free allowance",
+    "elastic_ip": {
+      "allocated": 0,
+      "usd": 0
+    },
+    "gp3_50_gib": {
+      "hours": 3.17,
+      "usd": 0.017,
+      "usd_per_gb_month": 0.08
+    },
+    "public_ipv4": {
+      "hours": 2.66,
+      "usd": 0.013,
+      "usd_per_hour": 0.005
+    },
+    "running_hours": 2.66,
+    "snapshots": {
+      "created": 0,
+      "usd": 0
+    },
+    "total_list_price_usd": 0.85
+  },
+  "approval": {
+    "ceiling_usd": 10,
+    "cleanup": "destroy every Project=cloudops-e10-s2 resource including the retained root volume; no snapshots",
+    "destroy_deadline": "2026-11-27",
+    "kept": "key pair cloudops-e10-s2, budget cloudops-e10-s2, unrelated snapshot and resources untouched",
+    "owner_decision": "2026-11-24, account owner in the task conversation",
+    "pricing_model": "On-Demand",
+    "sessions": "at most 2, each at most 5 hours, with an on-host shutdown timer"
+  },
+  "budget": {
+    "alerts_usd": {
+      "actual": [
+        9,
+        11.5,
+        15.5
+      ],
+      "forecast": [
+        15.5
+      ]
+    },
+    "limit_usd": 15.5,
+    "name": "cloudops-e10-s2",
+    "subscriber": "account owner email",
+    "type": "monthly cost budget excluding credits",
+    "why": "The account already had USD 5.54 of pre-credit spend this month, so alerts sit at that baseline plus the approved ceiling"
+  },
+  "credits": "Charges are expected to draw down the account's Free Tier credits (USD 60.58 remaining before apply, expiring 2027-04-11); confirm on the Bills page after the daily billing refresh.",
+  "date": "2026-11-24",
+  "estimate_before_apply": {
+    "expected_usd": 3.5,
+    "running_hours_cap": 16,
+    "running_hours_expected": 10,
+    "upper_usd": 5.9
+  },
+  "over_budget_rule": "Do not apply when the estimate exceeds the approved ceiling or approval is missing; stop and request renewed approval for any increase.",
+  "region": "us-east-1",
+  "residual_after_destroy_usd_per_month": 0,
+  "source": "AWS Price List API list prices effective 2026-11-01; per-second Linux billing; no Cost Explorer queries"
+}

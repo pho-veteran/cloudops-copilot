@@ -1,0 +1,76 @@
+{
+  "capacity_event": {
+    "action": "instance type changed to c5a.2xlarge (8 vCPU, 16 GiB, USD 0.308/h) while stopped, through EC2 ModifyInstanceAttribute, then started on the first attempt",
+    "at": "2026-11-24T11:52Z..12:20Z",
+    "c6a_start_attempts": 17,
+    "result": "InsufficientInstanceCapacity for c6a.2xlarge in us-east-1a on every attempt",
+    "tofu_note": "A plan taken while the instance is stopped shows associate_public_ip_address false -> true and forces replacement. Plan only while running, or review any replacement carefully."
+  },
+  "destroy": {
+    "applied_at": "2026-11-24T14:31:10Z..14:31:40Z",
+    "result": "Apply complete! Resources: 0 added, 0 changed, 10 destroyed.",
+    "retained_root_volume": "matched by ID, Project tag and Name cloudops-e10-s2-retained-root while available and unattached, then deleted"
+  },
+  "final_inventory": {
+    "elastic_ips": 0,
+    "instances": 0,
+    "kept": [
+      "key pair cloudops-e10-s2",
+      "budget cloudops-e10-s2",
+      "private variables, plans and empty state"
+    ],
+    "own_snapshots": "1 unrelated snapshot, retained by owner decision",
+    "project_network_interfaces": 0,
+    "project_tagged_resources": 0,
+    "spot_requests": 0,
+    "tofu_state_resources": 0,
+    "volumes": 0
+  },
+  "host_key": "pinned from the instance console output (SSH HOST KEY KEYS block) before the first connection; unchanged across both restarts",
+  "inputs": {
+    "account": "0581.7594",
+    "ami": {
+      "block_device_mappings": 1,
+      "id": "ami-01757311770dc7690",
+      "name": "debian-13-amd64-20261123-2671",
+      "owner": "136693071363 (Debian)"
+    },
+    "availability_zone": "us-east-1a",
+    "instance_type": "c6a.2xlarge at apply; c5a.2xlarge after the capacity event below",
+    "root_volume": "gp3 50 GiB, encrypted, delete_on_termination=false",
+    "ssh": "new ed25519 key pair cloudops-e10-s2; ingress TCP 22 from one operator /32; egress TCP 443 only"
+  },
+  "opentofu": "1.13.9, provider hashicorp/aws 6.73.0 from the committed lock",
+  "residual_while_stopped": "gp3 50 GiB only (about USD 0.13/day); no IPv4, Elastic IP or snapshot charges",
+  "resources": {
+    "instance": "i-0b35.f48b",
+    "key_pair": "key-0329.8d58",
+    "root_volume": "vol-00b1.7364"
+  },
+  "reviewed_plans": {
+    "apply": "Plan: 10 to add, 0 to change, 0 to destroy",
+    "destroy": "Plan: 0 to add, 0 to change, 10 to destroy"
+  },
+  "source_revision": "6ac5bf92d44559066a677bdc3efe1f01656cc473",
+  "state": "local private state outside the checkout (mode 0700), retained empty after destroy",
+  "stop_start": [
+    {
+      "elastic_ips": 0,
+      "new_public_ipv4": true,
+      "public_ipv4": null,
+      "root_volume": "attached",
+      "start_at": "2026-11-24T12:32:10Z",
+      "state": "stopped",
+      "stop_at": "2026-11-24T12:31:53Z"
+    },
+    {
+      "elastic_ips": 0,
+      "new_public_ipv4": true,
+      "public_ipv4": null,
+      "root_volume": "attached",
+      "start_at": "2026-11-24T14:27:32Z",
+      "state": "stopped",
+      "stop_at": "2026-11-24T14:27:12Z"
+    }
+  ]
+}
