@@ -582,6 +582,7 @@ class Lab:
             "CLOUDOPS_LAB_PROJECT": OWNED_PROJECT,
             "CLOUDOPS_LAB_DIR": str(self.directory),
             "LAB_SAMPLE_IMAGE": SAMPLE_IMAGE,
+            **({"LAB_RECOVERY_IMAGE": RECOVERY_IMAGES["healthy"]} if RECOVERY_LAB else {}),
             "LAB_SYSTEM_CPU": f"{host['cpus'] * 1000 - 3500}m",
             "LAB_SYSTEM_MEMORY": str(host["memory_bytes"] - 4 * GIB + 256 * 1024**2),
         }
