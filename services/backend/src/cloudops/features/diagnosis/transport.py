@@ -28,6 +28,7 @@ from cloudops.features.diagnosis.schemas import (
 
 _JSON_MEDIA = {"application/json"}
 _ALLOWED_ENCODINGS = {"", "identity"}
+_PROVIDER_ERROR_DEADLINE_MARGIN = 0.25
 
 
 class _HookAbort(Exception):
@@ -178,7 +179,7 @@ class ModelClient:
         status = response.status_code
         retry_seconds, retry_raw = parse_retry_after(response.headers)
         detail = (
-            await self._provider_error(response, credential)
+            await self._provider_error(response, credential, started)
             if status >= 400 and self.capture_provider_error
             else None
         )
@@ -456,27 +457,41 @@ class ModelClient:
         )
 
     async def _provider_error(
-        self, response: httpx.Response, credential: str | None
+        self, response: httpx.Response, credential: str | None, started: float
     ) -> ProviderError:
-        """Read at most PROVIDER_ERROR_MAX_BODY identity-encoded bytes of a rejection."""
+        """Keep at most PROVIDER_ERROR_MAX_BODY identity-encoded bytes of a rejection.
+
+        Reading stops at the first chunk that reaches the cap, so at most one transport
+        chunk beyond it is consumed. A body that reaches the cap is treated as truncated
+        because its end was not observed. The read gets only the time left before the
+        call deadline, minus a margin, so a stalled body keeps the rejection status.
+        """
+        assert self.profile is not None
         body = bytearray()
+        consumed = 0
         truncated = False
+        remaining = (
+            started + self.profile.limits.deadline_seconds - time.monotonic()
+        ) - _PROVIDER_ERROR_DEADLINE_MARGIN
         if response.headers.get("content-encoding", "").lower() not in _ALLOWED_ENCODINGS:
+            truncated = True
+        elif remaining <= 0:
             truncated = True
         else:
             try:
-                async for chunk in response.aiter_bytes():
-                    room = PROVIDER_ERROR_MAX_BODY - len(body)
-                    if len(chunk) > room:
-                        body.extend(chunk[:room])
-                        truncated = True
-                        break
-                    body.extend(chunk)
-            except (httpx.TransportError, httpx.StreamError, httpx.DecodingError):
+                async with asyncio.timeout(remaining):
+                    async for chunk in response.aiter_bytes():
+                        consumed += len(chunk)
+                        body.extend(chunk[: PROVIDER_ERROR_MAX_BODY - len(body)])
+                        if consumed >= PROVIDER_ERROR_MAX_BODY:
+                            truncated = True
+                            break
+            except (TimeoutError, httpx.TransportError, httpx.StreamError, httpx.DecodingError):
                 truncated = True
         return parse_provider_error(
             bytes(body),
             truncated=truncated,
+            consumed=consumed,
             headers=response.headers,
             secrets=(credential,) if credential else (),
         )

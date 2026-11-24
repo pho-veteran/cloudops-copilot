@@ -513,7 +513,8 @@ def test_provider_error_oversized_body_is_truncated_without_parsing():
     body = json.dumps({"error": {"message": "x" * 20000, "type": "big"}}).encode()
     detail = _capture(400, body).provider_error
     assert detail.body_truncated is True
-    assert detail.body_bytes_read == 8192
+    # One in-memory chunk: it is consumed whole, but only the cap is retained.
+    assert detail.body_bytes_read == len(body)
     assert detail.type is None and detail.message is None
 
 
@@ -544,3 +545,85 @@ def test_provider_error_compressed_body_is_not_read():
     )
     detail = client.send(MESSAGES, before_send=lambda: None).provider_error
     assert detail.body_truncated is True and detail.body_bytes_read == 0
+
+
+@pytest.mark.parametrize(
+    "fragment",
+    [
+        "password='tiny-secret'",
+        'api_key="tiny-secret"',
+        'Bearer "tiny-secret"',
+        "key=tiny-secret",
+        "token: 'tiny-secret'",
+        '"secret": "tiny-secret"',
+    ],
+)
+def test_provider_error_redacts_quoted_and_generic_assignments(fragment):
+    body = json.dumps({"error": {"message": f"rejected {fragment} here"}}).encode()
+    detail = _capture(400, body).provider_error
+    assert "tiny-secret" not in json.dumps(detail.__dict__)
+    assert "[redacted]" in detail.message
+
+
+class _CountingStream(httpx.AsyncByteStream):
+    def __init__(self, chunks, *, stall=False):
+        self.chunks = list(chunks)
+        self.stall = stall
+        self.yielded = 0
+
+    async def __aiter__(self):
+        for chunk in self.chunks:
+            self.yielded += 1
+            yield chunk
+        if self.stall:
+            await asyncio.sleep(3600)
+
+
+def _stream_capture(stream, **profile_overrides):
+    client = ModelClient(
+        profile(**profile_overrides),
+        transport=mock(
+            lambda request: httpx.Response(
+                400, stream=stream, headers={"Content-Type": "application/json"}
+            )
+        ),
+        capture_provider_error=True,
+    )
+    return client.send(MESSAGES, before_send=lambda: None)
+
+
+def test_provider_error_reports_consumed_bytes_for_oversized_chunk():
+    stream = _CountingStream([b"x" * 9000, b"never"])
+    result = _stream_capture(stream)
+    assert result.kind is CallKind.REQUEST_REJECTED
+    assert result.provider_error.body_bytes_read == 9000
+    assert result.provider_error.body_truncated is True
+    assert stream.yielded == 1
+
+
+def test_provider_error_stops_requesting_chunks_at_the_cap():
+    stream = _CountingStream([b"y" * 8192, b"z" * 8192])
+    result = _stream_capture(stream)
+    assert stream.yielded == 1
+    assert result.provider_error.body_bytes_read == 8192
+    assert result.provider_error.body_truncated is True
+
+
+def test_provider_error_body_stalling_after_the_cap_keeps_rejection_status():
+    stream = _CountingStream([b"y" * 8192], stall=True)
+    result = _stream_capture(stream)
+    assert result.kind is CallKind.REQUEST_REJECTED and result.http_status == 400
+
+
+def test_provider_error_body_stalling_before_the_cap_keeps_rejection_status():
+    limits = {
+        "connect_timeout_seconds": 1,
+        "read_timeout_seconds": 1,
+        "pool_timeout_seconds": 1,
+        "deadline_seconds": 1,
+    }
+    stream = _CountingStream([b'{"error":'], stall=True)
+    result = _stream_capture(stream, limits=limits)
+    assert result.kind is CallKind.REQUEST_REJECTED and result.http_status == 400
+    assert result.provider_error.body_truncated is True
+    assert result.provider_error.body_bytes_read == len(b'{"error":')

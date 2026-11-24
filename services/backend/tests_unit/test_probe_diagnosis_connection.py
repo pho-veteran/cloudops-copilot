@@ -151,3 +151,51 @@ def test_missing_secret_is_refused(tmp_path):
     secret.write_text("OTHER=1\n")
     with pytest.raises(probe.ProbeRefused):
         probe.run(_args(tmp_path, profile, secret), transport=_transport(200, {}, []))
+
+
+@pytest.mark.parametrize(
+    "override",
+    [
+        {"ceiling_usd": "nan"},
+        {"ceiling_usd": "inf"},
+        {"ceiling_usd": "0"},
+        {"input_usd_per_mtok": "nan"},
+        {"output_usd_per_mtok": "-1"},
+        {"output_usd_per_mtok": "inf"},
+    ],
+)
+def test_invalid_cost_inputs_never_send(tmp_path, override):
+    profile, secret = _profile(tmp_path)
+    calls = []
+    with pytest.raises(probe.ProbeRefused):
+        probe.run(
+            _args(tmp_path, profile, secret, **override), transport=_transport(200, {}, calls)
+        )
+    assert calls == [] and not (tmp_path / "reservation").exists()
+
+
+def test_relative_ca_resolves_against_profile_directory(tmp_path, monkeypatch):
+    import cloudops.features.diagnosis.profile as profile_module
+
+    directory = tmp_path / "config"
+    directory.mkdir()
+    (directory / "root-ca.pem").write_text("placeholder")
+    path, secret = _profile(directory, tls={"ca_file": "root-ca.pem"})
+    seen = []
+
+    def context(*, cafile=None, **kwargs):
+        seen.append(Path(cafile))
+        return profile_module.ssl.SSLContext(profile_module.ssl.PROTOCOL_TLS_CLIENT)
+
+    monkeypatch.setattr(profile_module.ssl, "create_default_context", context)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    payload = {
+        "id": "chatcmpl-1",
+        "model": "fixture-model",
+        "choices": [{"finish_reason": "stop", "message": {"role": "assistant", "content": "OK"}}],
+        "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+    }
+    probe.run(_args(tmp_path, path, secret), transport=_transport(200, payload, []))
+    assert seen and all(item.resolve().parent == directory.resolve() for item in seen)

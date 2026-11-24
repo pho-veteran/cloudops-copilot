@@ -36,7 +36,7 @@ cost rather than being reported as zero.
 
 `ModelClient(..., capture_provider_error=True)` keeps a bounded `ProviderError` on a 4xx or 5xx response, so an owner-authorized probe can explain a rejection. It is off by default. The product worker never enables it, and product receipts and APIs never store or return it.
 
-- It reads at most 8 KiB of an identity-encoded body. A larger or compressed body is marked `body_truncated` and left unparsed.
+- It keeps at most 8 KiB of an identity-encoded body and stops requesting chunks at that cap, so at most one transport chunk beyond the cap is consumed (`body_bytes_read`). A body that reaches the cap, a compressed body, or a read that runs out of the remaining call deadline is marked `body_truncated` and left unparsed. The rejection status is kept either way.
 - Only the OpenAI-style `error.type`, `error.code` and `error.param` identifiers are kept, plus `error.message` and the `x-request-id` header.
 - `error.message` is limited to 512 printable characters. The configured credential, `sk-` keys, bearer values, `key=value` secrets, email addresses and long token-like strings are replaced with `[redacted]`.
 - An identifier that would need redaction is dropped.

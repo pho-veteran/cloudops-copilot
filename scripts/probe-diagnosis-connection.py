@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sys
 from dataclasses import asdict
@@ -63,6 +64,10 @@ def run(args: argparse.Namespace, *, transport=None) -> dict:
     loaded = ModelProfile.load(args.profile)
     if loaded.model is None or loaded.output_limit is None or loaded.credential is None:
         raise ProbeRefused("The profile must name a model, an output limit and a credential.")
+    for name in ("ceiling_usd", "input_usd_per_mtok", "output_usd_per_mtok"):
+        value = getattr(args, name)
+        if not math.isfinite(value) or value < 0 or (name == "ceiling_usd" and value == 0):
+            raise ProbeRefused(f"--{name.replace('_', '-')} must be a finite non-negative number.")
     payload = loaded.model_dump(mode="json", by_alias=True)
     payload.update(
         mode=Mode.EVALUATION_ONLY.value,
@@ -70,6 +75,8 @@ def run(args: argparse.Namespace, *, transport=None) -> dict:
         budget_policy_id=args.budget_policy_id,
     )
     profile = ModelProfile.model_validate(payload)
+    # Keep relative TLS paths resolving against the loaded profile's directory.
+    profile._base_dir = loaded._base_dir
     secret = read_secret(args.secret_env, profile.credential.name)
     messages = [Message("user", PROMPT)]
     request_bytes = len(prepare_payload(profile, messages))
@@ -81,7 +88,7 @@ def run(args: argparse.Namespace, *, transport=None) -> dict:
     # Conservative ceiling: every request byte counted as a token, plus the full
     # output limit (which also bounds reasoning tokens for the Chat Completions API).
     reserved_usd = estimate_usd(request_bytes, profile.output_limit.value, rates)
-    if reserved_usd > args.ceiling_usd:
+    if not math.isfinite(reserved_usd) or reserved_usd > args.ceiling_usd:
         raise ProbeRefused(
             f"Reserved cost {reserved_usd:.6f} USD exceeds the {args.ceiling_usd} USD ceiling."
         )

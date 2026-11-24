@@ -16,10 +16,15 @@ USAGE_STATUS = Literal["observed", "unavailable", "invalid"]
 PROVIDER_ERROR_MAX_BODY = 8192
 PROVIDER_ERROR_MAX_MESSAGE = 512
 _REDACTED = "[redacted]"
+# A value is a double- or single-quoted string, or a run of non-separator characters.
+_VALUE = r"(?:\"[^\"]*\"?|'[^']*'?|[^\s\"',;]+)"
 _SECRET_PATTERNS = (
     re.compile(r"sk-[A-Za-z0-9_\-]{6,}"),
-    re.compile(r"(?i)bearer\s+[^\s\"',;]+"),
-    re.compile(r"(?i)\b(api[_-]?key|token|secret|password)\b\s*[:=]\s*[^\s\"',;]+"),
+    re.compile(r"(?i)\bbearer\s+" + _VALUE),
+    re.compile(
+        r"(?i)\b(?:api[_-]?key|key|token|secret|password|passwd|authorization|credential)s?\b"
+        r"[\"']?\s*[:=]\s*" + _VALUE
+    ),
     re.compile(r"[\w.+\-]+@[\w\-]+\.[\w.\-]+"),
     re.compile(r"[A-Za-z0-9_\-+/=]{32,}"),
 )
@@ -82,6 +87,7 @@ class ProviderError:
     param: str | None
     message: str | None
     request_id: str | None
+    # Bytes consumed from the stream (at most one chunk beyond the retained cap).
     body_bytes_read: int
     body_truncated: bool
 
@@ -141,6 +147,7 @@ def parse_provider_error(
     *,
     truncated: bool,
     headers: Mapping[str, str],
+    consumed: int | None = None,
     secrets: Iterable[str] = (),
 ) -> ProviderError:
     """Extract only OpenAI-style error fields from a bounded rejection body."""
@@ -168,7 +175,7 @@ def parse_provider_error(
         param=param,
         message=message,
         request_id=request_id,
-        body_bytes_read=len(body),
+        body_bytes_read=len(body) if consumed is None else consumed,
         body_truncated=truncated,
     )
 
