@@ -627,3 +627,39 @@ def test_provider_error_body_stalling_before_the_cap_keeps_rejection_status():
     assert result.kind is CallKind.REQUEST_REJECTED and result.http_status == 400
     assert result.provider_error.body_truncated is True
     assert result.provider_error.body_bytes_read == len(b'{"error":')
+
+
+def test_provider_error_redacts_escaped_quotes_and_keeps_counts():
+    message = (
+        r'password="prefix\"sensitive-suffix" then Expected tokens: 100; received tokens: 200.'
+    )
+    detail = _capture(400, json.dumps({"error": {"message": message}}).encode()).provider_error
+    assert "sensitive-suffix" not in detail.message and "prefix" not in detail.message
+    assert "tokens: 100" in detail.message and "tokens: 200" in detail.message
+
+
+def test_provider_error_late_in_the_deadline_still_reads_available_body(monkeypatch):
+    import cloudops.features.diagnosis.transport as transport_module
+
+    real = transport_module.time.monotonic
+    start = real()
+    offsets = iter([0.0] + [0.8] * 50)
+    monkeypatch.setattr(transport_module.time, "monotonic", lambda: start + next(offsets, 0.8))
+    limits = {
+        "connect_timeout_seconds": 1,
+        "read_timeout_seconds": 1,
+        "pool_timeout_seconds": 1,
+        "deadline_seconds": 1,
+    }
+    body = json.dumps({"error": {"type": "late_error"}}).encode()
+    client = ModelClient(
+        profile(limits=limits),
+        transport=mock(
+            lambda request: httpx.Response(
+                400, content=body, headers={"Content-Type": "application/json"}
+            )
+        ),
+        capture_provider_error=True,
+    )
+    detail = client.send(MESSAGES, before_send=lambda: None).provider_error
+    assert detail.type == "late_error" and detail.body_truncated is False

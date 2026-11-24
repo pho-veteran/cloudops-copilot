@@ -16,14 +16,16 @@ USAGE_STATUS = Literal["observed", "unavailable", "invalid"]
 PROVIDER_ERROR_MAX_BODY = 8192
 PROVIDER_ERROR_MAX_MESSAGE = 512
 _REDACTED = "[redacted]"
-# A value is a double- or single-quoted string, or a run of non-separator characters.
-_VALUE = r"(?:\"[^\"]*\"?|'[^']*'?|[^\s\"',;]+)"
+# A value is a double- or single-quoted string (escapes included), or a run of
+# non-separator characters. A purely numeric value (a count) is not a secret.
+_VALUE = r"(?:\"(?:[^\"\\]|\\.)*\"?|'(?:[^'\\]|\\.)*'?|[^\s\"',;]+)"
+_NOT_COUNT = r"(?!\d+(?:[\s,;.)]|$))"
 _SECRET_PATTERNS = (
     re.compile(r"sk-[A-Za-z0-9_\-]{6,}"),
     re.compile(r"(?i)\bbearer\s+" + _VALUE),
     re.compile(
         r"(?i)\b(?:api[_-]?key|key|token|secret|password|passwd|authorization|credential)s?\b"
-        r"[\"']?\s*[:=]\s*" + _VALUE
+        r"[\"']?\s*[:=]\s*" + _NOT_COUNT + _VALUE
     ),
     re.compile(r"[\w.+\-]+@[\w\-]+\.[\w.\-]+"),
     re.compile(r"[A-Za-z0-9_\-+/=]{32,}"),

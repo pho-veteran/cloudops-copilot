@@ -470,12 +470,13 @@ class ModelClient:
         body = bytearray()
         consumed = 0
         truncated = False
-        remaining = (
-            started + self.profile.limits.deadline_seconds - time.monotonic()
-        ) - _PROVIDER_ERROR_DEADLINE_MARGIN
+        left = started + self.profile.limits.deadline_seconds - time.monotonic()
+        # Leave a margin before the call deadline, scaled down when little time is left,
+        # so an immediately available body is still read late in the call.
+        remaining = left - min(_PROVIDER_ERROR_DEADLINE_MARGIN, left / 4)
         if response.headers.get("content-encoding", "").lower() not in _ALLOWED_ENCODINGS:
             truncated = True
-        elif remaining <= 0:
+        elif remaining <= 0.01:
             truncated = True
         else:
             try:
