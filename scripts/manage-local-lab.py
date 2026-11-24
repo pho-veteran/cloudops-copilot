@@ -130,9 +130,9 @@ def pod_cgroup(pid, observed, parent):
 
 
 def retry_failure(status, events):
-    terminated = status.get("state", {}).get("terminated") or status.get(
-        "lastState", {}
-    ).get("terminated", {})
+    terminated = status.get("state", {}).get("terminated") or status.get("lastState", {}).get(
+        "terminated", {}
+    )
     return status.get("restartCount", 0) > 0 and (
         status.get("state", {}).get("waiting", {}).get("reason") == "CrashLoopBackOff"
         or (
@@ -182,11 +182,7 @@ def owned_fields(deployment):
         "resources": container["resources"],
         "imagePullPolicy": container.get("imagePullPolicy", "IfNotPresent"),
         "mode": next(
-            (
-                entry
-                for entry in container.get("env", [])
-                if entry["name"] == "LAB_MODE"
-            ),
+            (entry for entry in container.get("env", []) if entry["name"] == "LAB_MODE"),
             None,
         ),
         "initContainers": spec.get("initContainers"),
@@ -238,8 +234,7 @@ class Lab:
     def __init__(self, directory=DIRECTORY):
         self.directory = Path(directory)
         require(
-            self.directory.absolute() == DIRECTORY
-            and self.directory.resolve() == DIRECTORY,
+            self.directory.absolute() == DIRECTORY and self.directory.resolve() == DIRECTORY,
             "Use the fixed project-specific directory without symlinks.",
         )
         self.marker_path = self.directory / "owner.json"
@@ -322,9 +317,7 @@ class Lab:
         private_write(self.marker_path, json.dumps(self.marker, indent=2) + "\n")
 
     def volume_guard(self, remember=False):
-        volumes = {
-            item["Name"]: item["CreatedAt"] for item in self.ownership()["volume"]
-        }
+        volumes = {item["Name"]: item["CreatedAt"] for item in self.ownership()["volume"]}
         require(
             all(
                 volumes.get(name) == created
@@ -357,9 +350,7 @@ class Lab:
                 ).split()
                 ids = list(dict.fromkeys([*ids, *named]))
             result[kind] = (
-                json.loads(self.command(["docker", kind, "inspect", *ids]))
-                if ids
-                else []
+                json.loads(self.command(["docker", kind, "inspect", *ids])) if ids else []
             )
         return result
 
@@ -411,27 +402,20 @@ class Lab:
                         }
                         require(
                             actual
-                            == {
-                                path: OWNED_PROJECT + "_" + name
-                                for path, name in expected.items()
-                            }
+                            == {path: OWNED_PROJECT + "_" + name for path, name in expected.items()}
                             and not any(
-                                mount["Type"] == "bind"
-                                for mount in item.get("Mounts", [])
+                                mount["Type"] == "bind" for mount in item.get("Mounts", [])
                             ),
                             "Unexpected K3s mount; refuse anonymous or foreign storage before mutation.",
                         )
                     require(
-                        labels.get("com.docker.compose.project.working_dir")
-                        == str(ROOT),
+                        labels.get("com.docker.compose.project.working_dir") == str(ROOT),
                         "Container belongs to another checkout.",
                     )
                     require(
                         all(
                             binding["HostIp"] == "127.0.0.1"
-                            for bindings in item["HostConfig"]
-                            .get("PortBindings", {})
-                            .values()
+                            for bindings in item["HostConfig"].get("PortBindings", {}).values()
                             for binding in bindings or []
                         ),
                         "An owned endpoint is published beyond loopback.",
@@ -479,8 +463,7 @@ class Lab:
         for port, service in ((6445, "k3s"), (8443, "https")):
             if not any(
                 item["State"]["Running"]
-                and item["Config"]["Labels"].get("com.docker.compose.service")
-                == service
+                and item["Config"]["Labels"].get("com.docker.compose.service") == service
                 for item in inventory["container"]
             ):
                 with socket.socket() as check:
@@ -499,13 +482,9 @@ class Lab:
             info["NCPU"] >= 8 and info["MemTotal"] >= 10 * GIB,
             "Insufficient host capacity.",
         )
-        require(
-            shutil.disk_usage(ROOT).free >= 20 * GIB, "Need at least 20 GiB free disk."
-        )
+        require(shutil.disk_usage(ROOT).free >= 20 * GIB, "Need at least 20 GiB free disk.")
         routes = json.loads(self.command(["ip", "-j", "route", "show", "table", "all"]))
-        cidrs = [
-            ipaddress.ip_network(cidr) for cidr in ("10.244.0.0/16", "10.245.0.0/16")
-        ]
+        cidrs = [ipaddress.ip_network(cidr) for cidr in ("10.244.0.0/16", "10.245.0.0/16")]
         for route in routes:
             destination = route.get("dst", "default")
             if destination == "default":
@@ -513,8 +492,7 @@ class Lab:
             network = ipaddress.ip_network(destination, strict=False)
             require(
                 not any(
-                    network.version == cidr.version and network.overlaps(cidr)
-                    for cidr in cidrs
+                    network.version == cidr.version and network.overlaps(cidr) for cidr in cidrs
                 ),
                 "Lab CIDR overlaps a host route.",
             )
@@ -654,14 +632,9 @@ class Lab:
             )
             if "@" in ref and receipt.is_file() and not receipt.is_symlink():
                 prior = json.loads(receipt.read_text())
-                if (
-                    prior.get("reference") == ref
-                    and prior.get("digest") == ref.rsplit("@", 1)[1]
-                ):
+                if prior.get("reference") == ref and prior.get("digest") == ref.rsplit("@", 1)[1]:
                     try:
-                        image = json.loads(
-                            self.command(["docker", "image", "inspect", ref])
-                        )[0]
+                        image = json.loads(self.command(["docker", "image", "inspect", ref]))[0]
                     except RuntimeError:
                         image = {}
                     if (
@@ -710,13 +683,10 @@ class Lab:
         resource = copy.deepcopy(resource)
         metadata = resource["metadata"]
         metadata.setdefault("labels", {})[OWNER_LABEL] = self.marker["owner"]
-        current = self.get(
-            resource["kind"], metadata["name"], metadata.get("namespace")
-        )
+        current = self.get(resource["kind"], metadata["name"], metadata.get("namespace"))
         if current is not None:
             require(
-                current["metadata"].get("labels", {}).get(OWNER_LABEL)
-                == self.marker["owner"],
+                current["metadata"].get("labels", {}).get(OWNER_LABEL) == self.marker["owner"],
                 "Kubernetes object ownership mismatch.",
             )
             return current
@@ -726,8 +696,7 @@ class Lab:
         resource = self.get("deployment", name, "demo")
         require(
             resource is not None
-            and resource["metadata"].get("labels", {}).get(OWNER_LABEL)
-            == self.marker["owner"],
+            and resource["metadata"].get("labels", {}).get(OWNER_LABEL) == self.marker["owner"],
             "Deployment ownership mismatch.",
         )
         require(
@@ -741,9 +710,7 @@ class Lab:
         require(name in self.marker["deployments"], "Unexpected sample Pod.")
         self.deployment(name)
         owners = [
-            owner
-            for owner in pod["metadata"].get("ownerReferences", [])
-            if owner.get("controller")
+            owner for owner in pod["metadata"].get("ownerReferences", []) if owner.get("controller")
         ]
         require(
             len(owners) == 1 and owners[0]["kind"] == "ReplicaSet",
@@ -755,16 +722,13 @@ class Lab:
             "ReplicaSet identity changed.",
         )
         controllers = [
-            owner
-            for owner in rs["metadata"].get("ownerReferences", [])
-            if owner.get("controller")
+            owner for owner in rs["metadata"].get("ownerReferences", []) if owner.get("controller")
         ]
         require(
             len(controllers) == 1
             and controllers[0]["kind"] == "Deployment"
             and controllers[0]["uid"] == self.marker["deployments"][name]
-            and pod["metadata"]["labels"].get("cloudops-lab-workload-uid")
-            == controllers[0]["uid"],
+            and pod["metadata"]["labels"].get("cloudops-lab-workload-uid") == controllers[0]["uid"],
             "Pod UID label does not match its real controller chain.",
         )
 
@@ -779,9 +743,7 @@ class Lab:
             "--type=json",
             "-p",
             json.dumps(
-                conditional_patch(
-                    resource, self.marker["deployments"][metadata["name"]], changes
-                )
+                conditional_patch(resource, self.marker["deployments"][metadata["name"]], changes)
             ),
         )
 
@@ -790,19 +752,14 @@ class Lab:
             current_namespace = self.get("namespace", "demo")
             require(
                 current_namespace is not None
-                and current_namespace["metadata"]["uid"]
-                == self.marker["namespace_uid"],
+                and current_namespace["metadata"]["uid"] == self.marker["namespace_uid"],
                 "Namespace identity changed; refusing recreation.",
             )
-        resources = list(
-            yaml.safe_load_all((ROOT / "config/lab/workload.yaml").read_text())
-        )
+        resources = list(yaml.safe_load_all((ROOT / "config/lab/workload.yaml").read_text()))
         for resource in resources:
             if resource["kind"] != "Deployment":
                 self.ensure(resource)
-        for resource in yaml.safe_load_all(
-            (ROOT / "config/lab/monitoring.yaml").read_text()
-        ):
+        for resource in yaml.safe_load_all((ROOT / "config/lab/monitoring.yaml").read_text()):
             self.ensure(resource)
         namespace = self.get("namespace", "demo")
         if "namespace_uid" in self.marker:
@@ -813,11 +770,7 @@ class Lab:
         self.marker["namespace_uid"] = namespace["metadata"]["uid"]
         for name in ("checkout", "history"):
             template = copy.deepcopy(
-                next(
-                    resource
-                    for resource in resources
-                    if resource["kind"] == "Deployment"
-                )
+                next(resource for resource in resources if resource["kind"] == "Deployment")
             )
             template["metadata"]["name"] = name
             template["metadata"]["labels"]["app"] = name
@@ -922,8 +875,7 @@ class Lab:
                 "expected_fingerprint": fingerprint,
             },
             deployments=[
-                {"namespace": "demo", "name": name}
-                for name in sorted(self.marker["deployments"])
+                {"namespace": "demo", "name": name} for name in sorted(self.marker["deployments"])
             ],
         )
         self.marker["cluster_fingerprint"] = fingerprint
@@ -963,9 +915,7 @@ class Lab:
             if kind == "reader":
                 for name in self.marker["deployments"]:
                     self.deployment(name)
-                private_write(
-                    folder / "scope.json", json.dumps(self.reader_scope(client_config))
-                )
+                private_write(folder / "scope.json", json.dumps(self.reader_scope(client_config)))
             workloads = [
                 {
                     "cluster": "local-k3s",
@@ -1015,17 +965,10 @@ class Lab:
         private_write(folder / "expiry.json", json.dumps({"expires_at": expiry}))
 
     def credentials_valid(self, *, read_only=False):
-        for kind in (
-            ("reader", "monitoring")
-            if read_only
-            else ("reader", "writer", "monitoring")
-        ):
-            expiry = json.loads((self.directory / kind / "expiry.json").read_text())[
-                "expires_at"
-            ]
+        for kind in ("reader", "monitoring") if read_only else ("reader", "writer", "monitoring"):
+            expiry = json.loads((self.directory / kind / "expiry.json").read_text())["expires_at"]
             require(
-                datetime.fromisoformat(expiry.replace("Z", "+00:00"))
-                > datetime.now(timezone.utc),
+                datetime.fromisoformat(expiry.replace("Z", "+00:00")) > datetime.now(timezone.utc),
                 f"{kind} credential expired; renew explicitly.",
             )
         for kind in ("reader",) if read_only else ("reader", "writer"):
@@ -1144,15 +1087,11 @@ class Lab:
                     }
                 except (RuntimeError, subprocess.TimeoutExpired):
                     pass
-            stable = (
-                (stable if stable is not None else time.monotonic()) if ready else None
-            )
+            stable = (stable if stable is not None else time.monotonic()) if ready else None
             if stable is not None and time.monotonic() - stable >= 5:
                 return
             time.sleep(1)
-        raise RuntimeError(
-            "K3s readiness and Node IP did not converge within the startup bound."
-        )
+        raise RuntimeError("K3s readiness and Node IP did not converge within the startup bound.")
 
     def start_k3s(self, recreate=False, *, pull_missing=True):
         args = [
@@ -1255,8 +1194,7 @@ class Lab:
         )
         current = self.service("k3s")
         require(
-            current["Id"] == node["Id"]
-            and current["State"]["Pid"] == node["State"]["Pid"],
+            current["Id"] == node["Id"] and current["State"]["Pid"] == node["State"]["Pid"],
             "K3s changed while applying its resource bounds.",
         )
         container_cgroup(process_cgroup(current["State"]["Pid"]), current["Id"])
@@ -1368,13 +1306,9 @@ class Lab:
         self.volume_guard(remember=True)
         self.dc("up", "-d", "--no-deps", "--force-recreate", "alertmanager")
         self.volume_guard(remember=True)
-        status = json.loads(
-            self.dc("run", "--rm", "-T", "--no-deps", "dispatch-admin", "status")
-        )
+        status = json.loads(self.dc("run", "--rm", "-T", "--no-deps", "dispatch-admin", "status"))
         if status["permit"] is None:
-            require(
-                not status["audit"], "Dispatch audit exists; fresh bootstrap denied."
-            )
+            require(not status["audit"], "Dispatch audit exists; fresh bootstrap denied.")
             self.dc(
                 "run",
                 "--rm",
@@ -1418,9 +1352,9 @@ class Lab:
         services = ("db", "k3s", *APP_SERVICES, "https", "prometheus", "alertmanager")
         config = json.loads(self.dc("config", "--format", "json"))["services"]
         for name in services:
-            image = json.loads(
-                self.command(["docker", "image", "inspect", config[name]["image"]])
-            )[0]
+            image = json.loads(self.command(["docker", "image", "inspect", config[name]["image"]]))[
+                0
+            ]
             require(
                 image["Id"] == self.service(name)["Image"]
                 and image["Os"] == "linux"
@@ -1442,8 +1376,7 @@ class Lab:
         )
         self.start_k3s(pull_missing=False)
         require(
-            self.get("namespace", "demo")["metadata"]["uid"]
-            == self.marker["namespace_uid"],
+            self.get("namespace", "demo")["metadata"]["uid"] == self.marker["namespace_uid"],
             "Namespace identity changed.",
         )
         for name in self.marker["deployments"]:
@@ -1491,9 +1424,7 @@ class Lab:
         self.no_execution()
         for kind in ("collection", "recommendation"):
             self.dispatch("resume", "--class", kind)
-        self.dc(
-            "up", "-d", "--no-deps", "--no-build", "--pull", "never", "alertmanager"
-        )
+        self.dc("up", "-d", "--no-deps", "--no-build", "--pull", "never", "alertmanager")
         self.namespace_check()
         self.receipt(
             "resume",
@@ -1524,9 +1455,7 @@ class Lab:
             "alertmanager",
         ):
             container = self.service(service)
-            image = json.loads(
-                self.command(["docker", "image", "inspect", container["Image"]])
-            )[0]
+            image = json.loads(self.command(["docker", "image", "inspect", container["Image"]]))[0]
             values[service] = {
                 "image_id": container["Image"],
                 "repo_digests": image.get("RepoDigests", []),
@@ -1592,8 +1521,7 @@ class Lab:
             timeout=30,
         )
         require(
-            peer.returncode == 1
-            and json.loads(peer.stdout)["code"] == "maintenance_actor_denied",
+            peer.returncode == 1 and json.loads(peer.stdout)["code"] == "maintenance_actor_denied",
             "Untrusted-peer denial was not established.",
         )
         require(
@@ -1619,12 +1547,8 @@ class Lab:
         probe = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(probe)
         path = self.directory / "stored-evidence.json"
-        with probe.client(
-            "https://localhost:8443", self.directory / "prometheus/ca.crt"
-        ) as client:
-            headers = probe.sign_in(
-                client, "https://localhost:8443", "operator", password
-            )
+        with probe.client("https://localhost:8443", self.directory / "prometheus/ca.crt") as client:
+            headers = probe.sign_in(client, "https://localhost:8443", "operator", password)
             if path.exists():
                 baseline = json.loads(path.read_text())
                 run = client.get(
@@ -1645,9 +1569,7 @@ class Lab:
                     workload["uid"] == self.marker["deployments"]["checkout"],
                     "Application workload UID differs from lab target.",
                 )
-                ids = probe.create_run(
-                    client, headers, workload, "Local workload observation"
-                )
+                ids = probe.create_run(client, headers, workload, "Local workload observation")
                 run = probe.wait_run(client, ids, headers)
                 rows = probe.evidence(client, ids, run, headers)
                 record = {
@@ -1658,16 +1580,12 @@ class Lab:
                     "run_state": run["state"],
                     "log_comparison": self.compare_logs(client, headers, ids, run),
                 }
-                private_write(
-                    self.directory / "last-collection.json", json.dumps(record)
-                )
+                private_write(self.directory / "last-collection.json", json.dumps(record))
                 if not path.exists():
                     private_write(path, json.dumps(record))
                 self.receipt("collect", record)
             else:
-                self.receipt(
-                    "stored", {"ids": baseline["ids"], "evidence_unchanged": True}
-                )
+                self.receipt("stored", {"ids": baseline["ids"], "evidence_unchanged": True})
 
     def compare_logs(self, client, headers, ids, run):
         pods = json.loads(self.kube("get", "pods", "-n", "demo", "-o", "json"))["items"]
@@ -1675,8 +1593,7 @@ class Lab:
         comparisons = []
         for source in run["evidence"]:
             if (
-                source["source_key"]
-                not in {"kubernetes.logs.current", "kubernetes.logs.previous"}
+                source["source_key"] not in {"kubernetes.logs.current", "kubernetes.logs.previous"}
                 or source["content_status"] != "available"
             ):
                 continue
@@ -1713,8 +1630,7 @@ class Lab:
                 )
                 current = self.get("pod", pod["metadata"]["name"], "demo")
                 require(
-                    current is not None
-                    and current["metadata"]["uid"] == entry["pod_uid"],
+                    current is not None and current["metadata"]["uid"] == entry["pod_uid"],
                     "Pod changed during raw/collector comparison.",
                 )
                 comparisons.append(
@@ -1738,9 +1654,9 @@ class Lab:
         old = resource["metadata"]["uid"]
         query = 'lab_http_requests_total{deployment_uid="' + old + '"}'
         query_at = datetime.now(timezone.utc).isoformat()
-        old_samples = self.prom(
-            "/api/v1/query?" + urlencode({"query": query, "time": query_at})
-        )["data"]["result"]
+        old_samples = self.prom("/api/v1/query?" + urlencode({"query": query, "time": query_at}))[
+            "data"
+        ]["result"]
         require(
             old_samples and any(float(row["value"][1]) > 0 for row in old_samples),
             "Collect history traffic samples before replacing its Deployment.",
@@ -1787,9 +1703,7 @@ class Lab:
         retained = self.prom(
             "/api/v1/query?" + urlencode({"query": query, "time": snapshot["query_at"]})
         )["data"]["result"]
-        require(
-            retained == old_samples, "Historical samples changed during replacement."
-        )
+        require(retained == old_samples, "Historical samples changed during replacement.")
         self.receipt(
             "replace-history",
             {
@@ -1846,15 +1760,10 @@ class Lab:
             "-c",
             "from sqlalchemy import text;from cloudops.shared.database import sessions\nwith sessions()() as db: print(db.execute(text(\"select count(*) from recovery_executions where holds_lock or state in ('queued','executing','verifying','reconciling','rolling_back')\")).scalar())",
         )
-        require(
-            int(value) == 0, "Active or unresolved execution; lab reset/fault refused."
-        )
+        require(int(value) == 0, "Active or unresolved execution; lab reset/fault refused.")
         status = self.maintenance()
         require(
-            all(
-                not target["enabled"] and target["recovery_mode"]
-                for target in status["targets"]
-            )
+            all(not target["enabled"] and target["recovery_mode"] for target in status["targets"])
             and not any(
                 row.get("safety_exclusion_request") is None
                 for row in status.get("unknown_attributions", [])
@@ -1949,9 +1858,7 @@ class Lab:
             and not nodes[0].get("spec", {}).get("unschedulable"),
             "Need one schedulable untainted node.",
         )
-        conditions = {
-            item["type"]: item["status"] for item in nodes[0]["status"]["conditions"]
-        }
+        conditions = {item["type"]: item["status"] for item in nodes[0]["status"]["conditions"]}
         require(
             conditions.get("Ready") == "True"
             and all(
@@ -2004,8 +1911,7 @@ class Lab:
                     limits = spec.get("resources", {}).get("limits", {})
                     require(
                         quantity(limits.get("cpu", "1000")) <= Decimal("0.4")
-                        and quantity(limits.get("memory", str(4 * GIB)))
-                        <= 160 * 1024**2,
+                        and quantity(limits.get("memory", str(4 * GIB))) <= 160 * 1024**2,
                         "Sample limits exceed the approved workload envelope.",
                     )
                     for resource in sample_limits:
@@ -2022,9 +1928,7 @@ class Lab:
                     inner_pid = int(details["info"]["pid"])
                     require(
                         details["status"]["id"] == cid
-                        and details["status"]
-                        .get("labels", {})
-                        .get("io.kubernetes.pod.uid")
+                        and details["status"].get("labels", {}).get("io.kubernetes.pod.uid")
                         == pod["metadata"]["uid"],
                         "CRI container identity does not match the sample Pod; stress blocked.",
                     )
@@ -2037,11 +1941,7 @@ class Lab:
                                 for line in status.splitlines()
                                 if line.startswith("NSpid:")
                             )
-                            if (
-                                len(nspid) >= 2
-                                and int(nspid[1]) == inner_pid
-                                and path != parent
-                            ):
+                            if len(nspid) >= 2 and int(nspid[1]) == inner_pid and path != parent:
                                 matches.append((host_pid, path))
                         except (FileNotFoundError, ProcessLookupError, StopIteration):
                             continue
@@ -2055,9 +1955,7 @@ class Lab:
                         limit != "max" and int(limit) <= 160 * 1024**2,
                         "Sample container memory is not bounded.",
                     )
-                    pod_quota, pod_period = (
-                        (container_path / "cpu.max").read_text().split()
-                    )
+                    pod_quota, pod_period = (container_path / "cpu.max").read_text().split()
                     require(
                         pod_quota != "max" and int(pod_quota) / int(pod_period) <= 0.4,
                         "Sample container CPU is not bounded.",
@@ -2085,8 +1983,7 @@ class Lab:
                     other_requests[resource] += requests[resource]
         require(
             all(
-                sample_limits[resource] + other_requests[resource]
-                <= quantity(alloc[resource])
+                sample_limits[resource] + other_requests[resource] <= quantity(alloc[resource])
                 for resource in sample_limits
             ),
             "Sample limits and other scheduled requests exceed proven node allocatable; stress blocked.",
@@ -2156,24 +2053,18 @@ class Lab:
         binding = self.namespace_check()
         targets = self.prom("/api/v1/targets")["data"]["activeTargets"]
         offered_targets = [
-            target
-            for target in targets
-            if target["labels"]["job"] == "lab-offered-load"
+            target for target in targets if target["labels"]["job"] == "lab-offered-load"
         ]
         required_targets = [
-            target
-            for target in targets
-            if target["labels"]["job"] != "lab-offered-load"
+            target for target in targets if target["labels"]["job"] != "lab-offered-load"
         ]
         require(
-            required_targets
-            and all(target["health"] == "up" for target in required_targets),
+            required_targets and all(target["health"] == "up" for target in required_targets),
             "A discovery/kubelet/metrics target is missing or unhealthy; inspect private Prometheus target diagnostics.",
         )
         if self.active_loads():
             require(
-                offered_targets
-                and all(target["health"] == "up" for target in offered_targets),
+                offered_targets and all(target["health"] == "up" for target in offered_targets),
                 "The active recovery offered-load source is not being scraped.",
             )
         require(
@@ -2205,18 +2096,13 @@ class Lab:
             "cloudops_memory_limit_bytes",
             "cloudops_restarts_total",
         ):
-            rows = self.prom("/api/v1/query?" + urlencode({"query": metric}))["data"][
-                "result"
-            ]
-            require(
-                len(rows) <= 25, "Telemetry query exceeded the 25-series source bound."
-            )
+            rows = self.prom("/api/v1/query?" + urlencode({"query": metric}))["data"]["result"]
+            require(len(rows) <= 25, "Telemetry query exceeded the 25-series source bound.")
             allowed = set(self.marker["deployments"].values()) | set(
                 self.marker.get("retired_history_uids", [])
             )
             require(
-                rows
-                and all(row["metric"].get("deployment_uid") in allowed for row in rows),
+                rows and all(row["metric"].get("deployment_uid") in allowed for row in rows),
                 "Missing or incorrectly bound metric series.",
             )
             require(
@@ -2228,19 +2114,15 @@ class Lab:
                 all(
                     math.isfinite(float(row["value"][1]))
                     for row in rows
-                    if row["metric"].get("deployment_uid")
-                    in self.marker["deployments"].values()
+                    if row["metric"].get("deployment_uid") in self.marker["deployments"].values()
                 ),
                 "Metric has no finite observation; load both workloads and warm the window.",
             )
-            queries[metric] = [
-                {"labels": row["metric"], "value": row["value"]} for row in rows
-            ]
+            queries[metric] = [{"labels": row["metric"], "value": row["value"]} for row in rows]
         result = {
             "network_attachment": binding,
             "targets": [
-                {"job": target["labels"]["job"], "health": target["health"]}
-                for target in targets
+                {"job": target["labels"]["job"], "health": target["health"]} for target in targets
             ],
             "metrics": queries,
             "credential_expiry": {
@@ -2260,10 +2142,7 @@ class Lab:
             item
             for item in self.resources()["container"]
             if item["State"]["Running"]
-            and item.get("Config", {})
-            .get("Labels", {})
-            .get("com.docker.compose.service")
-            == "load"
+            and item.get("Config", {}).get("Labels", {}).get("com.docker.compose.service") == "load"
         ]
 
     def source_binding(self):
@@ -2305,9 +2184,7 @@ class Lab:
         pods = json.loads(
             self.kube("get", "pods", "-n", "demo", "-l", "app=checkout", "-o", "json")
         )["items"]
-        require(
-            len(pods) == desired, "Target Pod count differs from the desired replicas."
-        )
+        require(len(pods) == desired, "Target Pod count differs from the desired replicas.")
         image_ids = []
         pod_ids = []
         for pod in pods:
@@ -2354,9 +2231,9 @@ class Lab:
         memory_used = Decimal(0)
         pods = json.loads(self.kube("get", "pods", "-A", "-o", "json"))["items"]
         for pod in pods:
-            if pod.get("spec", {}).get("nodeName") == nodes[0]["metadata"][
-                "name"
-            ] and pod.get("status", {}).get("phase") not in {"Succeeded", "Failed"}:
+            if pod.get("spec", {}).get("nodeName") == nodes[0]["metadata"]["name"] and pod.get(
+                "status", {}
+            ).get("phase") not in {"Succeeded", "Failed"}:
                 requests = pod_requests(pod["spec"])
                 cpu_used += requests["cpu"]
                 memory_used += requests["memory"]
@@ -2379,8 +2256,7 @@ class Lab:
             "available_cpu_millicores": math.floor(available_cpu * 1000),
             "required_memory_bytes": int(required_memory),
             "available_memory_bytes": int(available_memory),
-            "qualified": available_cpu >= required_cpu
-            and available_memory >= required_memory,
+            "qualified": available_cpu >= required_cpu and available_memory >= required_memory,
         }
 
     def recovery_surge_demand(self, deployment, action_state):
@@ -2437,9 +2313,7 @@ class Lab:
         result = {}
         now = time.time()
         for metric, rows in verification["metrics"].items():
-            target_rows = [
-                row for row in rows if row["labels"].get("deployment_uid") == uid
-            ]
+            target_rows = [row for row in rows if row["labels"].get("deployment_uid") == uid]
             require(
                 target_rows,
                 f"Current application metric {metric} is not bound to the target UID.",
@@ -2468,9 +2342,7 @@ class Lab:
         )["data"]["result"]
         sample_rows = self.prom(
             "/api/v1/query?"
-            + urlencode(
-                {"query": f"timestamp(lab_offered_requests_total{{{selector}}})"}
-            )
+            + urlencode({"query": f"timestamp(lab_offered_requests_total{{{selector}}})"})
         )["data"]["result"]
         require(
             len(rate_rows) <= 25 and len(sample_rows) <= 25,
@@ -2585,9 +2457,7 @@ class Lab:
                 memory_request = quantity(resources["requests"]["memory"])
                 memory_limit = quantity(resources["limits"]["memory"])
             except DomainError:
-                raise RuntimeError(
-                    "Qualified memory resources are malformed."
-                ) from None
+                raise RuntimeError("Qualified memory resources are malformed.") from None
             require(
                 0 < cpu_request <= cpu_limit <= Decimal("1")
                 and 0 < memory_request <= memory_limit <= 512 * 1024**2,
@@ -2642,9 +2512,7 @@ class Lab:
         resources = {
             "replicas": deployment["spec"].get("replicas", 1),
             "template": owned,
-            "rolling_update": deployment["spec"]
-            .get("strategy", {})
-            .get("rollingUpdate", {}),
+            "rolling_update": deployment["spec"].get("strategy", {}).get("rollingUpdate", {}),
         }
         qualification = None
         status = "ready"
@@ -2652,14 +2520,10 @@ class Lab:
         if scenario["qualification_required"]:
             if qualification_path is None:
                 status = "manual"
-                manual_reason = (
-                    "No exact target/source/image qualification receipt was supplied."
-                )
+                manual_reason = "No exact target/source/image qualification receipt was supplied."
             else:
                 qualification_path = Path(qualification_path).resolve(strict=True)
-                qualification = validate_qualification_receipt(
-                    read_json(qualification_path)
-                )
+                qualification = validate_qualification_receipt(read_json(qualification_path))
                 require(
                     qualification.get("scenario_id") == scenario_id,
                     "Qualification scenario does not match the selected trial.",
@@ -2677,8 +2541,7 @@ class Lab:
                     "Qualification source binding does not match the live sources.",
                 )
                 require(
-                    set(health["image_digests"])
-                    == set(qualification.get("image_digests", [])),
+                    set(health["image_digests"]) == set(qualification.get("image_digests", [])),
                     "Qualification does not include the exact current runtime image IDs.",
                 )
                 profile_digest = qualification["profile_digest"]
@@ -2687,9 +2550,7 @@ class Lab:
                     isinstance(declared, dict) and declared,
                     "Qualified desired resources are absent.",
                 )
-                self.validate_qualified_recovery_action(
-                    scenario_id, deployment, declared
-                )
+                self.validate_qualified_recovery_action(scenario_id, deployment, declared)
                 qualified_headroom = qualification.get("surge_headroom", {})
                 required_cpu = qualified_headroom.get("required_cpu_millicores")
                 required_memory = qualified_headroom.get("required_memory_bytes")
@@ -2714,16 +2575,12 @@ class Lab:
                     headroom["required_memory_bytes"], required_memory
                 )
                 headroom["qualified"] = (
-                    headroom["available_cpu_millicores"]
-                    >= headroom["required_cpu_millicores"]
-                    and headroom["available_memory_bytes"]
-                    >= headroom["required_memory_bytes"]
+                    headroom["available_cpu_millicores"] >= headroom["required_cpu_millicores"]
+                    and headroom["available_memory_bytes"] >= headroom["required_memory_bytes"]
                 )
                 if not headroom["qualified"]:
                     status = "manual"
-                    manual_reason = (
-                        "Measured headroom is below the qualified action demand."
-                    )
+                    manual_reason = "Measured headroom is below the qualified action demand."
                 resources["qualified_action"] = declared
                 resources["qualification_profile_digest"] = profile_digest
                 qualification = {
@@ -2735,9 +2592,7 @@ class Lab:
                 }
         if not headroom["qualified"]:
             status = "manual"
-            manual_reason = (
-                manual_reason or "Measured rollout surge headroom is insufficient."
-            )
+            manual_reason = manual_reason or "Measured rollout surge headroom is insufficient."
         now = datetime.now(timezone.utc).isoformat()
         trial = {
             "schema": "E10S3TrialState/v1",
@@ -2749,9 +2604,7 @@ class Lab:
             "scenario_kind": scenario["kind"],
             "status": status,
             "manual_reason": manual_reason,
-            "catalog_sha256": sha256_file(
-                ROOT / "config/lab/release-scenarios-v1.json"
-            ),
+            "catalog_sha256": sha256_file(ROOT / "config/lab/release-scenarios-v1.json"),
             "scope": {
                 "project": OWNED_PROJECT,
                 "namespace": "demo",
@@ -2905,9 +2758,7 @@ class Lab:
             )
             return
 
-        require(
-            not detach, "Detached load is reserved for a qualified E10 recovery trial."
-        )
+        require(not detach, "Detached load is reserved for a qualified E10 recovery trial.")
         proof = self.containment(read_only=True)
         result = json.loads(
             self.dc(
@@ -2932,9 +2783,7 @@ class Lab:
         trial = json.loads(self.trial_path.read_text())
         load = trial.get("load")
         require(isinstance(load, dict), "The active trial has no recovery load record.")
-        require(
-            load.get("state") == "running", "The recovery load was already finalized."
-        )
+        require(load.get("state") == "running", "The recovery load was already finalized.")
         container_id = load["container_id"]
         container = json.loads(self.command(["docker", "inspect", container_id]))[0]
         labels = container.get("Config", {}).get("Labels", {})
@@ -2965,11 +2814,7 @@ class Lab:
                 result = candidate
                 break
         finished_at = datetime.now(timezone.utc).isoformat()
-        if (
-            interrupt
-            and was_running
-            and trial.get("post_check", {}).get("status") == "passed"
-        ):
+        if interrupt and was_running and trial.get("post_check", {}).get("status") == "passed":
             state = "stopped_after_post_check"
         elif interrupt and was_running:
             state = "interrupted"
@@ -3033,9 +2878,9 @@ class Lab:
             and active[0]["Id"] == load.get("container_id"),
             "The exact bounded offered load must remain active through positive verification.",
         )
-        control = read_json(
-            ROOT / load_catalog()["source_fixtures"]["e10_s3_controls"]["path"]
-        )["controls"][trial["scenario_id"]]
+        control = read_json(ROOT / load_catalog()["source_fixtures"]["e10_s3_controls"]["path"])[
+            "controls"
+        ][trial["scenario_id"]]
         require(
             fault.get("scenario") == control.get("local_fault_operation"),
             "Observed fault treatment changed after injection.",
@@ -3087,9 +2932,7 @@ class Lab:
         offered = self.offered_rate_snapshot(trial["target_uid"], load["rate"])
         observed_at = datetime.now(timezone.utc).isoformat()
         treatment_digest = hashlib.sha256(
-            json.dumps(
-                fault["expected"], sort_keys=True, separators=(",", ":")
-            ).encode()
+            json.dumps(fault["expected"], sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
         action_state = {
             "replicas": action["replicas"],
@@ -3134,22 +2977,14 @@ class Lab:
                 "target_uid": trial["target_uid"],
                 "status": "passed",
                 "execution_id": post_check["execution_id"],
-                "verification_profile_digest": post_check[
-                    "verification_profile_digest"
-                ],
+                "verification_profile_digest": post_check["verification_profile_digest"],
                 "verification_finalized_at": post_check["verification_finalized_at"],
-                "execution_receipt_sha256": trial["post_check"][
-                    "execution_receipt_sha256"
-                ],
-                "verification_receipt_sha256": trial["post_check"][
-                    "verification_receipt_sha256"
-                ],
+                "execution_receipt_sha256": trial["post_check"]["execution_receipt_sha256"],
+                "verification_receipt_sha256": trial["post_check"]["verification_receipt_sha256"],
                 "fault_observation_sha256": fault["observation_sha256"],
                 "fault_treatment_sha256": treatment_digest,
                 "action_state_sha256": hashlib.sha256(
-                    json.dumps(
-                        action_state, sort_keys=True, separators=(",", ":")
-                    ).encode()
+                    json.dumps(action_state, sort_keys=True, separators=(",", ":")).encode()
                 ).hexdigest(),
                 "application_metrics": metrics,
                 "offered_load": offered,
@@ -3223,9 +3058,7 @@ class Lab:
         if scenario in {"crashloop", "oom", "traffic"}:
             wanted["mode"] = {
                 "name": "LAB_MODE",
-                "value": {"crashloop": "crash", "oom": "oom", "traffic": "slow"}[
-                    scenario
-                ],
+                "value": {"crashloop": "crash", "oom": "oom", "traffic": "slow"}[scenario],
             }
             if scenario == "oom":
                 wanted["resources"]["limits"]["memory"] = "32Mi"
@@ -3337,19 +3170,13 @@ class Lab:
         }
         validate_trial_receipt(payload)
         private_write(
-            self.directory
-            / "receipts"
-            / f"{time.time_ns()}-trial-reset-incomplete.json",
+            self.directory / "receipts" / f"{time.time_ns()}-trial-reset-incomplete.json",
             json.dumps(payload, indent=2) + "\n",
         )
         self.receipt("trial-reset", {"trial_receipt": payload})
 
     def reset(self, interrupted=False):
-        trial = (
-            json.loads(self.trial_path.read_text())
-            if self.trial_path.is_file()
-            else None
-        )
+        trial = json.loads(self.trial_path.read_text()) if self.trial_path.is_file() else None
         if (
             trial
             and trial["scenario_kind"] == "recovery"
@@ -3378,9 +3205,7 @@ class Lab:
             raise
         if residual_before or loads_before:
             reason = (
-                "Eligible action remains."
-                if residual_before
-                else "Targeted load is still running."
+                "Eligible action remains." if residual_before else "Targeted load is still running."
             )
             self.incomplete_trial_reset(trial, reason, interrupted=interrupted)
             require(False, reason + " Reset refused.")
@@ -3435,21 +3260,12 @@ class Lab:
                     record.get("trial_id") == trial["trial_id"]
                     and record.get("run_id") == trial["run_id"]
                     and record.get("window_id") == trial["window_id"]
-                    and record.get("source_binding_sha256")
-                    == trial["source_binding_sha256"],
+                    and record.get("source_binding_sha256") == trial["source_binding_sha256"],
                     "Fault record does not match its trial bindings.",
                 )
             baseline_fields = record["before"]
-            changes = (
-                field_changes(live, baseline_fields)
-                if current != baseline_fields
-                else []
-            )
-            if (
-                trial
-                and live["spec"].get("replicas", 1)
-                != trial["declared_resources"]["replicas"]
-            ):
+            changes = field_changes(live, baseline_fields) if current != baseline_fields else []
+            if trial and live["spec"].get("replicas", 1) != trial["declared_resources"]["replicas"]:
                 changes.append(
                     {
                         "op": "replace",
@@ -3498,8 +3314,7 @@ class Lab:
             containment = self.containment(read_only=True)
             live = self.deployment("checkout")
             require(
-                live["metadata"]["uid"]
-                == (trial["target_uid"] if trial else record["uid"])
+                live["metadata"]["uid"] == (trial["target_uid"] if trial else record["uid"])
                 and owned_fields(live) == baseline_fields,
                 "Reset target UID or owned fields changed before completion; keep the receipt state.",
             )
@@ -3511,8 +3326,7 @@ class Lab:
                     health["target_uid"] == trial["target_uid"]
                     and health["image_digests"] == trial["image_digests"]
                     and source["sha256"] == trial["source_binding_sha256"]
-                    and source["scope_manifest_sha256"]
-                    == trial["scope"]["scope_manifest_sha256"]
+                    and source["scope_manifest_sha256"] == trial["scope"]["scope_manifest_sha256"]
                     and self.trial_spec_matches_baseline(trial, live),
                     "Reset lost the exact target, runtime image, source or declared resource qualification.",
                 )
@@ -3540,9 +3354,7 @@ class Lab:
             receipt_status = "incomplete"
             reasons.append("An unexpired eligible action remains after reset.")
         if not headroom["qualified"]:
-            reason = (
-                "Measured post-reset surge headroom is below the owned target demand."
-            )
+            reason = "Measured post-reset surge headroom is below the owned target demand."
             reasons.append(reason)
             if not trial or trial["status"] != "manual":
                 receipt_status = "incomplete"
@@ -3560,11 +3372,7 @@ class Lab:
             reasons.append(trial["manual_reason"])
             if receipt_status != "incomplete":
                 receipt_status = "manual"
-        if (
-            trial
-            and trial["scenario_kind"] == "recovery"
-            and receipt_status == "reset_complete"
-        ):
+        if trial and trial["scenario_kind"] == "recovery" and receipt_status == "reset_complete":
             post_check = trial.get("post_check") or {}
             load = trial.get("load") or {}
             if (
@@ -3587,9 +3395,7 @@ class Lab:
             trial["phases"]["reset"] = reset_at
             if trial["scenario_kind"] != "recovery":
                 trial["phases"]["verify"] = reset_at
-        reset_state = (
-            "interrupted" if interrupted else "faulted" if has_fault else "healthy"
-        )
+        reset_state = "interrupted" if interrupted else "faulted" if has_fault else "healthy"
         if trial:
             trial_receipt = {
                 "schema": "E10TrialResetReceipt/v1",
@@ -3641,9 +3447,7 @@ class Lab:
                 trial_receipt["post_check"] = trial["post_check"]
             validate_trial_receipt(trial_receipt)
             private_write(
-                self.directory
-                / "receipts"
-                / f"{time.time_ns()}-trial-reset-private.json",
+                self.directory / "receipts" / f"{time.time_ns()}-trial-reset-private.json",
                 json.dumps(trial_receipt, indent=2) + "\n",
             )
             self.receipt("trial-reset", {"trial_receipt": trial_receipt})
@@ -3687,9 +3491,7 @@ class Lab:
 
         def observed():
             pods = json.loads(
-                self.kube(
-                    "get", "pods", "-n", "demo", "-l", "app=checkout", "-o", "json"
-                )
+                self.kube("get", "pods", "-n", "demo", "-l", "app=checkout", "-o", "json")
             )["items"]
             for pod in pods:
                 self.pod_binding(pod)
@@ -3698,9 +3500,7 @@ class Lab:
                 ).get("initContainerStatuses", [])
                 for status in statuses:
                     waiting = status.get("state", {}).get("waiting", {}).get("reason")
-                    terminated = (
-                        status.get("lastState", {}).get("terminated", {}).get("reason")
-                    )
+                    terminated = status.get("lastState", {}).get("terminated", {}).get("reason")
                     if record["scenario"] == "oom" and terminated == "OOMKilled":
                         return pod
                     if (
@@ -3732,12 +3532,8 @@ class Lab:
                 ):
                     return pod
             if record["scenario"] == "traffic":
-                query = (
-                    'cloudops_error_ratio{deployment_uid="' + record["uid"] + '"}>0.1'
-                )
-                if self.prom("/api/v1/query?" + urlencode({"query": query}))["data"][
-                    "result"
-                ]:
+                query = 'cloudops_error_ratio{deployment_uid="' + record["uid"] + '"}>0.1'
+                if self.prom("/api/v1/query?" + urlencode({"query": query}))["data"]["result"]:
                     return {
                         "metadata": {"uid": record["uid"]},
                         "status": {"measured_error_ratio": True},
@@ -3809,13 +3605,10 @@ class Lab:
             "target_uid": record["uid"],
             "status": pod["status"],
             "events": [
-                {"reason": event.get("reason"), "uid": event["metadata"]["uid"]}
-                for event in events
+                {"reason": event.get("reason"), "uid": event["metadata"]["uid"]} for event in events
             ],
             "logs": logs,
-            "raw_logs_timestamped_nonempty": all(
-                log["timestamped_nonempty"] for log in logs
-            )
+            "raw_logs_timestamped_nonempty": all(log["timestamped_nonempty"] for log in logs)
             if logs
             else None,
             "remaining": "Compare stored collector sources with these exact Pod/container/window/options; no completeness waiver.",
@@ -3825,9 +3618,7 @@ class Lab:
         record["observation_sha256"] = hashlib.sha256(
             json.dumps(observation, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
-        private_write(
-            self.directory / "fault.json", json.dumps(record, indent=2) + "\n"
-        )
+        private_write(self.directory / "fault.json", json.dumps(record, indent=2) + "\n")
         if self.trial_path.is_file():
             trial = json.loads(self.trial_path.read_text())
             require(
@@ -3844,9 +3635,7 @@ class Lab:
                 trial["load"].setdefault("observations", []).append(
                     {
                         "phase": "fault-observation",
-                        **self.offered_rate_snapshot(
-                            trial["target_uid"], trial["load"]["rate"]
-                        ),
+                        **self.offered_rate_snapshot(trial["target_uid"], trial["load"]["rate"]),
                     }
                 )
             private_write(self.trial_path, json.dumps(trial, indent=2) + "\n")
@@ -3908,9 +3697,7 @@ class Lab:
             "renew",
             {
                 "identity": kind,
-                "expiry": json.loads(
-                    (self.directory / kind / "expiry.json").read_text()
-                ),
+                "expiry": json.loads((self.directory / kind / "expiry.json").read_text()),
                 "writer": "renewal never enables dispatch",
             },
         )
@@ -3927,10 +3714,7 @@ class Lab:
         )
         removed = {}
         for kind in ("container", "network", "volume"):
-            ids = [
-                item["Id"] if kind != "volume" else item["Name"]
-                for item in inventory[kind]
-            ]
+            ids = [item["Id"] if kind != "volume" else item["Name"] for item in inventory[kind]]
             self.ownership()
             for identifier in ids:
                 self.command(["docker", kind, "rm", identifier])
@@ -3973,9 +3757,7 @@ def main():
         product = sub.add_parser(name)
         product.add_argument("--password-stdin", action="store_true", required=True)
     load = sub.add_parser("load")
-    load.add_argument(
-        "--target", choices=["checkout", "history", "both"], default="checkout"
-    )
+    load.add_argument("--target", choices=["checkout", "history", "both"], default="checkout")
     load.add_argument("--seconds", type=int, default=90)
     load.add_argument("--rate", type=int, default=5)
     load.add_argument(
@@ -4019,8 +3801,7 @@ def main():
     cleanup.add_argument("--confirm-owner", required=True)
     args = parser.parse_args()
     require(
-        1 <= getattr(args, "seconds", 1) <= 21600
-        and 1 <= getattr(args, "rate", 1) <= 30,
+        1 <= getattr(args, "seconds", 1) <= 21600 and 1 <= getattr(args, "rate", 1) <= 30,
         "Load bounds exceeded.",
     )
     lab = Lab(args.directory)
@@ -4078,9 +3859,7 @@ def main():
             if args.trial_operation == "begin":
                 lab.begin_trial(args.scenario_id, args.qualification_receipt)
             elif args.trial_operation == "post-check":
-                lab.recovery_post_check(
-                    args.execution_receipt, args.verification_receipt
-                )
+                lab.recovery_post_check(args.execution_receipt, args.verification_receipt)
         elif args.operation == "renew":
             lab.renew(args.identity)
         elif args.operation == "renew-readers":

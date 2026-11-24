@@ -42,9 +42,7 @@ def read_json(path):
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
-        raise ValueError(
-            f"Cannot load JSON artifact {path}: {type(error).__name__}"
-        ) from None
+        raise ValueError(f"Cannot load JSON artifact {path}: {type(error).__name__}") from None
 
 
 def _walk_keys(value):
@@ -74,8 +72,7 @@ def _parse_timestamp(value, name):
 def _validate_resource_template(template):
     _require(
         isinstance(template, dict)
-        and set(template)
-        == {"image", "resources", "imagePullPolicy", "mode", "initContainers"},
+        and set(template) == {"image", "resources", "imagePullPolicy", "mode", "initContainers"},
         "Declared resource template is incomplete or has unexpected fields.",
     )
     _require(
@@ -156,8 +153,7 @@ def _validate_resource_template(template):
 
 def _surge_replicas(rolling_update, replicas):
     _require(
-        isinstance(rolling_update, dict)
-        and set(rolling_update) <= {"maxSurge", "maxUnavailable"},
+        isinstance(rolling_update, dict) and set(rolling_update) <= {"maxSurge", "maxUnavailable"},
         "Declared rollout settings are invalid.",
     )
     value = rolling_update.get("maxSurge", 1)
@@ -226,8 +222,7 @@ def _validate_declared_resources(value):
         )
         _require(
             isinstance(value["qualification_profile_digest"], str)
-            and re.fullmatch(r"[a-f0-9]{64}", value["qualification_profile_digest"])
-            is not None,
+            and re.fullmatch(r"[a-f0-9]{64}", value["qualification_profile_digest"]) is not None,
             "Qualified action profile digest is invalid.",
         )
         baseline_surge = _surge_replicas(value["rolling_update"], action["replicas"])
@@ -262,12 +257,8 @@ def validate_recovery_post_check(
         "recovery-bad-rollout-restore": "restore_deployment_template",
         "recovery-traffic-scale": "scale_deployment",
     }
-    _require(
-        scenario_id in expected_templates, "Post-check scenario is not a recovery case."
-    )
-    _require(
-        isinstance(execution, dict), "Recovery execution receipt must be an object."
-    )
+    _require(scenario_id in expected_templates, "Post-check scenario is not a recovery case.")
+    _require(isinstance(execution, dict), "Recovery execution receipt must be an object.")
     _require(
         isinstance(verification, dict),
         "Recovery verification receipt must be an object.",
@@ -323,23 +314,15 @@ def validate_recovery_post_check(
         verification.get("acknowledged_at"), "verification acknowledged_at"
     )
     deadline = _parse_timestamp(verification.get("deadline"), "verification deadline")
-    finalized_at = _parse_timestamp(
-        verification.get("finalized_at"), "verification finalized_at"
-    )
-    execution_finished_at = _parse_timestamp(
-        execution.get("finished_at"), "execution finished_at"
-    )
+    finalized_at = _parse_timestamp(verification.get("finalized_at"), "verification finalized_at")
+    execution_finished_at = _parse_timestamp(execution.get("finished_at"), "execution finished_at")
     fault_at = _parse_timestamp(fault_observed_at, "fault observed_at")
-    load_started_at = _parse_timestamp(
-        load.get("started_at"), "offered load started_at"
-    )
+    load_started_at = _parse_timestamp(load.get("started_at"), "offered load started_at")
     _require(
         deadline == acknowledged_at + timedelta(seconds=window_seconds)
         and finalized_at >= deadline
         and execution_finished_at == finalized_at
-        and _parse_timestamp(
-            result.get("verification_finalized_at"), "execution verification time"
-        )
+        and _parse_timestamp(result.get("verification_finalized_at"), "execution verification time")
         == finalized_at,
         "E07 verification does not prove its complete fixed window.",
     )
@@ -355,9 +338,7 @@ def validate_recovery_post_check(
     )
     expected_samples = (window_seconds - warmup_seconds) // step_seconds + 1
     application = verification_result.get("application")
-    _require(
-        isinstance(application, dict), "Positive post-check lacks application evidence."
-    )
+    _require(isinstance(application, dict), "Positive post-check lacks application evidence.")
     valid_samples = verification_result.get("valid_rollout_samples")
     _require(
         application.get("state") == "passed"
@@ -400,9 +381,7 @@ def project_case_inputs(scenario_id):
     }
     e10_inputs = {
         case["id"]: case
-        for case in read_json(
-            ROOT / "services/backend/tests/fixtures/e10_s3/inputs.json"
-        )["cases"]
+        for case in read_json(ROOT / "services/backend/tests/fixtures/e10_s3/inputs.json")["cases"]
     }
     projected = []
     for reference in scenarios[scenario_id]["input_refs"]:
@@ -418,9 +397,7 @@ def project_case_inputs(scenario_id):
             evidence_ref = case.get("evidence_ref")
             if evidence_ref:
                 evidence_source, evidence_id = evidence_ref.split(":", 1)
-                _require(
-                    evidence_source == "E06", "Unsupported E10 evidence reference."
-                )
+                _require(evidence_source == "E06", "Unsupported E10 evidence reference.")
                 evidence = e06_cases[evidence_id]["evidence"]
             else:
                 evidence = case.get("evidence", {})
@@ -459,8 +436,7 @@ def validate_catalog():
     catalog = load_catalog()
     receipt_schema = read_json(ROOT / catalog["receipt_schema"])
     _require(
-        sha256_file(ROOT / catalog["receipt_schema"])
-        == catalog["receipt_schema_sha256"],
+        sha256_file(ROOT / catalog["receipt_schema"]) == catalog["receipt_schema_sha256"],
         "Trial reset receipt schema changed; review the D3 contract before updating.",
     )
     _require(
@@ -474,9 +450,7 @@ def validate_catalog():
         "Qualification receipt schema changed; review its consumer contract before updating.",
     )
     _require(
-        qualification_schema.get("$id", "").endswith(
-            "E10RecoveryQualificationReceipt-v1.json"
-        ),
+        qualification_schema.get("$id", "").endswith("E10RecoveryQualificationReceipt-v1.json"),
         "Unknown recovery qualification receipt schema.",
     )
     sources = catalog["source_fixtures"]
@@ -519,9 +493,7 @@ def validate_catalog():
     )
 
     controls = read_json(ROOT / sources["e10_s3_controls"]["path"])
-    _require(
-        controls.get("schema") == "E10S3OperatorControls/v1", "Unknown control schema."
-    )
+    _require(controls.get("schema") == "E10S3OperatorControls/v1", "Unknown control schema.")
     control_ids = set(controls["controls"])
     expected_lab_faults = {
         "recovery-oom-memory": "oom",
@@ -542,9 +514,7 @@ def validate_catalog():
         scenario_ids == set(oracle["cases"]),
         "Catalog and sealed oracle case IDs differ.",
     )
-    _require(
-        scenario_ids == control_ids, "Catalog and operator control case IDs differ."
-    )
+    _require(scenario_ids == control_ids, "Catalog and operator control case IDs differ.")
     _require(
         scenario_ids
         == set(catalog["scenario_sets"]["recovery"])
@@ -560,9 +530,7 @@ def validate_catalog():
         len(catalog["scenario_sets"]["pending_imagepull"]) == 4,
         "Expected two Pending and two ImagePull variants.",
     )
-    _require(
-        len(catalog["scenario_sets"]["negative"]) == 5, "Expected five negative cases."
-    )
+    _require(len(catalog["scenario_sets"]["negative"]) == 5, "Expected five negative cases.")
     _require(
         set(catalog["scenario_sets"]["recovery"])
         == {
@@ -615,17 +583,13 @@ def validate_catalog():
         for reference in scenario["input_refs"]:
             prefix, case_id = reference.split(":", 1)
             if prefix == "E06":
-                _require(
-                    case_id in e06_case_ids, f"Unknown E06 input reference {reference}."
-                )
+                _require(case_id in e06_case_ids, f"Unknown E06 input reference {reference}.")
                 _require(
                     case_id in e06_oracle_ids,
                     f"Unknown E06 oracle reference {reference}.",
                 )
             elif prefix == "E10S3":
-                _require(
-                    case_id in input_ids, f"Unknown E10 S3 input reference {reference}."
-                )
+                _require(case_id in input_ids, f"Unknown E10 S3 input reference {reference}.")
             else:
                 raise ValueError(f"Unknown input reference prefix {prefix}.")
         if scenario["kind"] == "recovery":
@@ -633,9 +597,7 @@ def validate_catalog():
                 scenario["qualification_required"] is True,
                 "Recovery scenario lacks qualification gate.",
             )
-        _require(
-            isinstance(oracle["cases"][scenario["id"]], dict), "Invalid oracle case."
-        )
+        _require(isinstance(oracle["cases"][scenario["id"]], dict), "Invalid oracle case.")
         evidence_ref = scenario.get("evidence_ref")
         if evidence_ref:
             _require(
@@ -651,9 +613,7 @@ def validate_catalog():
                     "Invalid E07 evidence pointer.",
                 )
                 target = target[part]
-            _require(
-                bool(target), "E07 evidence reference resolves to an empty object."
-            )
+            _require(bool(target), "E07 evidence reference resolves to an empty object.")
 
     for case in oracle["cases"].values():
         source_evidence_ref = case.get("source_evidence_ref")
@@ -753,14 +713,11 @@ def _validate_post_check_attestation(post_check, receipt):
         "Recovery post-check attestation is incomplete or has unexpected fields.",
     )
     _require(
-        post_check["schema"] == "E10RecoveryPostCheck/v1"
-        and post_check["status"] == "passed",
+        post_check["schema"] == "E10RecoveryPostCheck/v1" and post_check["status"] == "passed",
         "Recovery post-check did not pass.",
     )
     for field in ("trial_id", "run_id", "window_id"):
-        _require(
-            post_check[field] == receipt[field], f"Post-check {field} binding changed."
-        )
+        _require(post_check[field] == receipt[field], f"Post-check {field} binding changed.")
     _require(
         post_check["target_uid"] == receipt["target_uid"],
         "Post-check target UID binding changed.",
@@ -781,9 +738,7 @@ def _validate_post_check_attestation(post_check, receipt):
         UUID(post_check["execution_id"])
     except (TypeError, ValueError, AttributeError):
         raise ValueError("Post-check execution identity must be a UUID.") from None
-    scenario = {item["id"]: item for item in load_catalog()["scenarios"]}[
-        receipt["scenario_id"]
-    ]
+    scenario = {item["id"]: item for item in load_catalog()["scenarios"]}[receipt["scenario_id"]]
     _require(
         scenario["kind"] == "recovery"
         and post_check["verification_profile_digest"]
@@ -800,8 +755,7 @@ def _validate_post_check_attestation(post_check, receipt):
     _require(
         isinstance(fault, dict)
         and fault.get("observation_sha256") == post_check["fault_observation_sha256"]
-        and _canonical_sha256(fault.get("expected"))
-        == post_check["fault_treatment_sha256"],
+        and _canonical_sha256(fault.get("expected")) == post_check["fault_treatment_sha256"],
         "Post-check fault treatment is not bound to the observed injection.",
     )
     fault_at = _parse_timestamp(fault.get("observed_at"), "fault observed_at")
@@ -817,8 +771,7 @@ def _validate_post_check_attestation(post_check, receipt):
         )
     _require(
         post_check["verification_window_seconds"] in {180, 300}
-        and post_check["expected_rollout_samples"]
-        == post_check["valid_rollout_samples"],
+        and post_check["expected_rollout_samples"] == post_check["valid_rollout_samples"],
         "Post-check sample coverage is incomplete.",
     )
     _require(
@@ -845,21 +798,15 @@ def _validate_post_check_attestation(post_check, receipt):
         "Recovery offered load did not remain active through its positive post-check.",
     )
     load_started_at = _parse_timestamp(post_check["load_started_at"], "load_started_at")
-    load_stopped_at = _parse_timestamp(
-        load.get("finished_at"), "offered load finished_at"
-    )
+    load_stopped_at = _parse_timestamp(load.get("finished_at"), "offered load finished_at")
     acknowledged_at = _parse_timestamp(
         post_check["verification_acknowledged_at"], "verification_acknowledged_at"
     )
-    deadline = _parse_timestamp(
-        post_check["verification_deadline"], "verification_deadline"
-    )
+    deadline = _parse_timestamp(post_check["verification_deadline"], "verification_deadline")
     finalized_at = _parse_timestamp(
         post_check["verification_finalized_at"], "verification_finalized_at"
     )
-    observed_at = _parse_timestamp(
-        post_check["post_check_observed_at"], "post_check_observed_at"
-    )
+    observed_at = _parse_timestamp(post_check["post_check_observed_at"], "post_check_observed_at")
     sample_at = _parse_timestamp(post_check["offered_sample_at"], "offered_sample_at")
     stopped_at = _parse_timestamp(post_check["load_stopped_at"], "load_stopped_at")
     _require(
@@ -877,8 +824,7 @@ def _validate_post_check_attestation(post_check, receipt):
             and observation.get("deployment_uid") == post_check["target_uid"]
             and observation.get("expected_rate_rps") == post_check["requested_rate_rps"]
             and observation.get("observed_rate_rps") == post_check["observed_rate_rps"]
-            and abs(float(observation.get("sample_at", "nan")) - sample_at.timestamp())
-            <= 1
+            and abs(float(observation.get("sample_at", "nan")) - sample_at.timestamp()) <= 1
             for observation in load["observations"]
         )
         and load_started_at <= fault_at <= acknowledged_at
@@ -903,9 +849,7 @@ def validate_trial_receipt(value):
     receipt = value.get("trial_receipt", value)
     _require(isinstance(receipt, dict), "Trial reset receipt must be an object.")
     required = set(schema["required"])
-    _require(
-        required <= set(receipt), "Trial reset receipt is missing required fields."
-    )
+    _require(required <= set(receipt), "Trial reset receipt is missing required fields.")
     _require(
         set(receipt) <= set(schema["properties"]),
         "Trial reset receipt has unexpected fields.",
@@ -915,10 +859,7 @@ def validate_trial_receipt(value):
         "Unknown trial reset receipt version.",
     )
     try:
-        ids = [
-            UUID(receipt[name])
-            for name in ("trial_id", "run_id", "window_id", "reset_id")
-        ]
+        ids = [UUID(receipt[name]) for name in ("trial_id", "run_id", "window_id", "reset_id")]
     except (ValueError, TypeError, AttributeError):
         raise ValueError("Trial/run/window/reset IDs must be UUIDs.") from None
     _require(
@@ -926,9 +867,7 @@ def validate_trial_receipt(value):
         "Trial/run/window/reset IDs must be independently minted.",
     )
     scenarios = {item["id"]: item for item in catalog["scenarios"]}
-    _require(
-        receipt["scenario_id"] in scenarios, "Unknown scenario ID in reset receipt."
-    )
+    _require(receipt["scenario_id"] in scenarios, "Unknown scenario ID in reset receipt.")
     _require(
         receipt["reset_state"] in {"healthy", "interrupted", "faulted"},
         "Unknown reset origin.",
@@ -944,8 +883,7 @@ def validate_trial_receipt(value):
         scope.get("scope_manifest_sha256"),
     ):
         _require(
-            isinstance(digest, str)
-            and re.fullmatch(r"[a-f0-9]{64}", digest) is not None,
+            isinstance(digest, str) and re.fullmatch(r"[a-f0-9]{64}", digest) is not None,
             "Invalid scope/source digest.",
         )
     _require(
@@ -972,9 +910,7 @@ def validate_trial_receipt(value):
     )
     required_demand = _validate_declared_resources(receipt["declared_resources"])
     headroom = receipt["surge_headroom"]
-    _require(
-        isinstance(headroom, dict), "Reset receipt surge headroom must be an object."
-    )
+    _require(isinstance(headroom, dict), "Reset receipt surge headroom must be an object.")
     _require(
         set(headroom)
         == {
@@ -997,10 +933,8 @@ def validate_trial_receipt(value):
             "Invalid surge headroom value.",
         )
     _require(
-        headroom["required_cpu_millicores"]
-        == required_demand["required_cpu_millicores"]
-        and headroom["required_memory_bytes"]
-        == required_demand["required_memory_bytes"],
+        headroom["required_cpu_millicores"] == required_demand["required_cpu_millicores"]
+        and headroom["required_memory_bytes"] == required_demand["required_memory_bytes"],
         "Reset receipt surge demand does not match its declared baseline/qualified resources.",
     )
     _require(
@@ -1027,8 +961,7 @@ def validate_trial_receipt(value):
         "Reset receipt source limits must be an object.",
     )
     _require(
-        set(source_limits)
-        == {"request_timeout_seconds", "response_bytes", "series_limit"},
+        set(source_limits) == {"request_timeout_seconds", "response_bytes", "series_limit"},
         "Reset receipt source limits have unexpected fields.",
     )
     _require(
@@ -1058,8 +991,7 @@ def validate_trial_receipt(value):
                 f"Phase timestamp {phase} must be timezone-aware.",
             )
     _require(
-        receipt.get("incomplete_reason") is None
-        or isinstance(receipt["incomplete_reason"], str),
+        receipt.get("incomplete_reason") is None or isinstance(receipt["incomplete_reason"], str),
         "Incomplete reason must be text or null.",
     )
     if receipt["receipt_status"] == "reset_complete":
@@ -1095,9 +1027,7 @@ def validate_qualification_receipt(value):
     schema = read_json(ROOT / catalog["qualification_receipt_schema"])
     _require(isinstance(value, dict), "Qualification receipt must be an object.")
     required = set(schema["required"])
-    _require(
-        required <= set(value), "Qualification receipt is missing required fields."
-    )
+    _require(required <= set(value), "Qualification receipt is missing required fields.")
     _require(
         set(value) <= set(schema["properties"]),
         "Qualification receipt has unexpected fields.",
@@ -1126,8 +1056,7 @@ def validate_qualification_receipt(value):
     )
     declared = value["declared_resources"]
     _require(
-        isinstance(declared, dict)
-        and set(declared) == {"replicas", "template", "rolling_update"},
+        isinstance(declared, dict) and set(declared) == {"replicas", "template", "rolling_update"},
         "Qualified desired resource state must include exact replicas, template and rollout settings.",
     )
     _require(
@@ -1137,8 +1066,7 @@ def validate_qualification_receipt(value):
     template = declared["template"]
     _require(
         isinstance(template, dict)
-        and set(template)
-        == {"image", "resources", "imagePullPolicy", "mode", "initContainers"},
+        and set(template) == {"image", "resources", "imagePullPolicy", "mode", "initContainers"},
         "Qualified action template must describe every reset-controlled field.",
     )
     _require(
@@ -1160,8 +1088,7 @@ def validate_qualification_receipt(value):
         "Qualified action mode is invalid.",
     )
     _require(
-        template["initContainers"] is None
-        or isinstance(template["initContainers"], list),
+        template["initContainers"] is None or isinstance(template["initContainers"], list),
         "Qualified init-container state is invalid.",
     )
     _require(
@@ -1181,8 +1108,7 @@ def validate_qualification_receipt(value):
         )
     _require(
         not (
-            {"authorization", "password", "private_key", "secret", "token"}
-            & set(_walk_keys(value))
+            {"authorization", "password", "private_key", "secret", "token"} & set(_walk_keys(value))
         ),
         "Qualification receipt must not contain credentials.",
     )
