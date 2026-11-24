@@ -30,63 +30,110 @@ Validate a private trial receipt before handing it to S6 with:
 uv run --project services/backend --frozen python scripts/release_scenarios.py validate-receipt <receipt.json>
 ```
 
-## Owned-lab reset flow
+## Owned labs
 
-Use the retained `cloudops-local-testing-lab` project and its generated private directory from `docs/e01-local-lab.md`. The manager binds each trial to the catalog version, run/window IDs, owned `demo/checkout` Deployment UID, reader/metrics source fingerprint, runtime image IDs, bounded resource requests, and measured single-node surge headroom. It refuses an unexpired action, active execution, foreign UID, stale metrics, changed source binding, or insufficient headroom.
+`scripts/manage-local-lab.py` manages two owned projects. Select one with both `CLOUDOPS_LAB_PROJECT` and `--project`:
 
-For a reset from a known healthy state:
+| Project | Directory | Checkout sample | Used for |
+| --- | --- | --- | --- |
+| `cloudops-local-testing-lab` | `tmp/local-testing-lab` | Triage sample (`sample_app.py`) | Existing E01–E08 lab work, Pending and ImagePull observations |
+| `cloudops-e10-s3-lab` | `tmp/e10-s3-lab` | E07 recovery sample (`Dockerfile.recovery`) under `Recreate` | All recovery scenarios, plus Pending and ImagePull |
 
-```sh
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab trial begin pending-insufficient-cpu
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab reset
-```
+Each project has its own volumes, owner marker and project-named images, so the recovery lab never adopts or overwrites the retained general lab. Recovery trials, recovery faults, `recovery-config`, `qualify` and `writer` are refused outside `cloudops-e10-s3-lab`, and recovery receipts must name that project. The recovery lab adds `compose.lab-recovery.yaml`, which mounts the operator-generated `RecoveryPolicy/v1` and `RecoveryVerificationProfile/v1` files read-only into the API, worker and executor.
 
-For an interrupted controlled fault, the manager persists the trial and fault records before returning. After the fault operation, reset the retained state with:
+The manager reads the K3s container's `/proc/<pid>/cgroup` to prove containment, so it must run in the Docker engine's PID and cgroup namespace. On a Linux Docker host, run it directly. On Docker Desktop, run it in a small helper container with `--pid=host --cgroupns=host`, the Docker socket, read-only `/sys/fs/cgroup` and the checkout mounted at the same absolute path. Registry digest checks during `start` use an empty Docker configuration, so they are subject to anonymous registry rate limits.
 
-```sh
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab trial begin pending-insufficient-cpu
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab fault pending
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab reset --interrupted
-```
+## Fault mapping
 
-The fault command's fixed controls can generate the CPU Pending and missing-manifest ImagePull local cases. Untolerated-taint and registry-authorization variants remain fixture evidence; the manager refuses to substitute a different live fault. `observe` captures bounded event/log evidence before reset when a trial needs an observed fault record.
+| Scenario | Local fault | Field the approved action repairs | Treatment kept fixed |
+| --- | --- | --- | --- |
+| `recovery-oom-memory` | `memory-limit`: 128Mi request and limit for the 160 MiB resident sample | Memory request/limit (`set_memory_profile`) | Offered load |
+| `recovery-bad-rollout-restore` | `bad-rollout`: the sample's `bad-image` variant, which rejects startup | Image (`restore_deployment_template` to the confirmed known-good image) | Offered load |
+| `recovery-traffic-scale` | `overload`: no field change; 30 rps against one Pod with two serving slots | Replicas (`scale_deployment` to 2) | Offered load |
+| `pending-insufficient-cpu` | `pending`: 100-CPU request | Reset only | — |
+| `imagepull-missing-manifest` | `imagepull`: unavailable local registry reference | Reset only | — |
 
-Every begin allocates fresh trial/run/window UUIDs. Each reset attempt allocates a fresh reset UUID. Successful reset receipts require the original target UID, exact restored fields, healthy ready Pods, fresh UID-bound source metrics, measured surge headroom, zero unexpired eligible actions, and zero duplicate targeted loads. Receipts are written owner-only under `tmp/local-testing-lab/receipts/`; incomplete receipts and their fault/trial state are retained for inspection.
+Untolerated-taint and registry-authorization variants remain fixture evidence; the manager refuses to substitute a different live fault.
 
-Recovery scenarios require an `E10RecoveryQualificationReceipt/v1` file passed as `--qualification-receipt`. It must bind the scenario, exact target UID, source-binding digest, runtime image IDs, qualified profile digest, exact post-action replica/template/rollout state, and required surge CPU/memory. The template must include every reset-controlled field, including the injected `LAB_MODE` when the action leaves that treatment in place. Missing qualification creates a manual readiness receipt and the fault command refuses injection. The operator does not use this local fault tool to execute product actions; use the normal E07 recovery path and its explicit approval/post-check receipts.
+## Recovery qualification
 
-For a qualified recovery trial, start the trial, then its bounded recovery load, then inject the mapped local fault. The local mappings are OOM → `oom`, bad startup rollout → `crashloop`, and traffic overload → `traffic`:
+Qualification precedes any measured trial and is never inferred from a first positive. From the healthy recovery-lab baseline:
 
 ```sh
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab trial begin recovery-oom-memory \
-  --qualification-receipt <private-qualification.json>
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab load --target checkout --seconds 900 --rate 30 --recovery --detach
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab fault oom
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab observe
+export CLOUDOPS_LAB_PROJECT=cloudops-e10-s3-lab
+lab="uv run --project services/backend --frozen python scripts/manage-local-lab.py --project cloudops-e10-s3-lab"
+$lab start
+$lab recovery-config
+$lab qualify recovery-traffic-scale --rate 30 --seconds 240
+$lab qualify recovery-oom-memory --rate 8 --seconds 240
+$lab qualify recovery-bad-rollout-restore --rate 8 --seconds 240
 ```
 
-Use the normal E07 product action with its explicit approval and fixed positive post-check. Keep the offered load and injected fault treatment in place for that whole post-check, and record the E07 evidence before finalizing the load as described below. The manager restores only the recorded baseline, fixed fault state, or exact qualified post-action state using a UID/resourceVersion conditional patch. An interrupted run can use `load-stop --interrupt`, followed by `reset --interrupted`; its receipt retains the interrupted load state. Reset refuses to complete while any targeted load remains active or while the live target differs from those bound states.
+`recovery-config` derives the exact selected containers, source digest and canonical digests inside the API process, writes the policy and one profile per scenario, and refuses to finish unless the API loads exactly those profiles. `qualify` is a trusted operator calibration, not a product action: it applies the profile's post-action state, offers the fixed load, samples request rate, error ratio, p95 latency and offered rate every 30 seconds after the 60-second warmup, restores the baseline and writes `qualification/<scenario>.json` only if every sample meets the profile. Failed calibrations are retained beside it.
 
-The offered-load exporter is scraped as an optional Prometheus target while its exact owned container is active. Fault injection and observation require fresh application metrics plus a fresh offered-rate sample bound to the trial Deployment UID; the observed offered rate must remain within 20% of the fixed requested rate. Wait for the initial scrape/rate window before injecting the fault. The E07 product verification remains the source of the positive post-check result; the reset receipt records the independent offered-load samples and cleanup state.
+## Trial and reset flow
 
-After the E07 recovery action succeeds, keep the same recovery load running through its complete fixed positive verification window. Save the JSON responses from `GET /api/executions/{execution_id}` and `GET /api/executions/{execution_id}/verification` as private files inside the lab's owner-only directory, then bind them to the active trial:
+Every `trial begin` allocates fresh trial/run/window UUIDs and every reset a fresh reset UUID. Begin and reset each offer a bounded 40-second, 5 rps readiness load so the target's health is measured, then bind the target UID, source/metrics fingerprint, runtime image IDs, declared resources and measured surge headroom. They refuse an unexpired eligible action, an active execution, an unquarantined writer, a foreign UID, stale metrics, a changed source binding or insufficient headroom. While a recovery trial is active, no other targeted load may run and a second recovery load is refused.
+
+Healthy, faulted and interrupted resets:
 
 ```sh
-uv run --project services/backend --frozen python scripts/manage-local-lab.py \
-  --project cloudops-local-testing-lab trial post-check \
-  --execution-receipt <private-execution.json> \
-  --verification-receipt <private-verification.json>
+$lab trial begin pending-insufficient-cpu && $lab reset
+$lab trial begin pending-insufficient-cpu && $lab fault pending && $lab observe && $lab reset
+$lab trial begin pending-insufficient-cpu && $lab fault pending && $lab reset --interrupted
 ```
 
-Only after this command records `passed` may the load be finalized and the baseline reset. If its fixed duration has not elapsed, stop the still-running owned load with `load-stop --interrupt`; if it has already ended, use `load-stop`. Then run `reset`. The reset receipt carries the E07 execution/profile binding, full sample count, matching load-rate evidence, exact fault treatment, and final load state. Missing, failed, stale, or mismatched E07 evidence leaves the reset receipt incomplete; it cannot be promoted to `reset_complete`.
+A recovery trial without a qualification receipt starts as `manual`, and its fault is refused. A qualified recovery trial runs:
 
+```sh
+$lab trial begin recovery-traffic-scale --qualification-receipt tmp/e10-s3-lab/qualification/recovery-traffic-scale.json
+$lab load --target checkout --seconds 900 --rate 30 --recovery --detach
+sleep 60
+$lab fault overload
+$lab observe
+$lab writer enable
+python scripts/probe-e10-s3-recovery.py act --scenario recovery-traffic-scale
+$lab trial post-check --execution-receipt <execution.json> --verification-receipt <verification.json>
+$lab writer quarantine
+$lab load-stop --interrupt
+$lab reset          # after the approved plan's five-minute expiry
+```
+
+`writer enable` opens the isolated gateway only for an observed recovery trial: it uses the root maintenance socket to enable the exact target and exit recovery mode. `writer quarantine` closes dispatch and the target again before load finalization and reset. The probe signs in as an ordinary Operator over same-origin HTTPS, opens a manual incident, waits for its Run, proposes the qualified plan, checks that it is bound to the qualified verification profile, approves it explicitly and saves the execution and verification read responses privately. The UI can replace the probe; the post-check accepts only those E07 read responses.
+
+`post-check` requires the same running offered load, the observed fault record, the exact qualified action state and a passed E07 verification over its complete fixed window. A reset after an interrupted or unverified recovery trial restores and verifies the baseline, writes an `incomplete` receipt with the reason, and clears the trial so the next trial starts fresh. Receipts are written owner-only under `tmp/<lab>/receipts/`.
+
+## Live acceptance
+
+[`live-acceptance.json`](live-acceptance.json) is the sanitized record of one run on owned single-node K3s in `cloudops-e10-s3-lab`. Every receipt in it was written at source commit `fd7cfe4` with an empty working diff. The lab runtime was last started at `2e3cce2`, which differs only in the image-receipt lookup. That start completed every step except its closing image receipt, which failed on the containerd image store and is fixed in `fd7cfe4`. A later `start` at `fd7cfe4` stopped at the anonymous Docker Hub digest check (HTTP 429) before changing anything. All nine trial reset receipts pass `validate-receipt`.
+
+Qualification, before any trial (operator calibration of each profile's post-action state, five 30-second samples after warmup):
+
+| Scenario | State | Offered load | Worst sample |
+| --- | --- | --- | --- |
+| `recovery-traffic-scale` | 2 replicas | 30 rps | 30.5 rps served, error ratio 0.0023, p95 0.245 s |
+| `recovery-oom-memory` | 192Mi/256Mi | 8 rps | 8.2 rps served, error ratio 0, p95 0.243 s |
+| `recovery-bad-rollout-restore` | Known-good image | 8 rps | 8.2 rps served, error ratio 0, p95 0.243 s |
+
+Trials, each with fresh trial/run/window/reset IDs, zero residual eligible actions and zero duplicate targeted loads at completion:
+
+| Scenario | Reset from | Observed fault | Receipt |
+| --- | --- | --- | --- |
+| `pending-insufficient-cpu` | Healthy baseline | — | `reset_complete` |
+| `pending-insufficient-cpu` | Fault | `Unschedulable`, `FailedScheduling` | `reset_complete` |
+| `imagepull-missing-manifest` | Fault | `ErrImagePull`, `BackOff` | `reset_complete` |
+| `pending-insufficient-cpu` | Interrupted before observation | — | `reset_complete`, `incomplete_observation` |
+| `recovery-oom-memory` without qualification | Healthy baseline | Fault refused | `manual` |
+| `recovery-oom-memory` | Interrupted after observation | `OOMKilled` (exit 137) under load | `incomplete`: no positive E07 post-check; baseline restored |
+| `recovery-bad-rollout-restore` | Interrupted after observation | Startup rejection, `BackOff` under load | `incomplete`: no positive E07 post-check; baseline restored |
+| `recovery-traffic-scale` (same trial) | Reset attempted while its load ran | Error ratio above 0.1 | `incomplete`: refused, trial state retained |
+| `recovery-traffic-scale` | Fault, after positive post-check | Error ratio above 0.1 | `reset_complete` with the E07 post-check |
+
+The traffic trial ran through the normal product path: an Operator opened a manual incident, proposed the qualified `RecoveryPlan/v2` scale to two replicas, read its review and approved it. E07 acknowledged the change and finalized `passed` over its full 180-second window with 5/5 rollout samples, full coverage and 31.0 rps offered against the fixed 30 rps. The same offered load ran from before the fault until after the post-check. The run also refused a second targeted load and a duplicate recovery load during that trial.
+
+Limits:
+
+- `set_memory_profile` and `restore_deployment_template` plans are created only from an E06 analysis. Their positive post-checks need an approved model budget and belong to S6; this run demonstrates their qualification, real faults under load, observation and verified baseline resets.
+- Untolerated-taint and registry-authorization variants remain fixture evidence.
+- One owned single-node lab; no shared, cloud or production target, scoring, SLO or recovery-success rate.
 This slice prepares local resets and S6 inputs. It does not claim the fifteen live recovery trials or final scoring, which remain in S6.
