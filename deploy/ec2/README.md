@@ -38,7 +38,34 @@ After the account owner approves the account, region, target, costs, timebox and
 )
 ```
 
+Take plans only while the instance is running. A stopped instance reports `associate_public_ip_address` drift, and that drift forces replacement.
+
 The plan requires a root-only EBS AMI and should show the single instance, one encrypted volume and the dedicated network. Only SSH from the approved IPv4 `/32` is accepted. Network egress permits IPv4 TCP 443. The app's separately approved source and provider policies still govern its allowed destinations. Application, database, Kubernetes and executor ports stay unexposed. Public IPv4 is assigned to this instance for management and internet reachability. Obtain the approved SSH host key independently and put it in the operator's known_hosts before connecting.
+
+## Qualified configuration
+
+The [S2 acceptance](../../docs/evidence/e10-s2-ec2/README.md) qualified this configuration:
+
+| Item | Value |
+| --- | --- |
+| AMI | Official Debian 13 (`debian-13-amd64-*`, publisher `136693071363`), which has only an EBS root mapping. SSH user `admin`. Ubuntu AMIs add ephemeral mappings and fail the precondition. Amazon Linux 2023 ships Docker 25, below the lab's 28+ requirement. |
+| Instance | `c6a.2xlarge` (USD 0.306/h) or `c5a.2xlarge` (USD 0.308/h), both 8 vCPU and 16 GiB. The install and separation checks ran on `c6a`. The owned lab, measurements and later restarts ran on `c5a`, after `c6a` had no capacity in the AZ. Avoid burstable types, whose unlimited credits add cost under the K3s lab. |
+| Root volume | gp3 50 GiB. The owned lab builds its images on the host. After setup about 45 GiB was free, and at least 38 GiB remained during the lab. |
+
+Prepare the host before installing:
+
+1. Arm an automatic stop after every instance start, for example `sudo shutdown -h +300`. A scheduled shutdown does not survive a stop/start. The default shutdown behavior of EC2 is stop.
+2. Switch every apt source to `https://` before the first update, because egress is TCP 443 only.
+3. Install Docker CE, Buildx and the Compose plugin from `download.docker.com`. Verify the signing key fingerprint `9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88`.
+4. Install Python 3.12 or later, Git and the pinned `uv` release with its published SHA-256.
+5. Obtain the SSH host keys from the full `aws ec2 get-console-output` output, without `--latest`, and pin them before the first connection.
+
+Host constraints:
+
+- **Swap limits:** a systemd `daemon-reload`, for example from apt-listchanges, resets the Docker scopes' `memory.swap.max` to `max` under the systemd cgroup driver. The lab then refuses load. Pause the apt timers for the session. If the reset happens anyway, re-apply each container's own `--memory`/`--memory-swap` values with `docker update`.
+- **Checkout permissions:** clone the trusted checkout under `umask 022`. The sample container user must be able to read the source files.
+- **Docker Hub rate limit:** registry verification for the owned lab can reach Docker Hub's anonymous limit of 100 manifest requests per hour for the instance's public address. Wait for the window to reset before retrying. Do not rotate addresses or add credentials or mirrors to avoid it.
+- **Instance type changes:** prefer changing `instance_type` in the variables and applying a reviewed plan while the instance runs. If a stopped instance cannot start for lack of capacity, change its type with `aws ec2 modify-instance-attribute`, update the variables to match, and review the next plan for drift. The owned lab sizes kubelet reserves on first start, so after any type change stop the lab, run its ownership-scoped cleanup and start it fresh.
 
 ## Install and reach the existing origin
 
@@ -67,3 +94,60 @@ Before spending, fill in a dated worksheet from [EC2](https://aws.amazon.com/ec2
 Billing alerts can arrive after charges. Use an explicit timebox and manual stop confirmation. Do not proceed if the estimate exceeds authority. Update it from measured idle/representative load and the actual retained resource list, and obtain renewed approval for any increase.
 
 Before stopping, stop authorized load and job admission safely, preserve evidence and follow the lab's scoped stop procedure. Then stop the exact authorized instance. Confirm stopped state and record its identity, root volume, snapshots and remaining IP or transfer charges. On restart, recheck the assigned IP, HTTPS, source identities, worker status and dispatch before work. The root volume survives termination by design and remains billable until deliberately cleaned up. Treat teardown and independent EBS/snapshot deletion as separate owner decisions after matching the exact project inventory and backup policy. Keep the private state and restore record with the handoff.
+
+## Destroy and redeploy
+
+When the owner approves disposal, as for a demo lab:
+
+1. Copy the sanitized evidence off the host and run the owned lab's `cleanup`.
+2. With the same private state, record the retained root volume ID, then save and review the destroy plan and apply only that plan.
+
+```sh
+(
+  set -eu
+  umask 077
+  : "${private_state_file:?Set the dedicated local state path}"
+  : "${approved_variables:?Set the reviewed variable file path}"
+  : "${reviewed_destroy_plan:?Set the saved destroy plan destination}"
+  : "${volume_record:?Set the private file for the retained volume ID}"
+  for path in "$private_state_file" "$approved_variables" "$reviewed_destroy_plan" "$volume_record"; do
+    case "$path" in
+      /*) ;;
+      *) printf '%s\n' 'Use absolute paths' >&2; exit 1 ;;
+    esac
+  done
+  export TF_DATA_DIR="$private_state_file.tofu" TF_WORKSPACE=default
+  unset TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_plan
+  tofu init -reconfigure -backend-config="path=$private_state_file" -lockfile=readonly
+  tofu output -raw retained_root_volume_id > "$volume_record"
+  tofu plan -destroy -var-file="$approved_variables" -out="$reviewed_destroy_plan"
+)
+```
+
+3. After reviewing that plan, apply exactly that plan with the same private state:
+
+```sh
+(
+  set -eu
+  umask 077
+  : "${private_state_file:?Set the dedicated local state path}"
+  : "${reviewed_destroy_plan:?Set the reviewed destroy plan path}"
+  export TF_DATA_DIR="$private_state_file.tofu" TF_WORKSPACE=default
+  unset TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_plan TF_CLI_ARGS_apply
+  tofu apply "$reviewed_destroy_plan"
+)
+```
+
+4. Delete only the recorded volume ID. Before deleting, confirm that it is `available`, has no attachment, and carries the lab's `Project` tag and the name `<lab_name>-retained-root`. Do not select volumes by tag alone; an earlier retained root can carry the same tags.
+5. Confirm the project inventory is empty: tagged resources, instances, volumes, snapshots, Elastic IPs, network interfaces, spot requests and `tofu state list`.
+
+The key pair, budget, private variables and empty state cost nothing. Keep them for a redeploy.
+
+To redeploy:
+
+1. Update the operator `/32` in the variables file.
+2. Re-check the newest Debian AMI ID, its publisher and its mapping.
+3. Save and review a new plan, then apply it.
+4. Repeat the host preparation and the release install.
+
+In the S2 run, apply, host preparation and the populated core install took about 12 minutes of instance time. Plan for 30 minutes before the lab is usable.

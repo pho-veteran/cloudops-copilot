@@ -1,0 +1,121 @@
+{
+  "core": {
+    "ca_sha256": "60a61d7f.f2bc479",
+    "containers": [
+      {
+        "image_id": "sha256:f.afe86eb",
+        "service": "api",
+        "status": "running"
+      },
+      {
+        "image_id": "sha256:1.bfc50d7",
+        "service": "db",
+        "status": "running"
+      },
+      {
+        "image_id": "sha256:6.808633e",
+        "service": "https",
+        "status": "running"
+      },
+      {
+        "image_id": "sha256:f.afe86eb",
+        "service": "migrate",
+        "status": "exited"
+      },
+      {
+        "image_id": "sha256:f.afe86eb",
+        "service": "worker",
+        "status": "running"
+      }
+    ],
+    "dispatch_after_bootstrap": {
+      "generation": 1,
+      "mode": "normal"
+    },
+    "dispatch_initial": "permit_missing",
+    "host_listeners": [
+      "0.0.0.0:22",
+      "0.0.0.0:5355",
+      "127.0.0.1:8443",
+      "127.0.0.53%lo:53",
+      "127.0.0.54:53",
+      "[::]:22",
+      "[::]:5355"
+    ],
+    "migration_head": "0020_operations_quota_wait_index (head)",
+    "project": "cloudops-release-ec2",
+    "published": [
+      "https 80/tcp, 443/tcp, 2019/tcp, 443/udp, 127.0.0.1:8443->8443/tcp"
+    ],
+    "startup_seconds": 20
+  },
+  "host": {
+    "apt": "all sources switched to HTTPS before the first update; Docker CE from download.docker.com with fingerprint 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88",
+    "compose": "v5.8.0",
+    "cpu": 8,
+    "docker": "29.10.0, cgroup v2, systemd cgroup driver, overlayfs, memory and swap limits supported",
+    "memory_gib": {
+      "c5a.2xlarge": 15.4,
+      "c6a.2xlarge": 15.3
+    },
+    "os": "Debian GNU/Linux 13 (trixie), kernel 6.12.118+deb13-cloud-amd64",
+    "python": "3.13.5",
+    "root_free_after_setup_gib": 45.2,
+    "root_size_gib": 49,
+    "swap": "none",
+    "uv": "0.9.26 (release tarball, SHA-256 checked)"
+  },
+  "https": {
+    "after_restart": "the same tunnel smoke passed after the first instance restart",
+    "on_host": "scripts/smoke-https.py passed with the project CA",
+    "through_tunnel": "scripts/smoke-https.py passed from the operator workstation via ssh -L 127.0.0.1:8443:127.0.0.1:8443, ready 200, TLS verify 0, worker fresh, dispatch allowed"
+  },
+  "never_seen_engine": {
+    "image_load_seconds": 6,
+    "images_before_load": 0
+  },
+  "restart": {
+    "after_start": {
+      "ca": "unchanged",
+      "container_image_ids": [
+        "api sha256:f.afe86eb",
+        "db sha256:1.bfc50d7",
+        "https sha256:6.808633e",
+        "worker sha256:f.afe86eb"
+      ],
+      "dispatch": "normal, generation 1",
+      "loaded_ids": "Verified 6ac5bf92d44559066a677bdc3efe1f01656cc473 linux/amd64 and loaded image IDs",
+      "migration_head": "0020_operations_quota_wait_index (head)",
+      "saved_incident": {
+        "id_match": true,
+        "incident_status": 200,
+        "lifecycle": null,
+        "notes": 0,
+        "title": "Release acceptance record ec2-before-stop"
+      },
+      "volumes": [
+        "cloudops-release-ec2_database",
+        "cloudops-release-ec2_job_dispatch",
+        "cloudops-release-ec2_local_https_config",
+        "cloudops-release-ec2_local_https_data"
+      ]
+    },
+    "before_stop": {
+      "core_volumes": [
+        "cloudops-release-ec2_database",
+        "cloudops-release-ec2_job_dispatch",
+        "cloudops-release-ec2_local_https_config",
+        "cloudops-release-ec2_local_https_data"
+      ],
+      "running_containers": 0
+    }
+  },
+  "setup_duration": "apply started 11:21:07Z; populated core record created 11:33:19Z (about 12 minutes of instance time)",
+  "transfer": {
+    "bundle": "cloudops-6ac5bf9 built on the WSL builder, about 274 MB, copied over SSH in 55 s with matching SHA-256",
+    "tooling": "git bundle of the same revision for the trusted verifier, smoke and lab scripts"
+  },
+  "verify": [
+    "Verified 6ac5bf92d44559066a677bdc3efe1f01656cc473 linux/amd64 and loaded image IDs"
+  ]
+}

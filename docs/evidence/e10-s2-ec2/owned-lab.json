@@ -1,0 +1,102 @@
+{
+  "checks": {
+    "collect": "ok",
+    "containment": "ok",
+    "denials": {
+      "mounts": {
+        "api": {
+          "/run/cloudops-dispatch/key": false,
+          "/run/cloudops-reader/client.json": true,
+          "/run/cloudops-writer/client.json": false,
+          "/var/lib/cloudops-executor/maintenance.sock": false
+        },
+        "worker": {
+          "/run/cloudops-dispatch/key": true,
+          "/run/cloudops-reader/client.json": true,
+          "/run/cloudops-writer/client.json": false,
+          "/var/lib/cloudops-executor/maintenance.sock": false
+        }
+      },
+      "reader_denials": {
+        "deployment_patch": 403,
+        "secret_read": 403
+      },
+      "writer_denials": {
+        "other_target_patch": 403,
+        "secret_read": 403
+      }
+    },
+    "status": "ok",
+    "verify": "ok"
+  },
+  "cleanup": {
+    "authorized_by": "exact owner UUID from owner.json",
+    "preserved": "core project cloudops-release-ec2 and release lab cloudops-release-ec2-lab volumes and the generated private files, until the instance and its root volume were destroyed",
+    "removed_containers": 9,
+    "removed_networks": 1,
+    "removed_volumes": [
+      "cloudops-local-testing-lab_alertmanager_data",
+      "cloudops-local-testing-lab_database",
+      "cloudops-local-testing-lab_executor_authority",
+      "cloudops-local-testing-lab_executor_identity",
+      "cloudops-local-testing-lab_job_dispatch",
+      "cloudops-local-testing-lab_k3s_cni",
+      "cloudops-local-testing-lab_k3s_data",
+      "cloudops-local-testing-lab_k3s_kubelet",
+      "cloudops-local-testing-lab_k3s_logs",
+      "cloudops-local-testing-lab_local_https_config",
+      "cloudops-local-testing-lab_local_https_data",
+      "cloudops-local-testing-lab_prometheus_data"
+    ]
+  },
+  "collect": {
+    "pack_coverage": {
+      "crashloop_startup": "available",
+      "image_pull": "available",
+      "oom_restarts": "available",
+      "pending_unschedulable": "available",
+      "traffic_latency_errors": "available"
+    },
+    "run_state": "insufficient_evidence",
+    "sources": {
+      "development_fixture": "unavailable",
+      "kubernetes.configmap.metadata": "unavailable",
+      "kubernetes.events": "available",
+      "kubernetes.logs.current": "available",
+      "kubernetes.logs.previous": "not_applicable",
+      "kubernetes.state": "available",
+      "prometheus.error_ratio": "available",
+      "prometheus.memory_limit": "available",
+      "prometheus.memory_working_set": "available",
+      "prometheus.p95_latency": "available",
+      "prometheus.request_rate": "available",
+      "prometheus.restarts": "available"
+    }
+  },
+  "first_attempts": [
+    "c6a.2xlarge: sample pods could not read /app/sample_app.py because the checkout was cloned under umask 077; re-cloned under umask 022 after ownership-scoped cleanup",
+    "Docker Hub anonymous limit (100 manifest requests per hour per public IPv4) reached during registry verification; the 11:52 stop/start obtained a new address, which sidesteps a per-address provider limit and is no longer the documented procedure",
+    "after the type change the existing node had been sized for the earlier host memory, so containment refused; the lab was stopped, cleaned up and started fresh"
+  ],
+  "preflight": {
+    "cpus": 8,
+    "docker": "29.10.0",
+    "memory_bytes": 16580993024
+  },
+  "project": "cloudops-local-testing-lab, source-built from the transferred checkout on the EC2 host",
+  "restart": {
+    "after_restart": [
+      "status ok",
+      "denials ok",
+      "containment ok",
+      "stored baseline evidence_unchanged=true"
+    ],
+    "deployment_uids_unchanged": true,
+    "docker_volumes": {
+      "before_stop": 26,
+      "unchanged_after_start": true
+    },
+    "owner_unchanged": true
+  },
+  "start_seconds": 89
+}
