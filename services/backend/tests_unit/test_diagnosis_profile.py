@@ -39,6 +39,19 @@ def test_disabled_profile_needs_no_endpoint():
     assert value.mode.value == "disabled"
 
 
+def test_reasoning_effort_preserves_legacy_identity_and_binds_new_behavior():
+    base = profile()
+    assert base.behavior_digest() == (
+        "800cf0d4fceb3cff230a7489dc586897460c201b5b95fa441a6a98aa732def8d"
+    )
+    assert base.behavior_digest() == profile(reasoning_effort=None).behavior_digest()
+    maximum = profile(reasoning_effort="max")
+    assert maximum.behavior_digest() != base.behavior_digest()
+    assert maximum.behavior_digest() != profile(reasoning_effort="high").behavior_digest()
+    with pytest.raises(ValidationError):
+        profile(reasoning_effort="automatic")
+
+
 @pytest.mark.parametrize(
     "url,flag,expected",
     [

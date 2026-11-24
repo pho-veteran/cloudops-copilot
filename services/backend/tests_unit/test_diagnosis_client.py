@@ -81,6 +81,27 @@ def test_request_shape_and_text_result():
     }
 
 
+def test_explicit_reasoning_effort_is_sent_and_bound_to_call_identity():
+    result, seen = _send(
+        {
+            "reasoning_effort": "max",
+            "output_limit": {"param": "max_completion_tokens", "value": 1024},
+        }
+    )
+    assert result.kind is CallKind.TEXT
+    body = json.loads(seen[0].content)
+    assert body["reasoning_effort"] == "max"
+    assert body["max_completion_tokens"] == 1024
+    assert "max_tokens" not in body
+    assert (
+        result.identity.behavior_digest
+        == profile(
+            reasoning_effort="max",
+            output_limit={"param": "max_completion_tokens", "value": 1024},
+        ).behavior_digest()
+    )
+
+
 @pytest.mark.parametrize(
     "override,expected",
     [
@@ -404,3 +425,122 @@ def test_unusable_ca_returns_config_invalid_without_network():
     ).send(MESSAGES, before_send=lambda: None)
     assert result.kind is CallKind.CONFIG_INVALID
     assert calls == []
+
+
+def _capture(status, body, *, headers=None, content_type="application/json"):
+    values = {"Content-Type": content_type, **(headers or {})}
+    client = ModelClient(
+        profile(),
+        transport=mock(lambda request: httpx.Response(status, content=body, headers=values)),
+        capture_provider_error=True,
+    )
+    return client.send(MESSAGES, before_send=lambda: None)
+
+
+def test_provider_error_is_not_captured_by_default():
+    result, _ = _send(
+        status=400,
+        payload={"error": {"message": "bad", "type": "invalid_request_error"}},
+    )
+    assert result.kind is CallKind.REQUEST_REJECTED
+    assert result.provider_error is None
+
+
+def test_provider_error_fields_and_request_id_are_bounded():
+    body = json.dumps(
+        {
+            "error": {
+                "message": "Unsupported value: 'reasoning_effort' does not support 'max'.",
+                "type": "invalid_request_error",
+                "param": "reasoning_effort",
+                "code": "unsupported_value",
+            }
+        }
+    ).encode()
+    result = _capture(400, body, headers={"x-request-id": "req_abc123"})
+    assert result.kind is CallKind.REQUEST_REJECTED
+    assert result.error_code == "request_rejected"
+    detail = result.provider_error
+    assert detail.type == "invalid_request_error"
+    assert detail.code == "unsupported_value"
+    assert detail.param == "reasoning_effort"
+    assert detail.message.startswith("Unsupported value")
+    assert detail.request_id == "req_abc123"
+    assert detail.body_bytes_read == len(body) and detail.body_truncated is False
+    assert "provider_error" not in repr(result)
+
+
+@pytest.mark.parametrize("status", [401, 403, 404, 429, 500, 503])
+def test_provider_error_is_captured_for_every_rejection_status(status):
+    body = json.dumps({"error": {"type": "some_error", "message": "nope"}}).encode()
+    result = _capture(status, body)
+    assert result.provider_error is not None
+    assert result.provider_error.type == "some_error"
+
+
+def test_provider_error_redacts_credentials_and_contacts():
+    message = (
+        f"key {TOKEN} rejected; sk-live_ABCDEFGH12345678 and Bearer abc.def; "
+        "api_key=xyz contact ops@example.com; " + "Q" * 40
+    )
+    body = json.dumps(
+        {"error": {"message": message, "code": f"x{TOKEN}", "param": "sk-ABCDEFGH1234"}}
+    ).encode()
+    result = _capture(400, body)
+    detail = result.provider_error
+    rendered = json.dumps(detail.__dict__)
+    for secret in (
+        TOKEN,
+        "sk-live_ABCDEFGH12345678",
+        "abc.def",
+        "xyz",
+        "ops@example.com",
+        "Q" * 40,
+    ):
+        assert secret not in rendered
+    assert detail.code is None and detail.param is None
+    assert "[redacted]" in detail.message
+
+
+def test_provider_error_message_is_truncated_and_control_free():
+    body = json.dumps({"error": {"message": "a\nb\x00c " + "word " * 400}}).encode()
+    detail = _capture(400, body).provider_error
+    assert len(detail.message) <= 512
+    assert all(char.isprintable() for char in detail.message)
+
+
+def test_provider_error_oversized_body_is_truncated_without_parsing():
+    body = json.dumps({"error": {"message": "x" * 20000, "type": "big"}}).encode()
+    detail = _capture(400, body).provider_error
+    assert detail.body_truncated is True
+    assert detail.body_bytes_read == 8192
+    assert detail.type is None and detail.message is None
+
+
+@pytest.mark.parametrize("body", [b"", b"not json", b'{"error": "flat string"}', b"[1,2]"])
+def test_provider_error_tolerates_empty_and_non_object_bodies(body):
+    detail = _capture(400, body, content_type="text/plain").provider_error
+    assert detail.type is None and detail.message is None
+    assert detail.body_truncated is False
+    assert detail.body_bytes_read == len(body)
+
+
+def test_provider_error_compressed_body_is_not_read():
+    class UnreadBody(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            pytest.fail("compressed rejection body must not be read")
+            yield b""
+
+    client = ModelClient(
+        profile(),
+        transport=mock(
+            lambda request: httpx.Response(
+                400,
+                stream=UnreadBody(),
+                headers={"Content-Type": "application/json", "Content-Encoding": "gzip"},
+            )
+        ),
+        capture_provider_error=True,
+    )
+    detail = client.send(MESSAGES, before_send=lambda: None).provider_error
+    assert detail.body_truncated is True and detail.body_bytes_read == 0

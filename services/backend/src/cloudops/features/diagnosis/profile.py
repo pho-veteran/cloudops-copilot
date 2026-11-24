@@ -246,6 +246,7 @@ class ModelProfile(BaseModel):
     base_url: str | None = None
     allow_insecure_loopback: bool = False
     model: str | None = None
+    reasoning_effort: Literal["none", "low", "medium", "high", "xhigh", "max"] | None = None
     credential: CredentialRef | None = None
     tls: TlsRef = Field(default_factory=TlsRef)
     proxy: ProxyRef | None = None
@@ -332,6 +333,8 @@ class ModelProfile(BaseModel):
             "authorization_id": self.authorization_id,
             "budget_policy_id": self.budget_policy_id,
         }
+        if self.reasoning_effort is not None:
+            payload["reasoning_effort"] = self.reasoning_effort
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(encoded).hexdigest()
 
