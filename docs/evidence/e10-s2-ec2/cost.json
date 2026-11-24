@@ -105,7 +105,7 @@
     }
   },
   "forecast": {
-    "later_use": "S6 #125 and S7 #126 redeploy from the same variables. Estimates: #126 walkthrough about 7.5 running hours (about USD 2.60); a demo rehearsal or the demo about 4.5 running hours each (about USD 1.53). Each redeploy needs its own dated owner approval and destroy deadline.",
+    "later_use": "S7 #126 and the course demo redeploy from the same variables; dates are set when each starts. Estimates: #126 walkthrough about 7.5 running hours (about USD 2.60); a demo rehearsal or the demo about 4.5 running hours each (about USD 1.53). Each redeploy needs its own dated owner approval and destroy deadline.",
     "s2": "completed 2026-11-24 in one session: 2.66 running hours against 10 expected, destroyed the same day"
   },
   "over_budget_rule": "Do not apply when the estimate exceeds the approved ceiling or approval is missing; stop and request renewed approval for any increase.",

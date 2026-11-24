@@ -49,7 +49,7 @@ The [S2 acceptance](../../docs/evidence/e10-s2-ec2/README.md) qualified this con
 | Item | Value |
 | --- | --- |
 | AMI | Official Debian 13 (`debian-13-amd64-*`, publisher `136693071363`), which has only an EBS root mapping. SSH user `admin`. Ubuntu AMIs add ephemeral mappings and fail the precondition. Amazon Linux 2023 ships Docker 25, below the lab's 28+ requirement. |
-| Instance | `c6a.2xlarge` (USD 0.306/h) or `c5a.2xlarge` (USD 0.308/h), both 8 vCPU and 16 GiB. The install and separation checks ran on `c6a`. The owned lab, measurements and restarts ran on `c5a`, after `c6a` had no capacity in the AZ. Avoid burstable types, whose unlimited credits add cost under the K3s lab. |
+| Instance | `c6a.2xlarge` (USD 0.306/h) or `c5a.2xlarge` (USD 0.308/h), both 8 vCPU and 16 GiB. The install and separation checks ran on `c6a`. The owned lab, measurements and later restarts ran on `c5a`, after `c6a` had no capacity in the AZ. Avoid burstable types, whose unlimited credits add cost under the K3s lab. |
 | Root volume | gp3 50 GiB. The owned lab builds its images on the host. After setup about 45 GiB was free, and at least 38 GiB remained during the lab. |
 
 Prepare the host before installing:
@@ -117,14 +117,27 @@ When the owner approves disposal, as for a demo lab:
     esac
   done
   export TF_DATA_DIR="$private_state_file.tofu" TF_WORKSPACE=default
-  unset TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_plan TF_CLI_ARGS_apply
+  unset TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_plan
   tofu init -reconfigure -backend-config="path=$private_state_file" -lockfile=readonly
   tofu output -raw retained_root_volume_id > "$volume_record"
   tofu plan -destroy -var-file="$approved_variables" -out="$reviewed_destroy_plan"
 )
 ```
 
-3. After reviewing that plan, apply it with `tofu apply "$reviewed_destroy_plan"` in the same environment.
+3. After reviewing that plan, apply exactly that plan with the same private state:
+
+```sh
+(
+  set -eu
+  umask 077
+  : "${private_state_file:?Set the dedicated local state path}"
+  : "${reviewed_destroy_plan:?Set the reviewed destroy plan path}"
+  export TF_DATA_DIR="$private_state_file.tofu" TF_WORKSPACE=default
+  unset TF_CLI_ARGS TF_CLI_ARGS_init TF_CLI_ARGS_plan TF_CLI_ARGS_apply
+  tofu apply "$reviewed_destroy_plan"
+)
+```
+
 4. Delete only the recorded volume ID. Before deleting, confirm that it is `available`, has no attachment, and carries the lab's `Project` tag and the name `<lab_name>-retained-root`. Do not select volumes by tag alone; an earlier retained root can carry the same tags.
 5. Confirm the project inventory is empty: tagged resources, instances, volumes, snapshots, Elastic IPs, network interfaces, spot requests and `tofu state list`.
 

@@ -71,12 +71,14 @@
       "stop_at": "16:28:24Z"
     }
   ],
+  "shutdown_timer_note": "The first timer was armed 8 minutes after launch, so it alone allowed 5 h 08 min; the session ended at 14:31:40Z, 3 h 10 min after launch.",
   "source_revision": "6ac5bf92d44559066a677bdc3efe1f01656cc473",
   "state": "local private state outside the checkout (mode 0700), retained empty after destroy",
-  "static_checks": "tofu fmt -check passed and tofu validate reported Success! The configuration is valid. before each saved plan",
+  "static_checks": "tofu fmt -check, tofu init -reconfigure -lockfile=readonly and tofu validate (Success! The configuration is valid.) passed before each saved plan",
   "stop_start": [
     {
       "elastic_ips": 0,
+      "new_public_ipv4": true,
       "note": "c6a start refused for capacity; started as c5a. This stop was also made to obtain a new public address after the Docker Hub anonymous limit; see the evidence README.",
       "public_ipv4": null,
       "root_volume": "attached",
