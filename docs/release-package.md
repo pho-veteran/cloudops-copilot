@@ -160,6 +160,32 @@ $lab recovery-config
 
 Then follow the [E10 S3 recovery lab](evidence/e10-s3/README.md#recovery-qualification) qualification and trial flow and the [S6 campaign](evaluation-baseline.md) with this project selected. `scripts/release_scenarios.py` accepts recovery reset receipts from this project, and the S6 campaign binds the project selected by `CLOUDOPS_LAB_PROJECT`. The core and disposable release labs above are unchanged.
 
+## Optional local diagnosis gateway
+
+On Docker Desktop, compose `compose.diagnosis.yaml` followed by
+`compose.diagnosis-gateway.yaml` to reach an owner-run Windows gateway that listens
+only on `127.0.0.1:20128`. Verify reachability on the actual host before qualification;
+this route is not portable to an arbitrary Linux host or EC2. Keep the profile URL
+`http://localhost:20128/v1` with explicit `allow_insecure_loopback: true`.
+
+The digest-pinned, unprivileged forwarder publishes no ports, receives no mounts or
+credentials and listens only on its network namespace's loopback. Workers, including
+`compose run --rm` one-shot workers, join that namespace. The API stays on the ordinary
+network and receives only the secret-free diagnosis configuration. Inspect actual
+environment and mounts before live work. Keep the ordinary worker stopped during S6;
+start only `diagnosis-gateway` and the finite worker phases. Stop the forwarder after
+the campaign. Load or pull its exact image digest separately and retain its image ID
+and advisory result with the candidate; it is not in the core or lab image archives.
+
+For a WSL NAT qualification driver, a private WSL-loopback relay can bridge through
+Docker Desktop to `host.docker.internal:20128` without publishing a host port. Record
+the relay's source hash, pinned forwarder image and listener inspection. Do not rebind
+the Windows gateway to a public interface or change firewall/profile trust to make it
+reachable. The S6 source manifest binds the reviewed Compose overlay.
+
+Endpoint compatibility alone does not qualify diagnosis. A model combo must keep its
+qualified member set and routing strategy; changing it requires new qualification.
+
 ## Dependency advisories
 
 Each candidate records fresh locked npm, Python and image advisory results with applicability and disposition in its release evidence. A remaining development-only advisory must be absent from the runtime images and the compiled web output, and must name its owner and release gate.

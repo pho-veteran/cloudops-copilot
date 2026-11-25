@@ -1,0 +1,21 @@
+# Docker Desktop opt-in; the host gateway must stay bound to Windows loopback.
+services:
+  diagnosis-gateway:
+    image: alpine/socat@sha256:beb4a68d9e4fe6b0f21ea774a0fde6c31f580dde6368939ed70100c5385b015e
+    platform: linux/amd64
+    command:
+      - TCP4-LISTEN:20128,bind=127.0.0.1,reuseaddr,fork
+      - TCP4:host.docker.internal:20128,connect-timeout=5
+    user: '65534:65534'
+    cap_drop: [ALL]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 32m
+    cpus: 0.125
+  worker:
+    # Namespace anchor also works for compose run --rm one-shot workers.
+    network_mode: service:diagnosis-gateway
+    depends_on:
+      diagnosis-gateway:
+        condition: service_started

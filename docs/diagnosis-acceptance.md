@@ -60,6 +60,15 @@ A new model, endpoint, reasoning effort or output limit is a new deployment iden
   `billed_usd` stays `null`, because billed charges come only from the provider's billing records.
 - **Change protection.** A cohort runs only with the exact config and unchanged profile it was frozen with.
 
+For an owner-authorized gateway without published prices, set `pricing_available: false`.
+The numeric reservation fields remain required as nominal accounting units; they are
+not prices or a monetary spending guarantee. The ledger records `rates`, `estimated_usd`
+and `billed_usd` as `null`, including after observed usage. Request and observed-token
+stops still apply. Obtain explicit owner authorization for this accounting mode.
+Some gateways ignore output-limit parameters; a requested completion bound does not
+establish a remote token or cost cap on those routes. Preserve that limitation with
+each campaign's configuration and receipts.
+
 Without `--campaign-config`, the driver keeps the original Sol/Terra local-gateway campaign described above.
 ## Score, qualify and inspect
 
