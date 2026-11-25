@@ -371,3 +371,175 @@ def test_campaign_binds_the_selected_recovery_lab(tmp_path, selected, expected):
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == expected
+
+
+@pytest.fixture
+def driver(monkeypatch, tmp_path):
+    if os.name != "posix":
+        pytest.skip("The owned lab driver requires POSIX locks.")
+    monkeypatch.syspath_prepend(str(SCRIPTS))
+    spec = importlib.util.spec_from_file_location(
+        "release_recovery_driver_test", SCRIPTS / "manage-local-lab.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setattr(module, "RELEASE_LAB", True)
+    return module
+
+
+def release_lab(driver, monkeypatch, tmp_path, bundler):
+    folder = tmp_path / "bundle"
+    manifest = fake_bundle(bundler, folder)
+    monkeypatch.setattr(driver, "RELEASE_BUNDLE", str(folder))
+    lab = object.__new__(driver.Lab)
+    lab.directory = tmp_path / "lab"
+    (lab.directory / "receipts").mkdir(parents=True)
+    lab.env = {}
+    lab.marker = {
+        "owner": "owner",
+        "deployments": {},
+        "release_bundle": {
+            "revision": manifest["revision"],
+            "manifest_sha256": hashlib.sha256((folder / "manifest.json").read_bytes()).hexdigest(),
+        },
+    }
+    return lab, manifest
+
+
+class Completed:
+    def __init__(self, returncode, stdout="", stderr=""):
+        self.returncode, self.stdout, self.stderr = returncode, stdout, stderr
+
+
+@pytest.mark.parametrize(
+    ("result", "expected"),
+    [
+        (Completed(0, "sha256:" + "c" * 64 + "\n"), "sha256:" + "c" * 64),
+        (Completed(1, stderr="Error response from daemon: No such image: x"), None),
+        (Completed(1, stderr="permission denied while trying to connect"), RuntimeError),
+        (Completed(0, "not-an-id"), RuntimeError),
+    ],
+    ids=["present", "absent", "daemon-error", "unreadable"],
+)
+def test_tag_identity_requires_a_definite_answer(driver, monkeypatch, tmp_path, result, expected):
+    lab = object.__new__(driver.Lab)
+    lab.env = {}
+    monkeypatch.setattr(driver.subprocess, "run", lambda *args, **kwargs: result)
+    if expected is RuntimeError:
+        with pytest.raises(RuntimeError):
+            lab.tag_identity("tag")
+    else:
+        assert lab.tag_identity("tag") == expected
+
+
+def fake_docker(manifest, tags, calls):
+    images = {
+        item["ref"]: (name, item["id"])
+        for group in ("images", "lab_images")
+        for name, item in manifest[group].items()
+    }
+
+    def command(argv, body=None, timeout=60, stdout=None):
+        calls.append(argv)
+        if argv[:3] == ["docker", "image", "inspect"]:
+            name, identity = images[argv[3]]
+            labels = (
+                {} if name == "db" else {"org.opencontainers.image.revision": manifest["revision"]}
+            )
+            return json.dumps(
+                [
+                    {
+                        "Id": identity,
+                        "Os": "linux",
+                        "Architecture": "amd64",
+                        "Config": {"Labels": labels},
+                    }
+                ]
+            )
+        if argv[:3] == ["docker", "image", "tag"]:
+            tags[argv[4]] = argv[3]
+            return ""
+        raise AssertionError(argv)
+
+    return command
+
+
+def test_release_images_tag_verified_ids_and_recheck(driver, bundler, monkeypatch, tmp_path):
+    lab, manifest = release_lab(driver, monkeypatch, tmp_path, bundler)
+    tags, calls = {}, []
+    lab.command = fake_docker(manifest, tags, calls)
+    lab.tag_identity = tags.get
+    result = lab.release_images()
+    wanted = {
+        tag: manifest["lab_images"][component]["id"]
+        for component, tag in driver.release_workload_tags()
+    }
+    assert tags == wanted
+    assert all(argv[3].startswith("sha256:") for argv in calls if argv[2] == "tag")
+    assert result["revision"] == manifest["revision"]
+    assert set(result["image_ids"]) == {"backend", "https", "db", *driver.RELEASE_LAB_COMPONENTS}
+    tags[driver.SAMPLE_IMAGE] = "sha256:" + "d" * 64
+    with pytest.raises(RuntimeError, match="no longer names"):
+        lab.release_workload_images()
+
+
+def test_release_images_refuse_a_conflicting_tag(driver, bundler, monkeypatch, tmp_path):
+    lab, manifest = release_lab(driver, monkeypatch, tmp_path, bundler)
+    tags, calls = {driver.RECOVERY_IMAGES["healthy"]: "sha256:" + "d" * 64}, []
+    lab.command = fake_docker(manifest, tags, calls)
+    lab.tag_identity = tags.get
+    with pytest.raises(RuntimeError, match="different image"):
+        lab.release_images()
+    assert tags[driver.RECOVERY_IMAGES["healthy"]] == "sha256:" + "d" * 64
+
+
+@pytest.mark.parametrize("bound", [True, False])
+def test_release_images_require_the_bound_bundle(driver, bundler, monkeypatch, tmp_path, bound):
+    lab, manifest = release_lab(driver, monkeypatch, tmp_path, bundler)
+    if not bound:
+        lab.marker["release_bundle"]["manifest_sha256"] = "0" * 64
+        with pytest.raises(RuntimeError, match="new release project"):
+            lab.release_bundle()
+    else:
+        assert lab.release_bundle()[0]["revision"] == manifest["revision"]
+
+
+@pytest.mark.parametrize("changed", [False, True])
+def test_release_receipt_binds_bundle_revision_and_source_archive(
+    driver, bundler, monkeypatch, tmp_path, changed
+):
+    import tarfile
+
+    lab, manifest = release_lab(driver, monkeypatch, tmp_path, bundler)
+    lab.command = lambda *args, **kwargs: pytest.fail("A release receipt must not call Git.")
+    archive = tmp_path / "bundle/source.tar"
+    with tarfile.open(archive, "w") as output:
+        for path in [
+            *(ROOT / file for file in driver.FILES),
+            *(ROOT / "config/lab").glob("*"),
+            SCRIPTS / "manage-local-lab.py",
+            SCRIPTS / "local_lab.py",
+            SCRIPTS / "release_scenarios.py",
+            *(ROOT / "services/backend/tests/fixtures/e10_s3").glob("*.json"),
+        ]:
+            if path.is_file():
+                data = path.read_bytes() + (
+                    b"#" if changed and path.name == "local_lab.py" else b""
+                )
+                info = tarfile.TarInfo(str(path.relative_to(ROOT)))
+                info.size = len(data)
+                import io
+
+                output.addfile(info, io.BytesIO(data))
+    monkeypatch.setattr(driver, "__file__", str(SCRIPTS / "manage-local-lab.py"))
+    if changed:
+        with pytest.raises(RuntimeError, match="source archive"):
+            lab.receipt("start", {})
+        assert not list((lab.directory / "receipts").iterdir())
+        return
+    lab.receipt("start", {})
+    (written,) = (lab.directory / "receipts").iterdir()
+    value = json.loads(written.read_text())
+    assert value["source_commit"] == manifest["revision"]
+    assert value["working_diff_sha256"] is None
+    assert value["release_bundle"] == lab.marker["release_bundle"]

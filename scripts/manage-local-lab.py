@@ -134,6 +134,27 @@ def release_bundle():
     return manifest, hashlib.sha256(raw).hexdigest()
 
 
+def release_workload_tags():
+    """The lab's source-hashed workload tags and the bundle images they must name."""
+    return (
+        ("sample", SAMPLE_IMAGE),
+        ("recovery_healthy", RECOVERY_IMAGES["healthy"]),
+        ("recovery_bad_image", RECOVERY_IMAGES["bad-image"]),
+    )
+
+
+def release_source_hashes(names):
+    """SHA-256 of the named regular files in the bundle's reviewed source archive."""
+    import tarfile
+
+    hashes = {}
+    with tarfile.open(Path(RELEASE_BUNDLE).resolve() / "source.tar") as archive:
+        for member in archive:
+            if member.isfile() and member.name in names:
+                hashes[member.name] = hashlib.sha256(archive.extractfile(member).read()).hexdigest()
+    return hashes
+
+
 def timestamped_nonempty(text):
     if not text:
         return False
@@ -504,7 +525,6 @@ class Lab:
         return inventory
 
     def receipt(self, operation, value):
-        source = self.command(["git", "rev-parse", "HEAD"]).strip()
         paths = [ROOT / file for file in FILES]
         paths += list((ROOT / "config/lab").glob("*"))
         paths += [Path(__file__), ROOT / "scripts/local_lab.py"]
@@ -515,6 +535,26 @@ class Lab:
             for path in paths
             if path.is_file()
         }
+        if RELEASE_LAB:
+            # A bundle install has no Git metadata. Its revision is the bound bundle's, and
+            # every hashed lab source must equal that bundle's reviewed source archive.
+            manifest, bundle_digest = self.release_bundle()
+            source = manifest["revision"]
+            require(
+                release_source_hashes(set(hashes)) == hashes,
+                "Installed lab sources differ from the bundle source archive.",
+            )
+            provenance = {
+                "release_bundle": {"revision": source, "manifest_sha256": bundle_digest},
+                "working_diff_sha256": None,
+            }
+        else:
+            source = self.command(["git", "rev-parse", "HEAD"]).strip()
+            provenance = {
+                "working_diff_sha256": hashlib.sha256(
+                    self.command(["git", "diff", "--binary"]).encode()
+                ).hexdigest()
+            }
         value = {
             "operation": operation,
             "at": datetime.now(timezone.utc).isoformat(),
@@ -522,9 +562,7 @@ class Lab:
             "owner": self.marker["owner"],
             "source_commit": source,
             "source_files": hashes,
-            "working_diff_sha256": hashlib.sha256(
-                self.command(["git", "diff", "--binary"]).encode()
-            ).hexdigest(),
+            **provenance,
             "deployment_uids": self.marker["deployments"],
             **value,
         }
@@ -781,6 +819,38 @@ class Lab:
         )
         return manifest, digest
 
+    def tag_identity(self, tag):
+        """Return the image ID a tag names, None only when Docker reports no such image."""
+        found = subprocess.run(
+            ["docker", "image", "inspect", "--format", "{{.Id}}", tag],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+            env=self.env,
+            timeout=60,
+        )
+        if found.returncode == 0:
+            identity = found.stdout.strip()
+            require(
+                re.fullmatch(r"sha256:[0-9a-f]{64}", identity) is not None,
+                "Cannot read a lab workload tag identity.",
+            )
+            return identity
+        require(
+            "no such image" in found.stderr.lower(),
+            "Cannot establish a lab workload tag; refusing to change it.",
+        )
+        return None
+
+    def release_workload_images(self, manifest=None):
+        """Require each lab workload tag to name its bundle image ID right before use."""
+        manifest = manifest or self.release_bundle()[0]
+        for component, tag in release_workload_tags():
+            require(
+                self.tag_identity(tag) == manifest["lab_images"][component]["id"],
+                "A lab workload tag no longer names its bundle image; stop and inspect.",
+            )
+
     def release_images(self):
         """Check loaded bundle image IDs and point the lab workload tags at them."""
         manifest, digest = self.release_bundle()
@@ -802,27 +872,17 @@ class Lab:
                     f"Loaded {name} image differs from the release bundle; load and verify it.",
                 )
                 identities[name] = item["id"]
-        for component, tag in (
-            ("sample", SAMPLE_IMAGE),
-            ("recovery_healthy", RECOVERY_IMAGES["healthy"]),
-            ("recovery_bad_image", RECOVERY_IMAGES["bad-image"]),
-        ):
-            item = manifest["lab_images"][component]
-            found = subprocess.run(
-                ["docker", "image", "inspect", "--format", "{{.Id}}", tag],
-                capture_output=True,
-                text=True,
-                cwd=ROOT,
-                env=self.env,
-                timeout=60,
-            )
-            current = found.stdout.strip() if found.returncode == 0 else None
+        for component, tag in release_workload_tags():
+            identity = manifest["lab_images"][component]["id"]
+            current = self.tag_identity(tag)
             require(
-                current in (None, item["id"]),
+                current in (None, identity),
                 "A lab workload tag names a different image; refusing to replace it.",
             )
             if current is None:
-                self.command(["docker", "image", "tag", item["ref"], tag])
+                # Tag the verified content ID, never the mutable bundle reference.
+                self.command(["docker", "image", "tag", identity, tag])
+        self.release_workload_images(manifest)
         return {
             "revision": manifest["revision"],
             "manifest_sha256": digest,
@@ -1424,6 +1484,8 @@ class Lab:
         self.start_k3s()
         self.volume_guard(remember=True)
         archive = self.directory / "sample.tar"
+        if RELEASE_LAB:
+            self.release_workload_images()
         try:
             with archive.open("wb") as output:
                 self.command(
