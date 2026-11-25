@@ -29,6 +29,9 @@ _SECRET_PATTERNS = (
     ),
     re.compile(r"[\w.+\-]+@[\w\-]+\.[\w.\-]+"),
     re.compile(r"[A-Za-z0-9_\-+/=]{32,}"),
+    # Provider account identifiers (for example "organization org-…" in a 429 message).
+    # The whole token is consumed; a digit separates IDs from words such as "user_error".
+    re.compile(r"\b(?:org|proj|user)[-_](?=[A-Za-z0-9_\-]*\d)[A-Za-z0-9][A-Za-z0-9_\-]{5,}"),
 )
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_.:\-\[\]]{1,120}")
 
