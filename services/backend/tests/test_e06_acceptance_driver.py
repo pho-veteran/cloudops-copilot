@@ -3,6 +3,7 @@
 from dataclasses import replace
 import json
 import os
+from pathlib import Path
 import sys
 
 import pytest
@@ -430,10 +431,9 @@ def test_frozen_campaign_refuses_other_config_or_changed_profile(tmp_path, monke
     state = tmp_path / "state"
     campaign.freeze(state)
     monkeypatch.setattr(sys, "argv", ["campaign", "run", "--state-dir", str(state)])
-    for name in CONFIG_GLOBALS:
-        monkeypatch.setattr(campaign, name, None if name == "CONFIG" else getattr(campaign, name))
     with pytest.raises(ValueError, match="exact campaign config"):
         campaign.main()
+    assert campaign.CONFIG is None and campaign.MODELS == campaign._DEFAULTS["MODELS"]
     profile = json.loads((path.parent / "profile.json").read_text())
     profile["reasoning_effort"] = "high"
     (path.parent / "profile.json").write_text(json.dumps(profile))
@@ -456,12 +456,26 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
     oracle = json.loads((campaign.FIXTURES / "oracle.json").read_text())["cases"]
     sent = []
 
+    repaired = {cases[0]["id"], cases[1]["id"]}
+    # Cases run in order and a repair follows its failed first call immediately.
+    schedule = [
+        (case, kind)
+        for case in cases
+        for kind in (("invalid", "valid") if case["id"] in repaired else ("valid",))
+    ]
+
     def answer(handler):
         body = json.loads(handler.server.requests[-1]["body"])
         sent.append(body)
-        index = len(sent) - 1
-        expected = oracle[cases[index if index < len(cases) else 0]["id"]]
-        healthy = index < len(cases) and cases[index]["id"] == "n-healthy"
+        case, kind = schedule[len(sent) - 1]
+        if kind == "invalid":
+            payload = text_payload("not json")
+            payload["model"] = "fixture-luna"
+            payload["usage"] = {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20}
+            respond(handler, payload)
+            return
+        expected = oracle[case["id"]]
+        healthy = case["id"] == "n-healthy"
         payload = text_payload(
             _raw(
                 status="insufficient_evidence" if healthy else "supported",
@@ -485,7 +499,9 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
         monkeypatch.setattr(sys, "argv", ["campaign", "run", *args])
         campaign.main()
         ledger = json.loads((state / "ledger.json").read_text())
-        assert len(sent) == len(ledger["calls"]) == len(cases)
+        assert len(sent) == len(ledger["calls"]) == len(cases) + 2
+        assert ledger["repairs"] == 2
+        assert all(ledger["cases"][key]["repairs"] == 1 for key in repaired)
         assert all(body["model"] == "fixture-luna" for body in sent)
         assert all(body["reasoning_effort"] == "xhigh" for body in sent)
         assert all(body["max_completion_tokens"] == 16384 for body in sent)
@@ -495,5 +511,52 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
         assert ledger["evaluation_finished"] is True
         assert ledger["estimated_usd"] == pytest.approx(
             len(cases) * (1000 * 0.10 + 2000 * 0.50) / 1_000_000
+            + 2 * (10 * 0.10 + 10 * 0.50) / 1_000_000
         )
         assert ledger["primary_identity"]["model"] == "fixture-luna"
+
+
+def test_profile_replaced_after_loading_is_never_installed(tmp_path, monkeypatch):
+    for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
+        monkeypatch.setenv(key, "owned-test-placeholder")
+    path = configured_campaign(tmp_path, monkeypatch)
+    campaign.load_config(path)
+    swapped = json.loads((path.parent / "profile.json").read_text())
+    swapped["output_limit"]["value"] = 300000
+    swapped["base_url"] = "http://127.0.0.1:18081/v1"
+    (path.parent / "profile.json").write_text(json.dumps(swapped))
+    state = tmp_path / "state"
+    state.mkdir()
+    campaign.configure(state, "fixture-luna")
+    installed = json.loads((state / "profile.json").read_text())
+    assert installed["output_limit"]["value"] == 16384
+    assert installed["base_url"] == "http://127.0.0.1:18080/v1"
+    assert installed["mode"] == "evaluation_only"
+
+
+def test_relative_campaign_ca_stays_bound_to_the_trusted_profile_directory(tmp_path, monkeypatch):
+    import cloudops.features.diagnosis.profile as profile_module
+
+    for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
+        monkeypatch.setenv(key, "owned-test-placeholder")
+    seen = []
+
+    def context(*, cafile=None, **kwargs):
+        seen.append(Path(cafile))
+        return profile_module.ssl.SSLContext(profile_module.ssl.PROTOCOL_TLS_CLIENT)
+
+    monkeypatch.setattr(profile_module.ssl, "create_default_context", context)
+    path = configured_campaign(tmp_path, monkeypatch)
+    (path.parent / "root-ca.pem").write_text("placeholder")
+    profile = json.loads((path.parent / "profile.json").read_text())
+    profile["tls"] = {"ca_file": "root-ca.pem"}
+    (path.parent / "profile.json").write_text(json.dumps(profile))
+    campaign.load_config(path)
+    state = tmp_path / "state"
+    state.mkdir()
+    campaign.configure(state, "fixture-luna")
+    installed = json.loads((state / "profile.json").read_text())
+    expected = (path.parent / "root-ca.pem").resolve()
+    assert Path(installed["tls"]["ca_file"]) == expected
+    assert load().problem is None
+    assert seen and all(item.resolve() == expected for item in seen)

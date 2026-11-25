@@ -40,6 +40,39 @@ MAX_REPAIRS = 1
 # original Sol/Terra local-gateway campaign unchanged.
 CONFIG = None
 CONFIG_SCHEMA = "E06CampaignConfig/v1"
+_DEFAULTS = {
+    "CONFIG": None,
+    "MODELS": MODELS,
+    "OWNED_DATABASE": OWNED_DATABASE,
+    "OWNED_LAB": OWNED_LAB,
+    "MAX_REQUESTS": MAX_REQUESTS,
+    "TOKEN_STOP": TOKEN_STOP,
+    "PRIMARY_LIMIT": PRIMARY_LIMIT,
+    "MAX_REPAIRS": MAX_REPAIRS,
+}
+
+
+def reset_config():
+    """Each invocation starts from the original campaign; a config is never inherited."""
+    globals().update(_DEFAULTS)
+
+
+def _profile_snapshot(path):
+    """Parse and hash one byte snapshot so later reads cannot swap the profile."""
+    path = Path(path).resolve()
+    raw = path.read_bytes()
+    if len(raw) > 65536:
+        raise ValueError("Campaign profile exceeds bound")
+    value = json.loads(raw.decode("utf-8"))
+    ca_file = (value.get("tls") or {}).get("ca_file")
+    if ca_file and not Path(ca_file).is_absolute():
+        # Installed copies live in the state directory; keep the trusted CA location.
+        value["tls"]["ca_file"] = str((path.parent / ca_file).resolve())
+    profile = ModelProfile.model_validate(value)
+    profile._base_dir = path.parent
+    if profile.tls.ca_file is not None:
+        profile.ssl_context()
+    return profile, hashlib.sha256(raw).hexdigest()
 
 
 def load_config(path):
@@ -82,7 +115,7 @@ def load_config(path):
     profile_path = Path(value["profile"])
     if not profile_path.is_absolute():
         profile_path = path.parent / profile_path
-    profile = ModelProfile.load(profile_path)
+    profile, profile_sha256 = _profile_snapshot(profile_path)
     if not profile.model or profile.output_limit is None or profile.credential is None:
         raise ValueError("The campaign profile must name a model, output limit and credential")
     if profile.credential.name != "DIAGNOSIS_LIVE_TOKEN":
@@ -94,7 +127,8 @@ def load_config(path):
     CONFIG = {
         **value,
         "profile_path": str(profile_path),
-        "profile_sha256": sha(profile_path),
+        "profile_sha256": profile_sha256,
+        "profile": profile,
         "config_sha256": hashlib.sha256(raw).hexdigest(),
         "prior_receipt_hashes": prior,
         "model": profile.model,
@@ -204,8 +238,8 @@ class Budget:
 
 
 def configured_profile(model, operational):
-    """Build the exact campaign profile from the trusted config's profile file."""
-    loaded = ModelProfile.load(CONFIG["profile_path"])
+    """Build the exact campaign profile from the snapshot taken when the config loaded."""
+    loaded = CONFIG["profile"]
     if loaded.model != model:
         raise ValueError("Unapproved model")
     value = loaded.model_dump(mode="json", by_alias=True)
@@ -387,7 +421,11 @@ def execute_case(db, actor, case, budget, current, *, operational=False):
         raise ValueError("Owned worker could not claim admitted case")
     db.expire_all()
     analysis = db.get(Analysis, identifier)
-    if analysis.state == "pending" and analysis.phase == "repair" and budget.data["repairs"] == 0:
+    if (
+        analysis.state == "pending"
+        and analysis.phase == "repair"
+        and budget.data["repairs"] < MAX_REPAIRS
+    ):
         current["repair"] = True
         if not run_once():
             raise ValueError("Selected repair not claimable")
@@ -636,6 +674,8 @@ def main():
     parser.add_argument("--campaign-config", type=Path)
     args = parser.parse_args()
     root = args.state_dir.resolve()
+    if CONFIG is not None:
+        reset_config()
     if args.campaign_config is not None:
         load_config(args.campaign_config)
     if args.phase != "freeze" and (root / "ledger.json").exists():
@@ -644,7 +684,7 @@ def main():
             raise ValueError("Run with the exact campaign config this cohort was frozen with")
         if CONFIG is not None and (
             json.loads((root / "ledger.json").read_text())["profile_sha256"]
-            != sha(Path(CONFIG["profile_path"]))
+            != CONFIG["profile_sha256"]
         ):
             raise ValueError("The campaign profile changed after freezing")
     if args.phase == "freeze":
