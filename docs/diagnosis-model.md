@@ -44,7 +44,7 @@ Rules:
 - TLS verification cannot be disabled. `tls.ca_file` replaces the trust store with a deployment CA.
 - `proxy` is the only proxy that can be used. Ambient `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` settings (and netrc) are ignored (`trust_env=False`).
 - `output_limit.param` is exactly one of `max_tokens`, `max_completion_tokens` or `omit`. `omit` requires an explicit `omit_policy_id`; the transport cannot verify remote enforcement.
-- `limits` are hard bounds. Input is measured after UTF-8 JSON serialization; response bytes are measured after decoding.
+- `limits` are hard bounds. Input is measured after UTF-8 JSON serialization; response bytes are measured after decoding. `deadline_seconds` (1..120) and `read_timeout_seconds` (0.1..120) bound one call. The 120-second cap leaves room for reasoning models, and three calls at the cap still fit inside the fixed 900-second analysis deadline. The worker renews its job lease while a call is in flight.
 - `settings()` in shared config is not involved and remains free of diagnosis policy.
 
 ## Call result

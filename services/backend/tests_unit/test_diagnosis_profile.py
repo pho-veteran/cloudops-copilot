@@ -254,3 +254,15 @@ def test_load_rejects_recursive_profile_json(tmp_path):
     path.write_bytes(b"[" * 30_000 + b"]" * 30_000)
     with pytest.raises(ProfileError):
         ModelProfile.load(path)
+
+
+def test_call_deadline_allows_reasoning_length_calls_within_the_cap():
+    value = profile(limits={"deadline_seconds": 120, "read_timeout_seconds": 120})
+    assert value.limits.deadline_seconds == 120 and value.limits.read_timeout_seconds == 120
+    for limits in ({"deadline_seconds": 121}, {"read_timeout_seconds": 120.5}):
+        with pytest.raises(ValidationError):
+            profile(limits=limits)
+    # Three calls at the cap stay inside the fixed 900-second analysis deadline.
+    from cloudops.features.diagnosis.profile import MAX_CALL_SECONDS
+
+    assert 3 * MAX_CALL_SECONDS < 900
