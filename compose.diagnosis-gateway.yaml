@@ -1,7 +1,7 @@
 # Docker Desktop opt-in; the host gateway must stay bound to Windows loopback.
 services:
   diagnosis-gateway:
-    image: alpine/socat@sha256:beb4a68d9e4fe6b0f21ea774a0fde6c31f580dde6368939ed70100c5385b015e
+    image: alpine/socat@sha256:22c2a5781660f23fa678ff560312fc1bc208a989efa03a7c445ea9a27df3a0ca
     platform: linux/amd64
     command:
       - TCP4-LISTEN:20128,bind=127.0.0.1,reuseaddr,fork
