@@ -78,6 +78,8 @@ def serialize_payload(
     }
     if profile.output_limit.param is not OutputLimitParam.OMIT:
         body[profile.output_limit.param.value] = profile.output_limit.value
+    if profile.reasoning_effort is not None:
+        body["reasoning_effort"] = profile.reasoning_effort
     try:
         return json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     except UnicodeEncodeError:

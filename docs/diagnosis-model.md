@@ -44,7 +44,7 @@ Rules:
 - TLS verification cannot be disabled. `tls.ca_file` replaces the trust store with a deployment CA.
 - `proxy` is the only proxy that can be used. Ambient `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` settings (and netrc) are ignored (`trust_env=False`).
 - `output_limit.param` is exactly one of `max_tokens`, `max_completion_tokens` or `omit`. `omit` requires an explicit `omit_policy_id`; the transport cannot verify remote enforcement.
-- `limits` are hard bounds. Input is measured after UTF-8 JSON serialization; response bytes are measured after decoding.
+- `limits` are hard bounds. Input is measured after UTF-8 JSON serialization; response bytes are measured after decoding. `deadline_seconds` (1..120) and `read_timeout_seconds` (0.1..120) bound one call. The 120-second cap leaves room for reasoning models, and three calls at the cap still fit inside the fixed 900-second analysis deadline. The worker renews its job lease while a call is in flight.
 - `settings()` in shared config is not involved and remains free of diagnosis policy.
 
 ## Call result
@@ -76,7 +76,7 @@ Guaranteed:
 - certificate verification on; no profile field disables it;
 - bounded serialized input and response body; responses with a non-identity content encoding are rejected before reading or decompressing their body;
 - whole-call deadline, including header and body trickle (except a blocking synchronous admission callback);
-- no upstream error body, provider text or credential in the returned classification.
+- no upstream error body, provider text or credential in the returned classification. The one exception is opt-in: trusted diagnostic tooling may construct `ModelClient(..., capture_provider_error=True)` to keep a bounded `ModelCall.provider_error` (see [reasoning effort and connectivity probes](diagnosis-reasoning-effort.md)). The product worker never enables it, and its receipts never store it.
 
 The default trust store can be influenced by process-level `SSL_CERT_FILE`/`SSL_CERT_DIR`; deployments that require a fixed root must set `tls.ca_file`. A relative `tls.ca_file` is resolved against the profile file loaded by `ModelProfile.load`.
 

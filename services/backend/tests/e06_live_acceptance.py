@@ -31,8 +31,119 @@ from cloudops.shared.jobs import Job, retire_queued
 FIXTURES = Path(__file__).parent / "fixtures/e06"
 MODELS = ("gpt-6.1-sol", "codex/gpt-6.1-terra")
 OWNED_DATABASE = "cloudops_e06_gpt_test"
+OWNED_LAB = "e06-r5"
 MAX_REQUESTS = 50
 TOKEN_STOP = 170000
+PRIMARY_LIMIT = 14
+MAX_REPAIRS = 1
+# Set only by a trusted campaign config (E06CampaignConfig/v1); None keeps the
+# original Sol/Terra local-gateway campaign unchanged.
+CONFIG = None
+CONFIG_SCHEMA = "E06CampaignConfig/v1"
+_DEFAULTS = {
+    "CONFIG": None,
+    "MODELS": MODELS,
+    "OWNED_DATABASE": OWNED_DATABASE,
+    "OWNED_LAB": OWNED_LAB,
+    "MAX_REQUESTS": MAX_REQUESTS,
+    "TOKEN_STOP": TOKEN_STOP,
+    "PRIMARY_LIMIT": PRIMARY_LIMIT,
+    "MAX_REPAIRS": MAX_REPAIRS,
+}
+
+
+def reset_config():
+    """Each invocation starts from the original campaign; a config is never inherited."""
+    globals().update(_DEFAULTS)
+
+
+def _profile_snapshot(path):
+    """Parse and hash one byte snapshot so later reads cannot swap the profile."""
+    path = Path(path).resolve()
+    raw = path.read_bytes()
+    if len(raw) > 65536:
+        raise ValueError("Campaign profile exceeds bound")
+    value = json.loads(raw.decode("utf-8"))
+    ca_file = (value.get("tls") or {}).get("ca_file")
+    if ca_file and not Path(ca_file).is_absolute():
+        # Installed copies live in the state directory; keep the trusted CA location.
+        value["tls"]["ca_file"] = str((path.parent / ca_file).resolve())
+    profile = ModelProfile.model_validate(value)
+    profile._base_dir = path.parent
+    if profile.tls.ca_file is not None:
+        profile.ssl_context()
+    return profile, hashlib.sha256(raw).hexdigest()
+
+
+def load_config(path):
+    """Read and validate a trusted, secret-free campaign config; apply its bounds."""
+    global CONFIG, MODELS, OWNED_DATABASE, OWNED_LAB, MAX_REQUESTS, TOKEN_STOP
+    global PRIMARY_LIMIT, MAX_REPAIRS
+    path = Path(path).resolve()
+    raw = path.read_bytes()
+    if len(raw) > 65536:
+        raise ValueError("Campaign config exceeds bound")
+    value = json.loads(raw)
+    required = {
+        "schema",
+        "cohort",
+        "profile",
+        "authorization_id",
+        "budget_policy_id",
+        "owned_database",
+        "owned_lab",
+        "max_requests",
+        "max_repairs",
+        "observed_token_stop",
+        "max_reserved_usd",
+        "input_usd_per_mtok",
+        "output_usd_per_mtok",
+        "rates_date",
+    }
+    if value.get("schema") != CONFIG_SCHEMA or set(value) - required - {"prior_receipts"}:
+        raise ValueError("Unsupported campaign config")
+    if required - set(value):
+        raise ValueError("Campaign config is incomplete")
+    if not str(value["owned_database"]).endswith("_test"):
+        raise ValueError("The owned campaign database must end in _test")
+    for key in ("max_requests", "max_repairs", "observed_token_stop"):
+        if type(value[key]) is not int or value[key] < 0:
+            raise ValueError(f"{key} must be a non-negative integer")
+    for key in ("max_reserved_usd", "input_usd_per_mtok", "output_usd_per_mtok"):
+        if not isinstance(value[key], (int, float)) or not 0 <= value[key] < 1000:
+            raise ValueError(f"{key} must be a bounded non-negative number")
+    profile_path = Path(value["profile"])
+    if not profile_path.is_absolute():
+        profile_path = path.parent / profile_path
+    profile, profile_sha256 = _profile_snapshot(profile_path)
+    if not profile.model or profile.output_limit is None or profile.credential is None:
+        raise ValueError("The campaign profile must name a model, output limit and credential")
+    if profile.credential.name != "DIAGNOSIS_LIVE_TOKEN":
+        raise ValueError("The campaign worker credential must be DIAGNOSIS_LIVE_TOKEN")
+    prior = []
+    for item in value.get("prior_receipts", []):
+        receipt = Path(item) if Path(item).is_absolute() else path.parent / item
+        prior.append({"path": receipt.name, "sha256": sha(receipt)})
+    CONFIG = {
+        **value,
+        "profile_path": str(profile_path),
+        "profile_sha256": profile_sha256,
+        "profile": profile,
+        "config_sha256": hashlib.sha256(raw).hexdigest(),
+        "prior_receipt_hashes": prior,
+        "model": profile.model,
+        "base_url": profile.base_url,
+        "per_request_reserve_usd": (
+            profile.limits.max_input_bytes * value["input_usd_per_mtok"]
+            + profile.output_limit.value * value["output_usd_per_mtok"]
+        )
+        / 1_000_000,
+    }
+    MODELS = (profile.model,)
+    OWNED_DATABASE, OWNED_LAB = value["owned_database"], value["owned_lab"]
+    MAX_REQUESTS = PRIMARY_LIMIT = value["max_requests"]
+    MAX_REPAIRS, TOKEN_STOP = value["max_repairs"], value["observed_token_stop"]
+    return CONFIG
 
 
 def sha(path):
@@ -60,11 +171,16 @@ class Budget:
             raise ValueError("Request budget exhausted")
         if self.data["observed_tokens"] >= TOKEN_STOP:
             raise ValueError("Observed token stop reached")
-        if repair and self.data["repairs"] >= 1:
+        if repair and self.data["repairs"] >= MAX_REPAIRS:
             raise ValueError("Shared repair reserve exhausted")
         count = sum(call["model"] == model for call in self.data["calls"])
-        if count >= (14 if model == MODELS[0] else 1):
+        if count >= (PRIMARY_LIMIT if model == MODELS[0] else 1):
             raise ValueError("Per-model request budget exhausted")
+        if CONFIG is not None and (
+            self.data.get("reserved_usd", 0) + CONFIG["per_request_reserve_usd"]
+            > CONFIG["max_reserved_usd"] + 1e-12
+        ):
+            raise ValueError("Reserved spend ceiling reached")
 
     def reserve(self, model, case, repair):
         self.check(model, repair)
@@ -73,6 +189,10 @@ class Budget:
         )
         self.data["repairs"] += int(repair)
         self.data["total_requests"] = self.data.get("prior_requests", 0) + len(self.data["calls"])
+        if CONFIG is not None:
+            self.data["reserved_usd"] = (
+                self.data.get("reserved_usd", 0) + CONFIG["per_request_reserve_usd"]
+            )
         save(self.path, self.data)
 
     def settle(self, call, secret):
@@ -105,11 +225,39 @@ class Budget:
             )
         if call.usage is None or call.usage.total_tokens is None:
             self.data["missing_usage_calls"] += 1
+        if CONFIG is not None and call.usage is not None:
+            self.data["estimated_usd"] = (
+                self.data.get("estimated_usd", 0)
+                + (
+                    (call.usage.prompt_tokens or 0) * CONFIG["input_usd_per_mtok"]
+                    + (call.usage.completion_tokens or 0) * CONFIG["output_usd_per_mtok"]
+                )
+                / 1_000_000
+            )
         save(self.path, self.data)
+
+
+def configured_profile(model, operational):
+    """Build the exact campaign profile from the snapshot taken when the config loaded."""
+    loaded = CONFIG["profile"]
+    if loaded.model != model:
+        raise ValueError("Unapproved model")
+    value = loaded.model_dump(mode="json", by_alias=True)
+    value.update(
+        mode="operational" if operational else "evaluation_only",
+        authorization_id=CONFIG["authorization_id"],
+        budget_policy_id=CONFIG["budget_policy_id"],
+    )
+    profile = ModelProfile.model_validate(value)
+    profile._base_dir = loaded._base_dir
+    return profile
 
 
 def configure(root, model, *, operational=False):
     primary = model == MODELS[0]
+    if CONFIG is not None:
+        profile = configured_profile(model, operational)
+        return _install(root, profile, operational)
     profile = ModelProfile.model_validate(
         {
             "schema": "DiagnosisModelProfile/v1",
@@ -131,6 +279,10 @@ def configure(root, model, *, operational=False):
             "budget_policy_id": "e06-finite-50-requests",
         }
     )
+    return _install(root, profile, operational)
+
+
+def _install(root, profile, operational):
     policy = EgressPolicy.model_validate(
         {
             "schema": "EgressPolicy/v1",
@@ -269,7 +421,11 @@ def execute_case(db, actor, case, budget, current, *, operational=False):
         raise ValueError("Owned worker could not claim admitted case")
     db.expire_all()
     analysis = db.get(Analysis, identifier)
-    if analysis.state == "pending" and analysis.phase == "repair" and budget.data["repairs"] == 0:
+    if (
+        analysis.state == "pending"
+        and analysis.phase == "repair"
+        and budget.data["repairs"] < MAX_REPAIRS
+    ):
         current["repair"] = True
         if not run_once():
             raise ValueError("Selected repair not claimable")
@@ -466,6 +622,39 @@ def freeze(root, carryover=None, previous=None, continue_cases=False):
         "observed_tokens": 0,
         "missing_usage_calls": 0,
     }
+    if CONFIG is not None:
+        if carryover is not None or previous is not None:
+            raise ValueError("A configured campaign starts its own history; no carryover")
+        plan.update(
+            cohort=CONFIG["cohort"],
+            models=list(MODELS),
+            endpoint=CONFIG["base_url"],
+            request_limit=MAX_REQUESTS,
+            observed_token_stop=TOKEN_STOP,
+            repair_limit=MAX_REPAIRS,
+            allowance=(
+                f"Owner-delegated allowance: at most {MAX_REQUESTS} requests, "
+                f"{MAX_REPAIRS} repairs and {CONFIG['max_reserved_usd']} USD reserved at "
+                f"the {CONFIG['rates_date']} rates; no implicit retry"
+            ),
+            campaign_config_sha256=CONFIG["config_sha256"],
+            profile_sha256=CONFIG["profile_sha256"],
+            prior_receipts=CONFIG["prior_receipt_hashes"],
+            rates={
+                "input_usd_per_mtok": CONFIG["input_usd_per_mtok"],
+                "output_usd_per_mtok": CONFIG["output_usd_per_mtok"],
+                "date": CONFIG["rates_date"],
+            },
+            per_request_reserve_usd=CONFIG["per_request_reserve_usd"],
+            reserved_usd=0,
+            estimated_usd=0,
+            billed_usd=None,
+            secondary_probe={
+                "state": "not_configured",
+                "quality": "not_established",
+                "source": "This configured campaign qualifies one primary model only",
+            },
+        )
     if carryover is not None and previous is not None:
         raise ValueError("Choose one prior history source")
     if carryover is not None:
@@ -482,16 +671,30 @@ def main():
     parser.add_argument("--carryover-probe", type=Path)
     parser.add_argument("--carryover-campaign", type=Path)
     parser.add_argument("--continue-cases", action="store_true")
+    parser.add_argument("--campaign-config", type=Path)
     args = parser.parse_args()
     root = args.state_dir.resolve()
+    if CONFIG is not None:
+        reset_config()
+    if args.campaign_config is not None:
+        load_config(args.campaign_config)
+    if args.phase != "freeze" and (root / "ledger.json").exists():
+        frozen = json.loads((root / "ledger.json").read_text()).get("campaign_config_sha256")
+        if frozen != (CONFIG or {}).get("config_sha256"):
+            raise ValueError("Run with the exact campaign config this cohort was frozen with")
+        if CONFIG is not None and (
+            json.loads((root / "ledger.json").read_text())["profile_sha256"]
+            != CONFIG["profile_sha256"]
+        ):
+            raise ValueError("The campaign profile changed after freezing")
     if args.phase == "freeze":
         freeze(root, args.carryover_probe, args.carryover_campaign, args.continue_cases)
         return
     if (
         make_url(os.environ.get("DATABASE_URL", "")).database != OWNED_DATABASE
-        or os.environ.get("E06_OWNED_LAB") != "e06-r5"
+        or os.environ.get("E06_OWNED_LAB") != OWNED_LAB
     ):
-        raise ValueError("Only the explicitly owned cloudops_e06_gpt_test lab is allowed")
+        raise ValueError(f"Only the explicitly owned {OWNED_DATABASE} lab is allowed")
     if not os.environ.get("DIAGNOSIS_LIVE_TOKEN"):
         raise ValueError("Worker credential reference is unavailable")
     lock = root / "campaign.lock"

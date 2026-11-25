@@ -25,6 +25,42 @@ The private ledger binds source/input/oracle hashes, requested/configured identi
 
 The global limit is **50 requests across the engagement**, including failed/unknown outcomes and at most **one repair across the whole campaign**: 12 primary evaluation cases, one primary operational smoke and that reserve. A passing exact secondary probe may be carried forward without another send. The primary output cap is 1,024 tokens; inputs are bounded to 32 KiB. It stops before another call once the observed token lower bound reaches 170,000: the larger of reported total or known prompt plus completion counts. Nullable original fields remain unchanged. Missing usage stays unavailable: this is a request/output bound and observed-usage stop, not an exact billing guarantee. A transport/configuration failure or persistent initial schema failure stops the campaign before repeating it across all cases.
 
+## Configured campaign for a new primary model
+
+A new model, endpoint, reasoning effort or output limit is a new deployment identity. Earlier qualifications do not apply to it. To qualify such a primary without editing the driver, pass a trusted, secret-free `E06CampaignConfig/v1` with `--campaign-config` to every phase (`freeze`, `run`, `smoke`).
+
+```json
+{
+  "schema": "E06CampaignConfig/v1",
+  "cohort": "<new cohort id>",
+  "profile": "profile.json",
+  "authorization_id": "<owner authorization>",
+  "budget_policy_id": "<budget policy>",
+  "owned_database": "<owned database ending in _test>",
+  "owned_lab": "<E06_OWNED_LAB value>",
+  "max_requests": 24,
+  "max_repairs": 4,
+  "observed_token_stop": 400000,
+  "max_reserved_usd": 1.0,
+  "input_usd_per_mtok": 0.10,
+  "output_usd_per_mtok": 0.50,
+  "rates_date": "YYYY-MM-DD",
+  "prior_receipts": ["probe-receipt.json"]
+}
+```
+
+- **Profile.** `profile` names a trusted `DiagnosisModelProfile/v1`; a relative path resolves against the config directory. The profile must reference the worker-only `DIAGNOSIS_LIVE_TOKEN`. The driver copies it in `evaluation_only` mode, or `operational` mode for `smoke`, with the config's authorization and budget IDs. It keeps the frozen cases, oracle, validator rules and lifecycle unchanged.
+- **Cohort scope.** The configured campaign qualifies one primary only. It has no secondary probe and no carryover.
+- **Request and spend bounds.** Each reservation counts the profile's `max_input_bytes` as tokens plus its full output limit, which also bounds reasoning tokens, at the dated rates. A reservation that would exceed `max_reserved_usd` is refused before sending.
+- **Ledger.** The ledger records:
+  - the config, profile and prior-receipt hashes;
+  - the reserved spend;
+  - the cost estimated from observed usage.
+
+  `billed_usd` stays `null`, because billed charges come only from the provider's billing records.
+- **Change protection.** A cohort runs only with the exact config and unchanged profile it was frozen with.
+
+Without `--campaign-config`, the driver keeps the original Sol/Terra local-gateway campaign described above.
 ## Score, qualify and inspect
 
 Retain all initial failures and abstentions. Review semantic correctness and the relevance of exact cited values against the frozen oracle, separately from structural acceptance. The gate is at least 8/10 positives, at least 1/2 per family, all four Pending/ImagePull cases observed/manual-only, all five negative/control outcomes safe, and zero invalid scope/citation/template promotion. This small controlled set establishes no production accuracy or live cluster causality.

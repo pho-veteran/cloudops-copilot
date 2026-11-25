@@ -15,9 +15,12 @@ import httpx
 from cloudops.features.diagnosis.messages import MessageError, prepare_payload
 from cloudops.features.diagnosis.profile import Mode, ModelProfile, ProfileError
 from cloudops.features.diagnosis.schemas import (
+    PROVIDER_ERROR_MAX_BODY,
     CallIdentity,
     CallKind,
     ModelCall,
+    ProviderError,
+    parse_provider_error,
     parse_retry_after,
     parse_usage,
     safe_identifier,
@@ -25,6 +28,7 @@ from cloudops.features.diagnosis.schemas import (
 
 _JSON_MEDIA = {"application/json"}
 _ALLOWED_ENCODINGS = {"", "identity"}
+_PROVIDER_ERROR_DEADLINE_MARGIN = 0.25
 
 
 class _HookAbort(Exception):
@@ -42,10 +46,13 @@ class ModelClient:
         *,
         transport: httpx.AsyncBaseTransport | None = None,
         environ: Mapping[str, str] | None = None,
+        capture_provider_error: bool = False,
     ) -> None:
         self.profile = profile
         self.transport = transport
         self.environ = environ if environ is not None else os.environ
+        # Trusted diagnostic tooling only: keep bounded, redacted rejection detail.
+        self.capture_provider_error = capture_provider_error
         if transport is not None and profile is not None and profile.proxy is not None:
             raise ValueError("an injected transport cannot be combined with a profile proxy")
 
@@ -134,6 +141,7 @@ class ModelClient:
                             response,
                             identity=identity,
                             started=started,
+                            credential=credential,
                         )
         except _HookAbort as exc:
             raise exc.original
@@ -166,9 +174,15 @@ class ModelClient:
         *,
         identity: CallIdentity,
         started: float,
+        credential: str | None = None,
     ) -> ModelCall:
         status = response.status_code
         retry_seconds, retry_raw = parse_retry_after(response.headers)
+        detail = (
+            await self._provider_error(response, credential, started)
+            if status >= 400 and self.capture_provider_error
+            else None
+        )
         if 300 <= status < 400:
             return self._failure(
                 CallKind.UNEXPECTED_REDIRECT,
@@ -184,6 +198,7 @@ class ModelClient:
                 started,
                 status=status,
                 retry=(retry_seconds, retry_raw),
+                provider_error=detail,
             )
         if status == 429:
             return self._failure(
@@ -192,6 +207,7 @@ class ModelClient:
                 started,
                 status=status,
                 retry=(retry_seconds, retry_raw),
+                provider_error=detail,
             )
         if status >= 500:
             return self._failure(
@@ -200,6 +216,7 @@ class ModelClient:
                 started,
                 status=status,
                 retry=(retry_seconds, retry_raw),
+                provider_error=detail,
             )
         if status >= 400:
             return self._failure(
@@ -208,6 +225,7 @@ class ModelClient:
                 started,
                 status=status,
                 retry=(retry_seconds, retry_raw),
+                provider_error=detail,
             )
         if not 200 <= status < 300:
             return self._failure(
@@ -418,6 +436,7 @@ class ModelClient:
         status: int | None = None,
         retry: tuple[int | None, str | None] = (None, None),
         response_bytes: int = 0,
+        provider_error: ProviderError | None = None,
     ) -> ModelCall:
         return ModelCall(
             kind=kind,
@@ -434,6 +453,48 @@ class ModelClient:
             retry_after_raw=retry[1],
             elapsed_ms=int((time.monotonic() - started) * 1000),
             response_bytes=response_bytes,
+            provider_error=provider_error,
+        )
+
+    async def _provider_error(
+        self, response: httpx.Response, credential: str | None, started: float
+    ) -> ProviderError:
+        """Keep at most PROVIDER_ERROR_MAX_BODY identity-encoded bytes of a rejection.
+
+        Reading stops at the first chunk that reaches the cap, so at most one transport
+        chunk beyond it is consumed. A body that reaches the cap is treated as truncated
+        because its end was not observed. The read gets only the time left before the
+        call deadline, minus a margin, so a stalled body keeps the rejection status.
+        """
+        assert self.profile is not None
+        body = bytearray()
+        consumed = 0
+        truncated = False
+        left = started + self.profile.limits.deadline_seconds - time.monotonic()
+        # Leave a margin before the call deadline, scaled down when little time is left,
+        # so an immediately available body is still read late in the call.
+        remaining = left - min(_PROVIDER_ERROR_DEADLINE_MARGIN, left / 4)
+        if response.headers.get("content-encoding", "").lower() not in _ALLOWED_ENCODINGS:
+            truncated = True
+        elif remaining <= 0.01:
+            truncated = True
+        else:
+            try:
+                async with asyncio.timeout(remaining):
+                    async for chunk in response.aiter_bytes():
+                        consumed += len(chunk)
+                        body.extend(chunk[: PROVIDER_ERROR_MAX_BODY - len(body)])
+                        if consumed >= PROVIDER_ERROR_MAX_BODY:
+                            truncated = True
+                            break
+            except (TimeoutError, httpx.TransportError, httpx.StreamError, httpx.DecodingError):
+                truncated = True
+        return parse_provider_error(
+            bytes(body),
+            truncated=truncated,
+            consumed=consumed,
+            headers=response.headers,
+            secrets=(credential,) if credential else (),
         )
 
     def _max_response(self) -> int:

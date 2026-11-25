@@ -37,6 +37,9 @@ class Mode(StrEnum):
     OPERATIONAL = "operational"
 
 
+MAX_CALL_SECONDS = 120
+
+
 class OutputLimitParam(StrEnum):
     MAX_TOKENS = "max_tokens"
     MAX_COMPLETION_TOKENS = "max_completion_tokens"
@@ -194,12 +197,15 @@ class Limits(BaseModel):
             raise ValueError("max_response_bytes must be 1..262144")
         if not 0.1 <= self.connect_timeout_seconds <= 10:
             raise ValueError("connect_timeout_seconds must be 0.1..10")
-        if not 0.1 <= self.read_timeout_seconds <= 30:
-            raise ValueError("read_timeout_seconds must be 0.1..30")
+        # Reasoning models can take well over 30 seconds for a bounded non-streaming
+        # answer. Three calls at the 120-second cap still fit the 900-second analysis
+        # deadline, and the worker renews its lease throughout a call.
+        if not 0.1 <= self.read_timeout_seconds <= MAX_CALL_SECONDS:
+            raise ValueError(f"read_timeout_seconds must be 0.1..{MAX_CALL_SECONDS}")
         if not 0.1 <= self.pool_timeout_seconds <= 10:
             raise ValueError("pool_timeout_seconds must be 0.1..10")
-        if not 1 <= self.deadline_seconds <= 30:
-            raise ValueError("deadline_seconds must be 1..30")
+        if not 1 <= self.deadline_seconds <= MAX_CALL_SECONDS:
+            raise ValueError(f"deadline_seconds must be 1..{MAX_CALL_SECONDS}")
         return self
 
 
@@ -246,6 +252,7 @@ class ModelProfile(BaseModel):
     base_url: str | None = None
     allow_insecure_loopback: bool = False
     model: str | None = None
+    reasoning_effort: Literal["none", "low", "medium", "high", "xhigh", "max"] | None = None
     credential: CredentialRef | None = None
     tls: TlsRef = Field(default_factory=TlsRef)
     proxy: ProxyRef | None = None
@@ -332,6 +339,8 @@ class ModelProfile(BaseModel):
             "authorization_id": self.authorization_id,
             "budget_policy_id": self.budget_policy_id,
         }
+        if self.reasoning_effort is not None:
+            payload["reasoning_effort"] = self.reasoning_effort
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(encoded).hexdigest()
 

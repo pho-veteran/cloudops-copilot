@@ -39,6 +39,19 @@ def test_disabled_profile_needs_no_endpoint():
     assert value.mode.value == "disabled"
 
 
+def test_reasoning_effort_preserves_legacy_identity_and_binds_new_behavior():
+    base = profile()
+    assert base.behavior_digest() == (
+        "800cf0d4fceb3cff230a7489dc586897460c201b5b95fa441a6a98aa732def8d"
+    )
+    assert base.behavior_digest() == profile(reasoning_effort=None).behavior_digest()
+    maximum = profile(reasoning_effort="max")
+    assert maximum.behavior_digest() != base.behavior_digest()
+    assert maximum.behavior_digest() != profile(reasoning_effort="high").behavior_digest()
+    with pytest.raises(ValidationError):
+        profile(reasoning_effort="automatic")
+
+
 @pytest.mark.parametrize(
     "url,flag,expected",
     [
@@ -241,3 +254,15 @@ def test_load_rejects_recursive_profile_json(tmp_path):
     path.write_bytes(b"[" * 30_000 + b"]" * 30_000)
     with pytest.raises(ProfileError):
         ModelProfile.load(path)
+
+
+def test_call_deadline_allows_reasoning_length_calls_within_the_cap():
+    value = profile(limits={"deadline_seconds": 120, "read_timeout_seconds": 120})
+    assert value.limits.deadline_seconds == 120 and value.limits.read_timeout_seconds == 120
+    for limits in ({"deadline_seconds": 121}, {"read_timeout_seconds": 120.5}):
+        with pytest.raises(ValidationError):
+            profile(limits=limits)
+    # Three calls at the cap stay inside the fixed 900-second analysis deadline.
+    from cloudops.features.diagnosis.profile import MAX_CALL_SECONDS
+
+    assert 3 * MAX_CALL_SECONDS < 900

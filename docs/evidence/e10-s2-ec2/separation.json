@@ -1,0 +1,73 @@
+{
+  "credential_boundaries": {
+    "mounts": {
+      "api": {
+        "/run/cloudops-dispatch/key": false,
+        "/run/cloudops-reader/client.json": true,
+        "/run/cloudops-writer/client.json": false,
+        "/var/lib/cloudops-executor/maintenance.sock": false
+      },
+      "worker": {
+        "/run/cloudops-dispatch/key": true,
+        "/run/cloudops-reader/client.json": true,
+        "/run/cloudops-writer/client.json": false,
+        "/var/lib/cloudops-executor/maintenance.sock": false
+      }
+    },
+    "reader_denials": {
+      "deployment_patch": 403,
+      "secret_read": 403
+    },
+    "writer_denials": {
+      "other_target_patch": 403,
+      "secret_read": 403
+    }
+  },
+  "executor": {
+    "2f41e8fa": {
+      "enabled": false,
+      "reason": "Initial target quarantine.",
+      "recovery_mode": true
+    }
+  },
+  "mounts": [
+    "api: /run/cloudops-job-permit(ro) /run/cloudops-reader(ro)",
+    "db: /var/lib/postgresql/data(rw)",
+    "executor: /run/cloudops-dispatch(rw) /run/cloudops-executor-identity(ro) /run/cloudops-writer(ro) /var/lib/cloudops-executor(rw)",
+    "https: /config(rw) /data(rw)",
+    "k3s: /var/log(rw) /var/lib/cni(rw) /var/lib/kubelet(rw) /var/lib/rancher/k3s(rw)",
+    "worker: /run/cloudops-dispatch(ro) /run/cloudops-job-permit(ro) /run/cloudops-krr(ro) /run/cloudops-reader(ro)"
+  ],
+  "no_local_build": [
+    "no_local_build=true",
+    "docker_sock_mounts=0"
+  ],
+  "project": "cloudops-release-ec2-lab (bundle images only)",
+  "published": [
+    "https 80/tcp, 443/tcp, 2019/tcp, 443/udp, 127.0.0.1:8443->8443/tcp",
+    "k3s 127.0.0.1:6445->6443/tcp"
+  ],
+  "scoped_collection": {
+    "note": "The release lab omits Prometheus and KRR by design, so prometheus.* sources are unavailable here. Every collection-only Run ends insufficient_evidence because no diagnosis is configured, including the owned-lab Run with all Prometheus sources available. The monitoring input is shown in the owned lab (owned-lab.json and measurements.json).",
+    "run_state": "insufficient_evidence",
+    "sources": {
+      "development_fixture": "unavailable",
+      "kubernetes.configmap.metadata": "unavailable",
+      "kubernetes.events": "available",
+      "kubernetes.logs.current": "available",
+      "kubernetes.logs.previous": "partial",
+      "kubernetes.state": "available",
+      "prometheus.error_ratio": "unavailable",
+      "prometheus.memory_limit": "unavailable",
+      "prometheus.memory_working_set": "unavailable",
+      "prometheus.p95_latency": "unavailable",
+      "prometheus.request_rate": "unavailable",
+      "prometheus.restarts": "unavailable"
+    },
+    "workload": {
+      "name": "checkout-crashloop",
+      "namespace": "demo",
+      "source": "live_kubernetes"
+    }
+  }
+}

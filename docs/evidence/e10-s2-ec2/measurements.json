@@ -1,0 +1,443 @@
+{
+  "bounded_load": {
+    "15_rps": {
+      "completed_nominal_load": true,
+      "finished_at": "2026-11-24T14:15:02.729377+00:00",
+      "resources": {
+        "containers": {
+          "alertmanager": {
+            "cpu_cores_avg": 0.001,
+            "cpu_cores_max": 0.001,
+            "memory_max_mib": 40.9
+          },
+          "api": {
+            "cpu_cores_avg": 0.029,
+            "cpu_cores_max": 0.033,
+            "memory_max_mib": 157.1
+          },
+          "db": {
+            "cpu_cores_avg": 0.039,
+            "cpu_cores_max": 0.05,
+            "memory_max_mib": 166.1
+          },
+          "executor": {
+            "cpu_cores_avg": 0.058,
+            "cpu_cores_max": 0.061,
+            "memory_max_mib": 99.6
+          },
+          "https": {
+            "cpu_cores_avg": 0.018,
+            "cpu_cores_max": 0.025,
+            "memory_max_mib": 29.3
+          },
+          "k3s": {
+            "cpu_cores_avg": 0.173,
+            "cpu_cores_max": 0.417,
+            "memory_max_mib": 1951.0
+          },
+          "load": {
+            "cpu_cores_avg": 0.011,
+            "cpu_cores_max": 0.012,
+            "memory_max_mib": 18.3
+          },
+          "observer": {
+            "cpu_cores_avg": 0.005,
+            "cpu_cores_max": 0.013,
+            "memory_max_mib": 101.3
+          },
+          "prometheus": {
+            "cpu_cores_avg": 0.003,
+            "cpu_cores_max": 0.004,
+            "memory_max_mib": 171.5
+          },
+          "worker": {
+            "cpu_cores_avg": 0.007,
+            "cpu_cores_max": 0.008,
+            "memory_max_mib": 109.5
+          }
+        },
+        "host_cpu_pct": {
+          "avg": 4.992,
+          "max": 17.87,
+          "min": 4.45
+        },
+        "host_memory_available_min_gib": 13.28,
+        "host_memory_used_gib": {
+          "avg": 2.1,
+          "max": 2.16,
+          "min": 2.08
+        },
+        "load1": {
+          "avg": 0.596,
+          "max": 0.86,
+          "min": 0.3
+        },
+        "psi_full_avg10_max": {
+          "io": 0.0,
+          "memory": 0.0
+        },
+        "psi_some_avg10_max": {
+          "cpu": 11.57,
+          "io": 0.0,
+          "memory": 0.0
+        },
+        "root_free_min_gib": 38.5,
+        "samples_5s": 60,
+        "swap_used_max_bytes": 0
+      },
+      "responses": {
+        "200": 4500
+      },
+      "seconds": 300,
+      "started_at": "2026-11-24T14:10:02.778752+00:00",
+      "target": "both"
+    },
+    "30_rps": {
+      "completed_nominal_load": true,
+      "finished_at": "2026-11-24T14:20:08.478879+00:00",
+      "resources": {
+        "containers": {
+          "alertmanager": {
+            "cpu_cores_avg": 0.001,
+            "cpu_cores_max": 0.001,
+            "memory_max_mib": 40.9
+          },
+          "api": {
+            "cpu_cores_avg": 0.03,
+            "cpu_cores_max": 0.034,
+            "memory_max_mib": 157.6
+          },
+          "db": {
+            "cpu_cores_avg": 0.04,
+            "cpu_cores_max": 0.051,
+            "memory_max_mib": 161.9
+          },
+          "executor": {
+            "cpu_cores_avg": 0.059,
+            "cpu_cores_max": 0.064,
+            "memory_max_mib": 99.6
+          },
+          "https": {
+            "cpu_cores_avg": 0.018,
+            "cpu_cores_max": 0.025,
+            "memory_max_mib": 29.7
+          },
+          "k3s": {
+            "cpu_cores_avg": 0.254,
+            "cpu_cores_max": 0.398,
+            "memory_max_mib": 1953.2
+          },
+          "load": {
+            "cpu_cores_avg": 0.02,
+            "cpu_cores_max": 0.021,
+            "memory_max_mib": 18.1
+          },
+          "observer": {
+            "cpu_cores_avg": 0.005,
+            "cpu_cores_max": 0.013,
+            "memory_max_mib": 101.3
+          },
+          "prometheus": {
+            "cpu_cores_avg": 0.003,
+            "cpu_cores_max": 0.004,
+            "memory_max_mib": 171.9
+          },
+          "worker": {
+            "cpu_cores_avg": 0.007,
+            "cpu_cores_max": 0.009,
+            "memory_max_mib": 109.5
+          }
+        },
+        "host_cpu_pct": {
+          "avg": 5.935,
+          "max": 18.55,
+          "min": 5.0
+        },
+        "host_memory_available_min_gib": 13.31,
+        "host_memory_used_gib": {
+          "avg": 2.11,
+          "max": 2.13,
+          "min": 2.09
+        },
+        "load1": {
+          "avg": 0.719,
+          "max": 1.25,
+          "min": 0.36
+        },
+        "psi_full_avg10_max": {
+          "io": 0.0,
+          "memory": 0.0
+        },
+        "psi_some_avg10_max": {
+          "cpu": 11.24,
+          "io": 0.0,
+          "memory": 0.0
+        },
+        "root_free_min_gib": 38.5,
+        "samples_5s": 60,
+        "swap_used_max_bytes": 0
+      },
+      "responses": {
+        "200": 9000
+      },
+      "seconds": 300,
+      "started_at": "2026-11-24T14:15:08.495975+00:00",
+      "target": "both"
+    },
+    "5_rps": {
+      "completed_nominal_load": true,
+      "finished_at": "2026-11-24T14:09:57.012946+00:00",
+      "resources": {
+        "containers": {
+          "alertmanager": {
+            "cpu_cores_avg": 0.001,
+            "cpu_cores_max": 0.001,
+            "memory_max_mib": 40.9
+          },
+          "api": {
+            "cpu_cores_avg": 0.029,
+            "cpu_cores_max": 0.033,
+            "memory_max_mib": 155.1
+          },
+          "db": {
+            "cpu_cores_avg": 0.039,
+            "cpu_cores_max": 0.051,
+            "memory_max_mib": 158.9
+          },
+          "executor": {
+            "cpu_cores_avg": 0.058,
+            "cpu_cores_max": 0.063,
+            "memory_max_mib": 99.6
+          },
+          "https": {
+            "cpu_cores_avg": 0.018,
+            "cpu_cores_max": 0.025,
+            "memory_max_mib": 29.9
+          },
+          "k3s": {
+            "cpu_cores_avg": 0.115,
+            "cpu_cores_max": 0.393,
+            "memory_max_mib": 1946.5
+          },
+          "load": {
+            "cpu_cores_avg": 0.004,
+            "cpu_cores_max": 0.005,
+            "memory_max_mib": 18.1
+          },
+          "observer": {
+            "cpu_cores_avg": 0.005,
+            "cpu_cores_max": 0.013,
+            "memory_max_mib": 101.3
+          },
+          "prometheus": {
+            "cpu_cores_avg": 0.003,
+            "cpu_cores_max": 0.004,
+            "memory_max_mib": 171.6
+          },
+          "worker": {
+            "cpu_cores_avg": 0.007,
+            "cpu_cores_max": 0.018,
+            "memory_max_mib": 109.5
+          }
+        },
+        "host_cpu_pct": {
+          "avg": 4.076,
+          "max": 17.8,
+          "min": 3.27
+        },
+        "host_memory_available_min_gib": 13.31,
+        "host_memory_used_gib": {
+          "avg": 2.1,
+          "max": 2.13,
+          "min": 2.07
+        },
+        "load1": {
+          "avg": 0.471,
+          "max": 0.8,
+          "min": 0.16
+        },
+        "psi_full_avg10_max": {
+          "io": 0.0,
+          "memory": 0.0
+        },
+        "psi_some_avg10_max": {
+          "cpu": 11.46,
+          "io": 0.0,
+          "memory": 0.0
+        },
+        "root_free_min_gib": 38.5,
+        "samples_5s": 60,
+        "swap_used_max_bytes": 0
+      },
+      "responses": {
+        "200": 1500
+      },
+      "seconds": 300,
+      "started_at": "2026-11-24T14:04:57.196319+00:00",
+      "target": "both"
+    }
+  },
+  "constraint_found": {
+    "detected_by": "load refused with 'Effective K3s cgroup limits are missing.'",
+    "fix": "docker update re-applied each container's own declared --memory/--memory-swap values; apt timers were paused for the rest of the session",
+    "receipt": [
+      "/cloudops-local-testing-lab-alertmanager-1 memory=134217728 swap_total=134217728 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-worker-1 memory=536870912 swap_total=536870912 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-executor-1 memory=268435456 swap_total=268435456 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-api-1 memory=536870912 swap_total=536870912 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-observer-1 memory=268435456 swap_total=268435456 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-prometheus-1 memory=1073741824 swap_total=1073741824 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-https-1 memory=134217728 swap_total=134217728 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-k3s-1 memory=4294967296 swap_total=4294967296 swap.max: max -> 0",
+      "/cloudops-local-testing-lab-db-1 memory=805306368 swap_total=805306368 swap.max: max -> 0"
+    ],
+    "what": "A systemd daemon-reload (triggered by apt-listchanges at 13:00:05 UTC) reset memory.swap.max of every Docker scope from 0 to max under the systemd cgroup driver"
+  },
+  "containment": {
+    "k3s_cpu_max": 4.0,
+    "k3s_memory_max_gib": 4.0,
+    "node_allocatable": {
+      "cpu": "3",
+      "memory": "3145724Ki",
+      "pods": "110"
+    },
+    "sample_pod_memory_max_mib": [
+      160
+    ]
+  },
+  "headroom": "Under 30 rps the host stayed under 19% CPU and 2.2 GiB used memory, with at least 13.28 GiB available, no swap and zero memory/IO pressure. K3s is capped at 4 CPU / 4 GiB and its node advertises 3 CPU / 3 GiB allocatable.",
+  "host": "c5a.2xlarge, 8 vCPU, 15.4 GiB, no swap, gp3 50 GiB",
+  "idle_10_min": {
+    "containers": {
+      "alertmanager": {
+        "cpu_cores_avg": 0.001,
+        "cpu_cores_max": 0.001,
+        "memory_max_mib": 40.4
+      },
+      "api": {
+        "cpu_cores_avg": 0.029,
+        "cpu_cores_max": 0.033,
+        "memory_max_mib": 136.6
+      },
+      "db": {
+        "cpu_cores_avg": 0.039,
+        "cpu_cores_max": 0.051,
+        "memory_max_mib": 140.1
+      },
+      "executor": {
+        "cpu_cores_avg": 0.058,
+        "cpu_cores_max": 0.063,
+        "memory_max_mib": 108.8
+      },
+      "https": {
+        "cpu_cores_avg": 0.018,
+        "cpu_cores_max": 0.025,
+        "memory_max_mib": 27.9
+      },
+      "k3s": {
+        "cpu_cores_avg": 0.081,
+        "cpu_cores_max": 0.128,
+        "memory_max_mib": 1950.9
+      },
+      "observer": {
+        "cpu_cores_avg": 0.005,
+        "cpu_cores_max": 0.013,
+        "memory_max_mib": 101.2
+      },
+      "prometheus": {
+        "cpu_cores_avg": 0.003,
+        "cpu_cores_max": 0.004,
+        "memory_max_mib": 179.3
+      },
+      "worker": {
+        "cpu_cores_avg": 0.007,
+        "cpu_cores_max": 0.019,
+        "memory_max_mib": 105.2
+      }
+    },
+    "host_cpu_pct": {
+      "avg": 3.602,
+      "max": 4.31,
+      "min": 2.74
+    },
+    "host_memory_available_min_gib": 13.42,
+    "host_memory_used_gib": {
+      "avg": 1.96,
+      "max": 2.02,
+      "min": 1.93
+    },
+    "load1": {
+      "avg": 0.321,
+      "max": 0.85,
+      "min": 0.08
+    },
+    "psi_full_avg10_max": {
+      "io": 0.02,
+      "memory": 0.0
+    },
+    "psi_some_avg10_max": {
+      "cpu": 12.31,
+      "io": 0.02,
+      "memory": 0.0
+    },
+    "root_free_min_gib": 38.6,
+    "samples_5s": 120,
+    "swap_used_max_bytes": 0
+  },
+  "method": "5-second samples of /proc/stat, /proc/meminfo, /proc/pressure, root free space, and each Docker scope's memory.current and cpu.stat usage_usec (throttling fields not recorded)",
+  "metrics_after_load": {
+    "cloudops_error_ratio": [
+      "0"
+    ],
+    "cloudops_memory_limit_bytes": [
+      "167772160"
+    ],
+    "cloudops_memory_working_set_bytes": [
+      "16228352",
+      "16347136"
+    ],
+    "cloudops_p95_latency_seconds": [
+      "0.048"
+    ],
+    "cloudops_requests_per_second": [
+      "5"
+    ],
+    "cloudops_restarts_total": [
+      "0"
+    ]
+  },
+  "metrics_note": "metrics_after_load follows a 120 s warm-up at 10 rps across both Deployments (5 rps each). The lab-offered-load scrape target is only up while a load container runs, so it was down at verify.",
+  "pressure_note": "Host CPU PSI some avg10 stayed between 11% and 12.5% even when idle, while host CPU use was 3-6%. This is likely short waits under the capped containers' CFS quotas rather than host saturation; throttling counters were not recorded. Memory and IO pressure were zero.",
+  "scrape_targets": [
+    {
+      "health": "up",
+      "job": "kube-state-metrics"
+    },
+    {
+      "health": "up",
+      "job": "kubelet"
+    },
+    {
+      "health": "down",
+      "job": "lab-offered-load"
+    },
+    {
+      "health": "up",
+      "job": "sample"
+    },
+    {
+      "health": "up",
+      "job": "sample"
+    }
+  ],
+  "surge_headroom": {
+    "basis": "source-inspected manifests plus the measured allocatable and pod memory limits; no rollout surge was exercised",
+    "measured_working_set_mib_per_pod": [
+      15.48,
+      15.59
+    ],
+    "not_counted": "CoreDNS, metrics-server, local-path-provisioner and kube-state-metrics (requests 25m / 32Mi, limits 100m / 128Mi)",
+    "sample_pods": "2 (checkout, history), each requests 50m / 32Mi and limits 400m / 160Mi; default RollingUpdate adds 1 surge Pod per Deployment",
+    "with_surge_at_limits": "4 sample Pods use 1.6 CPU and 640 MiB of the node's 3 CPU / 3 GiB allocatable"
+  }
+}
