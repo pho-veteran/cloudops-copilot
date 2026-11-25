@@ -504,7 +504,7 @@ def test_release_images_require_the_bound_bundle(driver, bundler, monkeypatch, t
         assert lab.release_bundle()[0]["revision"] == manifest["revision"]
 
 
-@pytest.mark.parametrize("changed", [False, True])
+@pytest.mark.parametrize("changed", [False, True, "archive-only"])
 def test_release_receipt_binds_bundle_revision_and_source_archive(
     driver, bundler, monkeypatch, tmp_path, changed
 ):
@@ -532,6 +532,13 @@ def test_release_receipt_binds_bundle_revision_and_source_archive(
 
                 output.addfile(info, io.BytesIO(data))
     monkeypatch.setattr(driver, "__file__", str(SCRIPTS / "manage-local-lab.py"))
+    if changed != "archive-only":
+        # The archive is the manifest's: rebinding stands in for a verified bundle.
+        manifest["sha256"]["source.tar"] = bundler.checksum(archive)
+        (tmp_path / "bundle/manifest.json").write_text(json.dumps(manifest))
+        lab.marker["release_bundle"]["manifest_sha256"] = hashlib.sha256(
+            (tmp_path / "bundle/manifest.json").read_bytes()
+        ).hexdigest()
     if changed:
         with pytest.raises(RuntimeError, match="source archive"):
             lab.receipt("start", {})

@@ -143,12 +143,21 @@ def release_workload_tags():
     )
 
 
-def release_source_hashes(names):
-    """SHA-256 of the named regular files in the bundle's reviewed source archive."""
+def release_source_hashes(manifest, names):
+    """SHA-256 of the named regular files in the bundle's reviewed source archive.
+
+    The archive bytes must match the bound manifest checksum and are parsed from memory.
+    """
+    import io
     import tarfile
 
+    raw = (Path(RELEASE_BUNDLE).resolve() / "source.tar").read_bytes()
+    require(
+        hashlib.sha256(raw).hexdigest() == (manifest.get("sha256") or {}).get("source.tar"),
+        "Bundle source archive differs from its manifest; verify the bundle again.",
+    )
     hashes = {}
-    with tarfile.open(Path(RELEASE_BUNDLE).resolve() / "source.tar") as archive:
+    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
         for member in archive:
             if member.isfile() and member.name in names:
                 hashes[member.name] = hashlib.sha256(archive.extractfile(member).read()).hexdigest()
@@ -541,7 +550,7 @@ class Lab:
             manifest, bundle_digest = self.release_bundle()
             source = manifest["revision"]
             require(
-                release_source_hashes(set(hashes)) == hashes,
+                release_source_hashes(manifest, set(hashes)) == hashes,
                 "Installed lab sources differ from the bundle source archive.",
             )
             provenance = {
