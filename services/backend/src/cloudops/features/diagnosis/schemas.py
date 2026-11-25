@@ -28,6 +28,8 @@ _SECRET_PATTERNS = (
         r"[\"']?\s*[:=]\s*" + _NOT_COUNT + _VALUE
     ),
     re.compile(r"[\w.+\-]+@[\w\-]+\.[\w.\-]+"),
+    # Provider account identifiers (for example "organization org-…" in a 429 message).
+    re.compile(r"\b(?:org|proj|user)[-_][A-Za-z0-9]{6,}\b"),
     re.compile(r"[A-Za-z0-9_\-+/=]{32,}"),
 )
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_.:\-\[\]]{1,120}")
