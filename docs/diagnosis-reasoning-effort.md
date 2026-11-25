@@ -38,7 +38,7 @@ cost rather than being reported as zero.
 
 - It keeps at most 8 KiB of an identity-encoded body and stops requesting chunks at that cap, so at most one transport chunk beyond the cap is consumed (`body_bytes_read`). A body that reaches the cap, a compressed body, or a read that runs out of the remaining call deadline is marked `body_truncated` and left unparsed. The rejection status is kept either way.
 - Only the OpenAI-style `error.type`, `error.code` and `error.param` identifiers are kept, plus `error.message` and the `x-request-id` header.
-- `error.message` is limited to 512 printable characters. The configured credential, `sk-` keys, bearer values, `key=value` secrets, email addresses and long token-like strings are replaced with `[redacted]`.
+- `error.message` is limited to 512 printable characters. The configured credential, `sk-` keys, bearer values, `key=value` secrets, email addresses, provider account identifiers (`org-`, `proj_` or `user-` followed by an ID containing a digit) and long token-like strings are replaced with `[redacted]`. Limits, counts and model names stay readable.
 - An identifier that would need redaction is dropped.
 - The raw body, the request body and the `Authorization` header are never retained.
 

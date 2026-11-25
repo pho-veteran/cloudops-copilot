@@ -506,13 +506,22 @@ def test_provider_error_redacts_account_identifiers_and_keeps_limits():
     message = (
         "Rate limit reached for gpt-6-luna in organization org-AbC123xyz789 on tokens per "
         "min (TPM): Limit 100000, Used 98000, Requested 9000. Project proj_Q1w2E3r4T5 "
-        "user user-ZZ99yy88 gpt-6-luna"
+        "user user-ZZ99yy88 gpt-6-luna; also org-AbC123_xyz789 and "
+        "org-AbC123-xyz789def456ghi012jkl345; code user_error"
     )
     detail = _capture(429, json.dumps({"error": {"message": message}}).encode()).provider_error
-    for identifier in ("org-AbC123xyz789", "proj_Q1w2E3r4T5", "user-ZZ99yy88"):
-        assert identifier not in json.dumps(detail.__dict__)
+    rendered = json.dumps(detail.__dict__)
+    for identifier in (
+        "org-AbC123xyz789",
+        "proj_Q1w2E3r4T5",
+        "user-ZZ99yy88",
+        "AbC123_xyz789",
+        "xyz789def456ghi012jkl345",
+    ):
+        assert identifier not in rendered
     assert "Limit 100000, Used 98000, Requested 9000" in detail.message
     assert detail.message.count("gpt-6-luna") == 2
+    assert "code user_error" in detail.message
 
 
 def test_provider_error_message_is_truncated_and_control_free():
