@@ -996,3 +996,32 @@ def test_atomic_collection_handoff_rolls_back_and_preserves_saved_source(db, con
         assert run_once()
         assert refresh(db, analysis.id).state == "completed"
         assert len(server.requests) == 1
+
+
+def test_call_longer_than_the_job_lease_still_publishes_after_renewal(
+    db, context, deployment, monkeypatch
+):
+    """A reasoning-length call outlives one lease period; the worker renews it throughout."""
+    from dataclasses import replace
+
+    import cloudops.entrypoints.worker as worker_module
+    import cloudops.shared.jobs as jobs_module
+    from cloudops.shared.config import settings as real_settings
+
+    short = replace(real_settings(), lease_seconds=1, heartbeat_seconds=0.2)
+    monkeypatch.setattr(jobs_module, "settings", lambda: short)
+    monkeypatch.setattr(worker_module, "settings", lambda: short)
+    _crashloop(db, context)
+
+    def slow(handler):
+        threading.Event().wait(2.5)
+        respond(handler, text_payload(_raw()))
+
+    with serve(slow) as server:
+        deployment(server.url, limits={"deadline_seconds": 10, "read_timeout_seconds": 10})
+        identifier = admission(db, context)
+        assert run_once()
+        analysis = refresh(db, identifier)
+        assert analysis.state == "completed", analysis.reason
+        assert analysis.calls == 1 and len(server.requests) == 1
+        assert db.get(AnalysisResult, identifier).payload["status"] == "supported"
