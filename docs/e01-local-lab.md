@@ -22,6 +22,10 @@ LAB=(uv run --project services/backend --frozen python scripts/manage-local-lab.
 "${LAB[@]}" status
 ```
 
+To run the E10 recovery lab from verified release bundle images instead of local builds,
+use a new `cloudops-release-recovery-NAME` project as described in
+[owned recovery lab with release images](release-package.md#owned-recovery-lab-with-release-images).
+
 Preflight checks the local Linux/amd64 Docker daemon, cgroup v2, bounded-swap support,
 ports, disk headroom and CIDR overlap. Start verifies registry references before
 building, imports the source-hashed sample image into the owned node, and records

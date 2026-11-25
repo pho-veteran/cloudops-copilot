@@ -1,0 +1,42 @@
+# Owned E10 recovery lab run from a verified release bundle. manage-local-lab.py adds it
+# last, after compose.lab.yaml and compose.lab-recovery.yaml, for a new
+# cloudops-release-recovery-NAME project. Lab settings, limits, mounts and collection mode
+# stay those of compose.lab.yaml; only the image sources change. The sample and recovery
+# workload images keep their lab tags, which the driver points at the bundle image IDs.
+x-release-backend: &release-backend
+  image: ${RELEASE_BACKEND_IMAGE:?Use the release bundle images.env}
+  build: !reset null
+  pull_policy: never
+  platform: linux/amd64
+
+services:
+  db:
+    image: ${RELEASE_DB_IMAGE:?Use the release bundle images.env}
+    pull_policy: never
+    platform: linux/amd64
+  migrate: *release-backend
+  api: *release-backend
+  worker: *release-backend
+  observer: *release-backend
+  executor: *release-backend
+  executor-init: *release-backend
+  dispatch-admin: *release-backend
+  test: *release-backend
+  lab-audit-init: *release-backend
+  https:
+    image: ${RELEASE_HTTPS_IMAGE:?Use the release bundle images.env}
+    build: !reset null
+    pull_policy: never
+    platform: linux/amd64
+  krr:
+    image: ${RELEASE_KRR_IMAGE:?Use the release bundle lab-images.env}
+    build: !reset null
+    pull_policy: never
+    platform: linux/amd64
+  sample:
+    build: !reset null
+    pull_policy: never
+    platform: linux/amd64
+  load:
+    pull_policy: never
+    platform: linux/amd64

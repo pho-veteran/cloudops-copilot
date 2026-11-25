@@ -139,8 +139,10 @@ def test_completed_recovery_receipt_requires_positive_post_check(scenarios):
         scenarios.validate_trial_receipt(value)
 
 
-def test_completed_recovery_receipt_accepts_bound_post_check(scenarios):
+@pytest.mark.parametrize("project", ["cloudops-e10-s3-lab", "cloudops-release-recovery-r1"])
+def test_completed_recovery_receipt_accepts_bound_post_check(scenarios, project):
     value = receipt(scenarios, recovery=True)
+    value["scope"]["project"] = project
     started = datetime(2026, 1, 1, tzinfo=timezone.utc)
     acknowledged = started + timedelta(minutes=2)
     deadline = acknowledged + timedelta(seconds=180)
@@ -204,6 +206,7 @@ def test_completed_recovery_receipt_accepts_bound_post_check(scenarios):
     }
 
     assert scenarios.validate_trial_receipt(value)["receipt_status"] == "reset_complete"
+    assert scenarios.recovery_lab_project(project)
 
 
 def e07_receipts():
@@ -299,11 +302,26 @@ def test_recovery_post_check_rejects_unqualified_evidence(scenarios, mutation):
         )
 
 
-def test_recovery_receipts_must_come_from_the_recovery_lab(scenarios):
+@pytest.mark.parametrize(
+    "project",
+    [
+        "cloudops-local-testing-lab",
+        "cloudops-release-lab-test",
+        "cloudops-release-recovery-",
+        "cloudops-release-recovery-Upper",
+        "cloudops-release-recovery-" + "a" * 25,
+    ],
+)
+def test_recovery_receipts_must_come_from_a_recovery_lab(scenarios, project):
     value = receipt(scenarios, recovery=True)
-    value["scope"]["project"] = "cloudops-local-testing-lab"
-    with pytest.raises(ValueError, match="E10 S3 recovery lab"):
+    value["scope"]["project"] = project
+    with pytest.raises(ValueError, match="E10 recovery lab|owned lab"):
         scenarios.validate_trial_receipt(value)
+
+
+def test_release_recovery_pattern_matches_the_lab_selector(scenarios):
+    source = (ROOT / "scripts/local_lab.py").read_text()
+    assert f're.compile(r"{scenarios.RELEASE_RECOVERY_LAB.pattern}")' in source
 
 
 def test_observation_receipts_are_accepted_from_either_owned_lab(scenarios):

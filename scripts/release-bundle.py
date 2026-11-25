@@ -1,4 +1,8 @@
-"""Build or verify the pinned Linux/amd64 Compose and HTTPS application bundle."""
+"""Build or verify the pinned Linux/amd64 Compose and HTTPS application bundle.
+
+Bundles also carry the owned recovery lab images (KRR runner, sample and recovery
+variants) built from the same revision. Version 1 bundles hold the core images only.
+"""
 
 import argparse
 import hashlib
@@ -12,11 +16,23 @@ from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM = "linux/amd64"
-SCHEMA = "CloudOpsReleaseBundle/v1"
+CORE_SCHEMA = "CloudOpsReleaseBundle/v1"
+SCHEMA = "CloudOpsReleaseBundle/v2"
 DOCKERFILES = {
     "backend": "services/backend/Dockerfile",
     "https": "apps/web/Dockerfile.https",
 }
+# Owned lab images: component -> (Dockerfile, build arguments). Upstream service images
+# (K3s, Prometheus, Alertmanager, kube-state-metrics) stay pinned by digest in the
+# reviewed Compose and manifest files and are pulled by that digest.
+LAB_DOCKERFILES = {
+    "krr": ("services/krr/Dockerfile", {}),
+    "sample": ("config/lab/Dockerfile.sample", {}),
+    "recovery_healthy": ("config/lab/Dockerfile.recovery", {"SAMPLE_VARIANT": "healthy"}),
+    "recovery_bad_image": ("config/lab/Dockerfile.recovery", {"SAMPLE_VARIANT": "bad-image"}),
+}
+CORE_FILES = ("source.tar", "images.tar", "images.env")
+LAB_FILES = ("lab-images.tar", "lab-images.env")
 
 
 def run(*args):
@@ -81,10 +97,43 @@ def lock_dockerfile(path, upstream):
     path.write_text(locked)
 
 
+def build_image(context, dockerfile, arguments, component, revision):
+    staging = f"cloudops-release-stage:{uuid4().hex}"
+    subprocess.run(
+        [
+            "docker",
+            "buildx",
+            "build",
+            "--load",
+            "--pull",
+            "--platform",
+            PLATFORM,
+            "--label",
+            f"org.opencontainers.image.revision={revision}",
+            *(
+                argument
+                for name, value in sorted(arguments.items())
+                for argument in ("--build-arg", f"{name}={value}")
+            ),
+            "--file",
+            str(context / dockerfile),
+            "--tag",
+            staging,
+            str(context),
+        ],
+        check=True,
+    )
+    identity = image_id(staging)
+    ref = alias(component, revision, identity)
+    run("docker", "image", "tag", staging, ref)
+    run("docker", "image", "rm", staging)
+    return {"ref": ref, "id": identity}
+
+
 def build(revision, output):
     require(re.fullmatch(r"[0-9a-f]{40}", revision), "Use the full reviewed Git commit SHA.")
     require(run("git", "rev-parse", f"{revision}^{{commit}}") == revision, "Unknown commit.")
-    for name in ("compose.release.yaml", "scripts/release-bundle.py"):
+    for name in ("compose.release.yaml", "compose.lab-release.yaml", "scripts/release-bundle.py"):
         require(
             run("git", "cat-file", "-t", f"{revision}:{name}") == "blob",
             "Build a reviewed revision containing the release package.",
@@ -94,38 +143,17 @@ def build(revision, output):
     subprocess.run(
         ["git", "archive", "--format=tar", "-o", str(archive), revision], cwd=ROOT, check=True
     )
-    upstream, images = {}, {}
+    upstream, images, lab_images = {}, {}, {}
     with TemporaryDirectory(prefix="cloudops-release-build-") as tmp:
         context = Path(tmp)
         with tarfile.open(archive) as source:
             source.extractall(context, filter="data")
-        for component, dockerfile in DOCKERFILES.items():
+        for dockerfile in {*DOCKERFILES.values(), *(item[0] for item in LAB_DOCKERFILES.values())}:
             lock_dockerfile(context / dockerfile, upstream)
-            staging = f"cloudops-release-stage:{uuid4().hex}"
-            subprocess.run(
-                [
-                    "docker",
-                    "buildx",
-                    "build",
-                    "--load",
-                    "--pull",
-                    "--platform",
-                    PLATFORM,
-                    "--label",
-                    f"org.opencontainers.image.revision={revision}",
-                    "--file",
-                    str(context / dockerfile),
-                    "--tag",
-                    staging,
-                    str(context),
-                ],
-                check=True,
-            )
-            identity = image_id(staging)
-            ref = alias(component, revision, identity)
-            run("docker", "image", "tag", staging, ref)
-            run("docker", "image", "rm", staging)
-            images[component] = {"ref": ref, "id": identity}
+        for component, dockerfile in DOCKERFILES.items():
+            images[component] = build_image(context, dockerfile, {}, component, revision)
+        for component, (dockerfile, arguments) in LAB_DOCKERFILES.items():
+            lab_images[component] = build_image(context, dockerfile, arguments, component, revision)
         db_source = re.search(
             r"(?m)^  db:\n    image: (\S+)\n", (context / "compose.yaml").read_text()
         )
@@ -146,15 +174,23 @@ def build(revision, output):
         *(item["ref"] for item in images.values()),
     )
     (output / "images.env").write_text(image_env(images))
+    run(
+        "docker",
+        "image",
+        "save",
+        "--output",
+        str(output / "lab-images.tar"),
+        *(item["ref"] for item in lab_images.values()),
+    )
+    (output / "lab-images.env").write_text(image_env(lab_images))
     manifest = {
         "schema": SCHEMA,
         "revision": revision,
         "platform": PLATFORM,
         "images": images,
+        "lab_images": lab_images,
         "upstream": upstream,
-        "sha256": {
-            name: checksum(output / name) for name in ("source.tar", "images.tar", "images.env")
-        },
+        "sha256": {name: checksum(output / name) for name in (*CORE_FILES, *LAB_FILES)},
     }
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
@@ -162,32 +198,45 @@ def build(revision, output):
 def verify(bundle, loaded):
     manifest = json.loads((bundle / "manifest.json").read_text())
     revision = manifest["revision"]
+    lab = manifest.get("schema") == SCHEMA
+    groups = {
+        "images": {*DOCKERFILES, "db"},
+        **({"lab_images": set(LAB_DOCKERFILES)} if lab else {}),
+    }
     require(
-        manifest["schema"] == SCHEMA
+        manifest["schema"] in {CORE_SCHEMA, SCHEMA}
         and manifest["platform"] == PLATFORM
         and re.fullmatch(r"[0-9a-f]{40}", revision)
-        and set(manifest["images"]) == {*DOCKERFILES, "db"}
-        and set(manifest["sha256"]) == {"source.tar", "images.tar", "images.env"},
+        and set(manifest) - {"upstream"} == {"schema", "revision", "platform", "sha256", *groups}
+        and all(set(manifest[group]) == names for group, names in groups.items())
+        and set(manifest["sha256"]) == {*CORE_FILES, *(LAB_FILES if lab else ())},
         "Invalid release manifest.",
     )
     for name, digest in manifest["sha256"].items():
         require(checksum(bundle / name) == digest, "Checksum mismatch for " + name)
-    require(
-        (bundle / "images.env").read_text() == image_env(manifest["images"]),
-        "Compose references do not match the manifest.",
-    )
-    for name, item in manifest["images"].items():
+    for group, env in (("images", "images.env"), ("lab_images", "lab-images.env")):
+        if group not in groups:
+            continue
         require(
-            re.fullmatch(r"sha256:[0-9a-f]{64}", item["id"])
-            and item["ref"] == alias(name, revision, item["id"]),
-            "Invalid image identity for " + name,
+            (bundle / env).read_text() == image_env(manifest[group]),
+            "Compose references do not match the manifest.",
         )
-        if loaded:
+        for name, item in manifest[group].items():
             require(
-                image_id(item["ref"]) == item["id"],
-                "Loaded image differs from manifest for " + name,
+                re.fullmatch(r"sha256:[0-9a-f]{64}", item["id"])
+                and item["ref"] == alias(name, revision, item["id"]),
+                "Invalid image identity for " + name,
             )
-    print(f"Verified {revision} {PLATFORM}" + (" and loaded image IDs" if loaded else ""))
+            if loaded:
+                require(
+                    image_id(item["ref"]) == item["id"],
+                    "Loaded image differs from manifest for " + name,
+                )
+    print(
+        f"Verified {revision} {PLATFORM}"
+        + (" with lab images" if lab else "")
+        + (" and loaded image IDs" if loaded else "")
+    )
 
 
 def main():

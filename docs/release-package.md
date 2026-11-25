@@ -1,6 +1,6 @@
 # Pinned HTTPS application package
 
-Build on a trusted Linux/amd64 Docker host before transferring the release to the target. Use Python 3.12 or later and Docker Compose 2.24.4 or later. The bundle contains the exact reviewed source archive, the FastAPI/worker image, the compiled web/Caddy image and PostgreSQL. The image build resolves registry digests from the existing Dockerfiles and Compose configuration and uses the existing Python and Node locks. The manifest records the revision, the selected upstream digests, local image identities and artifact SHA-256 values. Preserve that manifest with the artifacts for subsequent installs. A new build may select new upstream digests and needs a new review. Image aliases include both the source revision and content ID.
+Build on a trusted Linux/amd64 Docker host before transferring the release to the target. Use Python 3.12 or later and Docker Compose 2.24.4 or later. The bundle contains the exact reviewed source archive, the FastAPI/worker image, the compiled web/Caddy image and PostgreSQL. A version 2 bundle also carries `lab-images.tar` and `lab-images.env` with the owned lab images built from the same revision: the KRR runner, the measured sample and the healthy and bad-image recovery sample variants. The image build resolves registry digests from the existing Dockerfiles and Compose configuration and uses the existing Python and Node locks. The manifest records the revision, the selected upstream digests, local image identities and artifact SHA-256 values. Preserve that manifest with the artifacts for subsequent installs. A new build may select new upstream digests and needs a new review. Image aliases include both the source revision and content ID.
 
 ```sh
 revision=$(git rev-parse HEAD)
@@ -17,8 +17,11 @@ python3 "$verifier" verify "$bundle" &&
   tar -xf "$bundle/source.tar" -C /path/to/cloudops-install &&
   cd /path/to/cloudops-install &&
   docker image load --input "$bundle/images.tar" &&
+  docker image load --input "$bundle/lab-images.tar" &&
   python3 "$verifier" verify "$bundle" --loaded
 ```
+
+`verify --loaded` checks every image group in the manifest, so load `lab-images.tar` before it for a version 2 bundle. A version 1 bundle holds the core images only.
 
 ## Start and stop
 
@@ -61,7 +64,7 @@ For a populated upgrade of this core installation, stage and verify the new bund
 | Architecture and OS | Linux/amd64 Docker Engine with cgroup v2 for the builder and the target. The bundle rejects other image platforms. |
 | Tools | Docker Compose 2.24.4 or later and Python 3.12 or later on both hosts. The builder also needs Git and Docker Buildx with registry access. The target needs no registry, Git or Node. |
 | Network | The core project publishes only `127.0.0.1:8443`. API, PostgreSQL and worker ports stay unpublished. Reach the origin locally or through the authorized management tunnel. |
-| Images | Exactly three runtime images from `images.tar`: backend (API, worker, migration, observer, dispatch administration), compiled web with Caddy, and PostgreSQL 17.12, the same minor version as the scoped owned lab. |
+| Images | Exactly three runtime images from `images.tar`: backend (API, worker, migration, observer, dispatch administration), compiled web with Caddy, and PostgreSQL 17.12, the same minor version as the scoped owned lab. A version 2 bundle adds four lab images in `lab-images.tar` for the owned recovery lab only. |
 | Storage | Keep the bundle, install directory, Docker images and project volumes on a disk with at least 20 GiB free after loading. Volumes are `database`, `job_dispatch`, `local_https_data` and `local_https_config`. |
 
 Measured sizes, idle use and the qualified environment for a specific candidate are recorded in the [release package evidence](evidence/e10-s1-release/README.md).
@@ -129,7 +132,33 @@ lab up -d --no-build --pull never --wait --wait-timeout 240 api worker executor 
 uv run --project services/backend python scripts/probe-lab-credentials.py
 ```
 
-Generated credentials stay owner-only under the install directory's ignored `tmp/e01-integration`; the scripts also apply `umask 077` in release mode. The scripts refuse release mode without an explicit new `CLOUDOPS_LAB_PROJECT`, for the default or retained lab projects, or with an inherited `RELEASE_BACKEND_IMAGE`, `RELEASE_DB_IMAGE` or `RELEASE_HTTPS_IMAGE`. The release lab omits the Alertmanager overlay, whose container cannot read owner-only files; alert intake stays in the source-built lab. The executor starts in recovery mode with every target disabled. KRR, Prometheus and the retained owned testing lab are outside the bundle, and `manage-local-lab.py` exits before any change when `CLOUDOPS_RELEASE_BUNDLE` is set.
+Generated credentials stay owner-only under the install directory's ignored `tmp/e01-integration`; the scripts also apply `umask 077` in release mode. The scripts refuse release mode without an explicit new `CLOUDOPS_LAB_PROJECT`, for the default or retained lab projects, or with an inherited `RELEASE_BACKEND_IMAGE`, `RELEASE_DB_IMAGE` or `RELEASE_HTTPS_IMAGE`. This disposable release lab omits the Alertmanager overlay, whose container cannot read owner-only files. The executor starts in recovery mode with every target disabled. Use the owned recovery lab below for alert intake, Prometheus, KRR and recovery scenarios from the same bundle. `manage-local-lab.py` exits before any change when `CLOUDOPS_RELEASE_BUNDLE` is set for a retained source-built lab project.
+
+## Owned recovery lab with release images
+
+`manage-local-lab.py` runs a new owned recovery lab from a verified version 2 bundle when `CLOUDOPS_LAB_PROJECT` is `cloudops-release-recovery-NAME` (1-24 lowercase letters or digits) and `CLOUDOPS_RELEASE_BUNDLE` names the bundle. It is the E10 recovery lab with the same Compose settings, limits, credentials, containment and guards, and only the image sources change:
+
+- `compose.lab-release.yaml` is added last. It runs the API, worker, observer, executor, migration, dispatch administration and test services from the bundle backend image, the HTTPS proxy and PostgreSQL from the bundle, and KRR from `lab-images.env`, all with `pull_policy: never` and no build.
+- `start` builds nothing. It checks that every loaded bundle image has the manifest ID, `linux/amd64` and, for built images, the manifest revision label. It then points the lab's source-hashed sample and recovery tags at the bundle sample and recovery images and imports them into the owned K3s node. It refuses when such a tag already names a different image.
+- The first `start` binds the lab marker to the bundle revision and manifest SHA-256. Later `start` and `resume` refuse a different bundle or a changed `images.env` or `lab-images.env`; install a new bundle into a new project.
+- K3s, Prometheus, Alertmanager and kube-state-metrics stay pinned by digest in the reviewed Compose and manifest files. Start verifies those registry digests and pulls by digest; K3s still pulls its own pinned system images.
+- Alertmanager keeps the lab's root user with only `DAC_OVERRIDE`, so it reads the owner-only sender token and CA copy.
+- The project directory is `tmp/cloudops-release-recovery-NAME` under the install directory. Retained source-built projects, inherited `RELEASE_*` image variables and `CLOUDOPS_RELEASE_RESTORE` are refused.
+
+From the install directory, after `verify --loaded`:
+
+```sh
+umask 077
+export CLOUDOPS_LAB_PROJECT=cloudops-release-recovery-NAME CLOUDOPS_RELEASE_BUNDLE="$bundle"
+unset RELEASE_BACKEND_IMAGE RELEASE_DB_IMAGE RELEASE_HTTPS_IMAGE RELEASE_KRR_IMAGE \
+  RELEASE_SAMPLE_IMAGE RELEASE_RECOVERY_HEALTHY_IMAGE RELEASE_RECOVERY_BAD_IMAGE_IMAGE
+lab="uv run --project services/backend --frozen python scripts/manage-local-lab.py --project $CLOUDOPS_LAB_PROJECT"
+$lab preflight
+$lab start
+$lab recovery-config
+```
+
+Then follow the [E10 S3 recovery lab](evidence/e10-s3/README.md#recovery-qualification) qualification and trial flow and the [S6 campaign](evaluation-baseline.md) with this project selected. `scripts/release_scenarios.py` accepts recovery reset receipts from this project, and the S6 campaign binds the project selected by `CLOUDOPS_LAB_PROJECT`. The core and disposable release labs above are unchanged.
 
 ## Dependency advisories
 
