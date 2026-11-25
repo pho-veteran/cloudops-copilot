@@ -1,0 +1,25 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T19:18:54.333179+00:00",
+  "revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "owned R3 installed HTTPS release lab",
+  "evidence_class": "live",
+  "viewer_reads_plans": true,
+  "denials": {
+    "propose": {
+      "status": 403,
+      "code": "permission_denied"
+    },
+    "approve": {
+      "status": 403,
+      "code": "permission_denied"
+    },
+    "inverse": {
+      "status": 403,
+      "code": "permission_denied"
+    }
+  },
+  "plans_unchanged": true,
+  "model_requests": 0,
+  "limitation": "Approval/inverse use nonexistent IDs: verifies authentication precedes object lookup; valid plan semantics are covered separately by controlled release-image cases."
+}

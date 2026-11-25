@@ -1,0 +1,1428 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T20:35:08.653096+00:00",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "installed R3 owned local release lab",
+  "planned": 15,
+  "attempted_fault_and_reset": 15,
+  "outcome_counts": {
+    "completed": 6,
+    "blocked": 9
+  },
+  "score_dispositions": {
+    "blocked": 1,
+    "missing": 9,
+    "scored": 5
+  },
+  "action_counts": {
+    "not_executed": 14,
+    "succeeded": 1
+  },
+  "incident_counts": {
+    "open": 14,
+    "resolved": 1
+  },
+  "all_original_attempts_timing": {
+    "inject": {
+      "observed": 15,
+      "missing": 0,
+      "not_applicable": 0,
+      "ordinary_median_ms": 40111,
+      "range_ms": [
+        39192,
+        87324
+      ]
+    },
+    "detect": {
+      "observed": 15,
+      "missing": 0,
+      "not_applicable": 0,
+      "ordinary_median_ms": 15093,
+      "range_ms": [
+        14562,
+        19377
+      ]
+    },
+    "collect": {
+      "observed": 15,
+      "missing": 0,
+      "not_applicable": 0,
+      "ordinary_median_ms": 7102,
+      "range_ms": [
+        6995,
+        9260
+      ]
+    },
+    "analyze": {
+      "observed": 15,
+      "missing": 0,
+      "not_applicable": 0,
+      "ordinary_median_ms": 207,
+      "range_ms": [
+        188,
+        13281
+      ]
+    },
+    "approval": {
+      "observed": 1,
+      "missing": 14,
+      "not_applicable": 0,
+      "ordinary_median_ms": 24564,
+      "range_ms": [
+        24564,
+        24564
+      ]
+    },
+    "apply": {
+      "observed": 1,
+      "missing": 14,
+      "not_applicable": 0,
+      "ordinary_median_ms": 6997,
+      "range_ms": [
+        6997,
+        6997
+      ]
+    },
+    "verify": {
+      "observed": 1,
+      "missing": 14,
+      "not_applicable": 0,
+      "ordinary_median_ms": 180903,
+      "range_ms": [
+        180903,
+        180903
+      ]
+    }
+  },
+  "timing_population": "All fifteen original fault/collection/reset attempts, including pre-send blocked attempts; distinct from qualifying-live-only sealed scorecard.",
+  "timing_statistic": "ordinary median; original sealed scorecard uses lower median",
+  "cost_estimated": null,
+  "cost_billed": null,
+  "nominal_reservations_are_prices": false,
+  "cases": [
+    {
+      "case_id": "recovery-oom-memory-01",
+      "trial_id": "e949eecc-a4cb-43b9-bc2f-72f9c9e6c9c4",
+      "scenario_id": "recovery-oom-memory",
+      "original_outcome": "completed",
+      "original_reason": null,
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "completed",
+      "analysis_reason": "validated_advice",
+      "model_calls": 1,
+      "cause_category": "oom_restarts",
+      "candidate_template_id": "set_memory_profile",
+      "method_dispositions": {
+        "rules": "blocked",
+        "investigator": "blocked"
+      },
+      "captured_live_bundle": true,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39504
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15093
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7258
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 13281
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:33:34.337097+00:00",
+        "inject": "2026-11-25T19:35:05.666944+00:00",
+        "detect": "2026-11-25T19:35:45.170554+00:00",
+        "collect": "2026-11-25T19:35:45.170554+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:38:31.710797+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "049e4ad9b2fbf89849dade48ea817d1d9b826b129877776e2413ae0c25bbc246",
+        "analysis": "725680b6de21d1ec869d04235df5594a7c94e8c875c1050b5191c45bdeb60e4a",
+        "incident": "4e38cdb24e8d05d5b229fd04526d60ba0094f950b699a5b2ea35ca8d28dcbafa",
+        "timing": "aa33fcd0898dcd11052d52a34cf09e2e5453ffb1d5bbcae234e69e3f5c6dc4ac"
+      },
+      "action_denial": {
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T19:40:10.195112+00:00",
+        "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+        "environment": "installed R3 owned local live trial",
+        "case_id": "recovery-oom-memory-01",
+        "trial_id": "e949eecc-a4cb-43b9-bc2f-72f9c9e6c9c4",
+        "action_disposition": "not_executed",
+        "outcome_reason": "writer_enablement_denied",
+        "denials": [
+          {
+            "audit_id": "12baf14f-8f0a-45d6-b1f7-ff7d5e31243a",
+            "observed_at": "2026-11-25T19:37:03.196307+00:00",
+            "code": "maintenance_state_changed",
+            "reason": "Target is not fully ready. Repair it manually before enabling product writes."
+          }
+        ],
+        "maintenance_sha256": "ad9bbbe748d0abfa899e8bb6ebcb54cea13351cfcb4450cff1b643115a9813a1",
+        "retry": false,
+        "paired_scores": "Preserve original frozen labels and score independently."
+      }
+    },
+    {
+      "case_id": "recovery-oom-memory-02",
+      "trial_id": "cee487e9-a79c-410b-bdec-ea3a0e2467e1",
+      "scenario_id": "recovery-oom-memory",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39768
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 14866
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7014
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 202
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:42:46.074049+00:00",
+        "inject": "2026-11-25T19:44:17.664861+00:00",
+        "detect": "2026-11-25T19:44:57.432627+00:00",
+        "collect": "2026-11-25T19:44:57.432627+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:47:19.187396+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "893537eee7d86af9f19621a638ac0dab5d73f0d33396f7ec8a3436360f84865e",
+        "analysis": "54b8bda61a929aa075ee35a5ab99278833cd1f7c9e463baa638ff8b68b8e7e30",
+        "incident": "f1c552087a352883014865b94263efc8d4241703289fbca144972ff5aa300ed8",
+        "timing": "fe744ed2b0173d83f057e27abbc064d64289aee68a568d6e8bc78ad4da564e9a"
+      },
+      "context_block": {
+        "case_id": "recovery-oom-memory-02",
+        "trial_id": "cee487e9-a79c-410b-bdec-ea3a0e2467e1",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T19:48:51.067430+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "893537eee7d86af9f19621a638ac0dab5d73f0d33396f7ec8a3436360f84865e",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-oom-memory-03",
+      "trial_id": "d4286758-30a1-4355-b90f-b0a06ba52b9f",
+      "scenario_id": "recovery-oom-memory",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39563
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 14666
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 6995
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 188
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:49:56.406286+00:00",
+        "inject": "2026-11-25T19:51:27.161694+00:00",
+        "detect": "2026-11-25T19:52:06.723846+00:00",
+        "collect": "2026-11-25T19:52:06.723846+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:53:39.534898+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "9a613e4e385e38781e3d0a4e7bc7f66efc13f43b682dd30040056fad7b06cc6b",
+        "analysis": "7297abeb6f10df1be54356ba529c3e90fe8022a9dae8dd71de140d0ce2f7554f",
+        "incident": "c463e5f2d9e7192a4f2e3607aa5c9c1968495395a280772e41aa07697bcf149b",
+        "timing": "93d4cbb3410b97daaffd8d2ce67b786236f1ade9304f63fcce0fc2324ad17d38"
+      },
+      "context_block": {
+        "case_id": "recovery-oom-memory-03",
+        "trial_id": "d4286758-30a1-4355-b90f-b0a06ba52b9f",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T19:54:51.733057+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "9a613e4e385e38781e3d0a4e7bc7f66efc13f43b682dd30040056fad7b06cc6b",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-oom-memory-04",
+      "trial_id": "be72431e-3577-4729-9ad9-4ec2a3287e19",
+      "scenario_id": "recovery-oom-memory",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39534
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15045
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7050
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 203
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:55:56.850398+00:00",
+        "inject": "2026-11-25T19:57:28.136073+00:00",
+        "detect": "2026-11-25T19:58:07.669130+00:00",
+        "collect": "2026-11-25T19:58:07.669130+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:59:23.751629+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "cbbfa110c9e67fcca0404aac874fb45a65400605fc87b5ad3c276544d24474dc",
+        "analysis": "645d824e1a5734a97a46813bb00d9fb1719088398bb86106935e4cf28355fc66",
+        "incident": "11d060dcd19dfb37fb57aeba7d8a00ad1197ecef4eeadf10b26fd8cdada12c3d",
+        "timing": "6260cd150624255e18121b630929a03de616c10fba271b9c705e33f2bfc93770"
+      },
+      "context_block": {
+        "case_id": "recovery-oom-memory-04",
+        "trial_id": "be72431e-3577-4729-9ad9-4ec2a3287e19",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:00:24.107923+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "cbbfa110c9e67fcca0404aac874fb45a65400605fc87b5ad3c276544d24474dc",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-oom-memory-05",
+      "trial_id": "1292c53a-ce58-4bc1-b2be-d3d9ca7d3578",
+      "scenario_id": "recovery-oom-memory",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39192
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15254
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7021
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 198
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T20:01:28.409452+00:00",
+        "inject": "2026-11-25T20:02:59.269801+00:00",
+        "detect": "2026-11-25T20:03:38.460958+00:00",
+        "collect": "2026-11-25T20:03:38.460958+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T20:04:54.137740+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "61fe9a07a47635f16e6b3603174844a0a5d5b2277792461b6508e6668895592a",
+        "analysis": "13544a02e2c9256692c7c01721678807f78381898c11bf3ac994a7b9022b1da8",
+        "incident": "8c51f1d2253d53c685833aeefb32db2fc9f68d096833092cc0b9ed1020aa1322",
+        "timing": "32af5279e8267eeb19fb0ba3b2c5f20cf6fe487a65b1d18f4df2361fd8ff01b8"
+      },
+      "context_block": {
+        "case_id": "recovery-oom-memory-05",
+        "trial_id": "1292c53a-ce58-4bc1-b2be-d3d9ca7d3578",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:05:54.875358+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "61fe9a07a47635f16e6b3603174844a0a5d5b2277792461b6508e6668895592a",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-01",
+      "trial_id": "0d59a424-c166-4805-ab15-9e532d46c49a",
+      "scenario_id": "recovery-bad-rollout-restore",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 40415
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15018
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7032
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 193
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T20:07:25.756558+00:00",
+        "inject": "2026-11-25T20:08:56.537462+00:00",
+        "detect": "2026-11-25T20:09:36.951693+00:00",
+        "collect": "2026-11-25T20:09:36.951693+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T20:10:53.733557+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "a25d82649b6dba5bbc1e321392409e8ce5dfa1fb015fc4b7fb6979a114c6804c",
+        "analysis": "a628a09b889b8d00a93385545d2fb69b6945dbb7bc5d707276a4edee58934a20",
+        "incident": "98dc176b7dc39a13606b7e042d57fba180d8f7d94f549ae1ae51ccf7e6269b70",
+        "timing": "e5e0da7416485f2a78018754ffffd9176f4fb1a5f362f2abc2a5f44510ba40d4"
+      },
+      "context_block": {
+        "case_id": "recovery-bad-rollout-restore-01",
+        "trial_id": "0d59a424-c166-4805-ab15-9e532d46c49a",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:11:54.467557+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "a25d82649b6dba5bbc1e321392409e8ce5dfa1fb015fc4b7fb6979a114c6804c",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-02",
+      "trial_id": "5f7af254-c6fe-46d8-beb5-147b55314387",
+      "scenario_id": "recovery-bad-rollout-restore",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39761
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15390
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7154
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 201
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T20:13:07.226334+00:00",
+        "inject": "2026-11-25T20:14:38.719043+00:00",
+        "detect": "2026-11-25T20:15:18.479659+00:00",
+        "collect": "2026-11-25T20:15:18.479659+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T20:16:36.157163+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "c0bf1a5f05679d889ba351dabbc3b8e34f3f91141bf201f16c0992dddd898647",
+        "analysis": "551ece4ec4cc5cde36c2b0b57f2f2c331a863424aeda27e8b54f68573c26e321",
+        "incident": "7cd61dcb2d39febeb886e2e134203088277dd4e522a373b6175a93a7ab4fdcca",
+        "timing": "8301ba616d2d16d64359ba3ecbd12fcb08ae18d31c855f366a150b3e7599e977"
+      },
+      "context_block": {
+        "case_id": "recovery-bad-rollout-restore-02",
+        "trial_id": "5f7af254-c6fe-46d8-beb5-147b55314387",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:17:37.315550+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "c0bf1a5f05679d889ba351dabbc3b8e34f3f91141bf201f16c0992dddd898647",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-03",
+      "trial_id": "654e41d3-2b9d-4340-8869-11319c66cd5b",
+      "scenario_id": "recovery-bad-rollout-restore",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 39612
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 14866
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7122
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 196
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T20:18:49.918382+00:00",
+        "inject": "2026-11-25T20:20:21.186849+00:00",
+        "detect": "2026-11-25T20:21:00.798692+00:00",
+        "collect": "2026-11-25T20:21:00.798692+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T20:22:16.492634+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "e19fa324b8a14ca2c59bbfee8d6e045671a57dbf60b436dbdd1ff77e7b52e2d2",
+        "analysis": "dfb5c264d102035d705a25dc2054dc116ff8d8afe15756c51179691780f5d335",
+        "incident": "c8ee5fa5b2f2e37401874416dacaab2ba3f1d386eae608787533cb9a582e87a6",
+        "timing": "9966548aa809790348d4f90e4ca618c5992017799778e23056b2ffd7fb6f0570"
+      },
+      "context_block": {
+        "case_id": "recovery-bad-rollout-restore-03",
+        "trial_id": "654e41d3-2b9d-4340-8869-11319c66cd5b",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:23:16.955215+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "e19fa324b8a14ca2c59bbfee8d6e045671a57dbf60b436dbdd1ff77e7b52e2d2",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-04",
+      "trial_id": "4ea023d1-51a8-4265-856d-5a2327cfec23",
+      "scenario_id": "recovery-bad-rollout-restore",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 40111
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 14562
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7175
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 207
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T20:24:29.845330+00:00",
+        "inject": "2026-11-25T20:26:01.000692+00:00",
+        "detect": "2026-11-25T20:26:41.111201+00:00",
+        "collect": "2026-11-25T20:26:41.111201+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T20:27:57.754156+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "4b83c3a5022438f2ea3a936c5ee469d19adf0627f1997d08699843e10c4f564e",
+        "analysis": "f638cd6abdaacd0dc9bd8c5ae831c08ee53219a64f52a9b5b81abcd475355785",
+        "incident": "df8d0d3e18bb7d05e744b185eb3db875ae9b153b82f8bb257a23e92ee3e36331",
+        "timing": "ccb20ab08b6746bcbf4d45842fdde4238abd360eb58428f5ffc95765169baec5"
+      },
+      "context_block": {
+        "case_id": "recovery-bad-rollout-restore-04",
+        "trial_id": "4ea023d1-51a8-4265-856d-5a2327cfec23",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:28:58.430317+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "4b83c3a5022438f2ea3a936c5ee469d19adf0627f1997d08699843e10c4f564e",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-05",
+      "trial_id": "cb0450ea-5632-4755-b796-0f3e3ebdcbc5",
+      "scenario_id": "recovery-bad-rollout-restore",
+      "original_outcome": "blocked",
+      "original_reason": "required_targets_exceed_budget",
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "insufficient_evidence",
+      "analysis_reason": "required_targets_exceed_budget",
+      "model_calls": 0,
+      "cause_category": null,
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "missing",
+        "investigator": "missing"
+      },
+      "captured_live_bundle": false,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 42928
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15330
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7096
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 259
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T20:30:11.693011+00:00",
+        "inject": "2026-11-25T20:31:42.576455+00:00",
+        "detect": "2026-11-25T20:32:25.504296+00:00",
+        "collect": "2026-11-25T20:32:25.504296+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T20:33:41.875621+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "a6972702f5adb21cbfb9d88214610226d689b61f53952c5ee1b9b0bb57b13edc",
+        "analysis": "c41f24e91cced351f6e1cbdbb06a17040edbe5f192a7cba908d19e972ccbf38e",
+        "incident": "c2d653fcf6aaf0314235db942e4d3d2e409a94e10e4db8759805a9d698757b7b",
+        "timing": "253496deca85b73205881da8c6c2add4248f095e71f479874653f01ae158176d"
+      },
+      "context_block": {
+        "case_id": "recovery-bad-rollout-restore-05",
+        "trial_id": "cb0450ea-5632-4755-b796-0f3e3ebdcbc5",
+        "operator": "MinhKhoa2209",
+        "at": "2026-11-25T20:34:42.442558+00:00",
+        "reason": "required_targets_exceed_budget",
+        "model_calls": 0,
+        "captured_bundle": false,
+        "reset_retained_independently": true,
+        "reset_sha256": "a6972702f5adb21cbfb9d88214610226d689b61f53952c5ee1b9b0bb57b13edc",
+        "limitation": "The campaign cannot bind a reset without a captured context; this slot remains blocked."
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-01",
+      "trial_id": "43248830-7cce-4bc8-b4bc-9afe29e37877",
+      "scenario_id": "recovery-traffic-scale",
+      "original_outcome": "completed",
+      "original_reason": null,
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "completed",
+      "analysis_reason": "validated_advice",
+      "model_calls": 1,
+      "cause_category": "traffic_latency_errors",
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "scored",
+        "investigator": "scored"
+      },
+      "captured_live_bundle": true,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 87324
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 19377
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 9260
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 11041
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T15:33:44.951299+00:00",
+        "inject": "2026-11-25T15:33:56.210420+00:00",
+        "detect": "2026-11-25T15:35:23.533994+00:00",
+        "collect": "2026-11-25T15:35:23.533994+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T15:37:36.431524+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "dcc4e7bbf5fccd2e3881f0dc92caad014fab4b8c20969914dba1b682323c327d",
+        "analysis": "93a5f3daf3bbdb3a380a610db9d7e1c0dd4cb62aaf0d830bb2e541162464816d",
+        "incident": "43c4e8bc57268e05c4550d3f0d9461d717e0d590753ea416d0bc609ce87b2d64",
+        "timing": "7f695514a4b49385a44d2e609f383d8a879e319b6247055a32bddc936b8748fe"
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-02",
+      "trial_id": "de30068a-4b0f-4ce9-86f4-9800c01baf18",
+      "scenario_id": "recovery-traffic-scale",
+      "original_outcome": "completed",
+      "original_reason": null,
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "completed",
+      "analysis_reason": "validated_advice",
+      "model_calls": 1,
+      "cause_category": "traffic_latency_errors",
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "scored",
+        "investigator": "scored"
+      },
+      "captured_live_bundle": true,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 86088
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15042
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7392
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 10499
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:00:37.220538+00:00",
+        "inject": "2026-11-25T19:00:47.240043+00:00",
+        "detect": "2026-11-25T19:02:13.327113+00:00",
+        "collect": "2026-11-25T19:02:13.327113+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:05:20.796118+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "3ff4d781f0d96b22157a9016cbfdaeedb3d44eaafd4be25099acb780de7e5b3f",
+        "analysis": "3565eb496597d242ffea99fc9701eb882faa46a8939d1514c2257df74b5a52b7",
+        "incident": "638f8ae8408bda6c3fa71c81c068cf7a1a30b5d5dfbb1e3d66a26369659b8e0c",
+        "timing": "5f14a2af99bfa7fa6d4ea221afd0f70b64b8e079e2f5d04ef5058d637356e1e7"
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-03",
+      "trial_id": "0eee4061-192c-485d-bcec-4c595800e608",
+      "scenario_id": "recovery-traffic-scale",
+      "original_outcome": "completed",
+      "original_reason": null,
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "completed",
+      "analysis_reason": "validated_advice",
+      "model_calls": 1,
+      "cause_category": "traffic_latency_errors",
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "scored",
+        "investigator": "scored"
+      },
+      "captured_live_bundle": true,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 86295
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15330
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7102
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 12331
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:07:32.288420+00:00",
+        "inject": "2026-11-25T19:07:42.291632+00:00",
+        "detect": "2026-11-25T19:09:08.586282+00:00",
+        "collect": "2026-11-25T19:09:08.586282+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:11:41.284255+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "39190aa633b76d3c11bacf7e7fddd6ee6a8bd94174a72e600e6175430ae3b880",
+        "analysis": "baf10e22f86beab4da594149501cb0526f65d7339d87c1d726e7fce5037aa434",
+        "incident": "1b3846c73393a05a271e48c330910cd921164b75aadc2be91956540e7a0b411b",
+        "timing": "bc23f854cb37ceee16fc3992cc19ec8721db41c1291d1f99ea0e46a9745018c2"
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-04",
+      "trial_id": "70b1ffe5-05ed-448b-a733-553fefbf38a9",
+      "scenario_id": "recovery-traffic-scale",
+      "original_outcome": "completed",
+      "original_reason": null,
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "completed",
+      "analysis_reason": "validated_advice",
+      "model_calls": 1,
+      "cause_category": "traffic_latency_errors",
+      "candidate_template_id": null,
+      "method_dispositions": {
+        "rules": "scored",
+        "investigator": "scored"
+      },
+      "captured_live_bundle": true,
+      "action_state": "not_executed",
+      "verification_state": null,
+      "incident_state": "open",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 87323
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 16633
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7609
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 11486
+        },
+        {
+          "stage": "approval",
+          "state": "missing"
+        },
+        {
+          "stage": "apply",
+          "state": "missing"
+        },
+        {
+          "stage": "verify",
+          "state": "missing"
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:13:53.068336+00:00",
+        "inject": "2026-11-25T19:14:03.343938+00:00",
+        "detect": "2026-11-25T19:15:30.666644+00:00",
+        "collect": "2026-11-25T19:15:30.666644+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-25T19:17:18.892551+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "incomplete",
+        "incomplete_reason": "Recovery reset lacks a positive E07 post-check and finalized offered-load evidence.",
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "2b24266d8247603000a70aa67212f1ba2279c391a0fb429765201c0e7cb3299c",
+        "analysis": "c0344d42687d313d6757d09d5e1ed691229608fe2d181c2fab39e568b5ccea05",
+        "incident": "55f1e521a81e8b105784b917dccef8366937db3d530a984ddba4da3be147f803",
+        "timing": "58c5cde3ea7ea358bf121a13b8659ef9a42fe4d82927d11b714b1d7ffc23a2e3"
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-05",
+      "trial_id": "bd3d94f4-d4f7-40a3-8eed-5f8cd227f7ea",
+      "scenario_id": "recovery-traffic-scale",
+      "original_outcome": "completed",
+      "original_reason": null,
+      "source_binding_sha256": "60140bf4c07e0477d44898cf4d079fcc44c5bde0af47f70eaf8eafc1160ff45b",
+      "analysis_status": "completed",
+      "analysis_reason": "validated_advice",
+      "model_calls": 1,
+      "cause_category": "traffic_latency_errors",
+      "candidate_template_id": "scale_deployment",
+      "method_dispositions": {
+        "rules": "scored",
+        "investigator": "scored"
+      },
+      "captured_live_bundle": true,
+      "action_state": "succeeded",
+      "verification_state": "passed",
+      "incident_state": "resolved",
+      "timing": [
+        {
+          "stage": "inject",
+          "state": "observed",
+          "duration_ms": 85788
+        },
+        {
+          "stage": "detect",
+          "state": "observed",
+          "duration_ms": 15446
+        },
+        {
+          "stage": "collect",
+          "state": "observed",
+          "duration_ms": 7063
+        },
+        {
+          "stage": "analyze",
+          "state": "observed",
+          "duration_ms": 11329
+        },
+        {
+          "stage": "approval",
+          "state": "observed",
+          "duration_ms": 24564
+        },
+        {
+          "stage": "apply",
+          "state": "observed",
+          "duration_ms": 6997
+        },
+        {
+          "stage": "verify",
+          "state": "observed",
+          "duration_ms": 180903
+        }
+      ],
+      "s3_phases_utc": {
+        "baseline": "2026-11-25T19:19:47.495506+00:00",
+        "inject": "2026-11-25T19:19:58.077492+00:00",
+        "detect": "2026-11-25T19:21:23.865323+00:00",
+        "collect": "2026-11-25T19:21:23.865323+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-25T19:23:20.661523+00:00",
+        "verify": "2026-11-25T19:26:21.564344+00:00",
+        "reset": "2026-11-25T19:31:13.793692+00:00"
+      },
+      "independent_reset": {
+        "baseline_restored": true,
+        "receipt_status": "reset_complete",
+        "incomplete_reason": null,
+        "residual_eligible_actions": 0,
+        "duplicate_targeted_loads": 0
+      },
+      "private_receipts_sha256": {
+        "reset": "ca577a4e4e2380423b3ed232178cf2d29adcf4a6b2db58798c78046a6a8716ff",
+        "analysis": "550ee440d31a67c713085d11eb65b16af9b7ec1c874f5bf15ba25c74bf59e908",
+        "incident": "5fe328228396c201acfab648076b66e8585eca9db0fd41cef09378bb57072126",
+        "timing": "26695dbb11ac17a083fb6f63b329f9b1caff5ca0eea038c525c82eba44070a24"
+      }
+    }
+  ],
+  "limitations": [
+    "Blocked or missing slots remain in the denominator and block issue closure.",
+    "Analysis duration for a zero-call slot measures local context rejection, not provider latency.",
+    "Frozen incident expectation is not_applicable; actual open/resolved dispositions are reported separately.",
+    "Operator independence not established; product and review model use the same family/route.",
+    "Gateway ignores requested output limits; pricing and billed costs unavailable."
+  ]
+}

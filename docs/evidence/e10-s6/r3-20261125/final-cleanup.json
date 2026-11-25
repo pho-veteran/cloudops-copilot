@@ -1,0 +1,57 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T20:37:50.390254+00:00",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "owned R3 local release lab",
+  "active_trial": false,
+  "all_owned_project_containers_stopped": true,
+  "containers": [
+    {
+      "name": "cloudops-release-recovery-r3-api-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-diagnosis-gateway-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-prometheus-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-alertmanager-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-worker-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-executor-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-observer-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-https-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-k3s-1",
+      "state": "exited"
+    },
+    {
+      "name": "cloudops-release-recovery-r3-db-1",
+      "state": "exited"
+    }
+  ],
+  "volumes_preserved": true,
+  "history_and_journal_preserved": true,
+  "task_wsl_relay_stopped": true,
+  "owner_windows_gateway_untouched": true,
+  "private_backup_sha256": "b817440c5ce56c05b751d8229ead3585bf08cd4cb6d493aa2bc86c0304ad8f78",
+  "task_artifact_permissions_private": true,
+  "aws_resources_created": false
+}

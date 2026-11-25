@@ -1,0 +1,47 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T15:29:23.246204+00:00",
+  "revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "installed owned R3 Docker Desktop release lab",
+  "outcome": "passed operational model smoke",
+  "excluded_from_main_15": true,
+  "message_bytes": 61221,
+  "input_budget_bytes": 65536,
+  "requests": 1,
+  "observed_tokens": 16477,
+  "usage": {
+    "reservation_sha256": "74a777bf9dff8b2d97679ee47f64ba5fcc33634c1e7b8c1d5f9eb1aae9a2485a",
+    "kind": "text",
+    "http_status": 200,
+    "observed_tokens": 16477,
+    "model_matches": true,
+    "stop_reason": null,
+    "received_at": "2026-11-25T15:27:30.285120Z"
+  },
+  "primary_identity": {
+    "model": "gpt-6.1-sol",
+    "config_id": "gateway-sol",
+    "policy_digest": "bc7007928c88c9ee74150dd7ed966095e54dd5383cc42f8d0a404bea98737083",
+    "config_version": "3",
+    "endpoint_label": "owned-local-gateway",
+    "prompt_version": "e06.rca_prompt/v3",
+    "behavior_digest": "3776622e56b776d8cc62701192532464de54ee3b426bb5169957ef3a1fb40863",
+    "context_version": "e06.context/v2",
+    "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+    "validator_version": "e06.validator/v1"
+  },
+  "product_result_receipt": {
+    "analysis_id": "d64b3387-3c5a-43ac-bca9-aca84b206933",
+    "bundle_sha256": "efe876c30d335080bbc4b2e1715fbd919da0cef9b2dc84ee69803d57ce0f04c7",
+    "context_digest": "97de8b995dd99d221d7a25fa58df5e1f5751e6b3576b8bf916c2ecd1048503ed",
+    "result_sha256": "e997115af3540b0212e9cae930bdca0ea730df59bff71035df444bb7a607d369"
+  },
+  "candidate_template_id": null,
+  "estimated_usd": null,
+  "billed_usd": null,
+  "limitations": [
+    "Gateway ignores requested output limits.",
+    "Traffic advice does not prove scaling causality; no executable candidate advised.",
+    "Operator independence not established; product/review share model family and route."
+  ]
+}

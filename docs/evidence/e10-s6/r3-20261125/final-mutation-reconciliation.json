@@ -1,0 +1,986 @@
+{
+  "operator": "MinhKhoa2209",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "installed R3 owned local campaign",
+  "original_slots_reconciled": 15,
+  "audit_prefix_preserved": true,
+  "uncontrolled_writes_observed": 0,
+  "unknown_attributions": 0,
+  "all_targets_quarantined": true,
+  "deployment_mutations": [
+    {
+      "audit_id": "e891f8b7-8504-4fc7-80e5-6680f8df84c9",
+      "at": "2026-11-25T19:22:45.336853Z",
+      "actor": "system:serviceaccount:demo:cloudops-writer",
+      "request_sha256": "90b403b9d4dac24f353a3f9a05a8769c6bc69e9ee782beb09d41d25025062e36",
+      "kind": "trusted_maintenance_fence",
+      "maintenance_audit_id": "6b2f58b8-2139-4304-9fd4-9b40a7b3ecd4",
+      "patch_response_resource_version": "7727",
+      "confirmed_resource_version": "7729",
+      "controller_status_audit_ids": [
+        "b8774a2b-f6e1-4ed3-9c05-fba7ff54d54e"
+      ],
+      "next_conditional_patch_audit_id": "275a08e6-8d90-4e5b-bc3b-e5ba44a4379c"
+    },
+    {
+      "audit_id": "275a08e6-8d90-4e5b-bc3b-e5ba44a4379c",
+      "at": "2026-11-25T19:22:47.631456Z",
+      "actor": "system:serviceaccount:demo:cloudops-writer",
+      "request_sha256": "02b14a00cfc3475fbe83f5b0d0b016377bd8c88f5468e7073db2ead936ca8a52",
+      "kind": "trusted_maintenance_fence",
+      "maintenance_audit_id": "8321d7d0-9cdf-46e3-8e33-309379308d4b",
+      "patch_response_resource_version": "7730",
+      "confirmed_resource_version": "7732",
+      "controller_status_audit_ids": [
+        "f3114ad3-29a4-4cf5-b745-84cf18c21ef6"
+      ],
+      "next_conditional_patch_audit_id": "1aa1bc8a-7036-4527-9cca-7aea910cae5d"
+    },
+    {
+      "audit_id": "1aa1bc8a-7036-4527-9cca-7aea910cae5d",
+      "at": "2026-11-25T19:23:20.656944Z",
+      "actor": "system:serviceaccount:demo:cloudops-writer",
+      "request_sha256": "59e2154168726ae17dbae38f99053493f0bc2145c0d46d46e14a50d35b72c1d4",
+      "kind": "approved_product_change",
+      "operation_id": "14c1527a-f486-4f84-bc7e-bbcb194169d4",
+      "case_id": "recovery-traffic-scale-05"
+    },
+    {
+      "audit_id": "1de61956-c8ca-4d82-9eb6-8fb445af8620",
+      "at": "2026-11-25T19:30:42.488180Z",
+      "actor": "system:admin",
+      "request_sha256": "d1f5a259abf623b9b718ac8af4c488e8928d15818b4f0f61f2309f1675f50f88",
+      "kind": "trusted_reset",
+      "case_id": "recovery-traffic-scale-05"
+    },
+    {
+      "audit_id": "e1951a3b-749a-4fe6-ad80-ce32b90a1e29",
+      "at": "2026-11-25T19:35:05.929405Z",
+      "actor": "system:admin",
+      "request_sha256": "faa86d2d6070bca38a6e54a35a7b3fd04508cd9593021b7c158c1157bfc55306",
+      "kind": "trusted_fault",
+      "case_id": "recovery-oom-memory-01"
+    },
+    {
+      "audit_id": "60832eec-ce93-4300-b3a5-156fdfd5ba91",
+      "at": "2026-11-25T19:38:23.584983Z",
+      "actor": "system:admin",
+      "request_sha256": "bc4a4bd55437ca05132ef312f0e7f8eb46423932cc94867c414410c52e24c7c0",
+      "kind": "trusted_reset",
+      "case_id": "recovery-oom-memory-01"
+    },
+    {
+      "audit_id": "731ba147-8ed9-4786-94f2-640d71b496d2",
+      "at": "2026-11-25T19:44:17.924725Z",
+      "actor": "system:admin",
+      "request_sha256": "8043d2013dd49bf213bbed138013d4ac8c18631bf31649ada18399252957e800",
+      "kind": "trusted_fault",
+      "case_id": "recovery-oom-memory-02"
+    },
+    {
+      "audit_id": "aec78368-2285-4401-85a4-d53ffb63f6ff",
+      "at": "2026-11-25T19:47:11.395331Z",
+      "actor": "system:admin",
+      "request_sha256": "7be3ae0bb96b21a5608b3b097541729c7a4a830e300567bf08b257bd20e8943d",
+      "kind": "trusted_reset",
+      "case_id": "recovery-oom-memory-02"
+    },
+    {
+      "audit_id": "9604e2a3-e47c-45ff-9e73-499e2cdcf7fe",
+      "at": "2026-11-25T19:51:27.401782Z",
+      "actor": "system:admin",
+      "request_sha256": "c5fddd6e5dbb6c49be12160cf3c88803123a1044846befd4dc481620413b3530",
+      "kind": "trusted_fault",
+      "case_id": "recovery-oom-memory-03"
+    },
+    {
+      "audit_id": "65be6b9e-dc89-4225-b1a0-1933a51de784",
+      "at": "2026-11-25T19:53:32.210173Z",
+      "actor": "system:admin",
+      "request_sha256": "10b37c67180376fd59ce2f3ba29017a08402bce85c5396fb44292dc0aca03255",
+      "kind": "trusted_reset",
+      "case_id": "recovery-oom-memory-03"
+    },
+    {
+      "audit_id": "d3b16dd1-3e0f-4106-9300-b64a73d71aba",
+      "at": "2026-11-25T19:57:28.379689Z",
+      "actor": "system:admin",
+      "request_sha256": "7d7b1937a974ea091842e85312a637663eb5581a03eb8581f458529f13f13a65",
+      "kind": "trusted_fault",
+      "case_id": "recovery-oom-memory-04"
+    },
+    {
+      "audit_id": "7ba56492-839a-4b05-acd9-d7e5f663a869",
+      "at": "2026-11-25T19:59:17.917755Z",
+      "actor": "system:admin",
+      "request_sha256": "7c045da2a016994317447a180b055825cd8c21232c40ab6ba15806bee3ea41fb",
+      "kind": "trusted_reset",
+      "case_id": "recovery-oom-memory-04"
+    },
+    {
+      "audit_id": "7db76139-b72c-4844-bd6f-edef8452119b",
+      "at": "2026-11-25T20:02:59.529934Z",
+      "actor": "system:admin",
+      "request_sha256": "25cf93e4f96d1b238372659d5c58cb1a041ff002b265e14d757f16c0269bcafd",
+      "kind": "trusted_fault",
+      "case_id": "recovery-oom-memory-05"
+    },
+    {
+      "audit_id": "6089fa29-cd9d-46bd-9bd6-c4d55c06b498",
+      "at": "2026-11-25T20:04:48.280497Z",
+      "actor": "system:admin",
+      "request_sha256": "79962e0d1b098e1852265765be7f8cca3a541142a2bd06da1f8197f0ed799006",
+      "kind": "trusted_reset",
+      "case_id": "recovery-oom-memory-05"
+    },
+    {
+      "audit_id": "d2afa6b0-1c3b-4ea9-acf4-1ae33b3a1180",
+      "at": "2026-11-25T20:08:56.856066Z",
+      "actor": "system:admin",
+      "request_sha256": "ce16025644fbedfffe7669b877bdde5c87e05258beba4c740a45991d80f97bf6",
+      "kind": "trusted_fault",
+      "case_id": "recovery-bad-rollout-restore-01"
+    },
+    {
+      "audit_id": "c3d7a37b-d15c-498b-9bc8-479cc6a7064f",
+      "at": "2026-11-25T20:10:45.995808Z",
+      "actor": "system:admin",
+      "request_sha256": "f9fc5de0991a134359e7ef47a1a88c8cec80c4aa9e6c62602ecac48f2376be24",
+      "kind": "trusted_reset",
+      "case_id": "recovery-bad-rollout-restore-01"
+    },
+    {
+      "audit_id": "6d84cadf-0c04-4cfb-9d61-8e97333504bf",
+      "at": "2026-11-25T20:14:38.983591Z",
+      "actor": "system:admin",
+      "request_sha256": "2109fafa833f953934c8de6c67523d80b2f968be3431eef8d19e6336eb714363",
+      "kind": "trusted_fault",
+      "case_id": "recovery-bad-rollout-restore-02"
+    },
+    {
+      "audit_id": "fdb7b77f-0cf2-4d1c-bf91-992f2cfc3d8b",
+      "at": "2026-11-25T20:16:28.697268Z",
+      "actor": "system:admin",
+      "request_sha256": "df9e84d8c45fbe19a9594b0cbd94ea811342930272a1ee3543859d5e39dfd700",
+      "kind": "trusted_reset",
+      "case_id": "recovery-bad-rollout-restore-02"
+    },
+    {
+      "audit_id": "7f56ec1e-f016-4c08-862d-4805ac1da7b5",
+      "at": "2026-11-25T20:20:21.429658Z",
+      "actor": "system:admin",
+      "request_sha256": "86af25dd887989a066f4328b7e4e423724517f30953968b36a9313c787f4fccc",
+      "kind": "trusted_fault",
+      "case_id": "recovery-bad-rollout-restore-03"
+    },
+    {
+      "audit_id": "f76b3882-5022-444e-91d2-ad8b01a111a7",
+      "at": "2026-11-25T20:22:10.127854Z",
+      "actor": "system:admin",
+      "request_sha256": "77d70f56b23e5e70c5254182f837f6cf84f66477b06e8bcaacde307ed2ffa8d4",
+      "kind": "trusted_reset",
+      "case_id": "recovery-bad-rollout-restore-03"
+    },
+    {
+      "audit_id": "f2385822-e0ad-4950-86a9-442b577de297",
+      "at": "2026-11-25T20:26:01.257361Z",
+      "actor": "system:admin",
+      "request_sha256": "cdec53f9e6a9d32f60da2bafbd92d21f064276640fd7a790df0b34f9e3145097",
+      "kind": "trusted_fault",
+      "case_id": "recovery-bad-rollout-restore-04"
+    },
+    {
+      "audit_id": "380468d3-a3ee-48e8-902c-c58fe72321c3",
+      "at": "2026-11-25T20:27:49.975664Z",
+      "actor": "system:admin",
+      "request_sha256": "a6f20a8d3c65aac8de2f004ed893a61f4ce545fe8255f6ba4d2e2c3ad54d767a",
+      "kind": "trusted_reset",
+      "case_id": "recovery-bad-rollout-restore-04"
+    },
+    {
+      "audit_id": "140fa2c0-0174-49e5-bea4-11af795ae403",
+      "at": "2026-11-25T20:31:42.888887Z",
+      "actor": "system:admin",
+      "request_sha256": "d7ebf86a28eaf7ff669b2069c1744d1d7cd8c28a5022f89d073dd2f3313acbba",
+      "kind": "trusted_fault",
+      "case_id": "recovery-bad-rollout-restore-05"
+    },
+    {
+      "audit_id": "f13d7924-38dd-4718-9a42-93121765b46e",
+      "at": "2026-11-25T20:33:35.418724Z",
+      "actor": "system:admin",
+      "request_sha256": "c4baf362011ddeaf8ff47d19139c708a2c25ebb83439661d621beb4321d70b3b",
+      "kind": "trusted_reset",
+      "case_id": "recovery-bad-rollout-restore-05"
+    }
+  ],
+  "denied_cluster_requests": [
+    {
+      "audit_id": "e01b5783-85e4-40da-ab0c-a40e2d23fd94",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "392756e4-4156-4afb-ab66-ed80a3f649cf",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "9a9c17e4-f0bf-46a8-874c-588a21d2a12d",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "25e217ba-6617-48dc-a03f-8458e65b9249",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "6f35407d-8ee8-44fa-bf58-71207189cc4d",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "cfec1f60-ce3a-44f7-9a98-c198fada90cf",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "f924217a-f5af-4739-9084-f1d104d59f75",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "c754826f-466d-40c6-afcd-ebe7e922f7d0",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "f9f1c2e8-73c0-41d9-848b-07e1156be680",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "71d6804c-cd84-49bf-9b77-0bb93431a8e4",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "bbd1e6fc-579c-48ec-9896-909fa238f871",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-7cbfc9c688"
+    },
+    {
+      "audit_id": "a37e21c5-c123-41e4-9571-eb9841328847",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "942a9335-c70a-4a2b-ab08-5532b4e26bc2",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "87654e99-6fbf-4fa9-94f0-f24737b7c431",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "e37ec971-b5dd-45e5-9f1c-6b1a97bd4e16",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "1f52a50f-da46-4c1b-9196-9145f190a18a",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "ade4c382-7818-4f90-a98b-695e981aab27",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "b1646d29-819e-4f06-8592-cc28491e7435",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "b4f1958a-5e45-4ee2-a0f2-65499cbc37a7",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "1c7ab801-89d3-4445-a259-f70927a4daa9",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "039f5fce-07cb-4450-9644-4bb9d8a2b087",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-7cbfc9c688"
+    },
+    {
+      "audit_id": "235c3126-a4e7-4b94-b09b-c557f9ea99fa",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "a51b144a-7354-4aeb-ab72-fd2ee9134a0a",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "03526fa9-eddd-4b52-8321-348e28562fe7",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "1a1d2d47-80b8-4b4b-9de2-da10ce33f48b",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "7c5928ee-9842-4a17-b1dd-54c225556951",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "1a34fefe-2d4a-4183-a475-ca38a77e7377",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "ae3b04b8-05a3-4a80-aaf8-01aca1821055",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "cb4ad2d9-c7ea-4b8b-b485-857e49f70030",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "e8389d51-3311-4fca-90a3-ee4ad353c04f",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "1a3dd5ac-042b-41aa-b139-16e42fbb648c",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-7cbfc9c688"
+    },
+    {
+      "audit_id": "d8186bc8-a43f-4080-a240-914ded5bd63b",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "1ffaf002-a2c8-4059-826b-044243a26d56",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "c35f8b07-a720-45d4-8a52-a641b6194e0a",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "17e879e5-5e5f-41db-b8f2-9464d89ca489",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "e602b41c-ee7b-4e81-8b7a-c92ea4f2e519",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "ea0d2370-f6d9-4c20-97c7-60c7780709cf",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "2a15ca7d-6716-4fd9-b532-ba040841e476",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-7cbfc9c688"
+    },
+    {
+      "audit_id": "b28b4791-9f45-48e6-a6fe-1cc12ed839b4",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "cb29d695-cce2-4e02-977b-f6d40198afca",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "7816aacd-b2d9-4593-b440-a96be5a2e3c2",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "4ef218a9-7220-4af3-820b-a87be8d5e9c7",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "82379645-64b3-4b24-8d2c-922ca6f0be96",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "85609eeb-2e76-4b35-a3e3-270083d3861a",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "08010ae3-305b-4117-aea1-98f8990883e1",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "08be309d-e55f-434c-b507-e782df874695",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "ae3f139b-bc63-44a5-bcaa-e3eacc9f24bf",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "b60e2d59-3b25-48f2-a47e-af2494464f8e",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "fe384a09-05e0-4da1-ace3-98dc9cf674a3",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "ad86fbed-e688-4a7c-a847-76b4d515952e",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "53f5ea6c-edd9-4cdf-a8b0-5349220b9d8f",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "0c54a509-517f-445d-97d5-9051b7ed0b99",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "c574a6c7-6ab5-4164-a287-86f729d86f08",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-5f88864767"
+    },
+    {
+      "audit_id": "10a70a37-f6a0-4d64-a9cc-c439ff3cb329",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "3162a225-14bd-4c5f-8441-50ff854e3d24",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "7d843d2f-1353-4efc-947f-3e28d96901ed",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "3fa137f0-a8a7-442a-88af-e41344dd7c47",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "a1fa81cc-08a0-48a5-8bba-2b0ca21e32b9",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "b7d89465-d176-41d1-82de-a44d39b4c8f5",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "fbb008cb-368b-4d79-a1de-ec79a623f5cb",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "75477070-1125-4d33-bf91-b29c16e0e969",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "1de9b753-7c2d-4907-920a-c9213957ed53",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "4ca8ea40-fdb6-46cc-bba1-3632c18806c1",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-5f88864767"
+    },
+    {
+      "audit_id": "35a5d904-5030-4504-8996-58be346a2499",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "16f7c71b-4100-4e3a-ad0d-7940304d6866",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "fb2d5d91-ab0a-4a5d-a1e6-dc61d05ffe9b",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "686db236-357e-4ee0-88ef-d766c1a9e01f",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "4b88390d-ae23-4beb-8f66-ebf045840b13",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "84bf0a84-1f42-4127-99b4-e8f399af5dc6",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "b8ccd798-251b-41df-b8df-071f63cbed39",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-5f88864767"
+    },
+    {
+      "audit_id": "aa33d662-8116-429e-9187-210765799b2f",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "ff5839cc-8c05-4044-8a53-1aa53a823e83",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "71222493-e0ac-49a2-b28b-de82f61835d1",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "691c8991-53ed-419a-8c98-e2f8878ceba4",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "dbcffba2-83ca-467b-9c89-d1b60e813569",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "58dd5026-fcf2-4b76-b502-79495bd4f03c",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-5f88864767"
+    },
+    {
+      "audit_id": "18d979b9-7b61-416b-b97e-7cf3e1011a53",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "cb174505-b29c-433f-b618-80a49a6e3931",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "ea9f532f-9f25-4717-a717-cdc45ad37fc7",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "9eb7665e-b741-4156-b2df-6887e6f8d890",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "445c7c07-f9e4-488f-a0ea-4a3862955fe0",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "replicasets",
+      "name": "checkout-fb467d5d5"
+    },
+    {
+      "audit_id": "f1f2fbf5-5d6d-4600-b2f4-9dbf072d648b",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "5905c5a2-9f2f-4fbd-8e5a-75256c242cca",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    },
+    {
+      "audit_id": "8bfd64b5-c189-4621-80da-98e328cc73ee",
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "code": 409,
+      "resource": "deployments",
+      "name": "checkout"
+    }
+  ],
+  "mutation_metadata_groups": [
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": "kube-node-lease",
+      "resource": "leases",
+      "subresource": null,
+      "count": 1784
+    },
+    {
+      "actor": "system:apiserver",
+      "namespace": "kube-system",
+      "resource": "leases",
+      "subresource": null,
+      "count": 1784
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": null,
+      "resource": "tokenreviews",
+      "subresource": null,
+      "count": 289
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:metrics-server",
+      "namespace": null,
+      "resource": "subjectaccessreviews",
+      "subresource": null,
+      "count": 666
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": null,
+      "resource": "subjectaccessreviews",
+      "subresource": null,
+      "count": 135
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": null,
+      "resource": "nodes",
+      "subresource": "status",
+      "count": 59
+    },
+    {
+      "actor": "system:kube-controller-manager",
+      "namespace": "kube-system",
+      "resource": "serviceaccounts",
+      "subresource": "token",
+      "count": 26
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": "kube-system",
+      "resource": "serviceaccounts",
+      "subresource": "token",
+      "count": 18
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": "cloudops-lab-monitoring",
+      "resource": "serviceaccounts",
+      "subresource": "token",
+      "count": 6
+    },
+    {
+      "actor": "system:serviceaccount:demo:cloudops-writer",
+      "namespace": "demo",
+      "resource": "deployments",
+      "subresource": null,
+      "count": 3
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "namespace": "demo",
+      "resource": "replicasets",
+      "subresource": null,
+      "count": 82
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "namespace": "demo",
+      "resource": "deployments",
+      "subresource": "status",
+      "count": 201
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:deployment-controller",
+      "namespace": "demo",
+      "resource": "events",
+      "subresource": null,
+      "count": 38
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:replicaset-controller",
+      "namespace": "demo",
+      "resource": "pods",
+      "subresource": null,
+      "count": 42
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:replicaset-controller",
+      "namespace": "demo",
+      "resource": "events",
+      "subresource": null,
+      "count": 42
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:replicaset-controller",
+      "namespace": "demo",
+      "resource": "replicasets",
+      "subresource": "status",
+      "count": 116
+    },
+    {
+      "actor": "system:kube-scheduler",
+      "namespace": "demo",
+      "resource": "pods",
+      "subresource": "binding",
+      "count": 21
+    },
+    {
+      "actor": "system:kube-scheduler",
+      "namespace": "demo",
+      "resource": "events",
+      "subresource": null,
+      "count": 21
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": "demo",
+      "resource": "pods",
+      "subresource": "status",
+      "count": 231
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": "demo",
+      "resource": "events",
+      "subresource": null,
+      "count": 283
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:endpoint-controller",
+      "namespace": "demo",
+      "resource": "endpoints",
+      "subresource": null,
+      "count": 53
+    },
+    {
+      "actor": "system:serviceaccount:kube-system:endpointslice-controller",
+      "namespace": "demo",
+      "resource": "endpointslices",
+      "subresource": null,
+      "count": 74
+    },
+    {
+      "actor": "system:admin",
+      "namespace": "demo",
+      "resource": "deployments",
+      "subresource": null,
+      "count": 21
+    },
+    {
+      "actor": "system:node:cloudops-local",
+      "namespace": "demo",
+      "resource": "pods",
+      "subresource": null,
+      "count": 21
+    }
+  ],
+  "references_sha256": {
+    "final-audit.jsonl": "7fb30b2e9db625e65b4c2ef852c7b91b7fa77838ea2f90413ae2419dad8fc38a",
+    "final-journal.json": "892cdbeef6fa3ff55dde787f9202fd92ebe27a3b6fd49e8fb1e4c5679aa489a7",
+    "audit-before-s6.jsonl": "703822e6bf8dd21833024683e2acf210c5aa91f24afbe546c215544d4586078f"
+  },
+  "limitations": [
+    "Non-Deployment controller writes retain metadata only under the reviewed audit policy.",
+    "Acceptance requires all original qualifying live slots separately; context-blocked slots are not promoted."
+  ]
+}

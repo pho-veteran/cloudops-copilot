@@ -1,0 +1,13 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T20:36:53.736230+00:00",
+  "revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "Windows native read-only SQLite selected-combo query",
+  "name": "gpt-6.1-sol",
+  "kind": null,
+  "members": [
+    "cx/gpt-6.1-sol"
+  ],
+  "strategy": "Fallback (owner-reported UI; unchanged stored kind)",
+  "model_requests": 0
+}

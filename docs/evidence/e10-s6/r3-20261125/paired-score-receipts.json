@@ -1,0 +1,4316 @@
+{
+  "rules": {
+    "recovery-bad-rollout-restore-01": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-01",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "565c372011669d905bfeaf337901e5e7b286c93ebc4e7a9a3b7258ebc1dfd8a2",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "09509da3f4e3c03ff5292462c80ad5156ec1cd647ae83a5a9200177f4d68243f"
+    },
+    "recovery-bad-rollout-restore-02": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-02",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "6c0a99fc07ce41541aed95a377c267bce3edc6635a5a32dbf32b87091e99a13b",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "382713414c349d9bbb2811ad02f27fd9bcc3791d1ebb62131bc93dcb6a77d456"
+    },
+    "recovery-bad-rollout-restore-03": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-03",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "fad211adb1ea7aef7fb19489fbaf650ae5e36711fb319f326a83cd5fe5dd3004",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "3b611501b16601e1573d61ba1111ff4ef2983b8621f35877f251aa1a82bfd837"
+    },
+    "recovery-bad-rollout-restore-04": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-04",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "278c9d621fc2fafaefe9f483f1fab070296775e54373b9bd7ca3f95b6aa4f821",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "3cc060200dac308a55ca0c78f99a096cb4cb78b23a5f952a3cfd986cd55df09b"
+    },
+    "recovery-bad-rollout-restore-05": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-05",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "1cb88dc56f0f2e6af0f1d00e4c7023016db4e1308496b96f2c0690ef58bc103d",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "85dc35dc4705bd7ced6649d0e9c9098d1c66830334cd23ca12090474c8213335"
+    },
+    "recovery-oom-memory-01": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "be16abc3b88363a32d620828ffb80f7f021abeb940d13477674fb7e3bd4f9201",
+        "case_id": "recovery-oom-memory-01",
+        "context_digest": "7f0da69bbd3cae1345f808238294c11372414345e9cc8472bb585751cb04914e",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "blocked",
+            "reasons": []
+          }
+        ],
+        "disposition": "blocked",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "d6df084e6c44d765101146eae22fda87612224d44cf47fa43ef9f9a4dc3fc03f",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "required_source_unavailable"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": 1,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "3764faa5db44127eed6587db4d45ebba220f9a8a90599162d512a3e0c0208a92"
+    },
+    "recovery-oom-memory-02": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-02",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "d34a750c3f9ae6283e406d4504990a0a470ed7e02c5f6d7a935ffd0cb7c8a5e0",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "ff8c45dd69ba651f92f01eb24ea04f1b7ec2951ab4d3cb225c8ff435ca347586"
+    },
+    "recovery-oom-memory-03": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-03",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "91deea5e0f4ff08d9918422625f9ae4a7836195ce05a715c865a3a5d41b32cd0",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "51e570073b82246daf3c7db067a4009b3da698caa9268f340254bf54cb01ddae"
+    },
+    "recovery-oom-memory-04": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-04",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "10efca1d135426405548b818673631e96cb58881b8e903618bf690874485d4c9",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "5c64fad7f1835b693799f1fddd013912ba72eb8e746533530004ab3117abea07"
+    },
+    "recovery-oom-memory-05": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-05",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "4c43097c809386eb8eee11fff3420c9956f20c273b3e0427720ab2342282185c",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "a7f17e1bc692898cdc7a03510ca16cb992b6ddf057e719ca4121e81dc88fb0c5"
+    },
+    "recovery-traffic-scale-01": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "d010286cd031de3d7141e96a64c1afa82ec07f85d74e708f27951f89f19dc303",
+        "case_id": "recovery-traffic-scale-01",
+        "context_digest": "7ff60efb1087f5272a90e9ae8df11b96ccd837df12d95d27b4265c3ef0eec8df",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "fail",
+            "reasons": [
+              "category_mismatch"
+            ]
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "irrelevant_source",
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "fail",
+            "reasons": [
+              "manual_guidance_missing"
+            ]
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "2256e2ce24a57544ab434f553040f56e5aa9c468906f17f74ae0dc32b6cb2f3e",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "unknown",
+          "contradicting_evidence_ids": [],
+          "limitations": [
+            "Deterministic rules comparator; it does not establish semantic quality.",
+            "Rules output is advisory and grants no approval, execution or recovery authority."
+          ],
+          "missing_evidence": [],
+          "next_steps": [
+            "Review current workload state and collect the missing or next useful evidence."
+          ],
+          "ruled_out_hypotheses": [],
+          "runbook_citation_ids": [],
+          "schema_version": "RCAAdvice/v1",
+          "status": "insufficient_evidence",
+          "summary": "The captured evidence does not support a specific fault category.",
+          "supporting_evidence_ids": [
+            "E002",
+            "E009",
+            "E012",
+            "E016",
+            "E069"
+          ],
+          "unverified_checks": [
+            {
+              "check": "Fault signature",
+              "reason": "No supported fault signature is present in the captured evidence."
+            }
+          ]
+        },
+        "output_sha256": "f95f31737af768ae88599722a3e4705cb544b5e9ec568978d001dde63432b9d7",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": 1,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "3563655347e80488c60e63b927c9f9f91d0fbd95905a1774bfaa1a9cf7b2daba"
+    },
+    "recovery-traffic-scale-02": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "0634bef71f5c0de1b4283c8d41a19872d7893b39cc18f025776089d9e0f9b41a",
+        "case_id": "recovery-traffic-scale-02",
+        "context_digest": "c623f54927f34e45678d29f6af67faa059b0336f1cb22fdaf6a4682d80103d6c",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "fail",
+            "reasons": [
+              "category_mismatch"
+            ]
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "irrelevant_source",
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "fail",
+            "reasons": [
+              "manual_guidance_missing"
+            ]
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "31694a60cbf9629f84b1cd090a283b01b12ccd8aec70d00d584dcfa6d0078e80",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "unknown",
+          "contradicting_evidence_ids": [],
+          "limitations": [
+            "Deterministic rules comparator; it does not establish semantic quality.",
+            "Rules output is advisory and grants no approval, execution or recovery authority."
+          ],
+          "missing_evidence": [],
+          "next_steps": [
+            "Review current workload state and collect the missing or next useful evidence."
+          ],
+          "ruled_out_hypotheses": [],
+          "runbook_citation_ids": [],
+          "schema_version": "RCAAdvice/v1",
+          "status": "insufficient_evidence",
+          "summary": "The captured evidence does not support a specific fault category.",
+          "supporting_evidence_ids": [
+            "E002",
+            "E010",
+            "E011",
+            "E016"
+          ],
+          "unverified_checks": [
+            {
+              "check": "Fault signature",
+              "reason": "No supported fault signature is present in the captured evidence."
+            }
+          ]
+        },
+        "output_sha256": "53b22d1f7f0f3b1f4577d7680e2b520a80a63e76a1caa030f939107a737f90a7",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": 1,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "e6e0d5188f0eaf571c447f7d73f4a0d6c7824fff08618e205a1e877d5a0d07f3"
+    },
+    "recovery-traffic-scale-03": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "6c0bb487d33d54bc20e9f1fa993b7723ba4391a1ec9d87f6c52267197b5a1ae4",
+        "case_id": "recovery-traffic-scale-03",
+        "context_digest": "647875708f9d6d60e4363f00224e9bb7f2385973776b1dad4d9abaca5711531d",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "fail",
+            "reasons": [
+              "category_mismatch"
+            ]
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "irrelevant_source",
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "fail",
+            "reasons": [
+              "manual_guidance_missing"
+            ]
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "8b1d4ff50ea09e59ff68677144dcd6f814fbd29bce18326978b3b8c14a0d7510",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "unknown",
+          "contradicting_evidence_ids": [],
+          "limitations": [
+            "Deterministic rules comparator; it does not establish semantic quality.",
+            "Rules output is advisory and grants no approval, execution or recovery authority."
+          ],
+          "missing_evidence": [],
+          "next_steps": [
+            "Review current workload state and collect the missing or next useful evidence."
+          ],
+          "ruled_out_hypotheses": [],
+          "runbook_citation_ids": [],
+          "schema_version": "RCAAdvice/v1",
+          "status": "insufficient_evidence",
+          "summary": "The captured evidence does not support a specific fault category.",
+          "supporting_evidence_ids": [
+            "E005",
+            "E009",
+            "E011",
+            "E016"
+          ],
+          "unverified_checks": [
+            {
+              "check": "Fault signature",
+              "reason": "No supported fault signature is present in the captured evidence."
+            }
+          ]
+        },
+        "output_sha256": "816c8a19fdbe5538273ddbcbb9183a5ad26eeb52902abf3d7d2e7c93fcb711a1",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": 1,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "9892918e8acbe17e4a0ccd33dd569de33f3b60138fe0f94ba6c588d83d62a2d3"
+    },
+    "recovery-traffic-scale-04": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "77db3b5ef6ae2c5c4375c28e8f870de22905b3bc9240209b42544affcb6e23a7",
+        "case_id": "recovery-traffic-scale-04",
+        "context_digest": "7700ee12608c1e4777d211e70e27bc2f00afa96eaf440796af30f94b5a0ba490",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "fail",
+            "reasons": [
+              "category_mismatch"
+            ]
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "irrelevant_source",
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "fail",
+            "reasons": [
+              "manual_guidance_missing"
+            ]
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "406adc3580408d4db86ab9d65b03cb5cbe3bf77f469a0eef9fb00739ac07902e",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "unknown",
+          "contradicting_evidence_ids": [],
+          "limitations": [
+            "Deterministic rules comparator; it does not establish semantic quality.",
+            "Rules output is advisory and grants no approval, execution or recovery authority."
+          ],
+          "missing_evidence": [],
+          "next_steps": [
+            "Review current workload state and collect the missing or next useful evidence."
+          ],
+          "ruled_out_hypotheses": [],
+          "runbook_citation_ids": [],
+          "schema_version": "RCAAdvice/v1",
+          "status": "insufficient_evidence",
+          "summary": "The captured evidence does not support a specific fault category.",
+          "supporting_evidence_ids": [
+            "E001",
+            "E010",
+            "E014",
+            "E016"
+          ],
+          "unverified_checks": [
+            {
+              "check": "Fault signature",
+              "reason": "No supported fault signature is present in the captured evidence."
+            }
+          ]
+        },
+        "output_sha256": "3c9850e75a9047d84fabfc1bb4fa6de2130fe9c0addedff7b0cc37297a1b8e3e",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": 1,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "d7102f5622da9fbab1eb496bcab99bc353ad611706e3272faef5ba5dabcf87e7"
+    },
+    "recovery-traffic-scale-05": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "0c0c27f2ad6baa4a5b4be45c218bb6639e510a3abc9729aa37aa7370fd0223d6",
+        "case_id": "recovery-traffic-scale-05",
+        "context_digest": "6ab39e1fc9b278fe7a8ab0139d9f10cf3068f98ff6926f5c1b17b6705f83091c",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "fail",
+            "reasons": [
+              "category_mismatch"
+            ]
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "irrelevant_source",
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "fail",
+            "reasons": [
+              "manual_guidance_missing"
+            ]
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "resolved"
+        },
+        "label_sha256": "b03dad6fea787ba574f1e25124ce551d02475694ef7e174b844699c1a40b7927",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "rules",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "unknown",
+          "contradicting_evidence_ids": [],
+          "limitations": [
+            "Deterministic rules comparator; it does not establish semantic quality.",
+            "Rules output is advisory and grants no approval, execution or recovery authority."
+          ],
+          "missing_evidence": [],
+          "next_steps": [
+            "Review current workload state and collect the missing or next useful evidence."
+          ],
+          "ruled_out_hypotheses": [],
+          "runbook_citation_ids": [],
+          "schema_version": "RCAAdvice/v1",
+          "status": "insufficient_evidence",
+          "summary": "The captured evidence does not support a specific fault category.",
+          "supporting_evidence_ids": [
+            "E005",
+            "E007",
+            "E011",
+            "E016"
+          ],
+          "unverified_checks": [
+            {
+              "check": "Fault signature",
+              "reason": "No supported fault signature is present in the captured evidence."
+            }
+          ]
+        },
+        "output_sha256": "d2df0bc51d1f2824559b244617c3c66180cc99bc0a0b8eeb0b707e1be96ceef1",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": 1,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "e1cec8f90c2f7b880f153155df08780ba9b88143bd39d35da23e03bca10b26ac"
+    }
+  },
+  "investigator": {
+    "recovery-bad-rollout-restore-01": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-01",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "565c372011669d905bfeaf337901e5e7b286c93ebc4e7a9a3b7258ebc1dfd8a2",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 40415,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15018,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7032,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 193,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "9fa3544f9f7a10366e75fe44947409ef9d9ca7428e9897e69004a5a1e4c1e6a0"
+    },
+    "recovery-bad-rollout-restore-02": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-02",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "6c0a99fc07ce41541aed95a377c267bce3edc6635a5a32dbf32b87091e99a13b",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 39761,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15390,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7154,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 201,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "2e97411b13454fb9d4417f5cf46937c650a29aee84b3b08979a3f7034dc4615d"
+    },
+    "recovery-bad-rollout-restore-03": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-03",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "fad211adb1ea7aef7fb19489fbaf650ae5e36711fb319f326a83cd5fe5dd3004",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 39612,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 14866,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7122,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 196,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "0cd41c153dbbed727150e2dfcb8a5a508a88acc4be3faedaf4b17e606aa6abcc"
+    },
+    "recovery-bad-rollout-restore-04": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-04",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "278c9d621fc2fafaefe9f483f1fab070296775e54373b9bd7ca3f95b6aa4f821",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 40111,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 14562,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7175,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 207,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "5e2f4435ffd39ef2a72d273b824032a84072df1885318df081f36c32f8209114"
+    },
+    "recovery-bad-rollout-restore-05": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-bad-rollout-restore-05",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "1cb88dc56f0f2e6af0f1d00e4c7023016db4e1308496b96f2c0690ef58bc103d",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 42928,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15330,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7096,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 259,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "d89318beca1f7030c5b860d9f9a0beb441b396673385a4ca3154df32d47ff5a4"
+    },
+    "recovery-oom-memory-01": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "be16abc3b88363a32d620828ffb80f7f021abeb940d13477674fb7e3bd4f9201",
+        "case_id": "recovery-oom-memory-01",
+        "context_digest": "7f0da69bbd3cae1345f808238294c11372414345e9cc8472bb585751cb04914e",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "blocked",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "blocked",
+            "reasons": []
+          }
+        ],
+        "disposition": "blocked",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "d6df084e6c44d765101146eae22fda87612224d44cf47fa43ef9f9a4dc3fc03f",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "required_source_unavailable"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 39504,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15093,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7258,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 13281,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "3356a424b05ba1d58c121c033c953681183d1f00d95da48ca15b61d14bb8a2eb"
+    },
+    "recovery-oom-memory-02": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-02",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "d34a750c3f9ae6283e406d4504990a0a470ed7e02c5f6d7a935ffd0cb7c8a5e0",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": null,
+            "stage": "inject",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "detect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "collect",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "analyze",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "995f452f5cf3b942c4d9ee3df7d7cb4aa88d479f39b8154ccf8fbe3676405cb1"
+    },
+    "recovery-oom-memory-03": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-03",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "91deea5e0f4ff08d9918422625f9ae4a7836195ce05a715c865a3a5d41b32cd0",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 39563,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 14666,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 6995,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 188,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "784b16cbf7bcedbf91c344d8bd614ace2461222ac773cd94fbfc63239a802afc"
+    },
+    "recovery-oom-memory-04": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-04",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "10efca1d135426405548b818673631e96cb58881b8e903618bf690874485d4c9",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 39534,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15045,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7050,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 203,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "fb2ff35c351f4f254ea3758528ef683f107d2eee42571b410c5ab522aac4e894"
+    },
+    "recovery-oom-memory-05": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_applicable"
+        },
+        "bundle_sha256": null,
+        "case_id": "recovery-oom-memory-05",
+        "context_digest": null,
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "missing",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "missing",
+            "reasons": []
+          }
+        ],
+        "disposition": "missing",
+        "incident": {
+          "disposition": "not_applicable"
+        },
+        "label_sha256": "4c43097c809386eb8eee11fff3420c9956f20c273b3e0427720ab2342282185c",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": null,
+        "output_sha256": null,
+        "reasons": [
+          "input_invalid"
+        ],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 39192,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15254,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7021,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 198,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "f0173bda125b126f2ca5660249396b0f362a78c670c64891861d7d3d62157537"
+    },
+    "recovery-traffic-scale-01": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "d010286cd031de3d7141e96a64c1afa82ec07f85d74e708f27951f89f19dc303",
+        "case_id": "recovery-traffic-scale-01",
+        "context_digest": "7ff60efb1087f5272a90e9ae8df11b96ccd837df12d95d27b4265c3ef0eec8df",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "2256e2ce24a57544ab434f553040f56e5aa9c468906f17f74ae0dc32b6cb2f3e",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "traffic_latency_errors",
+          "context_digest": "7ff60efb1087f5272a90e9ae8df11b96ccd837df12d95d27b4265c3ef0eec8df",
+          "context_version": "e06.context/v2",
+          "contradicting": [],
+          "incident_id": "1a3a77e7-6a44-4ce6-afa3-ca05382b3d0a",
+          "limitations": [
+            "Kubernetes state and events extend after the requested window.",
+            "No runbook was selected or supplied.",
+            "Traffic correlation does not prove that scaling will resolve the errors."
+          ],
+          "machine_validation": "structural_v1",
+          "missing_evidence": [
+            "Selectable current and previous container logs for restart-family assessment.",
+            "Incident-window diagnostic evidence establishing the mechanism behind the elevated error ratio and latency."
+          ],
+          "next_steps": [
+            "Manually review application request failures and available logs aligned with the metric timestamps to identify the source of the elevated error ratio.",
+            "Manually verify current workload health and capacity before considering any scaling change; the observed metrics alone do not establish a scaling requirement."
+          ],
+          "policy_version": "1",
+          "prompt_version": "e06.rca_prompt/v3",
+          "quality": "not_established",
+          "ruled_out": [],
+          "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c",
+          "runbook_citations": [],
+          "schema_version": "RCAResult/v1",
+          "status": "supported",
+          "summary": "Stored metrics support traffic-associated latency and error degradation: request rate rose from approximately 3.49 to 30.48 requests/s, error ratio increased from 0 to approximately 33.56%, and p95 latency increased from 0.2425 to approximately 0.481 seconds. These concurrent changes establish the observed incident family, but do not establish resource saturation or the underlying application failure mechanism.",
+          "supporting": [
+            {
+              "alias": "E001",
+              "citation": {
+                "evidence_id": "f08bc367-e4f1-4c41-b9d6-a575c8d28f9f",
+                "locator": {
+                  "key": "v1_373ffc586bd6994bc97ace7b702510fe77bd92a5930a64454a43ee06562cad92",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "57d938ced92974cd45902a487c2c16879872109d06d76895800185c430e94b78",
+              "evidence_sha256": "bb1e1e235b95223ae2cb49dd9855481a0b8fe9e8e217962da8f3e6b8a9eecbb6",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E002",
+              "citation": {
+                "evidence_id": "f08bc367-e4f1-4c41-b9d6-a575c8d28f9f",
+                "locator": {
+                  "key": "v1_4c9f5f5122f8af55bc4cfcfbf06b05e06e44fe762d2bcf188438ac61a52532b2",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "51576cf398e0537c8d5df8203ffca423abbc322d342efcbf1083bdf48c2636f6",
+              "evidence_sha256": "bb1e1e235b95223ae2cb49dd9855481a0b8fe9e8e217962da8f3e6b8a9eecbb6",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E006",
+              "citation": {
+                "evidence_id": "a3ace102-719d-43e1-9f86-7835a551db5a",
+                "locator": {
+                  "key": "v1_30b30d5aa2b5fdf552754e021de9f554a3a8e1e48ce4684249fb948df933456f",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7",
+              "evidence_sha256": "f7c8759bce4901de797521bea68c70b9620e719c7b06b305966f41750b5b3abb",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E007",
+              "citation": {
+                "evidence_id": "a3ace102-719d-43e1-9f86-7835a551db5a",
+                "locator": {
+                  "key": "v1_5c40d4ddc939b35522d6f36c52b8eca49baee93e9f8b9cced2ce12da9842c2f3",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "361f6734ab9f1a8c2abf34b7936156f467b5fae2c52f060f5bc98b15eec64301",
+              "evidence_sha256": "f7c8759bce4901de797521bea68c70b9620e719c7b06b305966f41750b5b3abb",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E009",
+              "citation": {
+                "evidence_id": "a3ace102-719d-43e1-9f86-7835a551db5a",
+                "locator": {
+                  "key": "v1_afb5faf71a4924a0d91e346eb878ec4d7995ae360a8564fb8ac6a4e753c3cb9a",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "f8839f582503f02eeee8fd27328c86ad38b2f17c1818b06214f96b665c516bc7",
+              "evidence_sha256": "f7c8759bce4901de797521bea68c70b9620e719c7b06b305966f41750b5b3abb",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E011",
+              "citation": {
+                "evidence_id": "128ab898-be70-42bb-bcdb-cbde2a828380",
+                "locator": {
+                  "key": "v1_20b92b56d6b4ef7513a3461f3573a5f060454fac126905e1375b35a0d843b9ea",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "6e918630e20619460609e024428d3c620758d777dd8e9d0841667e3876d6fd64",
+              "evidence_sha256": "e6d6814b19fa7e71928d9555e95decc8a2d8ff8d6a35afd2c04750a3c4032495",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E012",
+              "citation": {
+                "evidence_id": "128ab898-be70-42bb-bcdb-cbde2a828380",
+                "locator": {
+                  "key": "v1_20ca65491e5e6177a0cd8ffd58def0f3cb773311a0a7bd27892205e60ed629fd",
+                  "kind": "sample"
+                },
+                "run_id": "a27f5ea1-7bb4-407a-b1c6-3380cf34dc1c"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8d0a3b5f20d168d5e10b46df7255cea71a9b6ecd27e6cac6623823a32a723806",
+              "evidence_sha256": "e6d6814b19fa7e71928d9555e95decc8a2d8ff8d6a35afd2c04750a3c4032495",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            }
+          ],
+          "unverified_checks": [
+            {
+              "check": "Resource saturation as the mechanism behind traffic degradation",
+              "reason": "The cited request, error, and latency metrics show concurrent degradation but do not establish a capacity bottleneck."
+            },
+            {
+              "check": "Crashloop startup or OOM-related restarts",
+              "reason": "Neither family is eligible for assessment because current and previous container logs have no selectable entries."
+            },
+            {
+              "check": "Pending scheduling or image-pull failures during the incident window",
+              "reason": "Stored state shows a running, scheduled pod and events show accessible images, but Kubernetes observations extend after the requested window; these families are not formally ruled out here."
+            }
+          ],
+          "validator_version": "e06.validator/v1"
+        },
+        "output_sha256": "16239f7e55580f1f00070371c599007e4a36e060f3919b231d674c17f1c32325",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 87324,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 19377,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 9260,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 11041,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "51d8a998f65555d6924621f9275ef4350f14f05a58d3c744afb13cdee6beff8f"
+    },
+    "recovery-traffic-scale-02": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "0634bef71f5c0de1b4283c8d41a19872d7893b39cc18f025776089d9e0f9b41a",
+        "case_id": "recovery-traffic-scale-02",
+        "context_digest": "c623f54927f34e45678d29f6af67faa059b0336f1cb22fdaf6a4682d80103d6c",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "31694a60cbf9629f84b1cd090a283b01b12ccd8aec70d00d584dcfa6d0078e80",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "traffic_latency_errors",
+          "context_digest": "c623f54927f34e45678d29f6af67faa059b0336f1cb22fdaf6a4682d80103d6c",
+          "context_version": "e06.context/v2",
+          "contradicting": [],
+          "incident_id": "e670be45-8703-41cb-8cf9-591b5b63308c",
+          "limitations": [
+            "Kubernetes state extends after the requested window and cannot establish incident-time health.",
+            "No runbooks were selected.",
+            "Correlation between increased traffic and degradation does not establish capacity exhaustion or justify a specific recovery change."
+          ],
+          "machine_validation": "structural_v1",
+          "missing_evidence": [
+            "Selectable Kubernetes event and current/previous container-log observations needed to assess the other diagnostic families.",
+            "Incident-aligned resource utilization and application/dependency diagnostics to establish the mechanism behind the traffic-associated degradation."
+          ],
+          "next_steps": [
+            "Manually review incident-aligned application logs and dependency diagnostics for the observed error increase.",
+            "Manually compare resource utilization and capacity with the traffic increase before considering any scaling change."
+          ],
+          "policy_version": "1",
+          "prompt_version": "e06.rca_prompt/v3",
+          "quality": "not_established",
+          "ruled_out": [],
+          "run_id": "5a5d3129-a320-49d6-b003-dcef77373268",
+          "runbook_citations": [],
+          "schema_version": "RCAResult/v1",
+          "status": "supported",
+          "summary": "The observations support traffic-associated errors and latency degradation: request rate rises from approximately 2.77 to 30.13 requests/s, error ratio increases from 0 to approximately 33%, and p95 latency rises from 0.2425 to approximately 0.481 seconds. This establishes coincident traffic growth and service degradation, not the underlying mechanism or proof that scaling would resolve it.",
+          "supporting": [
+            {
+              "alias": "E004",
+              "citation": {
+                "evidence_id": "b651ad1b-8ba2-4268-a14a-adb93805cbef",
+                "locator": {
+                  "key": "v1_9d61471f7e0d0a317b6337f38d976ddf86c74dd1e01a38b748c78297c94794ba",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "b18a404e379485c8bbb6c2b0779868db3e67a1a85bb9053784777ff99e5c69f2",
+              "evidence_sha256": "8da51610667c0cb3a0d84710e3d6ef98cfaf38874f6e6331d3cbf77d7e03aa06",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E001",
+              "citation": {
+                "evidence_id": "b651ad1b-8ba2-4268-a14a-adb93805cbef",
+                "locator": {
+                  "key": "v1_186a45335235d5118580211f5020247b314c1ef9d9deac61c151d7f7db9794eb",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "6195f24f405ee2d9895887038e5dd3895e20384ab030ca23f670f886bc283adf",
+              "evidence_sha256": "8da51610667c0cb3a0d84710e3d6ef98cfaf38874f6e6331d3cbf77d7e03aa06",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E003",
+              "citation": {
+                "evidence_id": "b651ad1b-8ba2-4268-a14a-adb93805cbef",
+                "locator": {
+                  "key": "v1_85a554c76b8936ba68a6bcfacc8063619f834890bc2526642afb5c2f670499ba",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "aff8ccc93d237f973106643bb9cc47083a5057806458b8574389abc77210c6e5",
+              "evidence_sha256": "8da51610667c0cb3a0d84710e3d6ef98cfaf38874f6e6331d3cbf77d7e03aa06",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E002",
+              "citation": {
+                "evidence_id": "b651ad1b-8ba2-4268-a14a-adb93805cbef",
+                "locator": {
+                  "key": "v1_37885473619ccc17e3e0ae4a6e48d3efd2ce0eb675864cec09e8a977d3fcb669",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "f9cb0c4da7a9029fc57d64ce2450f0c3340b023b295fe53e1a5fb70f0ffaba90",
+              "evidence_sha256": "8da51610667c0cb3a0d84710e3d6ef98cfaf38874f6e6331d3cbf77d7e03aa06",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E007",
+              "citation": {
+                "evidence_id": "8a686cb2-c52c-4844-8b51-6d52decfaa9a",
+                "locator": {
+                  "key": "v1_1d28b398dd29a6833c447bc6c39f4b082c583ed2dca1627567d1cf5cf0cad6e1",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7",
+              "evidence_sha256": "bb7e0d561c6449eba178c9a9478679edcb7348c938a4b13376744290a763fa34",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E008",
+              "citation": {
+                "evidence_id": "8a686cb2-c52c-4844-8b51-6d52decfaa9a",
+                "locator": {
+                  "key": "v1_306e8acef8a4cddc59353629cd0d2ea897d4ad804a82db706f4db76ab9754a8f",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "23b1e6ab9b08a7db15a1cd157ac7ef599218f97ae02f9a75dac07f55c1d4d321",
+              "evidence_sha256": "bb7e0d561c6449eba178c9a9478679edcb7348c938a4b13376744290a763fa34",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E006",
+              "citation": {
+                "evidence_id": "8a686cb2-c52c-4844-8b51-6d52decfaa9a",
+                "locator": {
+                  "key": "v1_1112faab89e772ae366e32625d83cc0ad85e68139e3f72808738e9e9ef7488a1",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "342cfb2733550e0df7d714ff55c6d3414d4048029f577aab1306cbbab18814e8",
+              "evidence_sha256": "bb7e0d561c6449eba178c9a9478679edcb7348c938a4b13376744290a763fa34",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E010",
+              "citation": {
+                "evidence_id": "8a686cb2-c52c-4844-8b51-6d52decfaa9a",
+                "locator": {
+                  "key": "v1_8d7aa86257325e411e2bfb96d8cce1f092183e2edd07ff66e174df705911ed9f",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "38d4b97148924c2615611aca8b408bf78102baf9e238fe323cf2e440297309ba",
+              "evidence_sha256": "bb7e0d561c6449eba178c9a9478679edcb7348c938a4b13376744290a763fa34",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E014",
+              "citation": {
+                "evidence_id": "05d1940d-1377-492c-885e-c7b89284afa2",
+                "locator": {
+                  "key": "v1_7ecb7a90d2780245d0a163947959370ca2dceb093d31b5a15caacb79a28f1133",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "6e918630e20619460609e024428d3c620758d777dd8e9d0841667e3876d6fd64",
+              "evidence_sha256": "d8e86355de5ebf2a471223464762926714a3e5adcf5722441e1ce527ea488bb7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E013",
+              "citation": {
+                "evidence_id": "05d1940d-1377-492c-885e-c7b89284afa2",
+                "locator": {
+                  "key": "v1_7e9702d4d167dc47e0ba77c71361bb7cd46cae54f2fbb031dcd44b0917620e3e",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "34a09667063a38af811bee55fc55d8ca06d2ad77a30d8634cd0523421b157085",
+              "evidence_sha256": "d8e86355de5ebf2a471223464762926714a3e5adcf5722441e1ce527ea488bb7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E012",
+              "citation": {
+                "evidence_id": "05d1940d-1377-492c-885e-c7b89284afa2",
+                "locator": {
+                  "key": "v1_4f6127a28d3ba57128e3abcf97890fd3ebbaa77bd6224b588c42daf0ea78a97f",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "c451627c8bb8046602bb9983f142e1d9fc02f66ae4a29bdb21cff26a9dc5dfd7",
+              "evidence_sha256": "d8e86355de5ebf2a471223464762926714a3e5adcf5722441e1ce527ea488bb7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E011",
+              "citation": {
+                "evidence_id": "05d1940d-1377-492c-885e-c7b89284afa2",
+                "locator": {
+                  "key": "v1_1ff535daa5176019190d892de1be1a62eb95a55cbd1ed5dcec93833dcbde1198",
+                  "kind": "sample"
+                },
+                "run_id": "5a5d3129-a320-49d6-b003-dcef77373268"
+              },
+              "coverage_status": "available",
+              "entry_digest": "a43df98b4b7e07a2d8a4f1e817e24e510de0082b802df8ad2cb6cf6884cc7c2f",
+              "evidence_sha256": "d8e86355de5ebf2a471223464762926714a3e5adcf5722441e1ce527ea488bb7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            }
+          ],
+          "unverified_checks": [
+            {
+              "check": "Capacity saturation versus application or dependency failures",
+              "reason": "The traffic, error, and latency observations establish degradation but do not distinguish these mechanisms."
+            },
+            {
+              "check": "Crash-loop startup, OOM restarts, scheduling failures, and image-pull failures",
+              "reason": "These families are not eligible for assessment because required event and/or log targets are unavailable; they cannot be ruled out."
+            }
+          ],
+          "validator_version": "e06.validator/v1"
+        },
+        "output_sha256": "ef1fdf69f07b646836dda096239f9ba0e657f753467fb4d8f18e93ec19ee6089",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 86088,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15042,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7392,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 10499,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "44abbc91a6b4e922ce6d34abf7b1a7fec63e70bff20628bf471523170ea4fd36"
+    },
+    "recovery-traffic-scale-03": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "6c0bb487d33d54bc20e9f1fa993b7723ba4391a1ec9d87f6c52267197b5a1ae4",
+        "case_id": "recovery-traffic-scale-03",
+        "context_digest": "647875708f9d6d60e4363f00224e9bb7f2385973776b1dad4d9abaca5711531d",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "8b1d4ff50ea09e59ff68677144dcd6f814fbd29bce18326978b3b8c14a0d7510",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "traffic_latency_errors",
+          "context_digest": "647875708f9d6d60e4363f00224e9bb7f2385973776b1dad4d9abaca5711531d",
+          "context_version": "e06.context/v2",
+          "contradicting": [],
+          "incident_id": "8cab6adc-9180-4743-aa54-be64fd377a0e",
+          "limitations": [
+            "Kubernetes state observations extend beyond the requested window and cannot independently establish incident-window health.",
+            "No runbook was selected or supplied.",
+            "The available metrics demonstrate correlation, not a definitive underlying root cause or proof that scaling would resolve the errors."
+          ],
+          "machine_validation": "structural_v1",
+          "missing_evidence": [
+            "Selectable Kubernetes event observations and current and previous container logs needed to assess the other incident families.",
+            "Incident-window application error details and resource-saturation observations needed to identify the mechanism behind the traffic-associated degradation."
+          ],
+          "next_steps": [
+            "Manually review the aligned request-rate, error-ratio, and p95-latency series to confirm the onset and persistence of degradation.",
+            "Manually obtain incident-window application logs and Kubernetes events, and inspect error details and resource saturation before selecting a mitigation."
+          ],
+          "policy_version": "1",
+          "prompt_version": "e06.rca_prompt/v3",
+          "quality": "not_established",
+          "ruled_out": [],
+          "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab",
+          "runbook_citations": [],
+          "schema_version": "RCAResult/v1",
+          "status": "supported",
+          "summary": "The observations support traffic-associated latency and errors: request rate rose from approximately 3.09 to 30.14 requests/s, error ratio increased from zero to approximately 33.6%, and p95 latency rose from 0.243 to approximately 0.481 seconds. These concurrent changes establish service degradation, but do not establish capacity saturation or its underlying cause.",
+          "supporting": [
+            {
+              "alias": "E001",
+              "citation": {
+                "evidence_id": "a6978b0c-f957-4bf9-b2f8-73c843bd2e26",
+                "locator": {
+                  "key": "v1_20ab431d2ce868e4c568f7e26786178fadcb3a4aeb25d9ceb7070c3bf74b40e4",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "e049bd709a8745fe510fd61c2021cdf22c71f79c12cc82ac476192524e636415",
+              "evidence_sha256": "039048d8a86d991af0c3ffc613a0f56f3f86b2411a3912e9dd74a706b2f6f220",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E003",
+              "citation": {
+                "evidence_id": "a6978b0c-f957-4bf9-b2f8-73c843bd2e26",
+                "locator": {
+                  "key": "v1_6c5b71741bddbb138a05ba459aaea52ef1ec8a20e5f60274fb3e903c544e4313",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "dc042a74756b2dfc04d88d51f8f67b74e42ba2268c20abb521a018b2a3340387",
+              "evidence_sha256": "039048d8a86d991af0c3ffc613a0f56f3f86b2411a3912e9dd74a706b2f6f220",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E005",
+              "citation": {
+                "evidence_id": "a6978b0c-f957-4bf9-b2f8-73c843bd2e26",
+                "locator": {
+                  "key": "v1_aa9fb15576f99e18c3826a5604040eedaed428a34fa277d937bf9c10430c10f1",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "45a479cf7bc307e706f3d4854f87d0b4b12aa7b6ae7c1936cd76316691647854",
+              "evidence_sha256": "039048d8a86d991af0c3ffc613a0f56f3f86b2411a3912e9dd74a706b2f6f220",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E006",
+              "citation": {
+                "evidence_id": "b44adb87-6fd6-40f1-ad09-7b30f9d82d61",
+                "locator": {
+                  "key": "v1_4a3ac59f9d14362190ea88d4f068179c7ab09ac5624abc768b7d26c79cd214ef",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7",
+              "evidence_sha256": "4d8877e70d35b7312cb59bc1ea973f4fd5f882be31f871ddf434903a2c1700bc",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E010",
+              "citation": {
+                "evidence_id": "b44adb87-6fd6-40f1-ad09-7b30f9d82d61",
+                "locator": {
+                  "key": "v1_a5dd77d67a0053d30f6fca216cf429bd8770f95a79646d6e3ad31194c854465d",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "ec0634ea510400578dd3df9904472af9ea21db1ed77594693964ea2cf4d29fd3",
+              "evidence_sha256": "4d8877e70d35b7312cb59bc1ea973f4fd5f882be31f871ddf434903a2c1700bc",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E009",
+              "citation": {
+                "evidence_id": "b44adb87-6fd6-40f1-ad09-7b30f9d82d61",
+                "locator": {
+                  "key": "v1_866ca5ff64b6d37425386a465d5bf7a5200b466e5d7392c65281e4615f83b995",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "342cfb2733550e0df7d714ff55c6d3414d4048029f577aab1306cbbab18814e8",
+              "evidence_sha256": "4d8877e70d35b7312cb59bc1ea973f4fd5f882be31f871ddf434903a2c1700bc",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E013",
+              "citation": {
+                "evidence_id": "ab97379c-f796-4c11-9563-c0c1015a15d2",
+                "locator": {
+                  "key": "v1_634fafb0419325bf3978e99b1188f8d9ca814e57e7df5fdb047178e1eaca2dfa",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "6e918630e20619460609e024428d3c620758d777dd8e9d0841667e3876d6fd64",
+              "evidence_sha256": "319fba9fbbacba957d4062a291f68ffde1d5b3978dff5e0bc74828fe4cbd9526",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E012",
+              "citation": {
+                "evidence_id": "ab97379c-f796-4c11-9563-c0c1015a15d2",
+                "locator": {
+                  "key": "v1_3f0f999262284396296c25a51db9f5b0ffb0b341ec9ca725c1733fd608f1e691",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "c1e9eddac8709f3b580e171d2b4e46c8bc804a3d72c1062d1678a5b79a4b7bae",
+              "evidence_sha256": "319fba9fbbacba957d4062a291f68ffde1d5b3978dff5e0bc74828fe4cbd9526",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E011",
+              "citation": {
+                "evidence_id": "ab97379c-f796-4c11-9563-c0c1015a15d2",
+                "locator": {
+                  "key": "v1_3bd6427e06c11e2ee9b7f33eb1c176b5777052b44e097930f2586351935590b6",
+                  "kind": "sample"
+                },
+                "run_id": "cf8d1f1e-a22a-4611-b2ea-b3b1222310ab"
+              },
+              "coverage_status": "available",
+              "entry_digest": "c451627c8bb8046602bb9983f142e1d9fc02f66ae4a29bdb21cff26a9dc5dfd7",
+              "evidence_sha256": "319fba9fbbacba957d4062a291f68ffde1d5b3978dff5e0bc74828fe4cbd9526",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            }
+          ],
+          "unverified_checks": [
+            {
+              "check": "Determine whether capacity saturation caused the traffic-associated degradation.",
+              "reason": "Concurrent increases in traffic, errors, and latency do not distinguish capacity saturation from application or dependency failures."
+            },
+            {
+              "check": "Assess crash-loop, OOM, scheduling, and image-pull hypotheses.",
+              "reason": "These families are not eligible for assessment because required event or log targets are unavailable; they cannot be ruled out."
+            }
+          ],
+          "validator_version": "e06.validator/v1"
+        },
+        "output_sha256": "fada7b0f0f82d4928e456b1c646e0ffd62f830ce947ba037dcfd3a957b8abc20",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 86295,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15330,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7102,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 12331,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "ca7cea50418e8a2c0a927ecd2697427ad7c871dfbee3ac3048e8323024be47ac"
+    },
+    "recovery-traffic-scale-04": {
+      "receipt": {
+        "action": {
+          "outcome": null,
+          "state": "not_executed"
+        },
+        "bundle_sha256": "77db3b5ef6ae2c5c4375c28e8f870de22905b3bc9240209b42544affcb6e23a7",
+        "case_id": "recovery-traffic-scale-04",
+        "context_digest": "7700ee12608c1e4777d211e70e27bc2f00afa96eaf440796af30f94b5a0ba490",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "fail",
+            "reasons": [
+              "missing_candidate"
+            ]
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_outcome"
+            ]
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "unresolved"
+        },
+        "label_sha256": "406adc3580408d4db86ab9d65b03cb5cbe3bf77f469a0eef9fb00739ac07902e",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": null,
+          "cause_category": "traffic_latency_errors",
+          "context_digest": "7700ee12608c1e4777d211e70e27bc2f00afa96eaf440796af30f94b5a0ba490",
+          "context_version": "e06.context/v2",
+          "contradicting": [],
+          "incident_id": "cadc95ec-0653-479f-b71f-29458cfe5511",
+          "limitations": [
+            "Kubernetes state extends beyond the requested window and cannot reliably establish incident-window conditions.",
+            "No runbook was selected or provided.",
+            "The observed correlation does not establish causation or validate a recovery change."
+          ],
+          "machine_validation": "structural_v1",
+          "missing_evidence": [
+            "Selectable Kubernetes events and current and previous container logs needed to assess the other incident families.",
+            "Evidence establishing the underlying bottleneck or error mechanism."
+          ],
+          "next_steps": [
+            "Manually review the request-rate, error-ratio, and p95-latency observations together to confirm the degradation pattern before making changes.",
+            "Manually obtain incident-window events and application logs to identify the error mechanism and assess the unverified incident families."
+          ],
+          "policy_version": "1",
+          "prompt_version": "e06.rca_prompt/v3",
+          "quality": "not_established",
+          "ruled_out": [],
+          "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed",
+          "runbook_citations": [],
+          "schema_version": "RCAResult/v1",
+          "status": "supported",
+          "summary": "The observations support traffic-associated latency and errors: request rate increased from approximately 3.41 to 30.14 requests/s, error ratio rose from 0 to approximately 33.56%, and p95 latency increased from 0.243 to 0.481 seconds. This establishes concurrent traffic growth and service degradation, but does not establish resource saturation or a specific underlying root cause.",
+          "supporting": [
+            {
+              "alias": "E002",
+              "citation": {
+                "evidence_id": "16641f09-e282-447b-b9d5-6560ecf0992e",
+                "locator": {
+                  "key": "v1_231f5ede411e70429755be6191b7e55dfab6a2625db9decfb7fe7c387e93c912",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "94845956797a0648c73a712be7cf6ae91936a11f50f344dc6eb7d80007524a4b",
+              "evidence_sha256": "96e64060ada6cf06009dcb29b5837b246f109118fcd74a975796425bc804b92c",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E003",
+              "citation": {
+                "evidence_id": "16641f09-e282-447b-b9d5-6560ecf0992e",
+                "locator": {
+                  "key": "v1_687f05fdc75225c3b08472f6dd9133dccf1bcebbf30307458fecd851e8cf523b",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "35976ab8d3a4a308a2db0056dbad74fb435878835f0c0b2409cf9401b10a2bc2",
+              "evidence_sha256": "96e64060ada6cf06009dcb29b5837b246f109118fcd74a975796425bc804b92c",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E004",
+              "citation": {
+                "evidence_id": "16641f09-e282-447b-b9d5-6560ecf0992e",
+                "locator": {
+                  "key": "v1_90101a99049a0846ab464b1970edd8b84a53871a069e6506fd73435fff4ccf4a",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "1708e9017598d4ecf02558ca669ab4faea4bc104b0fcea46055802ada3377edb",
+              "evidence_sha256": "96e64060ada6cf06009dcb29b5837b246f109118fcd74a975796425bc804b92c",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E001",
+              "citation": {
+                "evidence_id": "16641f09-e282-447b-b9d5-6560ecf0992e",
+                "locator": {
+                  "key": "v1_1f6f8f275b4e2a2d6339fe4e105bbf1c4d151ebd43900d4290aa76f326e41aad",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "9890149bc3d74ddfcdaeb4135c78a0a8c560a5d097386d82d5cc98244cf066e9",
+              "evidence_sha256": "96e64060ada6cf06009dcb29b5837b246f109118fcd74a975796425bc804b92c",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E006",
+              "citation": {
+                "evidence_id": "f1bf8e38-8e0e-4edc-adfd-3d9b724aba84",
+                "locator": {
+                  "key": "v1_59b1b9c3822b566a6a55e47e969eab6cb8b58ead4122a1c9472970ca56b1a377",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7",
+              "evidence_sha256": "b04b46ff234dd1e38c7ee66c77a2ff76411f5fe3244e33aef6ce9e4657b4d2d4",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E008",
+              "citation": {
+                "evidence_id": "f1bf8e38-8e0e-4edc-adfd-3d9b724aba84",
+                "locator": {
+                  "key": "v1_ab3738a2231ea3ba8ca7d1191bbc5c818de2c9a14308b6fcbcc1a327fd4f7b14",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "f1d204205ff60931dd82ac31673ee16c927384f409a06b9e42f04ecb4c5ba006",
+              "evidence_sha256": "b04b46ff234dd1e38c7ee66c77a2ff76411f5fe3244e33aef6ce9e4657b4d2d4",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E009",
+              "citation": {
+                "evidence_id": "f1bf8e38-8e0e-4edc-adfd-3d9b724aba84",
+                "locator": {
+                  "key": "v1_cdabe5a58aa50ad49ca792243af3ea9c50cfaf17a4764e5b29ee363acaef1fde",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "92724ba0ff14c2e5774aaf037690273101955fe3e9e45a90c19140061efce321",
+              "evidence_sha256": "b04b46ff234dd1e38c7ee66c77a2ff76411f5fe3244e33aef6ce9e4657b4d2d4",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E010",
+              "citation": {
+                "evidence_id": "f1bf8e38-8e0e-4edc-adfd-3d9b724aba84",
+                "locator": {
+                  "key": "v1_dd40ba2870593a983b8ba76f3b9f3ad5e6b40b32d5ce675262479ef4ca21b049",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "f8839f582503f02eeee8fd27328c86ad38b2f17c1818b06214f96b665c516bc7",
+              "evidence_sha256": "b04b46ff234dd1e38c7ee66c77a2ff76411f5fe3244e33aef6ce9e4657b4d2d4",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E013",
+              "citation": {
+                "evidence_id": "81fe7a61-c362-46ee-9706-3f0cd2513ba4",
+                "locator": {
+                  "key": "v1_c58cee6301ef49526f1a4f4673eb9db2686986a1fed75352ad7274fbb7ba463d",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "10d5d69f2798f643eadb3bd5872efa25252b49040225a0af4b3299b9dec5c922",
+              "evidence_sha256": "a5a78001cf2769ea21e154257750c74b0cf040b910519b3a1342837650aac819",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E011",
+              "citation": {
+                "evidence_id": "81fe7a61-c362-46ee-9706-3f0cd2513ba4",
+                "locator": {
+                  "key": "v1_2034b725377026856d5ec8ca8df721360f576afe75c2a5e4045a0f933695d03f",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8df0f3e95a38c32a3e8c1dc54bdbe9632667dc38b65c5a142b2a1ba6f6b9fdd7",
+              "evidence_sha256": "a5a78001cf2769ea21e154257750c74b0cf040b910519b3a1342837650aac819",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E012",
+              "citation": {
+                "evidence_id": "81fe7a61-c362-46ee-9706-3f0cd2513ba4",
+                "locator": {
+                  "key": "v1_ae9ac13a8bc7a364a84bd828dde4293e7401729f78a68016bc51f7168bee44e8",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "a43df98b4b7e07a2d8a4f1e817e24e510de0082b802df8ad2cb6cf6884cc7c2f",
+              "evidence_sha256": "a5a78001cf2769ea21e154257750c74b0cf040b910519b3a1342837650aac819",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E014",
+              "citation": {
+                "evidence_id": "81fe7a61-c362-46ee-9706-3f0cd2513ba4",
+                "locator": {
+                  "key": "v1_ea5687dc19d11d92868e3a790ec8ab6265e918d42855d8bb0d76cbbcdd578165",
+                  "kind": "sample"
+                },
+                "run_id": "dcbcbbc5-c25a-413b-a1df-7f606ed9faed"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8d0a3b5f20d168d5e10b46df7255cea71a9b6ecd27e6cac6623823a32a723806",
+              "evidence_sha256": "a5a78001cf2769ea21e154257750c74b0cf040b910519b3a1342837650aac819",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            }
+          ],
+          "unverified_checks": [
+            {
+              "check": "Determine whether capacity saturation explains the traffic-associated degradation.",
+              "reason": "Concurrent increases in traffic, errors, and latency do not establish a capacity bottleneck or prove that scaling would resolve it."
+            },
+            {
+              "check": "Assess crashloop, OOM, scheduling, and image-pull hypotheses.",
+              "reason": "These families are not eligible for assessment because required selectable events and, where applicable, current and previous logs are unavailable. They cannot be ruled out."
+            }
+          ],
+          "validator_version": "e06.validator/v1"
+        },
+        "output_sha256": "5431729cab94c3a86675ec83b931062529ec30e1a4f6232be246741e9062bd06",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 87323,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 16633,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7609,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 11486,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": null,
+            "stage": "approval",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "apply",
+            "state": "missing"
+          },
+          {
+            "duration_ms": null,
+            "stage": "verify",
+            "state": "missing"
+          }
+        ]
+      },
+      "original_sha256": "3f16ba9ea2f3a86334d3e84063499384a69fbb843a20b2a10c4306a469e46d58"
+    },
+    "recovery-traffic-scale-05": {
+      "receipt": {
+        "action": {
+          "outcome": "succeeded",
+          "state": "executed"
+        },
+        "bundle_sha256": "0c0c27f2ad6baa4a5b4be45c218bb6639e510a3abc9729aa37aa7370fd0223d6",
+        "case_id": "recovery-traffic-scale-05",
+        "context_digest": "6ab39e1fc9b278fe7a8ab0139d9f10cf3068f98ff6926f5c1b17b6705f83091c",
+        "dimensions": [
+          {
+            "dimension": "cause_category",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "evidence_references",
+            "outcome": "fail",
+            "reasons": [
+              "runbook_not_cited"
+            ]
+          },
+          {
+            "dimension": "abstention_manual",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "eligible_plan",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "action_outcome",
+            "outcome": "pass",
+            "reasons": []
+          },
+          {
+            "dimension": "incident_resolution",
+            "outcome": "fail",
+            "reasons": [
+              "unexpected_resolution"
+            ]
+          }
+        ],
+        "disposition": "scored",
+        "incident": {
+          "disposition": "resolved"
+        },
+        "label_sha256": "b03dad6fea787ba574f1e25124ce551d02475694ef7e174b844699c1a40b7927",
+        "limitations": [
+          "Controlled or captured evaluation evidence; no population accuracy or SLO claim.",
+          "Rules execution grants no approval, execution, provider or recovery authority.",
+          "Failed, missing, blocked and interrupted cases remain in the planned denominator."
+        ],
+        "method": "investigator",
+        "output": {
+          "alternatives": [],
+          "candidate_template_id": "scale_deployment",
+          "cause_category": "traffic_latency_errors",
+          "context_digest": "6ab39e1fc9b278fe7a8ab0139d9f10cf3068f98ff6926f5c1b17b6705f83091c",
+          "context_version": "e06.context/v2",
+          "contradicting": [],
+          "incident_id": "cc594e1d-9086-4acd-b487-a5e31be538db",
+          "limitations": [
+            "Kubernetes state extends after the requested window and cannot establish incident-window readiness or replica availability.",
+            "No runbook was selected.",
+            "The metric samples support association, not a proven causal mechanism or a demonstrated benefit from scaling."
+          ],
+          "machine_validation": "structural_v1",
+          "missing_evidence": [
+            "Selectable Kubernetes events and current/previous container logs required to assess the other incident families.",
+            "Incident-window resource saturation and application/dependency diagnostics to determine the mechanism behind the traffic-associated degradation."
+          ],
+          "next_steps": [
+            "Manually review incident-window application logs and request failures alongside the traffic, error-ratio, and latency samples to identify the failing requests and any dependency errors.",
+            "Manually verify incident-window capacity and resource saturation before considering scaling; any scale_deployment candidate remains advisory and is not an instruction to execute a change."
+          ],
+          "policy_version": "1",
+          "prompt_version": "e06.rca_prompt/v3",
+          "quality": "not_established",
+          "ruled_out": [],
+          "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb",
+          "runbook_citations": [],
+          "schema_version": "RCAResult/v1",
+          "status": "supported",
+          "summary": "Stored observations support traffic-associated errors and latency degradation: request rate rose from approximately 3.48 to 30 requests/s, error ratio increased from 0 to approximately 33.47%, and p95 latency rose from 0.2425 to approximately 0.481 seconds. This establishes concurrent degradation under increased traffic, but does not establish capacity exhaustion or the underlying cause.",
+          "supporting": [
+            {
+              "alias": "E001",
+              "citation": {
+                "evidence_id": "128b6494-88f2-4fd6-b933-ebb6966c8c0d",
+                "locator": {
+                  "key": "v1_4ea9084b4bd4bc13fc60aaac95ea413511990fe43a2aeb68324defc240fbe98a",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "f33e050ddbcaf01c6f2e216ba1204f9eab1fca1472ffae21bcbe7335d179cc42",
+              "evidence_sha256": "d5b4bf13e554f2fc5107f1b390064b66069721550d50fba99c613b4c36b8a0b7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E002",
+              "citation": {
+                "evidence_id": "128b6494-88f2-4fd6-b933-ebb6966c8c0d",
+                "locator": {
+                  "key": "v1_81f338f561aa4988d4a27b6e691e8a4a30e102f9c59277eeef4aa417295774f8",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "3381dcce4c0b1a17c3f0b49ca0811d8e9b37d2d36b017c1c0f57116432147e65",
+              "evidence_sha256": "d5b4bf13e554f2fc5107f1b390064b66069721550d50fba99c613b4c36b8a0b7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E004",
+              "citation": {
+                "evidence_id": "128b6494-88f2-4fd6-b933-ebb6966c8c0d",
+                "locator": {
+                  "key": "v1_b29ac3a553004ccc403dddf9580b3e510ab6fe23d1908d253a87fa1ee2fb31fc",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "26c9a96ce053a14dd88a71a4830c9cbed7e1fed7e3f3f8a0b0b6a58f3f0f02e6",
+              "evidence_sha256": "d5b4bf13e554f2fc5107f1b390064b66069721550d50fba99c613b4c36b8a0b7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E005",
+              "citation": {
+                "evidence_id": "128b6494-88f2-4fd6-b933-ebb6966c8c0d",
+                "locator": {
+                  "key": "v1_bef7e6b1c938110c8c5fddbfd23b4a081bda8a64eb77d65d0889264407be326e",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "26c9a96ce053a14dd88a71a4830c9cbed7e1fed7e3f3f8a0b0b6a58f3f0f02e6",
+              "evidence_sha256": "d5b4bf13e554f2fc5107f1b390064b66069721550d50fba99c613b4c36b8a0b7",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.request_rate",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E006",
+              "citation": {
+                "evidence_id": "35578963-ed68-4015-8742-fb28fe79d72c",
+                "locator": {
+                  "key": "v1_28a7316950f770f07a7c9e2fd2846d027b3a03db9ebd71885b3fa123f74f57f8",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7",
+              "evidence_sha256": "ce228d835c8bb4593d6dba73317117f2c5a92c4eccb7afa255d39ec46674f242",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E010",
+              "citation": {
+                "evidence_id": "35578963-ed68-4015-8742-fb28fe79d72c",
+                "locator": {
+                  "key": "v1_856fe76c0e312a6e6dd236737d1583bfa564fc578ecaaaa839797b8722a06b92",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "53f29e4836b50f14baed4d0731b1a40e605d6e8f889edb9c5c798a2b9de12e4f",
+              "evidence_sha256": "ce228d835c8bb4593d6dba73317117f2c5a92c4eccb7afa255d39ec46674f242",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E008",
+              "citation": {
+                "evidence_id": "35578963-ed68-4015-8742-fb28fe79d72c",
+                "locator": {
+                  "key": "v1_3cfad97939c91014b48bc226e72901ca90970bd7f226134d95b203455d8e6cbb",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "0de82de7be2051cd2585b33e672a2b306cca26df02d43773a096296981b44dd9",
+              "evidence_sha256": "ce228d835c8bb4593d6dba73317117f2c5a92c4eccb7afa255d39ec46674f242",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E007",
+              "citation": {
+                "evidence_id": "35578963-ed68-4015-8742-fb28fe79d72c",
+                "locator": {
+                  "key": "v1_2bb7eb3892acc604dcc830d6661c612962366a0be09d8f4040984706d7feb6b7",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "0de82de7be2051cd2585b33e672a2b306cca26df02d43773a096296981b44dd9",
+              "evidence_sha256": "ce228d835c8bb4593d6dba73317117f2c5a92c4eccb7afa255d39ec46674f242",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.error_ratio",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E014",
+              "citation": {
+                "evidence_id": "9e39b46e-0b01-4707-a5ac-8572cb1646c0",
+                "locator": {
+                  "key": "v1_de40159f2007ece7a50ba6ef3b526c391174263e69e1da195e1cadf758586f07",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "6e918630e20619460609e024428d3c620758d777dd8e9d0841667e3876d6fd64",
+              "evidence_sha256": "1caf38f0f9d885c8188931cfb38691fcaaec9581f6d87eca161111da957b0206",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E013",
+              "citation": {
+                "evidence_id": "9e39b46e-0b01-4707-a5ac-8572cb1646c0",
+                "locator": {
+                  "key": "v1_d84160975c821721121bea245d454d11200ac47dafb42f88aa312cd3fc8fe412",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "e0b9afcab8c3c4fcc184de472b9ae5a6cc759cdb33e1d9f2e0a6e9ee30a5e730",
+              "evidence_sha256": "1caf38f0f9d885c8188931cfb38691fcaaec9581f6d87eca161111da957b0206",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E012",
+              "citation": {
+                "evidence_id": "9e39b46e-0b01-4707-a5ac-8572cb1646c0",
+                "locator": {
+                  "key": "v1_cd112a50588c1d04c200f46e70efff920775bb50670604f75ded990e47f2eb0f",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "63848f9e07caefd79f07fc29cc18b18227b29f8f373f8128af2042f28bb90933",
+              "evidence_sha256": "1caf38f0f9d885c8188931cfb38691fcaaec9581f6d87eca161111da957b0206",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            },
+            {
+              "alias": "E011",
+              "citation": {
+                "evidence_id": "9e39b46e-0b01-4707-a5ac-8572cb1646c0",
+                "locator": {
+                  "key": "v1_20cd3f5d1fe3cff44d1b1b0bcc1c6fca15ef32baabf9e5b2da8435f959c47dae",
+                  "kind": "sample"
+                },
+                "run_id": "2b1168db-f87a-4603-9fa8-8b7e825c99eb"
+              },
+              "coverage_status": "available",
+              "entry_digest": "45d7c0db1ad1fb1b5c9ad362245b5573ef439d4f105472ebc410f7db70ffad98",
+              "evidence_sha256": "1caf38f0f9d885c8188931cfb38691fcaaec9581f6d87eca161111da957b0206",
+              "source_class": "prometheus_series",
+              "source_key": "prometheus.p95_latency",
+              "time_relation": "within_requested_window"
+            }
+          ],
+          "unverified_checks": [
+            {
+              "check": "Capacity saturation versus application or dependency failures",
+              "reason": "Traffic, errors, and latency covary, but available observations do not distinguish resource saturation from application or downstream failures."
+            },
+            {
+              "check": "Crashloop, OOM, scheduling, and image-pull hypotheses",
+              "reason": "These families are not eligible for assessment because their required events and/or logs have no selectable entries; later Kubernetes state cannot rule them out."
+            }
+          ],
+          "validator_version": "e06.validator/v1"
+        },
+        "output_sha256": "eb8b98935e2a8e343ee692e28dea1eb3d569c20d73cdabeb0bc5eabba8dfc912",
+        "reasons": [],
+        "rubric_sha256": "baad58201da3a82511a9cb7d5245e7113f0506ab79e2189606cb039ac8a193d1",
+        "schema_version": "EvalReceipt/v1",
+        "timing": [
+          {
+            "duration_ms": 85788,
+            "stage": "inject",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 15446,
+            "stage": "detect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 7063,
+            "stage": "collect",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 11329,
+            "stage": "analyze",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 24564,
+            "stage": "approval",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 6997,
+            "stage": "apply",
+            "state": "observed"
+          },
+          {
+            "duration_ms": 180903,
+            "stage": "verify",
+            "state": "observed"
+          }
+        ]
+      },
+      "original_sha256": "8732bb7a3c1670cd35c4c9e77ace774101accf62b176d9db2ef92c566fac9a07"
+    }
+  }
+}

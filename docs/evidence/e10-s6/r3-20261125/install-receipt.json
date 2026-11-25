@@ -1,0 +1,54 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T14:49:34.712218+00:00",
+  "revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "owned WSL/Docker Desktop release install r3",
+  "source_clean": true,
+  "manifest_sha256": "2185b328f8384e91478dc4a078af538a7315037e04b4ddef759417b45b4ed683",
+  "installer_verification_log": "/home/dmk229/release/build-r3.log",
+  "loaded_images": {
+    "backend": {
+      "ref": "cloudops-release-backend:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-9b073a1ec3ef77282549be10211832398e1358d666f261fb6dfb239c8f7ad1eb",
+      "id": "sha256:9b073a1ec3ef77282549be10211832398e1358d666f261fb6dfb239c8f7ad1eb",
+      "platform": "linux/amd64"
+    },
+    "db": {
+      "ref": "cloudops-release-db:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7",
+      "id": "sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7",
+      "platform": "linux/amd64"
+    },
+    "https": {
+      "ref": "cloudops-release-https:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-0695159a35738edfbf0dcf17e6721f3aecaa916696e3afbe3e18259b69b9c52e",
+      "id": "sha256:0695159a35738edfbf0dcf17e6721f3aecaa916696e3afbe3e18259b69b9c52e",
+      "platform": "linux/amd64"
+    },
+    "krr": {
+      "ref": "cloudops-release-krr:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-5ab8af58da11e42163df04d49616bc69d150bf6310c16db51f3ae9fb83d1dc36",
+      "id": "sha256:5ab8af58da11e42163df04d49616bc69d150bf6310c16db51f3ae9fb83d1dc36",
+      "platform": "linux/amd64"
+    },
+    "recovery_bad_image": {
+      "ref": "cloudops-release-recovery_bad_image:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-89f66c28101eb9e5629518e0718722fbfd40095ccdd3d552c110d2d1c19c55d3",
+      "id": "sha256:89f66c28101eb9e5629518e0718722fbfd40095ccdd3d552c110d2d1c19c55d3",
+      "platform": "linux/amd64"
+    },
+    "recovery_healthy": {
+      "ref": "cloudops-release-recovery_healthy:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-a3cde9feac914e869f402aafc34524832dfbda458d6add71f9dfb4d02ed1b8b6",
+      "id": "sha256:a3cde9feac914e869f402aafc34524832dfbda458d6add71f9dfb4d02ed1b8b6",
+      "platform": "linux/amd64"
+    },
+    "sample": {
+      "ref": "cloudops-release-sample:2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6-4179083135bdc2ee87bc2f921a7b4388da370310c8200157dde32a485582f582",
+      "id": "sha256:4179083135bdc2ee87bc2f921a7b4388da370310c8200157dde32a485582f582",
+      "platform": "linux/amd64"
+    }
+  },
+  "artifacts": {
+    "images.env": "1e79ea4267aacd83dae213f64c6cbc69d72e5088e3e3759a12a4c6a4804d48a7",
+    "images.tar": "3aca30b52a745f5bb26b473de7c2e3a18b5384366e9341ce5463e5d44a400543",
+    "lab-images.env": "b085a7427ecf101b5a576151f51d12c1101e54633143f4389758b658d1568c90",
+    "lab-images.tar": "0efff8c641f7e29d26cc38b5f579d05e610d48058583f70d8586b09a15a931b6",
+    "manifest.json": "2185b328f8384e91478dc4a078af538a7315037e04b4ddef759417b45b4ed683",
+    "source.tar": "4dfab1f1cff7e6bcc34a744eee4130019b8ba9c4aba5ab5bc9b3e34eb55fe62f"
+  }
+}

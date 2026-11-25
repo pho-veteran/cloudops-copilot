@@ -1,0 +1,48 @@
+{
+  "control": "stale_fields_or_uid",
+  "evidence_class": "controlled",
+  "outcome": "pass",
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T19:19:33.361557+00:00",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "exact R3 release backend image, owned cloudops_test; live HTTPS role receipt supplementary",
+  "test_cases": [
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[resource_version]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[epoch]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[plan_id]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[plan_digest]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[policy]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[expired]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[profile_value]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[cpu]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[image]",
+    "tests.test_recovery_gateway_v2::test_changed_or_unapproved_intents_do_not_write[container]",
+    "tests.test_recovery_gateway_v2::test_durable_approval_and_scope_boundaries[ttl]",
+    "tests.test_recovery_gateway_v2::test_durable_approval_and_scope_boundaries[missing_decision]",
+    "tests.test_recovery_gateway_v2::test_durable_approval_and_scope_boundaries[legacy_preview]",
+    "tests.test_recovery_gateway_v2::test_durable_approval_and_scope_boundaries[retired_scope]",
+    "tests.test_recovery_gateway_v2::test_durable_approval_and_scope_boundaries[resolved]",
+    "tests.test_recovery_gateway_v2::test_durable_approval_and_scope_boundaries[changed_uid]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[foreign_run]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[foreign_analysis]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[old_run]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[target]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[context]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[evidence]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[expired_evidence]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[evaluation]",
+    "tests.test_recovery_plans::test_source_identity_or_evidence_changes_cannot_produce_plan[unsupported]"
+  ],
+  "references_sha256": {
+    "guards-junit.xml": "ed48dbe2695ae080d6444fea50ea89eebf73869d7b6f2e3d1bd7a6ea4feb6856",
+    "approval-guards-junit.xml": "ac7b00f9d5ddd2041cdc572f7850984941abb52f072951e5912804006e810d75",
+    "live-role.json": "bb4eeebf84e60fb30abf4a4d33040a8a5a5be2d0dedef419e980fd82b7bc317d",
+    "guards-image.txt": "4ad9cb6e0f7ed696f74ac3bada2a4abf045666eba6d6a80bd44df405c1008f6c"
+  },
+  "binding": "Loaded release image modules byte-match installed release source before tests; no production authority or model secret mounts.",
+  "limitations": [
+    "Kubernetes/gateway outcomes are controlled fixtures; killed workers and HTTP transport are actual processes.",
+    "Live scope mutation coverage is a separate mandatory gate.",
+    "Live Viewer approval/inverse denials use nonexistent IDs and establish permission ordering only."
+  ]
+}
