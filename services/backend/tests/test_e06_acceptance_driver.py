@@ -297,3 +297,203 @@ def test_usage_stop_prevents_analysis_admission(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="token stop"):
         campaign.execute_case(None, None, {"id": "uncalled"}, budget, {})
     assert budget.data["calls"] == [] and budget.data["cases"] == {}
+
+
+CONFIG_GLOBALS = (
+    "CONFIG",
+    "MODELS",
+    "OWNED_DATABASE",
+    "OWNED_LAB",
+    "MAX_REQUESTS",
+    "TOKEN_STOP",
+    "PRIMARY_LIMIT",
+    "MAX_REPAIRS",
+)
+
+
+def configured_campaign(tmp_path, monkeypatch, *, base_url="http://127.0.0.1:18080/v1", **changes):
+    for name in CONFIG_GLOBALS:
+        monkeypatch.setattr(campaign, name, getattr(campaign, name))
+    directory = tmp_path / "config"
+    directory.mkdir(exist_ok=True)
+    profile = {
+        "schema": "DiagnosisModelProfile/v1",
+        "config_id": "fixture-luna",
+        "config_version": "3",
+        "mode": "disabled",
+        "endpoint_label": "loopback",
+        "base_url": base_url,
+        "allow_insecure_loopback": True,
+        "model": "fixture-luna",
+        "reasoning_effort": "xhigh",
+        "credential": {"kind": "env", "name": "DIAGNOSIS_LIVE_TOKEN"},
+        "output_limit": {"param": "max_completion_tokens", "value": 16384},
+        "limits": {"read_timeout_seconds": 30, "deadline_seconds": 30, "max_input_bytes": 32768},
+    }
+    (directory / "profile.json").write_text(json.dumps(profile))
+    (directory / "prior.json").write_text("{}")
+    config = {
+        "schema": "E06CampaignConfig/v1",
+        "cohort": "fixture-luna-cohort",
+        "profile": "profile.json",
+        "authorization_id": "owner-delegated-fixture",
+        "budget_policy_id": "fixture-24-requests",
+        "owned_database": make_url(os.environ["TEST_DATABASE_URL"]).database,
+        "owned_lab": "fixture-luna-lab",
+        "max_requests": 24,
+        "max_repairs": 4,
+        "observed_token_stop": 400000,
+        "max_reserved_usd": 1.0,
+        "input_usd_per_mtok": 0.10,
+        "output_usd_per_mtok": 0.50,
+        "rates_date": "2026-11-24",
+        "prior_receipts": ["prior.json"],
+        **changes,
+    }
+    path = directory / "campaign.json"
+    path.write_text(json.dumps(config))
+    return path
+
+
+def test_campaign_config_binds_one_primary_and_its_bounds(tmp_path, monkeypatch):
+    path = configured_campaign(tmp_path, monkeypatch)
+    config = campaign.load_config(path)
+    assert campaign.MODELS == ("fixture-luna",) and campaign.MAX_REQUESTS == 24
+    assert campaign.MAX_REPAIRS == 4 and campaign.TOKEN_STOP == 400000
+    assert config["per_request_reserve_usd"] == pytest.approx(
+        (32768 * 0.10 + 16384 * 0.50) / 1_000_000
+    )
+    state = tmp_path / "state"
+    campaign.freeze(state)
+    ledger = json.loads((state / "ledger.json").read_text())
+    assert ledger["cohort"] == "fixture-luna-cohort" and ledger["models"] == ["fixture-luna"]
+    assert ledger["endpoint"] == "http://127.0.0.1:18080/v1"
+    assert ledger["campaign_config_sha256"] == config["config_sha256"]
+    assert ledger["prior_receipts"][0]["path"] == "prior.json"
+    assert ledger["secondary_probe"]["state"] == "not_configured"
+    assert ledger["billed_usd"] is None
+    budget = campaign.Budget(state / "ledger.json")
+    for index in range(4):
+        budget.reserve("fixture-luna", f"repair-{index}", True)
+    with pytest.raises(ValueError, match="repair"):
+        budget.reserve("fixture-luna", "fifth-repair", True)
+    with pytest.raises(ValueError, match="Unapproved"):
+        budget.reserve("gpt-6.1-sol", "legacy", False)
+    while len(budget.data["calls"]) < 24:
+        budget.reserve("fixture-luna", "fill", False)
+    with pytest.raises(ValueError, match="budget exhausted"):
+        budget.reserve("fixture-luna", "over", False)
+    assert budget.data["reserved_usd"] == pytest.approx(24 * config["per_request_reserve_usd"])
+
+
+def test_campaign_config_reserved_spend_ceiling_stops_before_send(tmp_path, monkeypatch):
+    path = configured_campaign(tmp_path, monkeypatch, max_reserved_usd=0.02)
+    config = campaign.load_config(path)
+    campaign.freeze(tmp_path / "state")
+    budget = campaign.Budget(tmp_path / "state/ledger.json")
+    allowed = int(0.02 // config["per_request_reserve_usd"])
+    for _ in range(allowed):
+        budget.reserve("fixture-luna", "case", False)
+    with pytest.raises(ValueError, match="spend ceiling"):
+        budget.reserve("fixture-luna", "over", False)
+    assert len(budget.data["calls"]) == allowed
+
+
+@pytest.mark.parametrize(
+    "changes,message",
+    [
+        ({"owned_database": "cloudops"}, "_test"),
+        ({"schema": "Other/v1"}, "Unsupported"),
+        ({"unexpected": True}, "Unsupported"),
+        ({"max_requests": -1}, "non-negative integer"),
+        ({"max_reserved_usd": float("inf")}, "bounded"),
+    ],
+)
+def test_campaign_config_rejects_unsafe_values(tmp_path, monkeypatch, changes, message):
+    path = configured_campaign(tmp_path, monkeypatch, **changes)
+    with pytest.raises(ValueError, match=message):
+        campaign.load_config(path)
+
+
+def test_campaign_config_requires_the_worker_credential_name(tmp_path, monkeypatch):
+    path = configured_campaign(tmp_path, monkeypatch)
+    profile = json.loads((path.parent / "profile.json").read_text())
+    profile["credential"]["name"] = "OTHER_TOKEN"
+    (path.parent / "profile.json").write_text(json.dumps(profile))
+    with pytest.raises(ValueError, match="DIAGNOSIS_LIVE_TOKEN"):
+        campaign.load_config(path)
+
+
+def test_frozen_campaign_refuses_other_config_or_changed_profile(tmp_path, monkeypatch):
+    path = configured_campaign(tmp_path, monkeypatch)
+    campaign.load_config(path)
+    state = tmp_path / "state"
+    campaign.freeze(state)
+    monkeypatch.setattr(sys, "argv", ["campaign", "run", "--state-dir", str(state)])
+    for name in CONFIG_GLOBALS:
+        monkeypatch.setattr(campaign, name, None if name == "CONFIG" else getattr(campaign, name))
+    with pytest.raises(ValueError, match="exact campaign config"):
+        campaign.main()
+    profile = json.loads((path.parent / "profile.json").read_text())
+    profile["reasoning_effort"] = "high"
+    (path.parent / "profile.json").write_text(json.dumps(profile))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["campaign", "run", "--state-dir", str(state), "--campaign-config", str(path)],
+    )
+    with pytest.raises(ValueError, match="profile changed"):
+        campaign.main()
+    assert not (state / "campaign.lock").exists()
+
+
+def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
+    db, seeded, tmp_path, monkeypatch
+):
+    for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
+        monkeypatch.setenv(key, "owned-test-placeholder")
+    cases = json.loads((campaign.FIXTURES / "cases.json").read_text())
+    oracle = json.loads((campaign.FIXTURES / "oracle.json").read_text())["cases"]
+    sent = []
+
+    def answer(handler):
+        body = json.loads(handler.server.requests[-1]["body"])
+        sent.append(body)
+        index = len(sent) - 1
+        expected = oracle[cases[index if index < len(cases) else 0]["id"]]
+        healthy = index < len(cases) and cases[index]["id"] == "n-healthy"
+        payload = text_payload(
+            _raw(
+                status="insufficient_evidence" if healthy else "supported",
+                cause_category=expected["category"],
+                supporting_evidence_ids=[] if healthy else ["E001"],
+                candidate_template_id=next(iter(expected["allowed_candidates"]), None),
+            )
+        )
+        payload["model"] = "fixture-luna"
+        payload["usage"] = {"prompt_tokens": 1000, "completion_tokens": 2000, "total_tokens": 3000}
+        respond(handler, payload)
+
+    with serve(answer) as server:
+        path = configured_campaign(tmp_path, monkeypatch, base_url=server.url + "/v1")
+        monkeypatch.setenv("E06_OWNED_LAB", "fixture-luna-lab")
+        monkeypatch.setenv("DIAGNOSIS_LIVE_TOKEN", "owned-fixture-token")
+        state = tmp_path / "state"
+        args = ["--state-dir", str(state), "--campaign-config", str(path)]
+        monkeypatch.setattr(sys, "argv", ["campaign", "freeze", *args])
+        campaign.main()
+        monkeypatch.setattr(sys, "argv", ["campaign", "run", *args])
+        campaign.main()
+        ledger = json.loads((state / "ledger.json").read_text())
+        assert len(sent) == len(ledger["calls"]) == len(cases)
+        assert all(body["model"] == "fixture-luna" for body in sent)
+        assert all(body["reasoning_effort"] == "xhigh" for body in sent)
+        assert all(body["max_completion_tokens"] == 16384 for body in sent)
+        assert ledger["cases"]["n-required-gap"]["calls"] == 0
+        assert all(case["excluded_from_operational_api"] for case in ledger["cases"].values())
+        assert ledger["secondary_probe"]["state"] == "not_configured"
+        assert ledger["evaluation_finished"] is True
+        assert ledger["estimated_usd"] == pytest.approx(
+            len(cases) * (1000 * 0.10 + 2000 * 0.50) / 1_000_000
+        )
+        assert ledger["primary_identity"]["model"] == "fixture-luna"
