@@ -23,7 +23,7 @@ from pydantic import (
     model_validator,
 )
 
-from cloudops.features.diagnosis.context import PreparedContext
+from cloudops.features.diagnosis.context import PreparedContext, recomputed_digest
 from cloudops.features.evaluation import bundle
 from cloudops.features.evaluation.hashing import content_sha256
 from cloudops.features.evaluation.seal import EvalSealError, load_cohort, verify
@@ -233,6 +233,7 @@ def _check_context(binding: TrialBinding, context: PreparedContext) -> None:
         or context.window.start != binding.window_start
         or context.window.end != binding.window_end
         or context.digest != binding.context_digest
+        or recomputed_digest(context) != context.digest
         or content_sha256(asdict(context.profile_identity)) != binding.profile_digest
     ):
         raise CampaignError("context_binding_mismatch")

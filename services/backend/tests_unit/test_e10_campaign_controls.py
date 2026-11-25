@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import pytest
 
+from cloudops.features.diagnosis.context import PreparedContext, recomputed_digest
 from cloudops.features.evaluation import cli
 from cloudops.features.evaluation.rules import compare
 from eval_fixtures import context_for_case, result_for
@@ -71,6 +72,7 @@ def fixture_run(controls, root: Path, **changes) -> Path:
         "source_commit": REVISION,
         "evaluation_finished": True,
         "cases_sha256": hashlib.sha256((ROOT / controls.E06_CASES).read_bytes()).hexdigest(),
+        "source_tree_sha256": controls.driver_source_digest(),
         "primary_identity": identity,
         "calls": [{"case": source} for source in controls.FIXTURE_SOURCES.values()],
         "cases": cases,
@@ -119,6 +121,16 @@ def score(directory: Path, case_id: str) -> None:
         arguments = ["--method", method, "--disposition", "scored"]
         arguments += ["--output", f"receipts/{method}/{case_id}.json", *extra]
         assert cli.main(["score", *common, *arguments]) == 0
+
+
+@pytest.mark.parametrize("case_id", ["crashloop-positive", "c07", "n-healthy", "n-injection"])
+def test_recomputed_digest_binds_the_retained_context_content(case_id):
+    context = context_for_case(case_id)
+    retained = PreparedContext.model_validate_json(context.model_dump_json())
+    assert recomputed_digest(retained) == context.digest
+    changed = retained.model_copy(update={"cluster": "other-cluster"})
+    assert changed.digest == context.digest
+    assert recomputed_digest(changed) != context.digest
 
 
 def test_fixed_mapping_matches_the_release_catalog(controls):
@@ -180,6 +192,7 @@ def test_fixture_controls_reach_the_scorecard(controls, state, tmp_path):
         {"evaluation_finished": None},
         {"cases_sha256": "0" * 64},
         {"primary_identity": {"behavior_digest": "e" * 64}},
+        {"source_tree_sha256": "0" * 64},
     ],
 )
 def test_import_refuses_another_revision_identity_or_unfinished_run(
@@ -253,3 +266,70 @@ def test_quota_control_needs_every_named_test_to_pass(controls, tmp_path, states
 def test_quota_report_must_name_the_sealed_revision(controls, tmp_path):
     with pytest.raises(controls.CampaignError, match="quota_junit_binding_mismatch"):
         controls.quota_junit(junit(tmp_path, suite="b" * 40), REVISION)
+
+
+def test_import_refuses_context_content_changed_under_its_digest(controls, state, tmp_path):
+    fixtures = fixture_run(controls, tmp_path)
+    path = fixtures / "contexts/c09.json"
+    value = json.loads(path.read_text())
+    value["cluster"] = "other-cluster"
+    path.write_text(json.dumps(value))
+    with pytest.raises(controls.CampaignError, match="fixture_context_binding_mismatch"):
+        controls.import_fixtures(state, fixtures, BEHAVIOR)
+
+
+def scored_state(controls, state, tmp_path):
+    fixtures = fixture_run(controls, tmp_path)
+    controls.import_fixtures(state, fixtures, BEHAVIOR)
+    for case_id in controls.FIXTURE_SOURCES:
+        score(state, case_id)
+    return fixtures
+
+
+def test_controls_refuse_a_bundle_replaced_after_scoring(controls, state, tmp_path):
+    fixtures = scored_state(controls, state, tmp_path)
+    bundle = state / "bundles/imagepull-unauthorized.json"
+    bundle.write_text(bundle.read_text().replace('"bundle_id"', '"bundle_id" ', 1))
+    with pytest.raises(controls.CampaignError, match="fixture_bundle_binding_mismatch"):
+        controls.record_controls(state, fixtures, BEHAVIOR, junit(tmp_path))
+    assert not (state / "campaign/controls").exists()
+
+
+def test_report_refuses_an_outcome_its_artifact_contradicts(controls, state, tmp_path):
+    from e10_campaign_report import summarize
+
+    fixtures = scored_state(controls, state, tmp_path)
+    states = {"test_unavailable_zero_network[disabled]": "fail"}
+    controls.record_controls(state, fixtures, BEHAVIOR, junit(tmp_path, states=states))
+    meta = state / f"campaign/controls/{controls.QUOTA}.json"
+    value = json.loads(meta.read_text())
+    assert value["outcome"] == "fail"
+    meta.write_text(json.dumps({**value, "outcome": "pass"}))
+    with pytest.raises(controls.CampaignError, match="control_evidence_binding_mismatch"):
+        summarize(state)
+
+
+def test_report_rechecks_retained_fixture_bytes(controls, state, tmp_path):
+    from e10_campaign_report import summarize
+
+    fixtures = scored_state(controls, state, tmp_path)
+    controls.record_controls(state, fixtures, BEHAVIOR, junit(tmp_path))
+    output = state / "campaign/fixtures/negative-healthy.output.json"
+    output.write_text(output.read_text().replace('"summary"', '"summary" ', 1))
+    summarize(state)  # Whitespace keeps the same canonical content.
+    value = json.loads(output.read_text())
+    value["summary"] = "changed after scoring"
+    output.write_text(json.dumps(value))
+    with pytest.raises(controls.CampaignError, match="fixture_bundle_binding_mismatch"):
+        summarize(state)
+
+
+def test_duplicate_junit_entries_cannot_hide_a_failure(controls, tmp_path):
+    path = junit(tmp_path)
+    failing = (
+        '<testcase classname="tests.test_diagnosis_lifecycle" '
+        'name="test_unavailable_zero_network[disabled]"><failure message="x"/></testcase>'
+    )
+    path.write_text(path.read_text().replace("<testcase", failing + "<testcase", 1))
+    with pytest.raises(controls.CampaignError, match="quota_junit_duplicate_test"):
+        controls.quota_junit(path, REVISION)

@@ -191,11 +191,12 @@ release-package path and EC2 walkthrough have their own procedures.
    --approval <s6-approval> --execution <s6-execution> --verification <s6-verification>
    --output <timing>`, and pass the output to S4 `score --timing`. Each stage uses one
    stated clock source: inject and detect come from the S3 trial phases and the incident
-   `created_at`; collect is the Run `created_at`/`finished_at`; analyze runs from the
-   first to the last `attempt_history` entry; approval is the plan `created_at` to
+   `created_at`; collect runs from the Run `created_at` to the end of its last collection
+   attempt (`Run.finished_at` is cleared when analysis is admitted and later reused for the
+   analysis end); analyze runs from the first to the last `attempt_history` entry; approval is the plan `created_at` to
    `decided_at`; apply is the execution `created_at` to verification `acknowledged_at`;
    verify ends at `finalized_at`. A missing timestamp stays `missing`. A reversed
-   interval or a timestamp without a time zone is rejected. Observation and negative
+   interval, a duplicated attempt number or a timestamp without a time zone is rejected. Observation and negative
    cases use `--no-action`, which marks the three action stages `not_applicable` and
    refuses one that was observed. Score each planned method and retain the action and incident states
    from the product receipts. The recovery scorecard
@@ -232,8 +233,11 @@ product discards the working snapshot at a terminal state.
 
 1. `scripts/e10_campaign_controls.py import-fixtures --state-dir "$state" --fixture-dir
    <driver state> --behavior-digest <digest>` checks that the driver ledger finished at
-   the sealed revision with that behavior digest. For each mapped case it checks the
-   captured context against the stored result's context digest, Analysis and Run IDs.
+   the sealed revision with that behavior digest. In a configured campaign the driver
+   records a digest of the backend source and its own inputs at freeze and refuses to run
+   if it changed; the import recomputes it from the checkout. For each mapped case it
+   recomputes the captured context's digest from its content and checks it against the
+   stored result's context digest, Analysis and Run IDs.
    It then publishes the planned bundle, the Investigator output at
    `campaign/fixtures/<case>.output.json` and a binding receipt. The mapping follows the
    catalog's input references: `c07`–`c10` for the four observations, `n-healthy`,
@@ -252,12 +256,15 @@ product discards the working snapshot at a terminal state.
    the driver's empty-evidence case to end `insufficient_evidence` with zero calls. The
    out-of-scope negative needs the foreign-workload request to be rejected with 409
    `target_mismatch` and zero model calls. The quota negative needs all four named
-   tests to pass. An unscored case is `blocked`, not passed.
+   tests to pass, each exactly once. An unscored case is `blocked`, not passed. Before
+   using a receipt it rechecks the retained bundle and output bytes.
 
 Each control writes `campaign/controls/<case>.evidence.json` and
 `campaign/controls/<case>.json` with the artifact SHA-256, source revision and evidence
 class: `fixture` for driver results and `controlled` for the quota tests. The report
-reads them for the 4/4 and 5/5 counts.
+reads them for the 4/4 and 5/5 counts. It accepts a control only when its artifact names
+the same control, evidence class and outcome, and it rechecks the fixture bytes a
+control artifact references. Guard evidence uses the same artifact fields.
 
 ### S6 guards and mutation reconciliation
 

@@ -866,6 +866,56 @@ def _digest(payload: dict) -> str:
     ).hexdigest()
 
 
+def _context_digest(policy_digest: str, scope: ContextScope, manifest: dict, messages) -> str:
+    return _digest(
+        {
+            "versions": _versions(),
+            "policy_digest": policy_digest,
+            "scope": _scope_payload(scope),
+            "request": {"text": scope.request_text, "source": scope.request_source},
+            "manifest": manifest,
+            "messages": [
+                {"role": message.role, "content": message.content} for message in messages
+            ],
+        }
+    )
+
+
+def recomputed_digest(context: PreparedContext) -> str:
+    """Recompute a retained context's digest from its content at the current versions.
+
+    The stored ``digest`` field is not validated on load; trusted evaluation tooling uses
+    this to bind a retained snapshot to the digest a product result recorded.
+    """
+    scope = ContextScope(
+        knowledge=KnowledgeRunScope(
+            incident_id=context.incident_id,
+            run_id=context.run_id,
+            workload_id=context.workload_id,
+            cluster=context.cluster,
+            namespace=context.namespace,
+            name=context.name,
+            workload_uid=context.workload_uid,
+            kind=context.kind,
+            window_start=context.window.start,
+            window_end=context.window.end,
+        ),
+        request_text=context.request.text,
+        request_source=context.request.source,
+        window_source=context.window.source,
+    )
+    manifest = {
+        "source_coverage": [item.model_dump(mode="json") for item in context.source_coverage],
+        "families": [item.model_dump(mode="json") for item in context.families],
+        "required_targets": [item.model_dump(mode="json") for item in context.required_targets],
+        "optional_targets": [item.model_dump(mode="json") for item in context.optional_targets],
+        "runbooks": [item.model_dump(mode="json") for item in context.runbooks],
+        "omissions": [item.model_dump(mode="json") for item in context.omissions],
+        "limitations": context.limitations,
+    }
+    return _context_digest(context.policy_digest, scope, manifest, context.messages)
+
+
 def _insufficient(
     reason: str,
     *,
@@ -1246,18 +1296,7 @@ def assemble(
         "omissions": [item.model_dump(mode="json") for item in omissions],
         "limitations": limitations,
     }
-    digest = _digest(
-        {
-            "versions": _versions(),
-            "policy_digest": policy.digest(),
-            "scope": _scope_payload(scope),
-            "request": {"text": scope.request_text, "source": scope.request_source},
-            "manifest": manifest,
-            "messages": [
-                {"role": message.role, "content": message.content} for message in messages
-            ],
-        }
-    )
+    digest = _context_digest(policy.digest(), scope, manifest, messages)
     knowledge = scope.knowledge
     return PreparedContext(
         context_version=CONTEXT_VERSION,

@@ -18,7 +18,18 @@ TRIAL = {
 }
 PRODUCT = {
     "incident": {"created_at": "2026-11-25T10:01:40Z"},
-    "run": {"created_at": "2026-11-25T10:01:45Z", "finished_at": "2026-11-25T10:02:05Z"},
+    "run": {
+        "created_at": "2026-11-25T10:01:45Z",
+        # Set to the analysis end once analysis finishes; collection timing ignores it.
+        "finished_at": "2026-11-25T10:03:00Z",
+        "attempts": [
+            {
+                "number": 1,
+                "started_at": "2026-11-25T10:01:46Z",
+                "finished_at": "2026-11-25T10:02:05Z",
+            }
+        ],
+    },
     "analysis": {
         "attempt_history": [
             {
@@ -83,11 +94,23 @@ def test_recovery_trial_has_all_seven_stages_from_their_own_clocks(timing):
     assert all(EvalStage.model_validate(item).state == "observed" for item in stages)
 
 
+def test_duplicate_attempt_numbers_are_rejected(timing):
+    attempt = {"number": 1, "started_at": "2026-11-25T10:02:06Z", "finished_at": None}
+    with pytest.raises(timing.TimingError, match="timing_attempt_number_duplicated"):
+        derive(timing, analysis={"attempt_history": [attempt, attempt]})
+
+
 def test_missing_timestamps_stay_missing_instead_of_zero(timing):
-    stages = derive(timing, analysis={"attempt_history": []}, verification={})
+    stages = derive(
+        timing,
+        analysis={"attempt_history": []},
+        verification={},
+        run={"created_at": "2026-11-25T10:01:45Z", "finished_at": "2026-11-25T10:03:00Z"},
+    )
     states = {item["stage"]: item["state"] for item in stages}
     assert states["analyze"] == states["apply"] == states["verify"] == "missing"
-    assert states["collect"] == "observed"
+    # A Run.finished_at alone never stands in for the collection attempt.
+    assert states["collect"] == "missing"
 
 
 def test_observation_and_negative_cases_mark_action_stages_not_applicable(timing):
@@ -102,7 +125,7 @@ def test_observation_and_negative_cases_mark_action_stages_not_applicable(timing
     "changes,code",
     [
         (
-            {"run": {"created_at": "2026-11-25T10:02:05Z", "finished_at": "2026-11-25T10:01:45Z"}},
+            {"run": {"created_at": "2026-11-25T10:02:06Z", "attempts": PRODUCT["run"]["attempts"]}},
             "timing_negative_interval:collect",
         ),
         ({"incident": {"created_at": "2026-11-25T10:01:40"}}, "timing_timestamp_without_timezone"),

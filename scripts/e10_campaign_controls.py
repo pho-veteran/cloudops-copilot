@@ -21,13 +21,14 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import sys
 from typing import Literal
 from uuid import UUID
 import xml.etree.ElementTree as ElementTree
 
 from pydantic import BaseModel, ConfigDict, RootModel, ValidationError
 
-from cloudops.features.diagnosis.context import PreparedContext
+from cloudops.features.diagnosis.context import PreparedContext, recomputed_digest
 from cloudops.features.evaluation import bundle
 from cloudops.features.evaluation.hashing import content_sha256
 from cloudops.features.evaluation.seal import EvalSealError, load_ledger, verify
@@ -80,6 +81,16 @@ REQUIRED_DIMENSIONS = {
 MAX_LEDGER_BYTES = 4 * 1024 * 1024
 MAX_JUNIT_BYTES = 2 * 1024 * 1024
 E06_CASES = "services/backend/tests/fixtures/e06/cases.json"
+DRIVER_DIRECTORY = ROOT / "services/backend/tests"
+
+
+def driver_source_digest() -> str:
+    """The E06 driver's own digest of the backend and driver files in this checkout."""
+    if str(DRIVER_DIRECTORY) not in sys.path:
+        sys.path.insert(0, str(DRIVER_DIRECTORY))
+    import e06_live_acceptance
+
+    return e06_live_acceptance.source_tree_digest()
 
 
 class FixtureReceipt(BaseModel):
@@ -138,6 +149,7 @@ def fixture_ledger(fixture_dir: Path, source_revision: str, behavior_digest: str
         or data.get("evaluation_finished") is not True
         or data.get("source_commit") != source_revision
         or data.get("cases_sha256") != cases_sha
+        or data.get("source_tree_sha256") != driver_source_digest()
         or identity.get("behavior_digest") != behavior_digest
         or not isinstance(data.get("cases"), dict)
         or not isinstance(data.get("calls"), list)
@@ -182,7 +194,8 @@ def import_fixtures(state_dir: Path, fixture_dir: Path, behavior_digest: str) ->
             "fixture_context_invalid",
         )
         if (
-            context.digest != result.get("context_digest")
+            recomputed_digest(context) != context.digest
+            or context.digest != result.get("context_digest")
             or context.analysis_identity != entry.get("analysis_id")
             or str(context.run_id) != entry.get("run_id")
             or result.get("run_id") != entry.get("run_id")
@@ -230,6 +243,20 @@ def import_fixtures(state_dir: Path, fixture_dir: Path, behavior_digest: str) ->
     return published
 
 
+def check_fixture_bytes(state: Path, fixture: FixtureReceipt) -> None:
+    """The retained bundle and output must still be the bytes the fixture receipt bound."""
+    try:
+        _, raw_sha = bundle.load(
+            _private_path(state, f"bundles/{fixture.case_id}.json"),
+            expected_case_id=fixture.case_id,
+        )
+    except bundle.EvalInputError:
+        raise CampaignError("fixture_bundle_binding_mismatch") from None
+    output = read_json(_private_path(state, f"campaign/fixtures/{fixture.case_id}.output.json"))
+    if raw_sha != fixture.bundle_sha256 or content_sha256(output) != fixture.result_sha256:
+        raise CampaignError("fixture_bundle_binding_mismatch")
+
+
 def _scored(state: Path, receipts: dict, case_id: str, ledger_sha: str, required) -> tuple:
     fixture = _read(
         _private_path(state, f"campaign/fixtures/{case_id}.json"),
@@ -238,6 +265,7 @@ def _scored(state: Path, receipts: dict, case_id: str, ledger_sha: str, required
     )
     if fixture.ledger_sha256 != ledger_sha:
         raise CampaignError("fixture_ledger_binding_mismatch")
+    check_fixture_bytes(state, fixture)
     receipt = receipts["investigator"].get(case_id)
     detail = {"case_id": case_id, "fixture_receipt": fixture.model_dump(mode="json")}
     if receipt is None or receipt.disposition != "scored":
@@ -273,6 +301,8 @@ def quota_junit(path: Path, source_revision: str) -> tuple[str, dict]:
         if module == QUOTA_MODULE and case.get("name") in QUOTA_TESTS:
             failed = any(child.tag in {"failure", "error"} for child in case)
             skipped = any(child.tag == "skipped" for child in case)
+            if case.get("name") in observed:
+                raise CampaignError("quota_junit_duplicate_test")
             observed[case.get("name")] = "fail" if failed else "skipped" if skipped else "pass"
     states = {name: observed.get(name, "missing") for name in QUOTA_TESTS}
     if any(value == "fail" for value in states.values()):

@@ -4,7 +4,8 @@ Stage boundaries (start -> end), each from one stated clock source:
 
 - inject:   lab fault start (trial phases.inject) -> lab observation of the fault (phases.detect)
 - detect:   lab observation -> product incident created_at
-- collect:  product Run created_at -> Run finished_at (collection reached a terminal state)
+- collect:  product Run created_at -> finished_at of the Run's last collection attempt
+            (Run.finished_at is cleared at analysis admission and reused for its end)
 - analyze:  first Analysis attempt started_at -> last Analysis attempt finished_at
             (AnalysisView.attempt_history; the view has no top-level timestamps)
 - approval: product plan created_at -> plan decided_at
@@ -64,6 +65,20 @@ def _stage(name: str, start, end) -> dict:
     return {"stage": name, "state": "observed", "duration_ms": max(1, math.ceil(milliseconds))}
 
 
+def _attempt_span(history) -> tuple:
+    """First attempt's start and last attempt's finish, by attempt number."""
+    if not isinstance(history, list):
+        return None, None
+    attempts = [item for item in history if isinstance(item, dict)]
+    numbers = [item.get("number") for item in attempts]
+    if not attempts or any(type(number) is not int for number in numbers):
+        return None, None
+    if len(set(numbers)) != len(numbers):
+        raise TimingError("timing_attempt_number_duplicated")
+    attempts.sort(key=lambda item: item["number"])
+    return attempts[0].get("started_at"), attempts[-1].get("finished_at")
+
+
 def derive(
     trial: dict,
     *,
@@ -79,17 +94,14 @@ def derive(
     phases = trial.get("phases") or {}
     plan_record = (approval or {}).get("plan") if isinstance(approval, dict) else None
     plan_record = plan_record or approval or plan
-    history = _get(analysis, "attempt_history")
-    attempts = (
-        [item for item in history if isinstance(item, dict)] if isinstance(history, list) else []
-    )
-    attempts.sort(key=lambda item: item.get("number") if isinstance(item.get("number"), int) else 0)
-    analysis_start = attempts[0].get("started_at") if attempts else None
-    analysis_end = attempts[-1].get("finished_at") if attempts else None
+    analysis_start, analysis_end = _attempt_span(_get(analysis, "attempt_history"))
+    # Run.finished_at is cleared when analysis is admitted and later set to the analysis
+    # end, so collection ends with its own last attempt (RunView.attempts).
+    _, collection_end = _attempt_span(_get(run, "attempts"))
     values = {
         "inject": _stage("inject", phases.get("inject"), phases.get("detect")),
         "detect": _stage("detect", phases.get("detect"), _get(incident, "created_at")),
-        "collect": _stage("collect", _get(run, "created_at"), _get(run, "finished_at")),
+        "collect": _stage("collect", _get(run, "created_at"), collection_end),
         "analyze": _stage("analyze", analysis_start, analysis_end),
         "approval": _stage(
             "approval", _get(plan_record, "created_at"), _get(plan_record, "decided_at")

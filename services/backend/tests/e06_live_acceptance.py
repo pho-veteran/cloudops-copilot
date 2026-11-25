@@ -153,6 +153,28 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def source_tree_digest():
+    """Digest of the backend source and driver inputs a configured campaign executes.
+
+    ``source_commit`` alone names a revision; this binds the actual files, so a run
+    with changed backend code cannot be reported under the frozen revision.
+    """
+    root = Path(__file__).resolve().parents[3]
+    tests = Path(__file__).resolve().parent
+    paths = {
+        *(root / "services/backend/src").rglob("*.py"),
+        Path(__file__).resolve(),
+        tests / "conftest.py",
+        tests / "test_diagnosis_validation.py",
+        FIXTURES.resolve() / "cases.json",
+        FIXTURES.resolve() / "oracle.json",
+    }
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        digest.update(f"{path.relative_to(root).as_posix()}\0{sha(path)}\n".encode())
+    return digest.hexdigest()
+
+
 def save(path, value):
     temporary = path.with_suffix(".tmp")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -677,6 +699,7 @@ def freeze(root, carryover=None, previous=None, continue_cases=False):
                 f"the {CONFIG['rates_date']} rates; no implicit retry"
             ),
             campaign_config_sha256=CONFIG["config_sha256"],
+            source_tree_sha256=source_tree_digest(),
             profile_sha256=CONFIG["profile_sha256"],
             prior_receipts=CONFIG["prior_receipt_hashes"],
             rates={
@@ -749,6 +772,8 @@ def main():
                 ("oracle_sha256", FIXTURES / "oracle.json"),
             ]
         ):
+            raise ValueError("Frozen campaign source changed")
+        if CONFIG is not None and budget.data.get("source_tree_sha256") != source_tree_digest():
             raise ValueError("Frozen campaign source changed")
         if args.phase == "run" and (budget.data["calls"] or budget.data.get("started")):
             raise ValueError("Initial campaign already started; no repeat cohort is authorized")

@@ -536,6 +536,25 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
             assert prepared.analysis_identity == entry["analysis_id"]
 
 
+def test_configured_run_refuses_backend_source_changed_after_freezing(tmp_path, monkeypatch):
+    path = configured_campaign(tmp_path, monkeypatch)
+    campaign.load_config(path)
+    state = tmp_path / "state"
+    campaign.freeze(state)
+    ledger = json.loads((state / "ledger.json").read_text())
+    assert ledger["source_tree_sha256"] == campaign.source_tree_digest()
+    monkeypatch.setenv("E06_OWNED_LAB", "fixture-luna-lab")
+    monkeypatch.setenv("DIAGNOSIS_LIVE_TOKEN", "owned-fixture-token")
+    monkeypatch.setenv("DATABASE_URL", os.environ["TEST_DATABASE_URL"])
+    monkeypatch.setattr(campaign, "source_tree_digest", lambda: "0" * 64)
+    arguments = ["--state-dir", str(state), "--campaign-config", str(path)]
+    monkeypatch.setattr(sys, "argv", ["campaign", "run", *arguments])
+    with pytest.raises(ValueError, match="Frozen campaign source changed"):
+        campaign.main()
+    assert not (state / "campaign.lock").exists()
+    assert json.loads((state / "ledger.json").read_text())["calls"] == []
+
+
 def test_captured_context_is_write_once_per_case(tmp_path):
     class Prepared:
         def __init__(self, text):

@@ -348,7 +348,9 @@ def test_fixture_scores_never_count_as_live_recovery(campaign, tmp_path):
         ("zero_uncontrolled_writes", "fixture"),
         ("no_paid_fallback", "live"),
     ):
-        artifact = b'{"controlled":true}'
+        artifact = json.dumps(
+            {"control": gate, "evidence_class": evidence_class, "outcome": "pass"}
+        ).encode()
         (controls / f"{gate}.evidence.json").write_bytes(artifact)
         (controls / f"{gate}.json").write_text(
             json.dumps(

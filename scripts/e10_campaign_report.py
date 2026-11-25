@@ -184,12 +184,33 @@ def control_evidence(root, identifier, revision):
     if not meta.exists():
         return {"outcome": "missing"}
     receipt = _read(meta, ControlEvidence, "control_evidence_invalid")
-    artifact = _private_path(root, f"{base}.evidence.json")
+    raw = _private_path(root, f"{base}.evidence.json").read_bytes()
     if (
         receipt.source_revision != revision
-        or hashlib.sha256(artifact.read_bytes()).hexdigest() != receipt.artifact_sha256
+        or hashlib.sha256(raw).hexdigest() != receipt.artifact_sha256
     ):
         raise CampaignError("control_evidence_binding_mismatch")
+    # The recorded outcome must be the one its evidence artifact states.
+    try:
+        artifact = json.loads(raw)
+    except ValueError:
+        raise CampaignError("control_evidence_invalid") from None
+    if (
+        not isinstance(artifact, dict)
+        or artifact.get("control") != identifier
+        or artifact.get("evidence_class") != receipt.evidence_class
+        or artifact.get("outcome") != receipt.outcome
+    ):
+        raise CampaignError("control_evidence_binding_mismatch")
+    for detail in (artifact, artifact.get("clean_control")):
+        if isinstance(detail, dict) and "fixture_receipt" in detail:
+            from e10_campaign_controls import FixtureReceipt, check_fixture_bytes
+
+            fixture = FixtureReceipt.model_validate(detail["fixture_receipt"])
+            stored = _private_path(root, f"campaign/fixtures/{fixture.case_id}.json")
+            if _read(stored, FixtureReceipt, "fixture_receipt_invalid") != fixture:
+                raise CampaignError("control_evidence_binding_mismatch")
+            check_fixture_bytes(root, fixture)
     return receipt.model_dump(mode="json")
 
 
