@@ -356,13 +356,20 @@ def configured_campaign(tmp_path, monkeypatch, *, base_url="http://127.0.0.1:180
     return path
 
 
-def test_campaign_config_binds_one_primary_and_its_bounds(tmp_path, monkeypatch):
+@pytest.mark.parametrize("input_bytes", [32768, 65536])
+def test_campaign_config_binds_one_primary_and_its_bounds(tmp_path, monkeypatch, input_bytes):
+    for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
+        monkeypatch.setenv(key, "owned-test-placeholder")
     path = configured_campaign(tmp_path, monkeypatch)
+    profile_path = path.parent / "profile.json"
+    profile = json.loads(profile_path.read_text())
+    profile["limits"]["max_input_bytes"] = input_bytes
+    profile_path.write_text(json.dumps(profile))
     config = campaign.load_config(path)
     assert campaign.MODELS == ("fixture-luna",) and campaign.MAX_REQUESTS == 24
     assert campaign.MAX_REPAIRS == 4 and campaign.TOKEN_STOP == 400000
     assert config["per_request_reserve_usd"] == pytest.approx(
-        (32768 * 0.10 + 16384 * 0.50) / 1_000_000
+        (input_bytes * 0.10 + 16384 * 0.50) / 1_000_000
     )
     state = tmp_path / "state"
     campaign.freeze(state)
@@ -373,6 +380,10 @@ def test_campaign_config_binds_one_primary_and_its_bounds(tmp_path, monkeypatch)
     assert ledger["prior_receipts"][0]["path"] == "prior.json"
     assert ledger["secondary_probe"]["state"] == "not_configured"
     assert ledger["billed_usd"] is None
+    campaign.configure(state, "fixture-luna")
+    deployment = load()
+    assert deployment.policy.max_message_bytes == input_bytes
+    assert deployment.profile.limits.max_input_bytes == input_bytes
     budget = campaign.Budget(state / "ledger.json")
     for index in range(4):
         budget.reserve("fixture-luna", f"repair-{index}", True)
@@ -488,9 +499,9 @@ def test_frozen_campaign_refuses_other_config_or_changed_profile(tmp_path, monke
     assert not (state / "campaign.lock").exists()
 
 
-@pytest.mark.parametrize("capture", [False, True])
+@pytest.mark.parametrize("capture,input_bytes", [(False, 32768), (True, 65536)])
 def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
-    db, seeded, tmp_path, monkeypatch, capture
+    db, seeded, tmp_path, monkeypatch, capture, input_bytes
 ):
     for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
         monkeypatch.setenv(key, "owned-test-placeholder")
@@ -533,6 +544,10 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
     with serve(answer) as server:
         extra = {"capture_contexts": True} if capture else {}
         path = configured_campaign(tmp_path, monkeypatch, base_url=server.url + "/v1", **extra)
+        profile_path = path.parent / "profile.json"
+        profile = json.loads(profile_path.read_text())
+        profile["limits"]["max_input_bytes"] = input_bytes
+        profile_path.write_text(json.dumps(profile))
         monkeypatch.setenv("E06_OWNED_LAB", "fixture-luna-lab")
         monkeypatch.setenv("DIAGNOSIS_LIVE_TOKEN", "owned-fixture-token")
         state = tmp_path / "state"
@@ -557,6 +572,7 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
             + 2 * (10 * 0.10 + 10 * 0.50) / 1_000_000
         )
         assert ledger["primary_identity"]["model"] == "fixture-luna"
+        assert load().policy.max_message_bytes == input_bytes
         contexts = state / "contexts"
         if not capture:
             assert not contexts.exists()

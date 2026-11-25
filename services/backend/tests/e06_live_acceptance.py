@@ -363,7 +363,7 @@ def _install(root, profile, operational):
                 "prometheus_series",
                 "diagnostic_fixture",
             ],
-            "max_message_bytes": 32768,
+            "max_message_bytes": max(32768, profile.limits.max_input_bytes),
             "max_target_bytes": 4096,
             "redaction_policy_version": "redaction/v1",
             "deny_patterns": [],
