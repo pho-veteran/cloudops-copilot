@@ -25,7 +25,15 @@ from uuid import UUID, uuid4
 
 import yaml
 
-from local_lab import OWNED_PROJECT, OWNED_PROJECTS, RECOVERY_LAB_PROJECT, ROOT, private_write
+from local_lab import (
+    OWNED_PROJECT,
+    OWNED_PROJECTS,
+    RECOVERY_LAB,
+    RELEASE_BUNDLE,
+    RELEASE_LAB,
+    ROOT,
+    private_write,
+)
 from release_scenarios import (
     load_catalog,
     read_json,
@@ -37,8 +45,11 @@ from release_scenarios import (
 )
 
 DIRECTORY = ROOT / OWNED_PROJECTS[OWNED_PROJECT]
-# The E10 S3 lab runs the qualified E07 recovery sample for its recovery scenarios.
-RECOVERY_LAB = OWNED_PROJECT == RECOVERY_LAB_PROJECT
+# RECOVERY_LAB: the E10 S3 lab and a release recovery lab run the qualified E07 recovery
+# sample for their recovery scenarios. RELEASE_LAB: a new owned recovery project whose
+# application and lab workload images come from a verified release bundle.
+RELEASE_SCHEMA = "CloudOpsReleaseBundle/v2"
+RELEASE_LAB_COMPONENTS = frozenset({"krr", "sample", "recovery_healthy", "recovery_bad_image"})
 OWNER_LABEL = "io.cloudops.lab.owner"
 GIB = 1024**3
 SAMPLE_IMAGE = (
@@ -93,12 +104,64 @@ FILES = (
     "compose.alertmanager.yaml",
     "compose.lab.yaml",
     *(("compose.lab-recovery.yaml",) if RECOVERY_LAB else ()),
+    *(("compose.lab-release.yaml",) if RELEASE_LAB else ()),
 )
 
 
 def require(condition, message):
     if not condition:
         raise RuntimeError(message)
+
+
+def release_bundle():
+    """Read the bundle a release recovery lab runs from, bound to its image selection."""
+    folder = Path(RELEASE_BUNDLE).resolve()
+    raw = (folder / "manifest.json").read_bytes()
+    manifest = json.loads(raw)
+    require(
+        manifest.get("schema") == RELEASE_SCHEMA
+        and re.fullmatch(r"[0-9a-f]{40}", str(manifest.get("revision"))) is not None
+        and set(manifest.get("images") or {}) == {"backend", "https", "db"}
+        and set(manifest.get("lab_images") or {}) == RELEASE_LAB_COMPONENTS,
+        "Use a verified release bundle that carries the lab images.",
+    )
+    for name in ("images.env", "lab-images.env"):
+        require(
+            hashlib.sha256((folder / name).read_bytes()).hexdigest()
+            == (manifest.get("sha256") or {}).get(name),
+            "Bundle image selection differs from its manifest; verify the bundle again.",
+        )
+    return manifest, hashlib.sha256(raw).hexdigest()
+
+
+def release_workload_tags():
+    """The lab's source-hashed workload tags and the bundle images they must name."""
+    return (
+        ("sample", SAMPLE_IMAGE),
+        ("recovery_healthy", RECOVERY_IMAGES["healthy"]),
+        ("recovery_bad_image", RECOVERY_IMAGES["bad-image"]),
+    )
+
+
+def release_source_hashes(manifest, names):
+    """SHA-256 of the named regular files in the bundle's reviewed source archive.
+
+    The archive bytes must match the bound manifest checksum and are parsed from memory.
+    """
+    import io
+    import tarfile
+
+    raw = (Path(RELEASE_BUNDLE).resolve() / "source.tar").read_bytes()
+    require(
+        hashlib.sha256(raw).hexdigest() == (manifest.get("sha256") or {}).get("source.tar"),
+        "Bundle source archive differs from its manifest; verify the bundle again.",
+    )
+    hashes = {}
+    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
+        for member in archive:
+            if member.isfile() and member.name in names:
+                hashes[member.name] = hashlib.sha256(archive.extractfile(member).read()).hexdigest()
+    return hashes
 
 
 def timestamped_nonempty(text):
@@ -303,6 +366,11 @@ class Lab:
             "compose",
             "--env-file",
             str(self.directory / "lab.env"),
+            *(
+                argument
+                for name in (("images.env", "lab-images.env") if RELEASE_LAB else ())
+                for argument in ("--env-file", str(Path(RELEASE_BUNDLE).resolve() / name))
+            ),
             "-p",
             OWNED_PROJECT,
             "--profile",
@@ -466,7 +534,6 @@ class Lab:
         return inventory
 
     def receipt(self, operation, value):
-        source = self.command(["git", "rev-parse", "HEAD"]).strip()
         paths = [ROOT / file for file in FILES]
         paths += list((ROOT / "config/lab").glob("*"))
         paths += [Path(__file__), ROOT / "scripts/local_lab.py"]
@@ -477,6 +544,26 @@ class Lab:
             for path in paths
             if path.is_file()
         }
+        if RELEASE_LAB:
+            # A bundle install has no Git metadata. Its revision is the bound bundle's, and
+            # every hashed lab source must equal that bundle's reviewed source archive.
+            manifest, bundle_digest = self.release_bundle()
+            source = manifest["revision"]
+            require(
+                release_source_hashes(manifest, set(hashes)) == hashes,
+                "Installed lab sources differ from the bundle source archive.",
+            )
+            provenance = {
+                "release_bundle": {"revision": source, "manifest_sha256": bundle_digest},
+                "working_diff_sha256": None,
+            }
+        else:
+            source = self.command(["git", "rev-parse", "HEAD"]).strip()
+            provenance = {
+                "working_diff_sha256": hashlib.sha256(
+                    self.command(["git", "diff", "--binary"]).encode()
+                ).hexdigest()
+            }
         value = {
             "operation": operation,
             "at": datetime.now(timezone.utc).isoformat(),
@@ -484,9 +571,7 @@ class Lab:
             "owner": self.marker["owner"],
             "source_commit": source,
             "source_files": hashes,
-            "working_diff_sha256": hashlib.sha256(
-                self.command(["git", "diff", "--binary"]).encode()
-            ).hexdigest(),
+            **provenance,
             "deployment_uids": self.marker["deployments"],
             **value,
         }
@@ -575,6 +660,12 @@ class Lab:
         }
         if RECOVERY_LAB:
             self.marker["recovery_images"] = RECOVERY_IMAGES
+        if RELEASE_LAB:
+            manifest, digest = release_bundle()
+            self.marker["release_bundle"] = {
+                "revision": manifest["revision"],
+                "manifest_sha256": digest,
+            }
         self.save()
         values = {
             "POSTGRES_PASSWORD": secrets.token_urlsafe(32),
@@ -656,12 +747,17 @@ class Lab:
                     .get("spec", {})
                     .get("containers", [])
                 )
+        # A release lab builds nothing; its built images come from the verified bundle.
         for file in (
-            "services/backend/Dockerfile",
-            "apps/web/Dockerfile.https",
-            "services/krr/Dockerfile",
-            "config/lab/Dockerfile.sample",
-            *(("config/lab/Dockerfile.recovery",) if RECOVERY_LAB else ()),
+            ()
+            if RELEASE_LAB
+            else (
+                "services/backend/Dockerfile",
+                "apps/web/Dockerfile.https",
+                "services/krr/Dockerfile",
+                "config/lab/Dockerfile.sample",
+                *(("config/lab/Dockerfile.recovery",) if RECOVERY_LAB else ()),
+            )
         ):
             for line in (ROOT / file).read_text().splitlines():
                 if line.startswith("FROM "):
@@ -721,6 +817,86 @@ class Lab:
                 ),
             )
         return {"remote_references_verified": verified}
+
+    def release_bundle(self):
+        """Bind this lab to its bundle; a different bundle needs a new release project."""
+        manifest, digest = release_bundle()
+        require(
+            self.marker.get("release_bundle")
+            == {"revision": manifest["revision"], "manifest_sha256": digest},
+            "Release bundle differs from this lab's installation; use a new release project.",
+        )
+        return manifest, digest
+
+    def tag_identity(self, tag):
+        """Return the image ID a tag names, None only when Docker reports no such image."""
+        found = subprocess.run(
+            ["docker", "image", "inspect", "--format", "{{.Id}}", tag],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+            env=self.env,
+            timeout=60,
+        )
+        if found.returncode == 0:
+            identity = found.stdout.strip()
+            require(
+                re.fullmatch(r"sha256:[0-9a-f]{64}", identity) is not None,
+                "Cannot read a lab workload tag identity.",
+            )
+            return identity
+        require(
+            "no such image" in found.stderr.lower(),
+            "Cannot establish a lab workload tag; refusing to change it.",
+        )
+        return None
+
+    def release_workload_images(self, manifest=None):
+        """Require each lab workload tag to name its bundle image ID right before use."""
+        manifest = manifest or self.release_bundle()[0]
+        for component, tag in release_workload_tags():
+            require(
+                self.tag_identity(tag) == manifest["lab_images"][component]["id"],
+                "A lab workload tag no longer names its bundle image; stop and inspect.",
+            )
+
+    def release_images(self):
+        """Check loaded bundle image IDs and point the lab workload tags at them."""
+        manifest, digest = self.release_bundle()
+        identities = {}
+        for group in ("images", "lab_images"):
+            for name, item in manifest[group].items():
+                image = json.loads(self.command(["docker", "image", "inspect", item["ref"]]))[0]
+                require(
+                    image["Id"] == item["id"]
+                    and image["Os"] == "linux"
+                    and image["Architecture"] == "amd64"
+                    and (
+                        name == "db"
+                        or ((image.get("Config") or {}).get("Labels") or {}).get(
+                            "org.opencontainers.image.revision"
+                        )
+                        == manifest["revision"]
+                    ),
+                    f"Loaded {name} image differs from the release bundle; load and verify it.",
+                )
+                identities[name] = item["id"]
+        for component, tag in release_workload_tags():
+            identity = manifest["lab_images"][component]["id"]
+            current = self.tag_identity(tag)
+            require(
+                current in (None, identity),
+                "A lab workload tag names a different image; refusing to replace it.",
+            )
+            if current is None:
+                # Tag the verified content ID, never the mutable bundle reference.
+                self.command(["docker", "image", "tag", identity, tag])
+        self.release_workload_images(manifest)
+        return {
+            "revision": manifest["revision"],
+            "manifest_sha256": digest,
+            "image_ids": identities,
+        }
 
     def ensure(self, resource):
         resource = copy.deepcopy(resource)
@@ -1264,6 +1440,8 @@ class Lab:
             "Sample source changed; review its image/scope migration before starting existing state.",
         )
         images = self.images()
+        if RELEASE_LAB:
+            images["release_bundle"] = self.release_images()
         running = {
             item["Config"]["Labels"].get("com.docker.compose.service")
             for item in self.ownership()["container"]
@@ -1278,14 +1456,14 @@ class Lab:
             if "executor" in running:
                 self.maintenance("enter_recovery")
             self.dc("stop", "worker", "observer", "api")
-        for service in ("api", "https", "sample"):
+        for service in () if RELEASE_LAB else ("api", "https", "sample"):
             self.dc("build", service, timeout=600)
         if RECOVERY_LAB:
             require(
                 self.marker.get("recovery_images") == RECOVERY_IMAGES,
                 "Recovery sample source changed; review its qualification before starting.",
             )
-            for variant, tag in RECOVERY_IMAGES.items():
+            for variant, tag in () if RELEASE_LAB else RECOVERY_IMAGES.items():
                 self.command(
                     [
                         "docker",
@@ -1315,6 +1493,8 @@ class Lab:
         self.start_k3s()
         self.volume_guard(remember=True)
         archive = self.directory / "sample.tar"
+        if RELEASE_LAB:
+            self.release_workload_images()
         try:
             with archive.open("wb") as output:
                 self.command(
@@ -1430,6 +1610,8 @@ class Lab:
     def resume(self):
         self.volume_guard()
         self.credentials_valid()
+        if RELEASE_LAB:
+            self.release_bundle()
         require(
             self.marker["sample_image"] == SAMPLE_IMAGE,
             "Sample source changed; use reviewed setup instead of resume.",
@@ -4437,9 +4619,10 @@ print(json.dumps({
 
 
 def main():
-    if os.environ.get("CLOUDOPS_RELEASE_BUNDLE"):
+    if os.environ.get("CLOUDOPS_RELEASE_BUNDLE") and not RELEASE_LAB:
         raise SystemExit(
-            "The retained owned lab builds its own images; unset CLOUDOPS_RELEASE_BUNDLE."
+            "The retained owned lab builds its own images; unset CLOUDOPS_RELEASE_BUNDLE "
+            "or select a new cloudops-release-recovery-NAME project."
         )
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", choices=sorted(OWNED_PROJECTS), required=True)

@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import tempfile
 from typing import Annotated, Literal
 from uuid import UUID
@@ -29,7 +30,16 @@ from cloudops.features.evaluation.hashing import content_sha256
 from cloudops.features.evaluation.seal import EvalSealError, load_cohort, verify
 
 ROOT = Path(__file__).resolve().parents[1]
-OWNED_PROJECT = "cloudops-e10-s3-lab"
+RECOVERY_LAB_PROJECT = "cloudops-e10-s3-lab"
+# The campaign's recovery lab: the source-built E10 S3 lab, or a new owned recovery lab run
+# from a verified release bundle (scripts/release_scenarios.py), selected by
+# CLOUDOPS_LAB_PROJECT. Any other value keeps the source-built lab, so its checks fail closed.
+_SELECTED_PROJECT = os.environ.get("CLOUDOPS_LAB_PROJECT", RECOVERY_LAB_PROJECT)
+OWNED_PROJECT = (
+    _SELECTED_PROJECT
+    if re.fullmatch(r"cloudops-release-recovery-[a-z0-9]{1,24}", _SELECTED_PROJECT)
+    else RECOVERY_LAB_PROJECT
+)
 SOURCE_MANIFEST = "campaign-source.json"
 S6_SOURCES = (
     "compose.yaml",
@@ -38,6 +48,7 @@ S6_SOURCES = (
     "compose.alertmanager.yaml",
     "compose.lab.yaml",
     "compose.lab-recovery.yaml",
+    "compose.lab-release.yaml",
     "compose.diagnosis.yaml",
     "config/lab/release-scenarios-v1.json",
     "config/lab/recovery-audit-policy.yaml",
@@ -50,6 +61,7 @@ S6_SOURCES = (
     "scripts/local_lab.py",
     "scripts/manage-local-lab.py",
     "scripts/probe-e10-s3-recovery.py",
+    "scripts/release-bundle.py",
     "scripts/release_scenarios.py",
     "services/backend/Dockerfile",
     "services/backend/src/cloudops/entrypoints/worker.py",

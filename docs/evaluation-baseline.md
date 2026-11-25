@@ -209,8 +209,10 @@ release-package path and EC2 walkthrough have their own procedures.
 
 Run each finite worker phase inside the owned Linux worker container with a read-only
 bind of the reviewed checkout at `/candidate` and
-`PYTHONPATH=/candidate/services/backend/src`. Set
-`CLOUDOPS_LAB_PROJECT=cloudops-e10-s3-lab` and run
+`PYTHONPATH=/candidate/services/backend/src`. Set `CLOUDOPS_LAB_PROJECT` to the
+campaign's recovery lab, `cloudops-e10-s3-lab` or a
+[release recovery lab](release-package.md#owned-recovery-lab-with-release-images)
+`cloudops-release-recovery-NAME`, in every campaign command and run
 `python /candidate/scripts/e10_campaign_worker.py` with the arguments above and
 `--state-dir`, `--active-trial` and `--seconds`. Mount private state and the separate
 provider authority directory read-write and only the active trial record read-only.

@@ -33,8 +33,8 @@ def die(message):
 
 
 def guard():
-    if LAB.PROJECT != LAB.RECOVERY_LAB_PROJECT:
-        die(f"set CLOUDOPS_LAB_PROJECT={LAB.RECOVERY_LAB_PROJECT}.")
+    if not LAB.RECOVERY_LAB or LAB.PROJECT not in LAB.OWNED_PROJECTS:
+        die(f"set CLOUDOPS_LAB_PROJECT={LAB.RECOVERY_LAB_PROJECT} or a release recovery lab.")
     if not (LAB.LAB_DIR / "owner.json").is_file():
         die("start the recovery lab through manage-local-lab.py first.")
 

@@ -15,9 +15,22 @@ from cloudops.shared.errors import DomainError
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/lab/release-scenarios-v1.json"
 RECEIPT_SCHEMA = ROOT / "config/lab/e10-s3-trial-reset-receipt.schema.json"
-# Keep in step with scripts/local_lab.py; recovery scenarios run only in the recovery lab.
+# Keep in step with scripts/local_lab.py; recovery scenarios run only in a recovery lab:
+# the source-built E10 S3 lab or a separate owned lab run from a verified release bundle.
 OWNED_LAB_PROJECTS = frozenset({"cloudops-local-testing-lab", "cloudops-e10-s3-lab"})
 RECOVERY_LAB_PROJECT = "cloudops-e10-s3-lab"
+RELEASE_RECOVERY_LAB = re.compile(r"cloudops-release-recovery-[a-z0-9]{1,24}")
+
+
+def release_recovery_project(project) -> bool:
+    """Whether a project name selects an owned recovery lab run from release images."""
+    return isinstance(project, str) and RELEASE_RECOVERY_LAB.fullmatch(project) is not None
+
+
+def recovery_lab_project(project) -> bool:
+    return project == RECOVERY_LAB_PROJECT or release_recovery_project(project)
+
+
 FORBIDDEN_INPUT_KEYS = {
     "allowed_action",
     "allowed_candidates",
@@ -890,13 +903,14 @@ def validate_trial_receipt(value):
             "Invalid scope/source digest.",
         )
     _require(
-        scope.get("project") in OWNED_LAB_PROJECTS,
+        scope.get("project") in OWNED_LAB_PROJECTS
+        or release_recovery_project(scope.get("project")),
         "Reset receipt scope is not an owned lab.",
     )
     _require(
         scenarios[receipt["scenario_id"]]["kind"] != "recovery"
-        or scope.get("project") == RECOVERY_LAB_PROJECT,
-        "Recovery receipts must come from the E10 S3 recovery lab.",
+        or recovery_lab_project(scope.get("project")),
+        "Recovery receipts must come from an E10 recovery lab.",
     )
     _require(
         set(scope) == {"project", "namespace", "scope_manifest_sha256"},
