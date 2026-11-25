@@ -103,3 +103,27 @@ final writer-quarantine receipt confirms `enabled=false`, `recovery_mode=true` f
 the exact target UID. The separate test runner and test database containers were
 stopped after retaining JUnit evidence. At verification time the candidate was
 uncommitted; this handoff PR commits the same source without adding a live trial.
+
+## Additions in the replacement PR — November 25, 2026
+
+The replacement PR keeps the contributor commit above and adds tooling only. It adds no
+live trial, provider request or control result.
+
+- `scripts/e10_campaign_timing.py` derives the seven S4 stage durations from the S3
+  trial phases and the product Incident, Run, Analysis, plan, execution and
+  verification views. `s6-evidence` now also saves the Run and Analysis views.
+- The four observations and five negatives follow the catalog's controlled-fixture
+  route. The E06 driver can keep the prepared context each send used. Then
+  `scripts/e10_campaign_controls.py` publishes those contexts as the planned bundles
+  and derives every control outcome from scored receipts, the driver ledger or a
+  JUnit report named after the sealed revision.
+- A retained context's digest is recomputed from its content before a bundle is
+  published. A configured driver run is bound to a digest of the backend source.
+  The scorecard accepts a control only when its artifact states the same outcome.
+- The bundle validator compared runbook chunk bytes with the whole document's hash. A
+  chunk from a multi-section runbook was therefore rejected. It now checks the chunk
+  hash and keeps the document hash as metadata.
+
+The full Linux/PostgreSQL backend suite passed on the replacement head; the counts are
+in the PR. The unresolved inverse-test failures above did not recur in that run. That
+run does not establish a root cause, so the failures remain open.

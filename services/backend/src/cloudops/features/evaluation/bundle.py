@@ -77,10 +77,11 @@ def verify(bundle: EvalBundle, *, expected_case_id: str | None = None) -> None:
         if runbook.alias in seen:
             raise EvalInputError("duplicate_alias")
         seen.add(runbook.alias)
+        # A retrieved chunk is usually one section of its document, so only the chunk
+        # hash describes these bytes; document_sha256 stays document metadata.
         content_sha = hashlib.sha256(runbook.content.encode("utf-8")).hexdigest()
         if (
             runbook.content_bytes != len(runbook.content.encode("utf-8"))
-            or runbook.reference.document_sha256 != content_sha
             or runbook.reference.chunk_sha256 != content_sha
         ):
             raise EvalInputError("runbook_digest_mismatch")
