@@ -42,8 +42,10 @@ S6_SOURCES = (
     "config/lab/release-scenarios-v1.json",
     "config/lab/recovery-audit-policy.yaml",
     "scripts/e10_campaign.py",
+    "scripts/e10_campaign_controls.py",
     "scripts/e10_campaign_plan.py",
     "scripts/e10_campaign_report.py",
+    "scripts/e10_campaign_timing.py",
     "scripts/e10_campaign_worker.py",
     "scripts/local_lab.py",
     "scripts/manage-local-lab.py",
@@ -53,6 +55,10 @@ S6_SOURCES = (
     "services/backend/src/cloudops/entrypoints/worker.py",
     "services/backend/src/cloudops/features/diagnosis/worker.py",
     "services/backend/src/cloudops/shared/jobs.py",
+    "services/backend/tests/e06_live_acceptance.py",
+    "services/backend/tests/test_diagnosis_validation.py",
+    "services/backend/tests/fixtures/e06/cases.json",
+    "services/backend/tests/fixtures/e06/oracle.json",
 )
 
 CaseId = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]{0,63}$")]

@@ -419,6 +419,11 @@ def s6_action(args):
             print(
                 save(f"s6-incident-outcome-{binding.case_id}.json", product(session.get(incident)))
             )
+            run = f"{incident}/runs/{binding.run_id}"
+            # Timing inputs: the Run and Analysis views carry the product's own timestamps.
+            print(save(f"s6-run-{binding.case_id}.json", product(session.get(run))))
+            analysis = product(session.get(f"{run}/analysis"))
+            print(save(f"s6-analysis-{binding.case_id}.json", analysis))
             return
 
         review = product(session.get(f"/api/plans/{args.plan}"))

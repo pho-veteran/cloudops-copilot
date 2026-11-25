@@ -447,8 +447,9 @@ def test_frozen_campaign_refuses_other_config_or_changed_profile(tmp_path, monke
     assert not (state / "campaign.lock").exists()
 
 
+@pytest.mark.parametrize("capture", [False, True])
 def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
-    db, seeded, tmp_path, monkeypatch
+    db, seeded, tmp_path, monkeypatch, capture
 ):
     for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
         monkeypatch.setenv(key, "owned-test-placeholder")
@@ -489,7 +490,8 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
         respond(handler, payload)
 
     with serve(answer) as server:
-        path = configured_campaign(tmp_path, monkeypatch, base_url=server.url + "/v1")
+        extra = {"capture_contexts": True} if capture else {}
+        path = configured_campaign(tmp_path, monkeypatch, base_url=server.url + "/v1", **extra)
         monkeypatch.setenv("E06_OWNED_LAB", "fixture-luna-lab")
         monkeypatch.setenv("DIAGNOSIS_LIVE_TOKEN", "owned-fixture-token")
         state = tmp_path / "state"
@@ -514,6 +516,46 @@ def test_configured_campaign_runs_the_full_cohort_through_the_lifecycle(
             + 2 * (10 * 0.10 + 10 * 0.50) / 1_000_000
         )
         assert ledger["primary_identity"]["model"] == "fixture-luna"
+        contexts = state / "contexts"
+        if not capture:
+            assert not contexts.exists()
+            return
+        from cloudops.features.diagnosis.context import PreparedContext
+
+        assert sorted(path.stem for path in contexts.iterdir()) == sorted(
+            case["id"] for case in cases
+        )
+        assert contexts.stat().st_mode & 0o777 == 0o700
+        for case in cases:
+            entry = ledger["cases"][case["id"]]
+            file = contexts / f"{case['id']}.json"
+            assert file.stat().st_mode & 0o777 == 0o600
+            prepared = PreparedContext.model_validate_json(file.read_bytes())
+            # A repaired case keeps the single snapshot both of its sends used.
+            assert prepared.digest == entry["result"]["context_digest"]
+            assert prepared.analysis_identity == entry["analysis_id"]
+
+
+def test_captured_context_is_write_once_per_case(tmp_path):
+    class Prepared:
+        def __init__(self, text):
+            self.text = text
+
+        def model_dump_json(self):
+            return self.text
+
+    campaign.capture_context(tmp_path, "c01", Prepared('{"a":1}'))
+    campaign.capture_context(tmp_path, "c01", Prepared('{"a":1}'))
+    with pytest.raises(ValueError, match="changed within one case"):
+        campaign.capture_context(tmp_path, "c01", Prepared('{"a":2}'))
+    assert (tmp_path / "contexts/c01.json").read_text() == '{"a":1}\n'
+
+
+@pytest.mark.parametrize("value", ["yes", 1])
+def test_campaign_config_capture_flag_must_be_boolean(tmp_path, monkeypatch, value):
+    path = configured_campaign(tmp_path, monkeypatch, capture_contexts=value)
+    with pytest.raises(ValueError, match="boolean"):
+        campaign.load_config(path)
 
 
 def test_profile_replaced_after_loading_is_never_installed(tmp_path, monkeypatch):
