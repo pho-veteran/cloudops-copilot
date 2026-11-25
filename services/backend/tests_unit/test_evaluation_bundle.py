@@ -5,6 +5,7 @@ import pytest
 
 from cloudops.features.evaluation.bundle import EvalInputError, from_context, load, verify
 from cloudops.features.evaluation.hashing import content_sha256
+from cloudops.features.knowledge.chunking import chunk_document
 from eval_fixtures import context_for_case, write_bundle
 
 
@@ -39,6 +40,30 @@ def test_bundle_rejects_changed_runbook_full_text():
     )
     with pytest.raises(EvalInputError, match="runbook_digest_mismatch"):
         verify(tampered)
+
+
+def test_bundle_accepts_a_production_chunk_of_a_multi_section_runbook():
+    context = context_for_case("crashloop-positive")
+    runbook = context.runbooks[0]
+    chunks = chunk_document(runbook.content.encode("utf-8"))
+    assert len(chunks) > 1
+    chunk = chunks[1]
+    section = chunk.content.decode("utf-8")
+    reference = runbook.reference.model_copy(update={"chunk_sha256": chunk.content_sha256})
+    assert reference.document_sha256 != reference.chunk_sha256
+    chunked = runbook.model_copy(
+        update={
+            "reference": reference,
+            "heading_path": list(chunk.heading_path),
+            "content": section,
+            "content_bytes": len(chunk.content),
+        }
+    )
+    changed = context.model_copy(update={"runbooks": [chunked]})
+    bundle = from_context(
+        changed, case_id="crashloop-positive", bundle_id="chunked", captured_at=context.window.start
+    )
+    assert bundle.context.runbooks[0].reference.document_sha256 == runbook.reference.document_sha256
 
 
 def test_bundle_rejects_label_shaped_extra_fields(tmp_path):

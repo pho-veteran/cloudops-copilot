@@ -231,6 +231,49 @@ def test_insufficient_zero_http_and_atomic_unique_admission(db, context, deploym
         assert not server.requests
 
 
+@pytest.mark.parametrize("allow", [True, False])
+def test_trusted_capture_runs_before_http_and_can_stop_the_send(db, context, deployment, allow):
+    from cloudops.features.diagnosis.worker import analyze
+
+    _crashloop(db, context)
+    captured = []
+    outcomes = []
+
+    def before(prepared, _deployment, request_digest, byte_size):
+        assert not server.requests
+        assert prepared.run_id == context[1]
+        assert byte_size > 0
+        captured.append((prepared.digest, request_digest))
+        if not allow:
+            raise ValueError("test cutoff")
+
+    def after(call, _deployment):
+        outcomes.append(call.kind)
+
+    with serve(lambda h: respond(h, text_payload(_raw()))) as server:
+        deployment(server.url)
+        other = Job(kind=ANALYSIS_JOB, subject_id=uuid4())
+        db.add(other)
+        db.commit()
+        identifier = admission(db, context)
+        assert run_once(
+            job_kinds={ANALYSIS_JOB},
+            subject_id=identifier,
+            run_analysis=lambda *args: analyze(*args, before_request=before, after_request=after),
+        )
+        db.refresh(other)
+        assert other.attempts == 0
+        assert len(captured) == 1
+        assert len(server.requests) == len(outcomes) == int(allow)
+        row = db.get(AnalysisContext, identifier)
+        assert row.digest == captured[0][0]
+        if allow:
+            assert refresh(db, identifier).state == "completed"
+            assert db.get(AnalysisResult, identifier).payload["context_digest"] == row.digest
+        else:
+            assert refresh(db, identifier).calls == 0
+
+
 def test_repair_reuses_snapshot_one_send_per_claim(db, context, deployment):
     _crashloop(db, context)
     replies = iter(["not json", _raw()])

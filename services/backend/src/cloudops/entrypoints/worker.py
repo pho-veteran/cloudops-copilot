@@ -83,16 +83,20 @@ def _require_dispatch(claim: Claim, lease_lost: threading.Event) -> None:
         raise Interrupted()
 
 
-def run_once() -> bool:
+def run_once(*, job_kinds=None, subject_id=None, run_analysis=None) -> bool:
     heartbeat()
     _report_denial()
     # Deferred investigations take free dispatch slots before the next claim.
-    promote_deferred(gate=GATE)
-    expire_waits()
+    if subject_id is None:
+        promote_deferred(gate=GATE)
+        expire_waits()
     slot = ModelSlot()
-    model_handlers = {
-        key: value for key, value in HANDLERS.items() if key in {ANALYSIS_JOB, PROBE_JOB}
-    }
+    handlers = (
+        HANDLERS
+        if job_kinds is None
+        else {key: value for key, value in HANDLERS.items() if key in job_kinds}
+    )
+    model_handlers = {ANALYSIS_JOB, PROBE_JOB} & handlers.keys()
     try:
         slot.__enter__()
     except GuardBusy:
@@ -101,11 +105,15 @@ def run_once() -> bool:
         # Preserve the common FIFO queue. Owning model capacity does not give model
         # jobs priority over an older collection/recommendation/recovery request.
         eligible_handlers = (
-            HANDLERS
+            handlers
             if slot is not None
-            else {key: value for key, value in HANDLERS.items() if key not in model_handlers}
+            else {key: value for key, value in handlers.items() if key not in model_handlers}
         )
-        claim = claim_next(eligible_handlers, GATE)
+        claim = (
+            claim_next(eligible_handlers, GATE)
+            if subject_id is None
+            else claim_next(eligible_handlers, GATE, subject_id=subject_id)
+        )
     except BaseException:
         if slot is not None:
             slot.release()
@@ -134,7 +142,8 @@ def run_once() -> bool:
     keeper.start()
     try:
         if claim.kind in {ANALYSIS_JOB, PROBE_JOB}:
-            (analyze if claim.kind == ANALYSIS_JOB else probe)(claim, GATE, slot, lease_lost)
+            model_job = (run_analysis or analyze) if claim.kind == ANALYSIS_JOB else probe
+            model_job(claim, GATE, slot, lease_lost)
             return True
         if claim.kind == RECONCILE_JOB:
             reconcile(claim, GATE, lease_lost)

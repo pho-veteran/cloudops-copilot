@@ -100,10 +100,13 @@ def load_config(path):
         "output_usd_per_mtok",
         "rates_date",
     }
-    if value.get("schema") != CONFIG_SCHEMA or set(value) - required - {"prior_receipts"}:
+    optional = {"prior_receipts", "capture_contexts"}
+    if value.get("schema") != CONFIG_SCHEMA or set(value) - required - optional:
         raise ValueError("Unsupported campaign config")
     if required - set(value):
         raise ValueError("Campaign config is incomplete")
+    if type(value.get("capture_contexts", False)) is not bool:
+        raise ValueError("capture_contexts must be a boolean")
     if not str(value["owned_database"]).endswith("_test"):
         raise ValueError("The owned campaign database must end in _test")
     for key in ("max_requests", "max_repairs", "observed_token_stop"):
@@ -150,6 +153,28 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def source_tree_digest():
+    """Digest of the backend source and driver inputs a configured campaign executes.
+
+    ``source_commit`` alone names a revision; this binds the actual files, so a run
+    with changed backend code cannot be reported under the frozen revision.
+    """
+    root = Path(__file__).resolve().parents[3]
+    tests = Path(__file__).resolve().parent
+    paths = {
+        *(root / "services/backend/src").rglob("*.py"),
+        Path(__file__).resolve(),
+        tests / "conftest.py",
+        tests / "test_diagnosis_validation.py",
+        FIXTURES.resolve() / "cases.json",
+        FIXTURES.resolve() / "oracle.json",
+    }
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        digest.update(f"{path.relative_to(root).as_posix()}\0{sha(path)}\n".encode())
+    return digest.hexdigest()
+
+
 def save(path, value):
     temporary = path.with_suffix(".tmp")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -157,6 +182,41 @@ def save(path, value):
         json.dump(value, stream, indent=2)
         stream.write("\n")
     temporary.replace(path)
+
+
+def capture_context(root, case_id, prepared):
+    """Keep the exact prepared context a send used; the product discards it at terminal state.
+
+    Opt-in (``capture_contexts`` in a campaign config) so a later evaluation can bind
+    an immutable bundle to the product result. A repair reuses the stored snapshot, so
+    a second capture for the same case must be byte-identical.
+    """
+    directory = root / "contexts"
+    directory.mkdir(mode=0o700, exist_ok=True)
+    raw = (prepared.model_dump_json() + "\n").encode("utf-8")
+    path = directory / f"{case_id}.json"
+    try:
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        # The repair send re-reads the snapshot from JSONB, which may reorder keys.
+        if json.loads(path.read_bytes()) != json.loads(raw):
+            raise ValueError("Captured context changed within one case") from None
+        return
+    with os.fdopen(descriptor, "wb") as stream:
+        stream.write(raw)
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def _analysis_runner(root, current):
+    if not (CONFIG or {}).get("capture_contexts"):
+        return None
+    from cloudops.features.diagnosis.worker import analyze
+
+    def before(prepared, _deployment, _request_digest, _byte_size):
+        capture_context(root, current["case"], prepared)
+
+    return lambda *args: analyze(*args, before_request=before)
 
 
 class Budget:
@@ -417,7 +477,8 @@ def execute_case(db, actor, case, budget, current, *, operational=False):
     identifier = analysis.id
     db.commit()
     current.update(case=case["id"], repair=False)
-    if not run_once():
+    runner = _analysis_runner(budget.path.parent, current)
+    if not run_once(run_analysis=runner):
         raise ValueError("Owned worker could not claim admitted case")
     db.expire_all()
     analysis = db.get(Analysis, identifier)
@@ -427,7 +488,7 @@ def execute_case(db, actor, case, budget, current, *, operational=False):
         and budget.data["repairs"] < MAX_REPAIRS
     ):
         current["repair"] = True
-        if not run_once():
+        if not run_once(run_analysis=runner):
             raise ValueError("Selected repair not claimable")
         db.expire_all()
         analysis = db.get(Analysis, identifier)
@@ -638,6 +699,7 @@ def freeze(root, carryover=None, previous=None, continue_cases=False):
                 f"the {CONFIG['rates_date']} rates; no implicit retry"
             ),
             campaign_config_sha256=CONFIG["config_sha256"],
+            source_tree_sha256=source_tree_digest(),
             profile_sha256=CONFIG["profile_sha256"],
             prior_receipts=CONFIG["prior_receipt_hashes"],
             rates={
@@ -710,6 +772,8 @@ def main():
                 ("oracle_sha256", FIXTURES / "oracle.json"),
             ]
         ):
+            raise ValueError("Frozen campaign source changed")
+        if CONFIG is not None and budget.data.get("source_tree_sha256") != source_tree_digest():
             raise ValueError("Frozen campaign source changed")
         if args.phase == "run" and (budget.data["calls"] or budget.data.get("started")):
             raise ValueError("Initial campaign already started; no repeat cohort is authorized")

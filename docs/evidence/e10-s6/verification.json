@@ -1,0 +1,280 @@
+{
+  "issue": 125,
+  "evidence_class": "local_verification_and_calibration",
+  "source_revision": "6ac5bf92d44559066a677bdc3efe1f01656cc473",
+  "source_is_uncommitted_candidate": true,
+  "source_sha256": {
+    "scripts/e10_campaign.py": "c1cae60882a8e23e758e88f8a0912d81f7f5d1e90ea5a73dde53a82585f66c84",
+    "scripts/e10_campaign_plan.py": "3337bd7c2e6e55215f4436dfbd85493b93b72cadc1f305f2d846693787ca8d66",
+    "scripts/e10_campaign_worker.py": "3e5cd36041bfee7a0f575349ada7af11fa7361c4661c41706826836cfaa2fb71",
+    "scripts/e10_campaign_report.py": "2ec75370a999af90bf552f955a82ac9de453855074b9e38958f5f0b6e824f29e",
+    "scripts/probe-e10-s3-recovery.py": "a22844edf389a2dd555f8e71bc1df5eabd1cdb4b60e081e8709a53a9e1e45330",
+    "services/backend/src/cloudops/shared/jobs.py": "e68bcb45dfeae66023f6248e7c27786aa81f0e22a282285fe41231bd2221de1f",
+    "services/backend/src/cloudops/entrypoints/worker.py": "3e17b383f3ffa189844f072f341d92457080ac484aab9547e600a2c6fe3f739f",
+    "services/backend/src/cloudops/features/diagnosis/worker.py": "c6dacd795c84b3b3476a916bd661b1db22025f5ab5139d0d2ae799c033b0d495",
+    "services/backend/tests/test_diagnosis_lifecycle.py": "a225beacde6bcb7a26695efe46890f0dd6c125502fa5c3c4f415d2bc8ecb61e2",
+    "services/backend/tests_unit/test_e10_campaign.py": "c552c583e96ebfad22eef58314b52398ea4fb5198ade9e66a17a604bbd1c7892"
+  },
+  "candidate_archive_sha256": "4a92bef637a4b38a2572eea3f78e988124b7d5c80e4376e9ef59a851aee6ed4a",
+  "checks": {
+    "ruff_check": "passed",
+    "ruff_format": "372 files already formatted",
+    "git_diff_check": "passed",
+    "focused_linux_postgresql": {
+      "passed": 90
+    },
+    "linux_suite": {
+      "tests": 1409,
+      "passed": 1407,
+      "failed": 1,
+      "skipped": 1,
+      "seconds": 358.062
+    },
+    "compose_render_on_wsl": "passed",
+    "inverse_recheck": {
+      "passed": 24,
+      "failed": 1
+    },
+    "inverse_diagnostic_recheck": {
+      "passed": 25,
+      "failed": 0,
+      "behavior_changed": false
+    },
+    "current_checkout_recheck": {
+      "platform": "Windows",
+      "ruff_check": "passed",
+      "ruff_format": "372 files already formatted",
+      "s6_unit_tests": {
+        "passed": 23,
+        "skipped": 1
+      },
+      "note": "scripts/e10_campaign.py changed after the archived Linux snapshot; its hash above is current. Archived Linux/PostgreSQL results apply to the archived snapshot."
+    }
+  },
+  "unresolved_failure": {
+    "code": "target_cooldown",
+    "initial_test": "test_fresh_inverse_boundaries_deny_before_approval[fields]",
+    "isolated_recheck_test": "test_captured_template_inverse_needs_no_new_forward_selector[set_memory_profile]",
+    "status": "intermittent; root cause unresolved; original failures retained"
+  },
+  "lab": {
+    "project": "cloudops-e10-s3-lab",
+    "target_uid": "33f8d37c-1367-4615-a11e-a003cde57e01",
+    "policy_loaded_by_api": true,
+    "reserve_adjustment_bytes": 16777216,
+    "reason": "Initial allocatable was 3 GiB plus 4 KiB; increased kubelet reserve and used supported recreate; no Node capacity patch",
+    "calibration": {
+      "schema": "E10RecoveryCalibration/v1",
+      "scenario_id": "recovery-traffic-scale",
+      "target_uid": "33f8d37c-1367-4615-a11e-a003cde57e01",
+      "profile_digest": "baed7b197c894f496f61f67576f90093193c2b053813f6aec397f307ed169de2",
+      "rate_rps": 30,
+      "seconds": 210,
+      "started_at": "2026-11-24T21:53:23.804567+07:00",
+      "action_state": {
+        "replicas": 2,
+        "template": {
+          "image": "docker.io/library/cloudops-e10-s3-lab-recovery:523eaed09d1a447a-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          },
+          "imagePullPolicy": "Never",
+          "mode": null,
+          "initContainers": null
+        },
+        "rolling_update": {}
+      },
+      "samples": [
+        {
+          "at": "2026-11-24T21:54:34.215812+07:00",
+          "request_rate": 29.36333090293722,
+          "error_ratio": 0.0038474334644969153,
+          "p95_latency": 0.2425,
+          "offered_rate": 29.288866325614087,
+          "resets": 0.0,
+          "sample_time": 2.5553619861602783,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T21:55:08.673407+07:00",
+          "request_rate": 28.704661527045833,
+          "error_ratio": 0.0013369232931090041,
+          "p95_latency": 0.24365229044957806,
+          "offered_rate": 28.78194796223809,
+          "resets": 0.0,
+          "sample_time": 4.6528000831604,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T21:55:41.666828+07:00",
+          "request_rate": 28.808652183124387,
+          "error_ratio": 0.0,
+          "p95_latency": 0.2425,
+          "offered_rate": 28.963120293492956,
+          "resets": 0.0,
+          "sample_time": 1.7425568103790283,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T21:56:14.453234+07:00",
+          "request_rate": 29.14796192005008,
+          "error_ratio": 0.0013316069132872936,
+          "p95_latency": 0.242880506532539,
+          "offered_rate": 28.99110939311944,
+          "resets": 0.0,
+          "sample_time": 3.64302396774292,
+          "serving_pods": 2
+        },
+        {
+          "at": "2026-11-24T21:56:46.875163+07:00",
+          "request_rate": 29.385862136028706,
+          "error_ratio": 0.0,
+          "p95_latency": 0.24307229990281307,
+          "offered_rate": 29.38756318326085,
+          "resets": 0.0,
+          "sample_time": 0.456406831741333,
+          "serving_pods": 2
+        }
+      ],
+      "passed": true,
+      "containment": {
+        "pid_cgroup": "/sys/fs/cgroup/docker/3674396060b290484e870fba1f6e9836e749dd946b752de0ecbb56ee49595919/init",
+        "container_cgroup": "/sys/fs/cgroup/docker/3674396060b290484e870fba1f6e9836e749dd946b752de0ecbb56ee49595919",
+        "effective_memory_max": 4294967296,
+        "effective_cpu_max": 4.0,
+        "allocatable": {
+          "cpu": "3",
+          "ephemeral-storage": "1027046117185",
+          "hugepages-1Gi": "0",
+          "hugepages-2Mi": "0",
+          "memory": "3129348Ki",
+          "pods": "110"
+        },
+        "pods": [
+          {
+            "pod_uid": "30cf1dba-2adf-483b-99eb-b41b18147d3f",
+            "container": "app",
+            "descends_from_k3s": true,
+            "memory_max": 268435456
+          },
+          {
+            "pod_uid": "c590c9a2-514c-4af6-ab0f-176922870f7e",
+            "container": "app",
+            "descends_from_k3s": true,
+            "memory_max": 167772160
+          }
+        ]
+      },
+      "note": "Operator calibration of the desired post-action state; not a recovery result."
+    },
+    "qualification": {
+      "schema": "E10RecoveryQualificationReceipt/v1",
+      "scenario_id": "recovery-traffic-scale",
+      "qualified": true,
+      "target_uid": "33f8d37c-1367-4615-a11e-a003cde57e01",
+      "source_binding_sha256": "048bd31b8b40c9bbb1a913532f064c5a14abea8c6a89a3b261bff415cfb123b9",
+      "profile_digest": "baed7b197c894f496f61f67576f90093193c2b053813f6aec397f307ed169de2",
+      "image_digests": [
+        "sha256:fab9858ea62d193f80987644ea6f4708727717795cdb7b32a9a1a2f814e4cbbb"
+      ],
+      "declared_resources": {
+        "replicas": 2,
+        "template": {
+          "image": "docker.io/library/cloudops-e10-s3-lab-recovery:523eaed09d1a447a-healthy",
+          "resources": {
+            "requests": {
+              "cpu": "50m",
+              "memory": "192Mi"
+            },
+            "limits": {
+              "cpu": "100m",
+              "memory": "256Mi"
+            }
+          },
+          "imagePullPolicy": "Never",
+          "mode": null,
+          "initContainers": null
+        },
+        "rolling_update": {}
+      },
+      "surge_headroom": {
+        "required_cpu_millicores": 100,
+        "required_memory_bytes": 402653184
+      },
+      "rate_rps": 30
+    },
+    "calibration_sha256": "2f856060bc1705a73fbfd0f3765f6ae6139d048a1acc8dd711c0d8bb8fb5379a",
+    "qualification_sha256": "5e4ffddbf18d138cc37dd4f3f6aece5fd74eae7384a9e8e7de6b60eadbbaaa4a",
+    "restored_replicas": 1,
+    "installed_diagnosis_gate": "not_configured",
+    "final_writer_quarantine": {
+      "targets": [
+        {
+          "deployment_id": "c5bab903-e208-4a16-a522-8a9367a541f6",
+          "uid": "33f8d37c-1367-4615-a11e-a003cde57e01",
+          "epoch": "01d7963c-b0c4-44d9-aee2-824aa3d307c9",
+          "enabled": false,
+          "recovery_mode": true,
+          "reason": "Trusted maintenance closed admission and retired old authority.",
+          "proof": {},
+          "historical_unknown_count": 0
+        }
+      ],
+      "at": "2026-11-24T21:59:35.648181+07:00",
+      "receipt_sha256": "b2c2cf01ed5baf9ba96dd00b3e0aa783d8f7d0abd81199450a5523570f88aedb"
+    }
+  },
+  "provider": {
+    "probe": {
+      "evidence_class": "protocol_probe",
+      "kind": "text",
+      "http_status": 200,
+      "served_model": "gpt-6.1-sol",
+      "model_matches": true,
+      "usage_status": "observed",
+      "usage": {
+        "prompt_tokens": 22,
+        "completion_tokens": 5,
+        "total_tokens": 27
+      },
+      "duration_ms": 5283,
+      "response_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+      "ok_marker": true,
+      "actual_charge": null,
+      "diagnosis_qualified": false
+    },
+    "latest_authorized_max_requests": 35,
+    "latest_authorized_max_tokens": 2329600,
+    "latest_authorized_max_spend_microusd": 7000000,
+    "requests_attempted": 1,
+    "observed_tokens": 27,
+    "actual_charge": null,
+    "client_retry_or_fallback": false,
+    "gateway_paid_fallback_verified": false
+  },
+  "acceptance": {
+    "planned_recovery_trials": 15,
+    "qualifying_live_recovery_trials": 0,
+    "observation_group": "not measured for this candidate",
+    "negative_group": "not measured for this candidate",
+    "installed_safety_guards": "not accepted; controlled regression includes unresolved failure",
+    "zero_uncontrolled_writes": "unverified",
+    "release_verdict": "not accepted",
+    "remaining_gates": [
+      "Install and qualify the exact operational model/profile with bounded qualification receipts",
+      "Verify gateway no-paid-fallback behavior and charge/reservation bounds",
+      "Qualify OOM and bad-rollout desired states and confirm known-good baseline",
+      "Freeze the measured cohort and source/config/UID bindings",
+      "Retain run-specific backup/abort and independent cluster mutation coverage before faults",
+      "Complete 15 fresh recovery trials, four observations, five negatives and installed focused guards",
+      "Score identical immutable evidence and publish phases, usage, incident outcomes and uncertainty"
+    ]
+  }
+}

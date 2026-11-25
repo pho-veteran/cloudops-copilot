@@ -327,6 +327,87 @@ def test_qualification_covers_the_full_profile_window(lab, driver, monkeypatch):
         lab.qualify("recovery-oom-memory", 8, 240)
 
 
+def test_metric_read_time_does_not_drift_past_finite_qualification_load(lab, driver, monkeypatch):
+    deployment = healthy(driver)
+    profile = {
+        "window_seconds": 300,
+        "warmup_seconds": 60,
+        "step_seconds": 30,
+        "containers": [{"resources": copy.deepcopy(driver.RECOVERY_RESOURCES)}],
+        "replicas": [1],
+        "source_age_seconds": 120,
+        "minimum_rps": 6.4,
+        "minimum_load_ratio": 0.9,
+        "maximum_error_ratio": 0.01,
+        "maximum_p95_seconds": 0.5,
+    }
+    clock, starts = [0.0], []
+
+    def sleep(seconds):
+        clock[0] += seconds
+
+    def sample(*args):
+        starts.append(clock[0])
+        clock[0] += 4  # Actual metric reads consume part of the finite offered load.
+        return dict(
+            serving_pods=1,
+            resets=0,
+            sample_time=1,
+            request_rate=8,
+            offered_rate=8,
+            error_ratio=0,
+            p95_latency=0.24,
+        )
+
+    for name, result in {
+        "require_idle_recovery_lab": None,
+        "qualified_profile": (profile, "e" * 64),
+        "deployment": deployment,
+        "recovery_healthy_fields": driver.owned_fields(deployment),
+        "healthy_target": {"target_uid": "original", "image_digests": ["sha256:" + "a" * 64]},
+        "validate_qualified_recovery_action": None,
+        "containment": {},
+        "source_binding": {"sha256": "b" * 64},
+        "wait_settled": None,
+        "start_offered_load": ("finite-load", {"State": {"Running": True}}),
+        "command": None,
+        "recovery_surge_demand": {},
+    }.items():
+        monkeypatch.setattr(lab, name, lambda *args, result=result, **kwargs: result)
+    monkeypatch.setattr(lab, "profile_sample", sample)
+    monkeypatch.setattr(driver.time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(driver.time, "sleep", sleep)
+    monkeypatch.setattr(driver, "validate_qualification_receipt", lambda value: value)
+    lab.qualify("recovery-oom-memory", 8, 330)
+    assert starts == list(range(60, 301, 30))
+    assert clock[0] < 330
+
+
+def test_recovery_audit_retains_owned_writes_without_secret_bodies(driver):
+    overlay = driver.yaml.safe_load((ROOT / "compose.lab-recovery.yaml").read_text())
+    initializer = overlay["services"]["lab-audit-init"]
+    assert initializer["network_mode"] == "none"
+    assert initializer["read_only"] and initializer["cap_drop"] == ["ALL"]
+    assert set(initializer["volumes"]) == {
+        "k3s_data:/data",
+        "./config/lab/recovery-audit-policy.yaml:/policy.yaml:ro",
+    }
+    command = overlay["services"]["k3s"]["command"]
+    assert any("audit-policy-file=" in arg for arg in command)
+    assert "--kube-apiserver-arg=audit-log-path=/var/log/cloudops-recovery-audit.jsonl" in command
+    policy = driver.yaml.safe_load((ROOT / "config/lab/recovery-audit-policy.yaml").read_text())
+    secrets, owned, mutations, default = policy["rules"]
+    assert secrets["level"] == "Metadata"
+    assert secrets["resources"] == [{"group": "", "resources": ["secrets"]}]
+    assert owned["level"] == "RequestResponse" and owned["namespaces"] == ["demo"]
+    assert owned["resources"] == [
+        {"group": "apps", "resources": ["deployments", "deployments/scale"]}
+    ]
+    assert mutations["level"] == "Metadata"
+    assert {"create", "update", "patch", "delete", "deletecollection"} <= set(mutations["verbs"])
+    assert default["level"] == "None"
+
+
 @pytest.mark.parametrize(
     ("stored", "matches"),
     [
