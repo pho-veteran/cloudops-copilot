@@ -50,6 +50,7 @@ S6_SOURCES = (
     "compose.lab-recovery.yaml",
     "compose.lab-release.yaml",
     "compose.diagnosis.yaml",
+    "compose.diagnosis-gateway.yaml",
     "config/lab/release-scenarios-v1.json",
     "config/lab/recovery-audit-policy.yaml",
     "scripts/e10_campaign.py",

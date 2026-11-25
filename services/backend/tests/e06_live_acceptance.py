@@ -100,13 +100,15 @@ def load_config(path):
         "output_usd_per_mtok",
         "rates_date",
     }
-    optional = {"prior_receipts", "capture_contexts"}
+    optional = {"prior_receipts", "capture_contexts", "pricing_available"}
     if value.get("schema") != CONFIG_SCHEMA or set(value) - required - optional:
         raise ValueError("Unsupported campaign config")
     if required - set(value):
         raise ValueError("Campaign config is incomplete")
     if type(value.get("capture_contexts", False)) is not bool:
         raise ValueError("capture_contexts must be a boolean")
+    if type(value.get("pricing_available", True)) is not bool:
+        raise ValueError("pricing_available must be a boolean")
     if not str(value["owned_database"]).endswith("_test"):
         raise ValueError("The owned campaign database must end in _test")
     for key in ("max_requests", "max_repairs", "observed_token_stop"):
@@ -285,7 +287,7 @@ class Budget:
             )
         if call.usage is None or call.usage.total_tokens is None:
             self.data["missing_usage_calls"] += 1
-        if CONFIG is not None and call.usage is not None:
+        if CONFIG is not None and CONFIG.get("pricing_available", True) and call.usage is not None:
             self.data["estimated_usd"] = (
                 self.data.get("estimated_usd", 0)
                 + (
@@ -697,19 +699,29 @@ def freeze(root, carryover=None, previous=None, continue_cases=False):
                 f"Owner-delegated allowance: at most {MAX_REQUESTS} requests, "
                 f"{MAX_REPAIRS} repairs and {CONFIG['max_reserved_usd']} USD reserved at "
                 f"the {CONFIG['rates_date']} rates; no implicit retry"
+                if CONFIG.get("pricing_available", True)
+                else f"Owner-delegated allowance: at most {MAX_REQUESTS} requests, "
+                f"{MAX_REPAIRS} repairs, observed-token stop {TOKEN_STOP}; "
+                "reservation amounts are nominal accounting units, not prices or a spend cap; "
+                "estimated and billed costs unavailable; no implicit retry"
             ),
             campaign_config_sha256=CONFIG["config_sha256"],
             source_tree_sha256=source_tree_digest(),
             profile_sha256=CONFIG["profile_sha256"],
             prior_receipts=CONFIG["prior_receipt_hashes"],
-            rates={
-                "input_usd_per_mtok": CONFIG["input_usd_per_mtok"],
-                "output_usd_per_mtok": CONFIG["output_usd_per_mtok"],
-                "date": CONFIG["rates_date"],
-            },
+            pricing_available=CONFIG.get("pricing_available", True),
+            rates=(
+                {
+                    "input_usd_per_mtok": CONFIG["input_usd_per_mtok"],
+                    "output_usd_per_mtok": CONFIG["output_usd_per_mtok"],
+                    "date": CONFIG["rates_date"],
+                }
+                if CONFIG.get("pricing_available", True)
+                else None
+            ),
             per_request_reserve_usd=CONFIG["per_request_reserve_usd"],
             reserved_usd=0,
-            estimated_usd=0,
+            estimated_usd=0 if CONFIG.get("pricing_available", True) else None,
             billed_usd=None,
             secondary_probe={
                 "state": "not_configured",

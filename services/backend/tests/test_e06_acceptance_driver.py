@@ -400,6 +400,46 @@ def test_campaign_config_reserved_spend_ceiling_stops_before_send(tmp_path, monk
     assert len(budget.data["calls"]) == allowed
 
 
+def test_unpriced_campaign_keeps_cost_unknown_and_enforces_request_and_token_bounds(
+    tmp_path, monkeypatch
+):
+    path = configured_campaign(
+        tmp_path, monkeypatch, pricing_available=False, max_requests=1, observed_token_stop=100
+    )
+    campaign.load_config(path)
+    state = tmp_path / "state"
+    campaign.freeze(state)
+    budget = campaign.Budget(state / "ledger.json")
+    assert budget.data["rates"] is None
+    assert budget.data["estimated_usd"] is None
+    assert "not prices or a spend cap" in budget.data["allowance"]
+    budget.reserve("fixture-luna", "case", False)
+    from diagnosis_fixtures import profile
+    from diagnosis_fake import mock
+    import httpx
+
+    client = ModelClient(
+        profile(),
+        transport=mock(lambda _: httpx.Response(200, json=text_payload("OK"))),
+        environ={"DIAGNOSIS_TEST_TOKEN": "fixture"},
+    )
+    call = client.send(
+        [{"role": "user", "content": "Fixed controlled probe"}], before_send=lambda: None
+    )
+    budget.settle(call, "fixture")
+    reloaded = campaign.Budget(state / "ledger.json")
+    assert reloaded.data["estimated_usd"] is None
+    assert reloaded.data["billed_usd"] is None
+    assert reloaded.data["observed_tokens"] > 0
+    assert reloaded.data["reserved_usd"] > 0
+    with pytest.raises(ValueError, match="budget exhausted"):
+        reloaded.reserve("fixture-luna", "over-request", False)
+    reloaded.data["calls"] = []
+    reloaded.data["observed_tokens"] = campaign.TOKEN_STOP
+    with pytest.raises(ValueError, match="token stop"):
+        reloaded.reserve("fixture-luna", "over-token", False)
+
+
 @pytest.mark.parametrize(
     "changes,message",
     [
@@ -408,6 +448,7 @@ def test_campaign_config_reserved_spend_ceiling_stops_before_send(tmp_path, monk
         ({"unexpected": True}, "Unsupported"),
         ({"max_requests": -1}, "non-negative integer"),
         ({"max_reserved_usd": float("inf")}, "bounded"),
+        ({"pricing_available": "false"}, "boolean"),
     ],
 )
 def test_campaign_config_rejects_unsafe_values(tmp_path, monkeypatch, changes, message):
