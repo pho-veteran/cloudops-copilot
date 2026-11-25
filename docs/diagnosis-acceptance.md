@@ -50,6 +50,7 @@ A new model, endpoint, reasoning effort or output limit is a new deployment iden
 ```
 
 - **Profile.** `profile` names a trusted `DiagnosisModelProfile/v1`; a relative path resolves against the config directory. The profile must reference the worker-only `DIAGNOSIS_LIVE_TOKEN`. The driver copies it in `evaluation_only` mode, or `operational` mode for `smoke`, with the config's authorization and budget IDs. It keeps the frozen cases, oracle, validator rules and lifecycle unchanged.
+- **Context budget.** The driver's egress message budget starts at 32,768 bytes and expands to the profile's `max_input_bytes` when larger (up to 65,536 bytes). Smaller profile limits still bound the effective context. Install the same generated egress policy for operational use. A larger budget changes the profile and policy identities and requires a fresh qualification; it does not reuse a smaller-budget result. Size the S6 request reservation for the input byte limit plus the requested completion limit, while retaining any endpoint limitation on actual output enforcement.
 - **Cohort scope.** The configured campaign qualifies one primary only. It has no secondary probe and no carryover.
 - **Request and spend bounds.** Each reservation counts the profile's `max_input_bytes` as tokens plus its full output limit, which also bounds reasoning tokens, at the dated rates. A reservation that would exceed `max_reserved_usd` is refused before sending.
 - **Ledger.** The ledger records:
