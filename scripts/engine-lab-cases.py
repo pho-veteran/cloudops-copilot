@@ -57,6 +57,27 @@ def plan(name: str) -> list[dict]:
         return [{"kind": kind, "variant": "clean"} for kind in KINDS] + [
             {"kind": None, "variant": "healthy"}
         ]
+    if name == "b":
+        # Families without derived log variants (pending, imagepull) and the lost crashloop.
+        trials = []
+        for variant in (
+            "clean",
+            "event-spam",
+            "clean",
+            "shifted-window",
+            "unrelated-restart",
+            "clean",
+        ):
+            for kind in ("pending", "imagepull"):
+                trials.append({"kind": kind, "variant": variant})
+        trials += [
+            {"kind": "crashloop", "variant": "clean", "derive": ["benign-logs", "injection-logs"]},
+            {"kind": "crashloop", "variant": "event-spam"},
+            {"kind": None, "variant": "healthy"},
+            {"kind": "oom", "variant": "event-spam"},
+            {"kind": "traffic", "variant": "unrelated-restart"},
+        ]
+        return trials
     if name != "m0":
         raise SystemExit(f"unknown plan {name}")
     rounds = [

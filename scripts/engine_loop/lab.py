@@ -294,15 +294,18 @@ def _stamp(window_end: datetime, offset: int) -> str:
 
 
 def _augment_text(text: str, extra: list[str], window_end: datetime) -> str:
-    lines = text.splitlines()
-    added = [f"{_stamp(window_end, 5 + 3 * index)} {line}" for index, line in enumerate(extra)]
+    lines = [line for line in text.splitlines() if line]
+    count = len(extra)
+    added = [
+        f"{_stamp(window_end, 5 + 3 * (count - index))} {line}" for index, line in enumerate(extra)
+    ]
     merged = lines + added
     # Keep the collector bound: at most 200 lines.
     return "\n".join(merged[-200:]) + "\n"
 
 
 def derive_logs(
-    value: raw.RawEvidenceBundle, case_id: str, variant: str
+    value: raw.RawEvidenceBundle, case_id: str, variant: str, *, synthesize: bool = False
 ) -> raw.RawEvidenceBundle | None:
     """Add benign noise or untrusted instruction text to every retained log segment."""
     end = value.scope.window.end
@@ -316,7 +319,31 @@ def derive_logs(
     changed = False
     for item in value.slots:
         record = item.model_dump(mode="json")
-        if item.slot.startswith("kubernetes.logs.") and item.payload and item.payload.get("logs"):
+        if (
+            synthesize
+            and item.slot == "kubernetes.logs.current"
+            and item.payload
+            and not item.payload.get("logs")
+            and item.payload.get("containers")
+        ):
+            # No retained log in the window: add one segment for the first started
+            # container, carrying only the derived lines.
+            payload = copy.deepcopy(item.payload)
+            container = payload["containers"][0]
+            payload["logs"] = [
+                {
+                    "container": container["name"],
+                    "kind": container.get("kind", "regular"),
+                    "pod_uid": container["pod_uid"],
+                    "previous": False,
+                    "text": _augment_text("", extra, end),
+                    "timestamp": (end - timedelta(seconds=5)).isoformat(),
+                }
+            ]
+            record["payload"] = payload
+            record["sha256"] = sha256_json(payload)
+            changed = True
+        elif item.slot.startswith("kubernetes.logs.") and item.payload and item.payload.get("logs"):
             payload = copy.deepcopy(item.payload)
             for entry in payload["logs"]:
                 if isinstance(entry.get("text"), str):

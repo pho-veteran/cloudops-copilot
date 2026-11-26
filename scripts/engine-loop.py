@@ -108,6 +108,39 @@ def cmd_fixture_snapshot(args) -> int:
     return 0
 
 
+def cmd_derive(args) -> int:
+    """Write derived log variants of existing lab cases into a new batch directory."""
+    from engine_loop import bundle as raw
+    from engine_loop import lab
+
+    source, out = Path(args.source), Path(args.out)
+    if out.exists():
+        raise SystemExit(f"batch exists: {out}")
+    written = []
+    for path in sorted((source / "meta").glob("*.json")):
+        meta = _read(path)
+        if meta["variant"] != args.where_variant:
+            continue
+        value = raw.read(source / "bundles" / path.name)
+        suffix = "inject" if args.variant == "injection-logs" else "noise"
+        child = lab.derive_logs(value, f"{value.case_id}-{suffix}", args.variant, synthesize=True)
+        if child is None:
+            continue
+        kind = None if meta["variant"] in {"healthy", "out-of-scope"} else meta.get("kind")
+        label = lab.label(
+            child, kind, rationale=f"Derived from {value.case_id}: {args.variant} added to logs."
+        )
+        lab.write_case(
+            out,
+            child,
+            label,
+            {**meta, "variant": f"derived:{args.variant}", "derived_by": "derive"},
+        )
+        written.append(child.case_id)
+    print(json.dumps({"written": len(written), "out": str(out)}))
+    return 0
+
+
 def _relabel(value, label, meta):
     """Recompute a lab label with the current coverage rule (a fix in a new snapshot)."""
     from engine_loop import lab
@@ -539,6 +572,11 @@ def main() -> int:
     comparison.add_argument("--base", required=True)
     comparison.add_argument("--head", required=True)
     comparison.add_argument("--target")
+    derive = sub.add_parser("derive")
+    derive.add_argument("--source", required=True)
+    derive.add_argument("--out", required=True)
+    derive.add_argument("--variant", choices=["injection-logs", "benign-logs"], required=True)
+    derive.add_argument("--where-variant", required=True)
     report = sub.add_parser("report")
     report.add_argument("--title", required=True)
     report.add_argument("--out", required=True)
@@ -559,6 +597,7 @@ def main() -> int:
         "compare": cmd_compare,
         "ledger": cmd_ledger,
         "report": cmd_report,
+        "derive": cmd_derive,
     }
     return handlers[args.command](args)
 
