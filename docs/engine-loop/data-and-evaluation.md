@@ -60,7 +60,10 @@ Labels live in a separate file using the existing `EvalLabel` model
 
 Exporter: read the Run's evidence rows through the same projection that
 `load_materials` uses, then write the bundle. The offline loader rebuilds `SlotMaterial`
-from the bundle, so stages A-E run without PostgreSQL.
+from the bundle, so stages A-E run without PostgreSQL. A working pattern already exists
+in the tests: `services/backend/tests/eval_fixtures.py` `context_from_evidence` builds
+`SlotMaterial` from raw slot payloads and calls `context.assemble` with no database. The
+2026-11-26 endpoint probe used this path, through `context_for_case("oom-positive")`.
 
 ### Splits and versioning
 
