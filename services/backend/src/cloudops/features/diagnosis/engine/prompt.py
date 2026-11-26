@@ -4,6 +4,7 @@
 with the short field list; schema enforcement stays in the validator.
 `engine.rca_prompt/v2` asks the model to confirm or reject the detector's ranked
 hypotheses against cited evidence, with a fixed decision procedure.
+`engine.rca_prompt/v3` is v2 plus brevity rules that bound reasoning and output length.
 """
 
 from __future__ import annotations
@@ -45,9 +46,20 @@ _V2 = (
     "evidence, parameters, scope, templates or actions. "
 )
 
+PROMPT_V3 = "engine.rca_prompt/v3"
+_BRIEF = (
+    "Be brief and decide quickly: when the detector decision names a family and its "
+    "support aliases show it in EVIDENCE, confirm it without re-deriving every line. "
+    "Answer compactly: summary of at most two sentences; supporting_evidence_ids with one "
+    "to three aliases per required slot; contradicting_evidence_ids, alternatives, "
+    "missing_evidence and limitations empty unless essential; one to three next_steps; at "
+    "most two unverified_checks. "
+)
+
 PROMPTS: dict[str, str] = {
     PROMPT_V1: SYSTEM_PROMPT + " " + FIELD_LIST,
     PROMPT_V2: _V2 + FIELD_LIST,
+    PROMPT_V3: _V2 + _BRIEF + FIELD_LIST,
 }
 
 # Signals shown to the model; bookkeeping signals stay server-side.
