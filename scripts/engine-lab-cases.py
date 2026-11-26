@@ -42,7 +42,7 @@ spec.loader.exec_module(driver)
 
 KINDS = ("crashloop", "oom", "traffic", "pending", "imagepull", "init-retry")
 BASELINE_SECONDS = 60
-DWELL_SECONDS = 30
+DWELL_SECONDS = 60
 GAP_SECONDS = 45
 LOAD_RATE = 5
 
@@ -73,19 +73,14 @@ def plan(name: str) -> list[dict]:
     for index, variant in enumerate(rounds):
         for kind in KINDS:
             derive = []
-            if variant == "clean" and kind in {"crashloop", "oom", "traffic", "init-retry"}:
+            if variant == "clean":
                 derive = ["benign-logs", "injection-logs"] if index < 3 else ["benign-logs"]
-            if variant == "clean" and index in {0, 2} and kind in {"crashloop", "oom", "traffic"}:
-                derive.append("source-disabled")
+                if index in {0, 2} and kind in {"crashloop", "oom", "traffic"}:
+                    derive.append("source-disabled")
             trials.append({"kind": kind, "variant": variant, "derive": derive})
-        if index % 2 == 0:
-            trials.append(
-                {
-                    "kind": None,
-                    "variant": "healthy",
-                    "derive": ["injection-logs"] if index < 4 else [],
-                }
-            )
+        trials.append(
+            {"kind": None, "variant": "healthy", "derive": ["injection-logs"] if index < 4 else []}
+        )
         if index in {1, 4, 7}:
             trials.append({"kind": "crashloop", "variant": "out-of-scope"})
     return trials
@@ -199,6 +194,29 @@ class Generator:
         self.kubectl("apply", "-f", "-", body={"apiVersion": "v1", "kind": "List", "items": items})
         return len(items)
 
+    def wait_running_restart(self, kind: str, seconds: int = 170) -> bool:
+        """Crash-type faults: collect just after a restarted instance starts. The kubelet
+        keeps one dead instance per container, so the previous log is readable only while
+        a restarted instance runs (measured on this lab: unreadable during back-off)."""
+        field = "initContainerStatuses" if kind == "init-retry" else "containerStatuses"
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            pods = json.loads(
+                self.kubectl("get", "pods", "-n", "demo", "-l", "app=checkout", "-o", "json")
+            )["items"]
+            for pod in pods:
+                for status in pod.get("status", {}).get(field, []) or []:
+                    running = status.get("state", {}).get("running") or {}
+                    started = running.get("startedAt")
+                    if status.get("restartCount", 0) > 0 and started:
+                        age = (
+                            now() - datetime.fromisoformat(started.replace("Z", "+00:00"))
+                        ).total_seconds()
+                        if age <= 3:
+                            return True
+            time.sleep(0.5)
+        return False
+
     def unrelated_restart(self) -> None:
         self.kubectl("delete", "pod", "-n", "demo", "-l", "app=history", "--wait=false")
 
@@ -259,6 +277,8 @@ class Generator:
                 self.lab.observe()
                 record["steps"]["observed_at"] = now().isoformat()
             time.sleep(DWELL_SECONDS)
+            if kind in {"crashloop", "init-retry", "oom"}:
+                record["steps"]["running_restart"] = self.wait_running_restart(kind)
             end = now()
             window_start = (
                 inject_at - timedelta(seconds=10) if variant == "shifted-window" else start

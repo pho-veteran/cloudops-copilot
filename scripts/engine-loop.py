@@ -108,6 +108,83 @@ def cmd_fixture_snapshot(args) -> int:
     return 0
 
 
+def cmd_snapshot(args) -> int:
+    """Freeze lab case batches into one immutable snapshot (split by trial)."""
+    from engine_loop import bundle as raw
+
+    from cloudops.features.evaluation.schemas import EvalLabel
+
+    cases = []
+    excluded = []
+    for source in args.sources:
+        folder = Path(source)
+        for path in sorted((folder / "bundles").glob("*.json")):
+            value = raw.read(path)
+            label = EvalLabel.model_validate_json((folder / "labels" / path.name).read_bytes())
+            meta = _read(folder / "meta" / path.name)
+            if meta.get("contaminated"):
+                excluded.append({"case_id": value.case_id, "reason": "contaminated"})
+                continue
+            split = dataset.split_for(meta["trial_id"])
+            cases.append(
+                (
+                    value,
+                    label,
+                    split,
+                    {
+                        "family": label.category,
+                        "variant": meta["variant"],
+                        "kind": meta.get("kind"),
+                        "trial_id": meta["trial_id"],
+                        "source": folder.name,
+                    },
+                )
+            )
+    pilot = []
+    dev = sorted((item for item in cases if item[2] == "dev"), key=lambda item: item[0].case_id)
+    for family in dataset.FAMILIES:
+        found = next(
+            (
+                item[0].case_id
+                for item in dev
+                if item[1].category == family and item[3]["variant"] == "clean"
+            ),
+            None,
+        )
+        if found:
+            pilot.append(found)
+    for variant in ("healthy", "derived:injection-logs"):
+        found = next(
+            (
+                item[0].case_id
+                for item in dev
+                if item[3]["variant"] == variant and item[1].required_result == "abstention"
+            ),
+            None,
+        ) or next((item[0].case_id for item in dev if item[3]["variant"] == variant), None)
+        if found:
+            pilot.append(found)
+    out = STATE / "datasets" / args.id
+    info = dataset.write_snapshot(
+        out,
+        snapshot_id=args.id,
+        cases=cases,
+        description=args.description,
+        pilot=pilot,
+    )
+    summary = {
+        "snapshot": str(out),
+        "cases": len(info["cases"]),
+        "excluded": excluded,
+        "splits": {
+            split: sum(1 for item in cases if item[2] == split) for split in ("dev", "test")
+        },
+        "pilot": pilot,
+    }
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 def _bundle_slots(value) -> dict[str, str]:
     return {item.slot: item.coverage_status for item in value.slots}
 
@@ -295,6 +372,10 @@ def main() -> int:
     sub.add_parser("probe")
     fixture = sub.add_parser("fixture-snapshot")
     fixture.add_argument("--id", default="e06-fixtures-v1")
+    snap = sub.add_parser("snapshot")
+    snap.add_argument("--id", required=True)
+    snap.add_argument("--description", required=True)
+    snap.add_argument("sources", nargs="+", help="Lab case batch directories.")
     replay = sub.add_parser("replay")
     replay.add_argument("--dataset", required=True)
     replay.add_argument("--split", choices=dataset.SPLITS, default="dev")
@@ -321,6 +402,7 @@ def main() -> int:
     handlers = {
         "probe": cmd_probe,
         "fixture-snapshot": cmd_fixture_snapshot,
+        "snapshot": cmd_snapshot,
         "replay": cmd_replay,
         "score": cmd_score,
         "triage": cmd_triage,

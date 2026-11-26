@@ -244,6 +244,21 @@ def label(value: raw.RawEvidenceBundle, kind: str | None, *, rationale: str) -> 
             }
         )
     family = FAMILY_BY_KIND[kind]
+    unusable = [
+        slot
+        for slot in FAMILY_REQUIRED[family]
+        if slots.get(slot) not in USABLE
+        and not (slot.startswith("kubernetes.logs.") and slots.get(slot) == "not_applicable")
+    ]
+    if unusable:
+        # The product contract cannot support an ineligible family: the correct answer is
+        # an abstention. The label records why, from coverage only.
+        return label(
+            value,
+            None,
+            rationale=f"{rationale} Required source unusable ({', '.join(unusable)}): "
+            "the family is ineligible, so the correct result is an abstention.",
+        )
     required = [slot for slot in FAMILY_REQUIRED[family] if slots.get(slot) in USABLE]
     manual = family in MANUAL
     candidate = CANDIDATE_BY_FAMILY.get(family)
