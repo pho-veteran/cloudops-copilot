@@ -91,8 +91,18 @@ local K3s lab).
    (`evaluation/scoring.py`, `_score_dimensions`). With Knowledge unindexed, the
    runbook part could not pass. Report evidence citation and runbook citation as
    separate metrics.
+7. **Live events are not ordered newest-first.** `SLOT_CAPS` selects events with the
+   `newest_first` order, but `context._value_stamp` looks for `lastTimestamp`,
+   `eventTime` or `creationTimestamp`. Stored live event summaries carry `first_seen`
+   and `last_seen` (`kubernetes_collector._event_summary`). The sort therefore falls
+   back to entry-key order. Unit fixtures use `lastTimestamp`, which hides this. This was
+   found by reading the code on `9eb2b06` and has not been confirmed at runtime.
 
 ## Milestones and targets
+
+The loop has no calendar deadline: it continues until M0-M4 are met, which is the
+definition of a complete algorithm for the capstone. M5 is the optional final
+confirmation through the product path.
 
 | Milestone | Target |
 | --- | --- |
@@ -110,34 +120,38 @@ Agents may, without asking:
 - Run T0 and T1 operations inside the owned engine-lab project.
 - Edit stage A-E code, prompts and the engine-loop tooling on a feature branch.
 - Generate cases and snapshots.
-- Run dev-split replays within the configured caps.
+- Run dev-split replays under the [model call policy](environment.md#model-call-policy).
+- Run at most 3 subagents concurrently, each with a disjoint task and disjoint files.
 
 Agents must not:
 
 - Read or score the test split except when a milestone report is approved.
 - Edit labels in place.
-- Raise model caps.
+- Bypass the model call policy, or switch to another model or route.
 - Touch executor, approval or recovery code.
 - Use simulation output as data.
 - Push without the identity checks in `AGENTS.md`.
 
 **Stop conditions**
-- Three consecutive experiments without an accepted change.
-- The daily model cap is reached.
+- Three consecutive experiments without an accepted change: stop, write the triage
+  summary and the next hypotheses to the ledger, and report.
+- The endpoint can no longer be probed (see [model call policy](environment.md#model-call-policy)).
 - Lab containment or preflight fails.
 - Any negative false positive or hallucinated alias that the agent cannot explain.
 
 **Change delivery**
-- One PR per accepted change.
+- One PR per accepted change. Code PRs need ruff, focused tests and green CI before
+  merge. Documentation-only PRs may merge without waiting for CI.
 - The PR body includes the base and head scorecard diff, the ledger id and the dataset
   snapshot.
 - Regenerate contracts with `scripts/contracts.py --write` if any API schema changes.
   The loop should not need API changes.
 
-## Open questions
+## Decisions
 
-1. Which model endpoint and daily caps does the dev lane use? Use the same model family
-   as the final demo, or a cheaper model for dev and the main model for test?
-2. Can the 15 retained R3 Runs be exported as raw bundles from the delivery workstation,
-   to serve as a live reference set?
-3. What is the capstone deadline, so that M0-M5 can be scheduled?
+| Question | Decision (2026-11-26) |
+| --- | --- |
+| Model | Only `cmd/deepseek/deepseek-v4.1-flash` through the local proxy at `http://localhost:20128/v1` (see [environment](environment.md#model-endpoint)) |
+| Budget | No fixed cap. Continue while the endpoint can be probed, and spend tokens only as the [model call policy](environment.md#model-call-policy) allows |
+| R3 bundles | Not available. The dataset is generated on the local lab, plus the T0 fixtures |
+| Deadline | When M0-M4 are met |
