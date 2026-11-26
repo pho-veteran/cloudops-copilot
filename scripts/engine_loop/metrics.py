@@ -236,8 +236,11 @@ def scorecard(scores: list[dict]) -> dict:
         "per_class": f1s,
         "families": families,
         "confusion": {gold: dict(preds) for gold, preds in sorted(confusion.items())},
+        # A false positive is a supported fault claim on a negative. An invalid output (no
+        # answer) is a schema failure and still counts against abstention recall.
         "negatives_fp": _rate(
-            sum(1 for item in negatives if item["pred"] != "unknown"), len(negatives)
+            sum(1 for item in negatives if item["pred"] not in {"unknown", "invalid"}),
+            len(negatives),
         ),
         "abstention_precision": _rate(
             sum(1 for item in pred_abstain if item["gold"] == "unknown"), len(pred_abstain)
