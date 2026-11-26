@@ -1,0 +1,530 @@
+{
+  "operator": "MinhKhoa2209",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "installed R3 API, PostgreSQL read-only transaction",
+  "model_requests": 0,
+  "input_budget_bytes": 65536,
+  "evidence_class": "read-only post-trial diagnostic reconstruction; original receipts remain authoritative",
+  "configuration_changed": false,
+  "knowledge_index_status_at_diagnostic": {
+    "state": "not_indexed",
+    "observed_at": "2026-11-25T20:35:10.359637Z",
+    "active_generation": null,
+    "last_attempt": null,
+    "last_success": null,
+    "last_checked_source_digest": null,
+    "last_checked_at": null,
+    "last_success_at": null,
+    "has_active_generation": false,
+    "read_available": false,
+    "catalog_search_available": false,
+    "retrieval_available": false,
+    "retrieval_mode": "catalog_full_text",
+    "semantic_mode": "not_configured",
+    "retained": {
+      "document_versions": 0,
+      "chunks": 0,
+      "generations": 0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "recovery-traffic-scale-01",
+      "required_message_bytes": 58425,
+      "required_sources": {
+        "prometheus.request_rate": {
+          "targets": 5,
+          "value_bytes": 259
+        },
+        "prometheus.error_ratio": {
+          "targets": 5,
+          "value_bytes": 241
+        },
+        "prometheus.p95_latency": {
+          "targets": 5,
+          "value_bytes": 247
+        },
+        "kubernetes.state": {
+          "targets": 53,
+          "value_bytes": 928
+        },
+        "kubernetes.events": {
+          "targets": 21,
+          "value_bytes": 7851
+        }
+      },
+      "outcome": "prepared",
+      "reason": null,
+      "message_bytes": 61218,
+      "context_digest": "7ff60efb1087f5272a90e9ae8df11b96ccd837df12d95d27b4265c3ef0eec8df"
+    },
+    {
+      "case_id": "recovery-traffic-scale-02",
+      "required_message_bytes": 20735,
+      "required_sources": {
+        "prometheus.request_rate": {
+          "targets": 5,
+          "value_bytes": 260
+        },
+        "prometheus.error_ratio": {
+          "targets": 5,
+          "value_bytes": 243
+        },
+        "prometheus.p95_latency": {
+          "targets": 5,
+          "value_bytes": 246
+        }
+      },
+      "outcome": "prepared",
+      "reason": null,
+      "message_bytes": 49253,
+      "context_digest": "c623f54927f34e45678d29f6af67faa059b0336f1cb22fdaf6a4682d80103d6c"
+    },
+    {
+      "case_id": "recovery-traffic-scale-03",
+      "required_message_bytes": 20734,
+      "required_sources": {
+        "prometheus.request_rate": {
+          "targets": 5,
+          "value_bytes": 260
+        },
+        "prometheus.error_ratio": {
+          "targets": 5,
+          "value_bytes": 242
+        },
+        "prometheus.p95_latency": {
+          "targets": 5,
+          "value_bytes": 246
+        }
+      },
+      "outcome": "prepared",
+      "reason": null,
+      "message_bytes": 49252,
+      "context_digest": "647875708f9d6d60e4363f00224e9bb7f2385973776b1dad4d9abaca5711531d"
+    },
+    {
+      "case_id": "recovery-traffic-scale-04",
+      "required_message_bytes": 20745,
+      "required_sources": {
+        "prometheus.request_rate": {
+          "targets": 5,
+          "value_bytes": 260
+        },
+        "prometheus.error_ratio": {
+          "targets": 5,
+          "value_bytes": 240
+        },
+        "prometheus.p95_latency": {
+          "targets": 5,
+          "value_bytes": 259
+        }
+      },
+      "outcome": "prepared",
+      "reason": null,
+      "message_bytes": 49263,
+      "context_digest": "7700ee12608c1e4777d211e70e27bc2f00afa96eaf440796af30f94b5a0ba490"
+    },
+    {
+      "case_id": "recovery-traffic-scale-05",
+      "required_message_bytes": 20692,
+      "required_sources": {
+        "prometheus.request_rate": {
+          "targets": 5,
+          "value_bytes": 220
+        },
+        "prometheus.error_ratio": {
+          "targets": 5,
+          "value_bytes": 240
+        },
+        "prometheus.p95_latency": {
+          "targets": 5,
+          "value_bytes": 246
+        }
+      },
+      "outcome": "prepared",
+      "reason": null,
+      "message_bytes": 49210,
+      "context_digest": "6ab39e1fc9b278fe7a8ab0139d9f10cf3068f98ff6926f5c1b17b6705f83091c"
+    },
+    {
+      "case_id": "recovery-oom-memory-01",
+      "required_message_bytes": 62922,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 61,
+          "value_bytes": 1143
+        },
+        "kubernetes.events": {
+          "targets": 14,
+          "value_bytes": 5058
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 239
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 274
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 215
+        }
+      },
+      "outcome": "prepared",
+      "reason": null,
+      "message_bytes": 62947,
+      "context_digest": "7f0da69bbd3cae1345f808238294c11372414345e9cc8472bb585751cb04914e"
+    },
+    {
+      "case_id": "recovery-oom-memory-02",
+      "required_message_bytes": 67357,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 61,
+          "value_bytes": 1161
+        },
+        "kubernetes.events": {
+          "targets": 20,
+          "value_bytes": 7111
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 239
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 272
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 228
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "cc0b93283f161f1724268c6355c6635c325114dcdfb26aa2a37e83530dead3e2"
+    },
+    {
+      "case_id": "recovery-oom-memory-03",
+      "required_message_bytes": 70212,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 61,
+          "value_bytes": 1161
+        },
+        "kubernetes.events": {
+          "targets": 24,
+          "value_bytes": 8471
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 239
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 271
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 215
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "0e5faa354d042517bc737551bca6b9599517d9f082df22f84f75b2349641eee2"
+    },
+    {
+      "case_id": "recovery-oom-memory-04",
+      "required_message_bytes": 73212,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 61,
+          "value_bytes": 1161
+        },
+        "kubernetes.events": {
+          "targets": 28,
+          "value_bytes": 9831
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 239
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 273
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 241
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "b6fe27451c2f66d0d1c7c6f4efcb352c766648b12f5a76a67d9b0bf10c981bc5"
+    },
+    {
+      "case_id": "recovery-oom-memory-05",
+      "required_message_bytes": 76145,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 61,
+          "value_bytes": 1164
+        },
+        "kubernetes.events": {
+          "targets": 32,
+          "value_bytes": 11191
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 239
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 273
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 228
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "878cf74405867fd3ad5b9ac9632326e4d91d9d4b80e1f7e212639146da959835"
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-01",
+      "required_message_bytes": 81083,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 64,
+          "value_bytes": 1202
+        },
+        "kubernetes.events": {
+          "targets": 37,
+          "value_bytes": 12899
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 244
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 274
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 215
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "6a876e8e9cb6b9750330da4be1537ad93dc65769ead74db1db3c967cd7ff92f1"
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-02",
+      "required_message_bytes": 84764,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 64,
+          "value_bytes": 1219
+        },
+        "kubernetes.events": {
+          "targets": 42,
+          "value_bytes": 14607
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 244
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 271
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 215
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "b08de574046f1d61c0eaab00946596977a2f826cc405b3353d486e20162269b3"
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-03",
+      "required_message_bytes": 87636,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 64,
+          "value_bytes": 1219
+        },
+        "kubernetes.events": {
+          "targets": 46,
+          "value_bytes": 15967
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 244
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 271
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 215
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "3cd226a9c96a45a5c3b56face558f9f31fdf6028b3b1c029f22228ec9c9a95d6"
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-04",
+      "required_message_bytes": 89133,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 64,
+          "value_bytes": 1219
+        },
+        "kubernetes.events": {
+          "targets": 48,
+          "value_bytes": 16675
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 244
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 276
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 215
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "47a7af00ba043e1f84e4fc4e1705972563bcc9c75630ce290e043faf7a8e5291"
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-05",
+      "required_message_bytes": 89872,
+      "required_sources": {
+        "kubernetes.state": {
+          "targets": 64,
+          "value_bytes": 1219
+        },
+        "kubernetes.events": {
+          "targets": 49,
+          "value_bytes": 17011
+        },
+        "kubernetes.logs.current": {
+          "targets": 1,
+          "value_bytes": 244
+        },
+        "kubernetes.logs.previous": {
+          "targets": 1,
+          "value_bytes": 226
+        },
+        "prometheus.request_rate": {
+          "targets": 6,
+          "value_bytes": 274
+        },
+        "prometheus.error_ratio": {
+          "targets": 6,
+          "value_bytes": 198
+        },
+        "prometheus.p95_latency": {
+          "targets": 6,
+          "value_bytes": 228
+        }
+      },
+      "outcome": "insufficient",
+      "reason": "required_targets_exceed_budget",
+      "message_bytes": null,
+      "context_digest": "c9361771b58aca3aa979237bba730d63b705d56bb9c659cf285a9b76c6e2835c"
+    }
+  ]
+}

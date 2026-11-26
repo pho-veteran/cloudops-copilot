@@ -1,0 +1,16 @@
+{
+  "operator": "MinhKhoa2209",
+  "request_cap": 84,
+  "requests_used": 61,
+  "remaining_requests": 23,
+  "qualification_v3_requests": 12,
+  "qualification_v3_observed_tokens": 47314,
+  "r3_authority_requests": {
+    "provider-authority-r3-smoke": 1,
+    "provider-authority-r3": 6
+  },
+  "estimated_usd": null,
+  "billed_usd": null,
+  "reservation_rate_note": "Numeric rates required by tooling are nominal units, not provider prices or a spending guarantee.",
+  "last_reconciled_at": "2026-11-25T20:36:55.409972+00:00"
+}

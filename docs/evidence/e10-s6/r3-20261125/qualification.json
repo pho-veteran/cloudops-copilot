@@ -1,0 +1,17 @@
+{
+  "schema_version": "DiagnosisQualification/v1",
+  "cohort_id": "e10-gateway-sol-v3-r3-owned-fixtures",
+  "evidence_reference": "docs/evidence/e10-s6/qualification/rubric.json",
+  "identity": {
+    "config_id": "gateway-sol",
+    "config_version": "3",
+    "endpoint_label": "owned-local-gateway",
+    "behavior_digest": "3776622e56b776d8cc62701192532464de54ee3b426bb5169957ef3a1fb40863",
+    "model": "gpt-6.1-sol",
+    "policy_digest": "bc7007928c88c9ee74150dd7ed966095e54dd5383cc42f8d0a404bea98737083",
+    "prompt_version": "e06.rca_prompt/v3",
+    "context_version": "e06.context/v2",
+    "validator_version": "e06.validator/v1",
+    "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900"
+  }
+}

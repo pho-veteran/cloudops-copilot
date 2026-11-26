@@ -1,0 +1,94 @@
+{
+  "operator": "MinhKhoa2209",
+  "api_id": "85572131579f3adff28ad17ed6ad02a471e14a528f6d62a55b9401545db8f965",
+  "api_image": "sha256:9b073a1ec3ef77282549be10211832398e1358d666f261fb6dfb239c8f7ad1eb",
+  "api_env_keys": [
+    "RECOVERY_POLICY_FILE",
+    "KRR_RUNNER_URL",
+    "DIAGNOSIS_QUALIFICATION_FILE",
+    "DIAGNOSIS_PROFILE_FILE",
+    "COLLECTOR_DELAY_SECONDS",
+    "PROMETHEUS_READ_CONFIG",
+    "WEB_ORIGIN",
+    "EXECUTOR_URL",
+    "RECOMMENDATION_SOURCE_POLICY",
+    "ALERT_INTAKE_CONFIG",
+    "COLLECTION_SOURCE_MODE",
+    "DIAGNOSIS_EGRESS_FILE",
+    "COLLECTOR_FAIL",
+    "DATABASE_URL",
+    "KUBE_READ_CONFIG",
+    "JOB_DISPATCH_ROOT",
+    "WORKLOADS_FILE",
+    "DEFERRED_RUN_LIMIT",
+    "SESSION_SECONDS",
+    "COOKIE_SECURE",
+    "RECOVERY_VERIFICATION_FILE",
+    "KUBE_CONFIGMAP_ENABLED",
+    "KRR_RUNNER_IMAGE_DIGEST",
+    "PATH",
+    "LANG",
+    "GPG_KEY",
+    "PYTHON_VERSION",
+    "PYTHON_SHA256"
+  ],
+  "api_mounts": [
+    {
+      "source": "/home/dmk229/release/priv/diagnosis-r3/config",
+      "target": "/run/cloudops-diagnosis",
+      "rw": false
+    },
+    {
+      "source": "/home/dmk229/release/install-r3/tmp/cloudops-release-recovery-r3/intake-api",
+      "target": "/run/cloudops-intake",
+      "rw": false
+    },
+    {
+      "source": "/var/lib/docker/volumes/cloudops-release-recovery-r3_job_dispatch/_data",
+      "target": "/run/cloudops-job-permit",
+      "rw": false
+    },
+    {
+      "source": "/home/dmk229/release/install-r3/tmp/cloudops-release-recovery-r3/prometheus",
+      "target": "/run/cloudops-prometheus",
+      "rw": false
+    },
+    {
+      "source": "/home/dmk229/release/install-r3/tmp/cloudops-release-recovery-r3/reader",
+      "target": "/run/cloudops-reader",
+      "rw": false
+    },
+    {
+      "source": "/home/dmk229/release/install-r3/tmp/cloudops-release-recovery-r3/recommendations",
+      "target": "/run/cloudops-recommendations",
+      "rw": false
+    },
+    {
+      "source": "/home/dmk229/release/install-r3/tmp/cloudops-release-recovery-r3/recovery",
+      "target": "/run/cloudops-recovery",
+      "rw": false
+    }
+  ],
+  "gateway_id": "694538149cef470a841d5821d18762a6dc92ae96dacd6d90e64a102c41f8ab12",
+  "gateway_image": "sha256:22c2a5781660f23fa678ff560312fc1bc208a989efa03a7c445ea9a27df3a0ca",
+  "gateway_labels": {
+    "com.docker.compose.config-hash": "4e415b07168ebee06185735f2789053c758bad3964b6bde1244711c09324b6dd",
+    "com.docker.compose.container-number": "1",
+    "com.docker.compose.depends_on": "",
+    "com.docker.compose.image": "sha256:22c2a5781660f23fa678ff560312fc1bc208a989efa03a7c445ea9a27df3a0ca",
+    "com.docker.compose.oneoff": "False",
+    "com.docker.compose.project": "cloudops-release-recovery-r3",
+    "com.docker.compose.project.config_files": "/home/dmk229/release/install-r3/compose.yaml,/home/dmk229/release/install-r3/compose.https.yaml,/home/dmk229/release/install-r3/compose.integration.yaml,/home/dmk229/release/install-r3/compose.alertmanager.yaml,/home/dmk229/release/install-r3/compose.lab.yaml,/home/dmk229/release/install-r3/compose.lab-recovery.yaml,/home/dmk229/release/install-r3/compose.lab-release.yaml,/home/dmk229/release/install-r3/compose.diagnosis.yaml,/home/dmk229/release/install-r3/compose.diagnosis-gateway.yaml,/home/dmk229/release/priv/diagnosis-r3/owner-override.yaml",
+    "com.docker.compose.project.environment_file": "/home/dmk229/release/install-r3/tmp/cloudops-release-recovery-r3/lab.env,/mnt/d/DACN/DACN2/release-work/bundles/r3/images.env,/mnt/d/DACN/DACN2/release-work/bundles/r3/lab-images.env",
+    "com.docker.compose.project.working_dir": "/home/dmk229/release/install-r3",
+    "com.docker.compose.service": "diagnosis-gateway",
+    "com.docker.compose.version": "5.6.1",
+    "desktop.docker.io/wsl-distro": "Ubuntu",
+    "io.cloudops.lab.owner": "5eeb64aa-ae02-4e10-8ecf-45cb03f61afc"
+  },
+  "gateway_mount_count": 0,
+  "gateway_cap_drop": [
+    "ALL"
+  ],
+  "gateway_read_only": true
+}

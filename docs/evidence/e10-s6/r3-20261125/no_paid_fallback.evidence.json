@@ -1,0 +1,32 @@
+{
+  "control": "no_paid_fallback",
+  "evidence_class": "live",
+  "outcome": "blocked",
+  "operator": "MinhKhoa2209",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "at": "2026-11-25T20:36:56.111860+00:00",
+  "environment": "installed R3 owned local release lab",
+  "reason": "incomplete_qualifying_live_population",
+  "combo": {
+    "name": "gpt-6.1-sol",
+    "kind": null,
+    "members": [
+      "cx/gpt-6.1-sol"
+    ],
+    "strategy": "Fallback (owner-reported UI; unchanged stored kind)",
+    "at": "2026-11-25T20:36:53.736230+00:00"
+  },
+  "product_automatic_fallback_configured": false,
+  "settled_main_requests": 6,
+  "references_sha256": {
+    "combo-final-native.json": "80cf4fcf3178652676c8d9336be6d97c6f48f66e5e5de5e9c454a4c4aaad9e69",
+    "final-pre-controls-scorecard.json": "9fb26721cea84b3caddfabdfb1172fecdc45967537422cd5b6111276055a3c12"
+  },
+  "estimated_cost": null,
+  "billed_cost": null,
+  "limitations": [
+    "One gateway combo member and exact served-model receipts establish observed routing only.",
+    "Underlying provider billing is unavailable; no claim of free calls or a billing audit.",
+    "The full 15 qualifying-live-slot acceptance population is unavailable."
+  ]
+}

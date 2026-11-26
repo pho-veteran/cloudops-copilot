@@ -5,7 +5,7 @@ from datetime import timedelta
 from uuid import UUID
 
 import pytest
-from conftest import sign_in
+from conftest import sign_in, wait_for_job_lease_expiry
 from sqlalchemy import select, update
 from test_access_admission import create, incident_body, rerun
 
@@ -211,7 +211,7 @@ def test_killed_worker_is_reclaimed_after_real_lease_expiry(client):
         process.wait(timeout=5)
         assert read_run(client, ids)["state"] == "collecting"
         # Let the actual database lease expire, without editing its deadline.
-        time.sleep(max(0, lease_remaining) + 0.2)
+        wait_for_job_lease_expiry(UUID(ids["run_id"]))
         subprocess.run(
             [
                 sys.executable,

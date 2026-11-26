@@ -1,0 +1,36 @@
+{
+  "control": "role",
+  "evidence_class": "controlled",
+  "outcome": "pass",
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T19:19:33.360877+00:00",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "exact R3 release backend image, owned cloudops_test; live HTTPS role receipt supplementary",
+  "test_cases": [
+    "tests.test_recovery_plans::test_closed_selectors_policy_roles_and_manual_scale",
+    "tests.test_permissions::test_operation_role_matrix[anonymous-propose_inverse_plan]",
+    "tests.test_permissions::test_operation_role_matrix[anonymous-propose_plan]",
+    "tests.test_permissions::test_operation_role_matrix[anonymous-decide_plan]",
+    "tests.test_permissions::test_operation_role_matrix[expired-propose_inverse_plan]",
+    "tests.test_permissions::test_operation_role_matrix[expired-propose_plan]",
+    "tests.test_permissions::test_operation_role_matrix[expired-decide_plan]",
+    "tests.test_permissions::test_operation_role_matrix[viewer-propose_inverse_plan]",
+    "tests.test_permissions::test_operation_role_matrix[viewer-propose_plan]",
+    "tests.test_permissions::test_operation_role_matrix[viewer-decide_plan]",
+    "tests.test_permissions::test_operation_role_matrix[operator-propose_inverse_plan]",
+    "tests.test_permissions::test_operation_role_matrix[operator-propose_plan]",
+    "tests.test_permissions::test_operation_role_matrix[operator-decide_plan]"
+  ],
+  "references_sha256": {
+    "guards-junit.xml": "ed48dbe2695ae080d6444fea50ea89eebf73869d7b6f2e3d1bd7a6ea4feb6856",
+    "approval-guards-junit.xml": "ac7b00f9d5ddd2041cdc572f7850984941abb52f072951e5912804006e810d75",
+    "live-role.json": "bb4eeebf84e60fb30abf4a4d33040a8a5a5be2d0dedef419e980fd82b7bc317d",
+    "guards-image.txt": "4ad9cb6e0f7ed696f74ac3bada2a4abf045666eba6d6a80bd44df405c1008f6c"
+  },
+  "binding": "Loaded release image modules byte-match installed release source before tests; no production authority or model secret mounts.",
+  "limitations": [
+    "Kubernetes/gateway outcomes are controlled fixtures; killed workers and HTTP transport are actual processes.",
+    "Live scope mutation coverage is a separate mandatory gate.",
+    "Live Viewer approval/inverse denials use nonexistent IDs and establish permission ordering only."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "control": "zero_uncontrolled_writes",
+  "evidence_class": "live",
+  "outcome": "blocked",
+  "operator": "MinhKhoa2209",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "at": "2026-11-25T20:36:56.111571+00:00",
+  "environment": "installed R3 owned local release lab",
+  "reason": "incomplete_qualifying_live_population",
+  "observed_uncontrolled_writes": 0,
+  "deployment_mutations_reconciled": 24,
+  "references_sha256": {
+    "final-mutation-reconciliation.json": "44c210b5b179c3d08f987147b5836028ccb2c866e89e55aa053d3857d1763b5a"
+  },
+  "limitations": [
+    "All 15 original fault/reset attempts reconciled; only six have captured live provenance.",
+    "Other controller mutations retain metadata under the reviewed audit policy."
+  ]
+}

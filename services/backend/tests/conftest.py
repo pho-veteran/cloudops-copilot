@@ -1,15 +1,32 @@
 import os
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
+from uuid import UUID
 
 import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import text
+from sqlalchemy import select, text
 
 from cloudops.shared.config import settings
-from cloudops.shared.database import engine, sessions
+from cloudops.shared.database import database_now, engine, sessions
+from cloudops.shared.jobs import Job
+
+
+def wait_for_job_lease_expiry(subject_id: UUID, *, timeout: float = 60):
+    """Observe real database expiry even when VM wall and monotonic clocks differ."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        with sessions()() as db:
+            job = db.scalar(select(Job).where(Job.subject_id == subject_id))
+            assert job is not None and job.state == "running" and job.lease_until is not None
+            remaining = (job.lease_until - database_now(db)).total_seconds()
+        if remaining <= 0:
+            return
+        time.sleep(min(0.1, remaining))
+    raise AssertionError(f"Database lease did not expire; {remaining:.3f} seconds remain.")
 
 
 @pytest.fixture(scope="session", autouse=True)

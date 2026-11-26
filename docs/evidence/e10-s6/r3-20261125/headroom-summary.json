@@ -1,0 +1,96 @@
+{
+  "operator": "MinhKhoa2209",
+  "at": "2026-11-25T15:08:13.916385+00:00",
+  "revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "evidence_class": "local, same pinned K3s version; not EC2 headroom",
+  "method": "All nonterminal bound Pods, including system Pods; max(sum regular containers, max init), plus overhead.",
+  "node_uid": "4102c0e7-25db-4792-b27a-6868626623ec",
+  "allocatable_cpu_millicores": 3000,
+  "allocatable_memory_bytes": 3204448256,
+  "pods": [
+    {
+      "namespace": "cloudops-lab-monitoring",
+      "name": "kube-state-metrics-6698bd5868-tj9l5",
+      "uid": "03d17b2a-cb69-469c-80e0-2b5994d1d274",
+      "requests": {
+        "cpu_millicores": 25,
+        "memory_bytes": 33554432
+      },
+      "limits": {
+        "cpu_millicores": 100,
+        "memory_bytes": 134217728
+      }
+    },
+    {
+      "namespace": "demo",
+      "name": "checkout-fb467d5d5-gl7mr",
+      "uid": "7dfce9d3-6d72-4954-995d-a0f3c3977907",
+      "requests": {
+        "cpu_millicores": 50,
+        "memory_bytes": 201326592
+      },
+      "limits": {
+        "cpu_millicores": 100,
+        "memory_bytes": 268435456
+      }
+    },
+    {
+      "namespace": "demo",
+      "name": "history-99b6c6fff-q8n5d",
+      "uid": "edcbcd5f-0a36-4e89-b3cb-506530506e5f",
+      "requests": {
+        "cpu_millicores": 50,
+        "memory_bytes": 33554432
+      },
+      "limits": {
+        "cpu_millicores": 400,
+        "memory_bytes": 167772160
+      }
+    },
+    {
+      "namespace": "kube-system",
+      "name": "coredns-577d995dff-w79w6",
+      "uid": "33129165-232f-48f7-af38-63b3730ea794",
+      "requests": {
+        "cpu_millicores": 100,
+        "memory_bytes": 73400320
+      },
+      "limits": {
+        "cpu_millicores": 0,
+        "memory_bytes": 178257920
+      }
+    },
+    {
+      "namespace": "kube-system",
+      "name": "local-path-provisioner-6858d854cf-9kcgz",
+      "uid": "fe5fee80-1f61-4e10-ae88-81524eed0c6d",
+      "requests": {
+        "cpu_millicores": 0,
+        "memory_bytes": 0
+      },
+      "limits": {
+        "cpu_millicores": 0,
+        "memory_bytes": 0
+      }
+    },
+    {
+      "namespace": "kube-system",
+      "name": "metrics-server-778c4649b4-ckrwv",
+      "uid": "8bed5405-622a-4319-b395-b4a7d50cc16b",
+      "requests": {
+        "cpu_millicores": 100,
+        "memory_bytes": 73400320
+      },
+      "limits": {
+        "cpu_millicores": 0,
+        "memory_bytes": 0
+      }
+    }
+  ],
+  "total_requests_cpu_millicores": 325,
+  "total_requests_memory_bytes": 415236096,
+  "total_limits_cpu_millicores": 600,
+  "total_limits_memory_bytes": 748683264,
+  "remaining_requested_cpu_millicores": 2675,
+  "remaining_requested_memory_bytes": 2789212160
+}

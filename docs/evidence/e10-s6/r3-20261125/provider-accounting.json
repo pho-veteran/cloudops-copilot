@@ -1,0 +1,252 @@
+{
+  "operator": "MinhKhoa2209",
+  "source_revision": "2ec3a3e4eb24dad6b1d9d6af6f22652735e1b1b6",
+  "environment": "owned R3 main campaign and separate installed smoke",
+  "estimated_cost": null,
+  "billed_cost": null,
+  "reservation_units_are_prices": false,
+  "authorities": {
+    "provider-authority-r3": {
+      "0001.request.json": {
+        "receipt": {
+          "case_id": "recovery-traffic-scale-01",
+          "analysis_id": "116f9734-0529-4117-9673-42c605451c51",
+          "authorization_sha256": "9059a98a25cc6107af9b19a8a6fc1b31f0caa6ceb6be3920fecb9291e928c855",
+          "bundle_sha256": "d010286cd031de3d7141e96a64c1afa82ec07f85d74e708f27951f89f19dc303",
+          "request_sha256": "a1e5fbe60bb829966cc089b88a42ef7fcb8d47cbd018e200ef38608cb1456083",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T15:36:25.947336Z"
+        },
+        "original_sha256": "b558c8485980f9d4f3987e3ebd8ec0e657bf1b4f91fa45a2a12f00eab36e61d8"
+      },
+      "0001.usage.json": {
+        "receipt": {
+          "reservation_sha256": "49de19176345d146d6e5a8afcb2aad30fd6cd47473f58a1b6e02d99454a606f3",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 16411,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T15:36:36.140126Z"
+        },
+        "original_sha256": "ded6090d2ddcdc10e98cc875a60bf58f02db2a4d56682e76c45e08c08ed7f405"
+      },
+      "0002.request.json": {
+        "receipt": {
+          "case_id": "recovery-traffic-scale-02",
+          "analysis_id": "7db682fd-2df0-4f52-a681-e943d719fdfd",
+          "authorization_sha256": "9059a98a25cc6107af9b19a8a6fc1b31f0caa6ceb6be3920fecb9291e928c855",
+          "bundle_sha256": "0634bef71f5c0de1b4283c8d41a19872d7893b39cc18f025776089d9e0f9b41a",
+          "request_sha256": "b29a5246a835223792540a099a480723eb89fb49fc1d97a35e2605cb293148da",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T19:04:18.056133Z"
+        },
+        "original_sha256": "aa909e2a5a8d89913fc6e88cf68933aa24f0799de84f757ce3010ee5160d626a"
+      },
+      "0002.usage.json": {
+        "receipt": {
+          "reservation_sha256": "af4aeccdba4b2ae2360f561be2aef905fa40062439e4a930bf8264485bd5ceca",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 12641,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T19:04:27.266144Z"
+        },
+        "original_sha256": "5411ebe2e81a3c2e78f7e202be9319d83d81fbd9988ca19af18dabb13423663b"
+      },
+      "0003.request.json": {
+        "receipt": {
+          "case_id": "recovery-traffic-scale-03",
+          "analysis_id": "4dec883e-872c-4d4d-a403-af75272b1b71",
+          "authorization_sha256": "9059a98a25cc6107af9b19a8a6fc1b31f0caa6ceb6be3920fecb9291e928c855",
+          "bundle_sha256": "6c0bb487d33d54bc20e9f1fa993b7723ba4391a1ec9d87f6c52267197b5a1ae4",
+          "request_sha256": "74ce70946e574708760485a0bba1d4007a40707c66d11e7ad7d06b88aba2dc9e",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T19:10:51.978986Z"
+        },
+        "original_sha256": "c4d26397f9dc20428c5e86f17548e70ea6838e9556097a0385a4055b942ccebd"
+      },
+      "0003.usage.json": {
+        "receipt": {
+          "reservation_sha256": "4cb58e96441d47bc18fb34411e387bd4c7a87cc702ce93b94dcce65d948afc8e",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 12745,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T19:11:03.121919Z"
+        },
+        "original_sha256": "89708ffeaeddd75365c2c4294c30937853027138460f8fe3722e6b1ad745d262"
+      },
+      "0004.request.json": {
+        "receipt": {
+          "case_id": "recovery-traffic-scale-04",
+          "analysis_id": "c45e736a-05da-4343-a4f6-1ceb8c3ddfd4",
+          "authorization_sha256": "9059a98a25cc6107af9b19a8a6fc1b31f0caa6ceb6be3920fecb9291e928c855",
+          "bundle_sha256": "77db3b5ef6ae2c5c4375c28e8f870de22905b3bc9240209b42544affcb6e23a7",
+          "request_sha256": "295a5857367e1147b53875e1e910aba7047ca77f976e73f871541dd05ec84905",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T19:16:18.472641Z"
+        },
+        "original_sha256": "5d26c66f284c5ac58604a93a3d05716bcee524b4f209dac7c06f1c0f290e0050"
+      },
+      "0004.usage.json": {
+        "receipt": {
+          "reservation_sha256": "9e78c4d618329a4db87487c5a28a729606ef52941cc1ff73e9889ce12a7722fb",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 12671,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T19:16:28.629608Z"
+        },
+        "original_sha256": "d3b30f768e44c58eccbdc42b8a8fae9ab6678139e2d9e6e1571bb956a95b214d"
+      },
+      "0005.request.json": {
+        "receipt": {
+          "case_id": "recovery-traffic-scale-05",
+          "analysis_id": "ca3979a4-1412-4776-84d6-4b9cb8f78ac0",
+          "authorization_sha256": "9059a98a25cc6107af9b19a8a6fc1b31f0caa6ceb6be3920fecb9291e928c855",
+          "bundle_sha256": "0c0c27f2ad6baa4a5b4be45c218bb6639e510a3abc9729aa37aa7370fd0223d6",
+          "request_sha256": "87e4b8d3c2a7c00bb9e620e6a5248d8e199095eed2f0f20e8857e11047fa9f41",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T19:22:09.517843Z"
+        },
+        "original_sha256": "c39aa37edc988d8439293934aa623d2f4d3cfa94ff68e876e434a4553be7e108"
+      },
+      "0005.usage.json": {
+        "receipt": {
+          "reservation_sha256": "97eb1aa622fb5cdb3e31e1321ef1e69667220ab9cae10e8b1fd3880c5885c490",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 12662,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T19:22:19.528870Z"
+        },
+        "original_sha256": "d285dea534b10d5e95c30b58221178f6f313cd81b171afae3b7cdf35e0807e12"
+      },
+      "0006.request.json": {
+        "receipt": {
+          "case_id": "recovery-oom-memory-01",
+          "analysis_id": "fe16bf99-33d1-47d9-b9ce-11d3e3afcc26",
+          "authorization_sha256": "9059a98a25cc6107af9b19a8a6fc1b31f0caa6ceb6be3920fecb9291e928c855",
+          "bundle_sha256": "be16abc3b88363a32d620828ffb80f7f021abeb940d13477674fb7e3bd4f9201",
+          "request_sha256": "5856c1d82e3d2dea3fec26e7fed4be7b6d7a822a8da5f0f461cb46017667b4bb",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T19:36:30.170355Z"
+        },
+        "original_sha256": "74b2f25b4e1b47a3ba848afd3b66194f2da7225696175e5e54f080cc00894ea7"
+      },
+      "0006.usage.json": {
+        "receipt": {
+          "reservation_sha256": "ffe705dc1dc0de7f7b5fa499d3eb972711430bdca7c7a4db1a93f22ccfe26f9d",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 16574,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T19:36:42.418681Z"
+        },
+        "original_sha256": "ae29c71d6814d6fda32915e0114265c26beb5c299878526dad6cb620f8cbc8e4"
+      },
+      "recovery-oom-memory-01.result.json": {
+        "receipt": {
+          "analysis_id": "fe16bf99-33d1-47d9-b9ce-11d3e3afcc26",
+          "bundle_sha256": "be16abc3b88363a32d620828ffb80f7f021abeb940d13477674fb7e3bd4f9201",
+          "context_digest": "7f0da69bbd3cae1345f808238294c11372414345e9cc8472bb585751cb04914e",
+          "result_sha256": "39fb233d8596373bf804a58f1ea168cc7375aae496f47a0019f8cece7b92d1e8"
+        },
+        "original_sha256": "f018f68b053ae85a917c20ce6b9f3d416c1151b3aa1ad0e626478ccb8a7d9f3c"
+      },
+      "recovery-traffic-scale-01.result.json": {
+        "receipt": {
+          "analysis_id": "116f9734-0529-4117-9673-42c605451c51",
+          "bundle_sha256": "d010286cd031de3d7141e96a64c1afa82ec07f85d74e708f27951f89f19dc303",
+          "context_digest": "7ff60efb1087f5272a90e9ae8df11b96ccd837df12d95d27b4265c3ef0eec8df",
+          "result_sha256": "16239f7e55580f1f00070371c599007e4a36e060f3919b231d674c17f1c32325"
+        },
+        "original_sha256": "27c785e0ac5a43ed69c94002f7d023950db726bfdb43e67e710043dea41491ee"
+      },
+      "recovery-traffic-scale-02.result.json": {
+        "receipt": {
+          "analysis_id": "7db682fd-2df0-4f52-a681-e943d719fdfd",
+          "bundle_sha256": "0634bef71f5c0de1b4283c8d41a19872d7893b39cc18f025776089d9e0f9b41a",
+          "context_digest": "c623f54927f34e45678d29f6af67faa059b0336f1cb22fdaf6a4682d80103d6c",
+          "result_sha256": "ef1fdf69f07b646836dda096239f9ba0e657f753467fb4d8f18e93ec19ee6089"
+        },
+        "original_sha256": "881f5c6b821e8b9db28704305425f29b8b961435d55e5477111ecf8aa76e121a"
+      },
+      "recovery-traffic-scale-03.result.json": {
+        "receipt": {
+          "analysis_id": "4dec883e-872c-4d4d-a403-af75272b1b71",
+          "bundle_sha256": "6c0bb487d33d54bc20e9f1fa993b7723ba4391a1ec9d87f6c52267197b5a1ae4",
+          "context_digest": "647875708f9d6d60e4363f00224e9bb7f2385973776b1dad4d9abaca5711531d",
+          "result_sha256": "fada7b0f0f82d4928e456b1c646e0ffd62f830ce947ba037dcfd3a957b8abc20"
+        },
+        "original_sha256": "20f9e897f5708331023d7f5a33212a3bc1b3d6e89ad37f5c1c1809dd060d5860"
+      },
+      "recovery-traffic-scale-04.result.json": {
+        "receipt": {
+          "analysis_id": "c45e736a-05da-4343-a4f6-1ceb8c3ddfd4",
+          "bundle_sha256": "77db3b5ef6ae2c5c4375c28e8f870de22905b3bc9240209b42544affcb6e23a7",
+          "context_digest": "7700ee12608c1e4777d211e70e27bc2f00afa96eaf440796af30f94b5a0ba490",
+          "result_sha256": "5431729cab94c3a86675ec83b931062529ec30e1a4f6232be246741e9062bd06"
+        },
+        "original_sha256": "e863bf0e487f031356534264cd87aef1a55695c82e535bb9d6079d19ecf2be4b"
+      },
+      "recovery-traffic-scale-05.result.json": {
+        "receipt": {
+          "analysis_id": "ca3979a4-1412-4776-84d6-4b9cb8f78ac0",
+          "bundle_sha256": "0c0c27f2ad6baa4a5b4be45c218bb6639e510a3abc9729aa37aa7370fd0223d6",
+          "context_digest": "6ab39e1fc9b278fe7a8ab0139d9f10cf3068f98ff6926f5c1b17b6705f83091c",
+          "result_sha256": "eb8b98935e2a8e343ee692e28dea1eb3d569c20d73cdabeb0bc5eabba8dfc912"
+        },
+        "original_sha256": "9f807f151979d3aa5273ba86c3372cc9300c7e2ecb56b8639837373d35663bec"
+      }
+    },
+    "provider-authority-r3-smoke": {
+      "0001.request.json": {
+        "receipt": {
+          "case_id": "recovery-traffic-scale-01",
+          "analysis_id": "d64b3387-3c5a-43ac-bca9-aca84b206933",
+          "authorization_sha256": "d4d6465f416b4de810a3544bd435209dceb9e1d757a94e1eb1770314b500a0bf",
+          "bundle_sha256": "efe876c30d335080bbc4b2e1715fbd919da0cef9b2dc84ee69803d57ce0f04c7",
+          "request_sha256": "dee4b2fda49a28e3d461b714bb8d9820d3ba7eec50766dd8efa5300555aa26fe",
+          "reserved_tokens": 81920,
+          "reserved_spend_microusd": 81920,
+          "reserved_at": "2026-11-25T15:27:18.390096Z"
+        },
+        "original_sha256": "2e9c30bfe3107ccc2d05abf8370594aaa17dfb28fd2ea8705b96749403dd6cd1"
+      },
+      "0001.usage.json": {
+        "receipt": {
+          "reservation_sha256": "74a777bf9dff8b2d97679ee47f64ba5fcc33634c1e7b8c1d5f9eb1aae9a2485a",
+          "kind": "text",
+          "http_status": 200,
+          "observed_tokens": 16477,
+          "model_matches": true,
+          "stop_reason": null,
+          "received_at": "2026-11-25T15:27:30.285120Z"
+        },
+        "original_sha256": "e73485d535da4d29d44f8801375afd9746de5b350ed406469f2cb18a9742d788"
+      },
+      "recovery-traffic-scale-01.result.json": {
+        "receipt": {
+          "analysis_id": "d64b3387-3c5a-43ac-bca9-aca84b206933",
+          "bundle_sha256": "efe876c30d335080bbc4b2e1715fbd919da0cef9b2dc84ee69803d57ce0f04c7",
+          "context_digest": "97de8b995dd99d221d7a25fa58df5e1f5751e6b3576b8bf916c2ecd1048503ed",
+          "result_sha256": "e997115af3540b0212e9cae930bdca0ea730df59bff71035df444bb7a607d369"
+        },
+        "original_sha256": "5344990824d0e68420112b0807e3b868661bddec06cadc0d23ff71e2c4200aac"
+      }
+    }
+  }
+}

@@ -1,5 +1,9 @@
 # S6 local verification — November 24, 2026
 
+Current R3 campaign results are recorded separately in
+[R3 S6 original campaign results](r3-20261125/README.md). S6 remains blocked;
+the historical candidate-specific evidence below is preserved unchanged.
+
 Issue #125 remains incomplete. This checks the uncommitted candidate based on
 `6ac5bf92d44559066a677bdc3efe1f01656cc473`. The source hashes, measured calibration,
 qualification binding and result counts are in [verification.json](verification.json).
