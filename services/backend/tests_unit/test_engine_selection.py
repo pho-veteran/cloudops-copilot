@@ -106,3 +106,50 @@ def test_budget_drops_low_relevance_entries_and_records_omissions():
     assert {t.source_key for t in tight.required_targets} == {
         t.source_key for t in full.required_targets
     }
+
+
+def test_hypothesis_sections_cite_only_sent_aliases_and_consistency_downgrades():
+    from cloudops.features.diagnosis.context import family_matrix
+    from cloudops.features.diagnosis.engine import consistency, detector
+
+    case_id = "c03"
+    materials = [
+        _material(slot, payload, case_id)
+        for slot, payload in CASES[case_id]["evidence"].items()
+        if slot in SOURCE_CLASSES
+    ]
+    table = signals.extract(materials)
+    detection = detector.detect(table, family_matrix(materials, _policy()))
+    context = selection.assemble(
+        materials,
+        _scope(case_id),
+        _policy(),
+        profile(),
+        "engine-test",
+        system_prompt=prompt.PROMPTS[prompt.PROMPT_V2],
+        prompt_version=prompt.PROMPT_V2,
+        table=table,
+        extra_sections=lambda aliases: prompt.sections(table, detection, aliases),
+    )
+    assert isinstance(context, PreparedContext)
+    text = context.messages[1].content
+    assert "DETECTOR HYPOTHESES" in text and "1. oom_restarts" in text
+    sent = {t.alias for t in (*context.required_targets, *context.optional_targets)}
+    import re
+
+    section = text[text.index("DETECTOR") : text.index("EVIDENCE")]
+    assert set(re.findall(r"E\d{3}", section)) <= sent
+    advice = compare(context)
+    assert advice.cause_category == "oom_restarts"
+    kept, note = consistency.check(advice, detection, context, policy="downgrade")
+    assert kept == advice and note["action"] == "none"
+    wrong = advice.model_copy(
+        update={"cause_category": "image_pull", "candidate_template_id": None}
+    )
+    assert validate_structural(context, wrong) == []
+    downgraded, note = consistency.check(wrong, detection, context, policy="downgrade")
+    assert note["action"] == "downgrade"
+    assert downgraded.status == "insufficient_evidence" and downgraded.cause_category == "unknown"
+    assert validate_structural(context, downgraded) == []
+    flagged, note = consistency.check(wrong, detection, context, policy="flag")
+    assert flagged == wrong and note["action"] == "flag"

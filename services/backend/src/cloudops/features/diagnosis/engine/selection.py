@@ -403,14 +403,22 @@ def assemble(
     system_prompt: str,
     prompt_version: str,
     table: SignalTable | None = None,
-    extra_sections: list[str] | None = None,
+    extra_sections=None,
     soft_budget: int = SOFT_BUDGET_BYTES,
 ) -> PreparedContext | InsufficientContext:
+    """``extra_sections`` is a list of lines or a callable of the final alias map
+    ``{(evidence_id, kind, key): alias}`` that returns lines (hypotheses, signals)."""
     budget = min(policy.max_message_bytes, profile.limits.max_input_bytes)
     coverage = [base._request_coverage(scope, policy), *base._coverage(materials)]
     families = base.family_matrix(materials, policy)
     limitations = base._limitations(scope, materials)
-    extra_sections = list(extra_sections or [])
+    if callable(extra_sections):
+        section_fn = extra_sections
+    else:
+        fixed_lines = list(extra_sections or [])
+
+        def section_fn(_aliases):
+            return fixed_lines
 
     def insufficient(reason: str) -> InsufficientContext:
         return base._insufficient(
@@ -508,7 +516,7 @@ def assemble(
             profile,
             _messages(
                 system_prompt,
-                _user(scope, coverage, families, [], [], limitations, {}, extra_sections),
+                _user(scope, coverage, families, [], [], limitations, {}, section_fn({})),
             ),
         )
     )
@@ -552,7 +560,12 @@ def assemble(
         omitted_counts[slot] = omitted_counts.get(slot, 0) + count
     for slot, count in sorted(rule_omitted.items()):
         omitted_counts[slot] = omitted_counts.get(slot, 0) + count
-    user = _user(scope, coverage, families, lines, [], limitations, omitted_counts, extra_sections)
+    alias_of = {
+        (str(t.evidence_id), t.locator.kind, t.locator.key): t.alias for t in (*required, *optional)
+    }
+    user = _user(
+        scope, coverage, families, lines, [], limitations, omitted_counts, section_fn(alias_of)
+    )
     messages = _messages(system_prompt, user)
     try:
         message_bytes = len(serialize_payload(profile, messages))

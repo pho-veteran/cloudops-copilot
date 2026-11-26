@@ -353,12 +353,32 @@ async def run_b2(value, *, settings: Settings, gateway: Gateway | None = None) -
     }
 
 
-def engine_context(value, settings: Settings, model_profile, egress, *, with_signals: bool):
-    from cloudops.features.diagnosis.engine import prompt, selection, signals
+def engine_context(
+    value,
+    settings: Settings,
+    model_profile,
+    egress,
+    *,
+    with_signals: bool,
+    default_prompt: str | None = None,
+):
+    from cloudops.features.diagnosis.context import family_matrix
+    from cloudops.features.diagnosis.engine import detector, prompt, selection, signals
 
     materials = raw.materials(value)
     table = signals.extract(materials)
-    version = settings.variant.get("prompt", prompt.PROMPT_V1)
+    detection = detector.detect(table, family_matrix(materials, egress))
+    version = settings.variant.get("prompt", default_prompt or prompt.PROMPT_V1)
+    show_signals = with_signals and settings.variant.get("signals", "on") == "on"
+    show_hypotheses = with_signals and settings.variant.get("hypotheses", "on") == "on"
+
+    def extra(aliases):
+        return prompt.sections(
+            table if show_signals else None,
+            detection if show_hypotheses else None,
+            aliases,
+        )
+
     context = selection.assemble(
         materials,
         raw.scope(value),
@@ -367,16 +387,19 @@ def engine_context(value, settings: Settings, model_profile, egress, *, with_sig
         f"engine-loop.{value.case_id}",
         system_prompt=prompt.PROMPTS[version],
         prompt_version=version,
-        table=table,
+        table=table if settings.variant.get("relevance", "signals") == "signals" else None,
+        extra_sections=extra,
         soft_budget=int(settings.variant.get("soft_budget", selection.SOFT_BUDGET_BYTES)),
     )
-    return context, table
+    return context, table, detection
 
 
 async def run_b3(value, *, settings: Settings, gateway: Gateway) -> dict:
     """Compact selection and encoding (stage C) with the v1 prompt; no signal table."""
     egress = policy(max_message_bytes=settings.budget)
-    context, _ = engine_context(value, settings, gateway.model_profile, egress, with_signals=False)
+    context, _, _ = engine_context(
+        value, settings, gateway.model_profile, egress, with_signals=False
+    )
     summary = context_summary(context)
     if isinstance(context, InsufficientContext):
         return {"context": summary, "attempts": [], "final": _abstain_record()}
@@ -397,10 +420,50 @@ async def run_c0(value, *, settings: Settings, gateway: Gateway | None = None) -
     from engine_loop.gateway import profile
 
     egress = policy(max_message_bytes=settings.budget)
-    context, _ = engine_context(
-        value, settings, profile(max_input_bytes=settings.budget), egress, with_signals=False
+    with_signals = settings.variant.get("gate", "b3") == "b4"
+    context, _, _ = engine_context(
+        value,
+        settings,
+        profile(max_input_bytes=settings.budget),
+        egress,
+        with_signals=with_signals,
+        default_prompt="engine.rca_prompt/v2" if with_signals else None,
     )
     return {"context": context_summary(context), "attempts": [], "final": _abstain_record()}
+
+
+async def run_b4(value, *, settings: Settings, gateway: Gateway) -> dict:
+    """Full pipeline: signals and hypotheses (A, B), compact context (C), prompt v2 (D)
+    and the consistency check (E) on top of the unchanged validator."""
+    from cloudops.features.diagnosis.engine import consistency, prompt
+
+    egress = policy(max_message_bytes=settings.budget)
+    context, table, detection = engine_context(
+        value,
+        settings,
+        gateway.model_profile,
+        egress,
+        with_signals=True,
+        default_prompt=prompt.PROMPT_V2,
+    )
+    summary = context_summary(context)
+    record = {"context": summary, "detector": detection.record()}
+    if isinstance(context, InsufficientContext):
+        return {**record, "attempts": [], "final": _abstain_record()}
+    advice, attempts = await model_advice(
+        context, case_id=value.case_id, gateway=gateway, egress=egress, repair=settings.repair
+    )
+    if advice is None:
+        return {**record, "attempts": attempts, "final": {"source": "model_invalid"}}
+    checked, note = consistency.check(
+        advice, detection, context, policy=settings.variant.get("consistency", "downgrade")
+    )
+    return {
+        **record,
+        "attempts": attempts,
+        "consistency": note,
+        "final": {**checked.model_dump(mode="json"), "source": "model", "valid": True},
+    }
 
 
 Runner = Callable[..., Any]
@@ -410,6 +473,7 @@ CONFIGS: dict[str, tuple[Runner, bool]] = {
     "B1": (run_b1, True),
     "B2": (run_b2, False),
     "B3": (run_b3, True),
+    "B4": (run_b4, True),
     # Zero-call gate for stage C: context metrics only, the answer is a fixed abstention.
     "C0": (run_c0, False),
     "P1": (run_b1_context, False),
