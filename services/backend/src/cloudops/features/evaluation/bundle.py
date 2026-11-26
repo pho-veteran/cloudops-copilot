@@ -15,7 +15,9 @@ from cloudops.features.evaluation.hashing import canonical, content_sha256
 from cloudops.features.evaluation.versions import VERSIONS
 from cloudops.features.investigations.locators import digest
 
-MAX_BUNDLE_BYTES = 256 * 1024
+# A snapshot retains both wire messages and full citation/value records. Keep its
+# independent storage bound above the 128 KiB wire ceiling without truncating either.
+MAX_BUNDLE_BYTES = 512 * 1024
 
 
 class EvalInputError(ValueError):

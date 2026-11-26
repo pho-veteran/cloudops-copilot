@@ -495,6 +495,66 @@ def test_large_required_context_needs_both_explicit_budgets_and_keeps_every_targ
     assert not check_send(context, wide_policy, profile(), "initial").ok
 
 
+@pytest.mark.parametrize("target_count,blob_size", [(50, 2000), (250, 50)])
+def test_large_admitted_context_round_trips_through_campaign_artifact(
+    tmp_path, monkeypatch, target_count, blob_size
+):
+    from cloudops.features.evaluation import bundle
+
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[3] / "scripts"))
+    import e10_campaign
+
+    materials = [
+        _material(
+            "kubernetes.state",
+            [
+                _entry("field", ["uid", f"pod-{index:03d}"], {"blob": "z" * blob_size})
+                for index in range(target_count)
+            ],
+        ),
+        _minimal_materials()[1],
+    ]
+    policy = _policy(max_message_bytes=131072)
+    model = profile(limits={"max_input_bytes": 131072})
+    context = assemble(materials, _scope(), None, policy, model, "analysis-1")
+    assert isinstance(context, PreparedContext)
+    sent = check_send(context, policy, model, "initial")
+    assert sent.ok
+    assert len(prepare_payload(model, sent.messages)) <= 131072
+    snapshot = bundle.from_context(
+        context,
+        case_id="large-context",
+        bundle_id=str(uuid4()),
+        captured_at=context.window.start,
+    )
+    path = tmp_path / "bundle.json"
+    e10_campaign._write_once(path, snapshot)
+    assert 262144 < path.stat().st_size <= bundle.MAX_BUNDLE_BYTES
+    retained, raw_sha = bundle.load(path, expected_case_id="large-context")
+    assert retained == snapshot
+    assert retained.context == context
+    assert len(retained.context.required_targets) == target_count + 1
+    assert raw_sha == hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_campaign_artifact_remains_bounded(tmp_path, monkeypatch):
+    from pydantic import RootModel
+
+    from cloudops.features.evaluation import bundle
+
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[3] / "scripts"))
+    import e10_campaign
+
+    path = tmp_path / "oversized.json"
+    oversized = RootModel[str]("x" * bundle.MAX_BUNDLE_BYTES)
+    with pytest.raises(e10_campaign.CampaignError, match="artifact_too_large"):
+        e10_campaign._write_once(path, oversized)
+    assert not path.exists()
+    path.write_bytes(b"{}" + b" " * (bundle.MAX_BUNDLE_BYTES - 1))
+    with pytest.raises(bundle.EvalInputError, match="bundle_too_large"):
+        bundle.load(path)
+
+
 def test_message_bytes_equals_transport_and_prepare_payload_accepts():
     context = _build(_minimal_materials())
     assert isinstance(context, PreparedContext)
