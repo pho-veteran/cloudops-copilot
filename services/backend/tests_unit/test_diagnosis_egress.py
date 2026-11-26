@@ -74,7 +74,7 @@ def test_policy_rejects_unknown_fields_and_out_of_range_values():
     with pytest.raises(ValidationError):
         policy(extra_field=True)
     with pytest.raises(ValidationError):
-        policy(max_message_bytes=65537)
+        policy(max_message_bytes=131073)
     with pytest.raises(ValidationError):
         policy(max_message_bytes=0)
     with pytest.raises(ValidationError):

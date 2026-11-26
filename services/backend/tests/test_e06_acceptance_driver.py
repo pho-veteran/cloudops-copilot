@@ -356,7 +356,7 @@ def configured_campaign(tmp_path, monkeypatch, *, base_url="http://127.0.0.1:180
     return path
 
 
-@pytest.mark.parametrize("input_bytes", [32768, 65536])
+@pytest.mark.parametrize("input_bytes", [32768, 65536, 131072])
 def test_campaign_config_binds_one_primary_and_its_bounds(tmp_path, monkeypatch, input_bytes):
     for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
         monkeypatch.setenv(key, "owned-test-placeholder")

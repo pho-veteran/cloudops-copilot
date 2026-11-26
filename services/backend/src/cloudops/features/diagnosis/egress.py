@@ -24,6 +24,7 @@ from cloudops.features.diagnosis.schemas import CallIdentity
 from cloudops.features.diagnosis.versions import (
     MAX_FEEDBACK_BYTES,
     MAX_FEEDBACK_FAILURES,
+    MAX_INPUT_BYTES,
     PROBE_PROMPT_VERSION,
 )
 from cloudops.features.investigations.locators import canonical
@@ -127,7 +128,7 @@ class EgressPolicy(BaseModel):
     policy_version: str
     destination: EgressDestination
     allowed_source_classes: list[SourceClass] = Field(default_factory=list, max_length=8)
-    max_message_bytes: int = Field(strict=True, ge=1, le=65536)
+    max_message_bytes: int = Field(strict=True, ge=1, le=MAX_INPUT_BYTES)
     max_target_bytes: int = Field(strict=True, ge=256, le=65536)
     redaction_policy_version: str
     deny_patterns: list[DenyPattern] = Field(default_factory=list, max_length=MAX_PATTERNS)

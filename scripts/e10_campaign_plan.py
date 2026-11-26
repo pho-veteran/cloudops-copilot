@@ -83,8 +83,8 @@ def inputs(cohort_id):
                 "expected_outcome": "succeeded" if positive else None,
             },
             incident={
-                "state": "not_applicable",
-                "expected_disposition": None,
+                "state": "expected" if positive else "not_applicable",
+                "expected_disposition": "resolved" if positive else None,
             },
             rationale=(
                 "Review product admission, actual execution eligibility and clean evidence as applicable."
@@ -97,7 +97,7 @@ def inputs(cohort_id):
         EvalLabels(cohort_id=cohort_id, cases=labels),
         EvalRubric(
             cohort_id=cohort_id,
-            rubric_id="e10-s6-release/v1",
+            rubric_id="e10-s6-release/v2",
             thresholds=EvalThresholds(
                 structural_valid_required=True,
                 manual_only_candidate_max=0,

@@ -299,6 +299,9 @@ class ScopedKubernetesClient:
                 "limitBytes": 32768,
             },
         )
+        # Kubelet can return a CRI retrieval error after opening a 200 log stream.
+        if text.lstrip().startswith("unable to retrieve container logs for "):
+            raise ScopedK8sError("container_not_ready")
         return text, len(text.splitlines()) >= min(max(line_limit, 0), 200) or len(
             text.encode("utf-8")
         ) >= 32768

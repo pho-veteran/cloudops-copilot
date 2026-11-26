@@ -22,6 +22,7 @@ from pydantic import (
 )
 
 from cloudops.features.diagnosis.schemas import CallIdentity
+from cloudops.features.diagnosis.versions import MAX_INPUT_BYTES
 
 SCHEMA = "DiagnosisModelProfile/v1"
 MAX_PROFILE_BYTES = 64 * 1024
@@ -191,8 +192,8 @@ class Limits(BaseModel):
 
     @model_validator(mode="after")
     def bounded(self):
-        if not 1 <= self.max_input_bytes <= 65536:
-            raise ValueError("max_input_bytes must be 1..65536")
+        if not 1 <= self.max_input_bytes <= MAX_INPUT_BYTES:
+            raise ValueError(f"max_input_bytes must be 1..{MAX_INPUT_BYTES}")
         if not 1 <= self.max_response_bytes <= 262144:
             raise ValueError("max_response_bytes must be 1..262144")
         if not 0.1 <= self.connect_timeout_seconds <= 10:

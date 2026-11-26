@@ -18,6 +18,7 @@ ALIAS_CAPACITY = 999
 REPAIR_RESERVE_BYTES = 4096
 MAX_FEEDBACK_BYTES = 2048
 MAX_FEEDBACK_FAILURES = 10
+MAX_INPUT_BYTES = 131072
 
 # slot -> (required cap, optional cap, ordering rule)
 SLOT_CAPS: dict[str, tuple[int, int, str]] = {

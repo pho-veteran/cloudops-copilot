@@ -160,6 +160,20 @@ $lab recovery-config
 
 Then follow the [E10 S3 recovery lab](evidence/e10-s3/README.md#recovery-qualification) qualification and trial flow and the [S6 campaign](evaluation-baseline.md) with this project selected. `scripts/release_scenarios.py` accepts recovery reset receipts from this project, and the S6 campaign binds the project selected by `CLOUDOPS_LAB_PROJECT`. The core and disposable release labs above are unchanged.
 
+Before freezing a diagnosis campaign, use the same private lab Compose configuration
+to run the `migrate` service as a trusted maintenance process with
+`python -m cloudops.entrypoints.cli knowledge-index --root /workspace --json`.
+Its reviewed corpus is mounted read-only at `/workspace/runbooks`. Check
+`knowledge-status --json` for `ready` with catalog search and retrieval available,
+and retain the secret-free result. The API and worker do not index at startup.
+
+Also collect current and previous logs during a separate scenario calibration. A
+Kubelet response containing `unable to retrieve container logs for ...` can arrive
+with HTTP 200; it is a runtime source failure and is classified as unavailable, not
+application log evidence. A missing required source continues to block its affected
+assessment/scoring. Retain the runtime limitation and resolve it before declaring a
+new cohort ready; do not waive it or rewrite an earlier captured result.
+
 ## Optional local diagnosis gateway
 
 On Docker Desktop, compose `compose.diagnosis.yaml` followed by

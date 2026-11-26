@@ -138,6 +138,27 @@ calls, dispatch, approvals and recovery remain with the existing lab and product
 
 ### S6 operational sequence
 
+Before a new cohort, explicitly index the installed runbook corpus with the trusted
+[Knowledge maintenance command](knowledge-index.md#trusted-index-command) and check
+that catalog and retrieval are available. This is setup before freezing, not a change
+to a measured trial. Keep the resulting generation and selected full-text fingerprints
+with the campaign. Do not repair an already measured cohort's missing guidance.
+
+The optional 131,072-byte profile/policy input ceiling is sized above the retained R3
+maximum required message of 89,872 bytes, leaving 41,200 bytes of headroom for guidance,
+envelope variation and repair. It does not change required-source selection or waive
+missing inputs. With a 16,384-token requested completion limit, authorize at least
+147,456 tokens per request under the conservative byte-based reservation rule. Bind
+the fresh profile/policy to a new qualification and a separate installed smoke that
+actually exceeds 65,536 bytes. A gateway that ignores completion limits still has no
+enforced remote output cap; request and observed-token limits remain separate.
+
+New plans use rubric `e10-s6-release/v2`: recovery slots independently expect a resolved
+incident, in addition to a succeeded action. The resolution score fails when the
+incident remains unresolved even if application verification passes. Observation and
+negative controls retain `not_applicable` incident expectations. Existing frozen
+labels, results and denominators, including R3, must remain unchanged.
+
 Use the source-built owned `cloudops-e10-s3-lab` and record the reviewed revision, built
 image IDs, exact scope, credential-free diagnosis identity, E07 policy/profile digests
 and separately approved budget. Use the S3 guide to configure and qualify the exact
