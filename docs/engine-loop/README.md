@@ -12,6 +12,7 @@ the local ledger (see [environment](environment.md#directory-layout-outside-git)
 | [algorithm.md](algorithm.md) | Current pipeline (code map) and target stages A-E |
 | [data-and-evaluation.md](data-and-evaluation.md) | Case generation, bundle format, splits, configurations, metrics, failure taxonomy |
 | [environment.md](environment.md) | Local tiers, model endpoint variables, the three loop speeds, CLI and directory layout |
+| [reports/m0-m4.md](reports/m0-m4.md) | Milestone report M0-M4: dataset and commit identities, scorecards, sealed-test comparison, ablations |
 
 Status: in progress. Items marked **(exists)** are on `main`. Items marked
 **(to build)** do not exist yet.

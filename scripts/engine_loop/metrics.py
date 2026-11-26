@@ -407,7 +407,7 @@ def compare(
         "mcnemar": {
             "base_only_correct": b,
             "head_only_correct": c,
-            "p_value": round(mcnemar(b, c), 6),
+            "p_value": float(f"{mcnemar(b, c):.3g}"),
         },
         "delta": delta,
         "family_loss": family_loss,
