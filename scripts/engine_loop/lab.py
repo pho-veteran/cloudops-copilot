@@ -20,7 +20,6 @@ import httpx
 from engine_loop import bundle as raw
 from engine_loop.bundle import sha256_json
 
-from cloudops.features.diagnosis.versions import FAMILY_REQUIRED
 from cloudops.features.evaluation.schemas import EvalLabel
 
 ORIGIN = "https://localhost:8443"
@@ -211,6 +210,16 @@ def export(
     )
 
 
+def _assessment(value: raw.RawEvidenceBundle, family: str):
+    from engine_loop.pipeline import policy
+
+    from cloudops.features.diagnosis.context import family_matrix
+
+    return next(
+        item for item in family_matrix(raw.materials(value), policy()) if item.family == family
+    )
+
+
 def coverage(value: raw.RawEvidenceBundle) -> dict[str, str]:
     return {item.slot: item.coverage_status for item in value.slots}
 
@@ -244,22 +253,19 @@ def label(value: raw.RawEvidenceBundle, kind: str | None, *, rationale: str) -> 
             }
         )
     family = FAMILY_BY_KIND[kind]
-    unusable = [
-        slot
-        for slot in FAMILY_REQUIRED[family]
-        if slots.get(slot) not in USABLE
-        and not (slot.startswith("kubernetes.logs.") and slots.get(slot) == "not_applicable")
-    ]
-    if unusable:
+    assessment = _assessment(value, family)
+    unusable = [item.slot for item in assessment.required_slots if not item.usable]
+    if not assessment.eligible_for_assessment:
         # The product contract cannot support an ineligible family: the correct answer is
-        # an abstention. The label records why, from coverage only.
+        # an abstention. The label records why, from the product family matrix only.
         return label(
             value,
             None,
-            rationale=f"{rationale} Required source unusable ({', '.join(unusable)}): "
-            "the family is ineligible, so the correct result is an abstention.",
+            rationale=f"{rationale} Family {family} is ineligible in the product family "
+            f"matrix (unusable: {', '.join(unusable) or 'no targets'}), so the correct "
+            "result is an abstention.",
         )
-    required = [slot for slot in FAMILY_REQUIRED[family] if slots.get(slot) in USABLE]
+    required = [item.slot for item in assessment.required_slots if item.usable and not item.waived]
     manual = family in MANUAL
     candidate = CANDIDATE_BY_FAMILY.get(family)
     return EvalLabel.model_validate(
@@ -294,15 +300,18 @@ def _stamp(window_end: datetime, offset: int) -> str:
 
 
 def _augment_text(text: str, extra: list[str], window_end: datetime) -> str:
-    lines = text.splitlines()
-    added = [f"{_stamp(window_end, 5 + 3 * index)} {line}" for index, line in enumerate(extra)]
+    lines = [line for line in text.splitlines() if line]
+    count = len(extra)
+    added = [
+        f"{_stamp(window_end, 5 + 3 * (count - index))} {line}" for index, line in enumerate(extra)
+    ]
     merged = lines + added
     # Keep the collector bound: at most 200 lines.
     return "\n".join(merged[-200:]) + "\n"
 
 
 def derive_logs(
-    value: raw.RawEvidenceBundle, case_id: str, variant: str
+    value: raw.RawEvidenceBundle, case_id: str, variant: str, *, synthesize: bool = False
 ) -> raw.RawEvidenceBundle | None:
     """Add benign noise or untrusted instruction text to every retained log segment."""
     end = value.scope.window.end
@@ -316,7 +325,31 @@ def derive_logs(
     changed = False
     for item in value.slots:
         record = item.model_dump(mode="json")
-        if item.slot.startswith("kubernetes.logs.") and item.payload and item.payload.get("logs"):
+        if (
+            synthesize
+            and item.slot == "kubernetes.logs.current"
+            and item.payload
+            and not item.payload.get("logs")
+            and item.payload.get("containers")
+        ):
+            # No retained log in the window: add one segment for the first started
+            # container, carrying only the derived lines.
+            payload = copy.deepcopy(item.payload)
+            container = payload["containers"][0]
+            payload["logs"] = [
+                {
+                    "container": container["name"],
+                    "kind": container.get("kind", "regular"),
+                    "pod_uid": container["pod_uid"],
+                    "previous": False,
+                    "text": _augment_text("", extra, end),
+                    "timestamp": (end - timedelta(seconds=5)).isoformat(),
+                }
+            ]
+            record["payload"] = payload
+            record["sha256"] = sha256_json(payload)
+            changed = True
+        elif item.slot.startswith("kubernetes.logs.") and item.payload and item.payload.get("logs"):
             payload = copy.deepcopy(item.payload)
             for entry in payload["logs"]:
                 if isinstance(entry.get("text"), str):

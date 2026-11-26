@@ -108,6 +108,60 @@ def cmd_fixture_snapshot(args) -> int:
     return 0
 
 
+def cmd_derive(args) -> int:
+    """Write derived log variants of existing lab cases into a new batch directory."""
+    from engine_loop import bundle as raw
+    from engine_loop import lab
+
+    source, out = Path(args.source), Path(args.out)
+    if out.exists():
+        raise SystemExit(f"batch exists: {out}")
+    written = []
+    for path in sorted((source / "meta").glob("*.json")):
+        meta = _read(path)
+        if meta["variant"] != args.where_variant:
+            continue
+        value = raw.read(source / "bundles" / path.name)
+        suffix = "inject" if args.variant == "injection-logs" else "noise"
+        child = lab.derive_logs(value, f"{value.case_id}-{suffix}", args.variant, synthesize=True)
+        if child is None:
+            continue
+        kind = None if meta["variant"] in {"healthy", "out-of-scope"} else meta.get("kind")
+        label = lab.label(
+            child, kind, rationale=f"Derived from {value.case_id}: {args.variant} added to logs."
+        )
+        lab.write_case(
+            out,
+            child,
+            label,
+            {**meta, "variant": f"derived:{args.variant}", "derived_by": "derive"},
+        )
+        written.append(child.case_id)
+    print(json.dumps({"written": len(written), "out": str(out)}))
+    return 0
+
+
+def _relabel(value, label, meta):
+    """Recompute a lab label with the current coverage rule (a fix in a new snapshot)."""
+    from engine_loop import lab
+
+    variant = meta["variant"]
+    base = meta.get("kind")
+    if (
+        variant in {"healthy", "out-of-scope", "derived:source-disabled"}
+        or meta.get("target") == "history"
+    ):
+        kind = None
+    else:
+        kind = base
+    fresh = lab.label(value, kind, rationale=label.rationale[:1900])
+    if fresh.model_dump() != label.model_dump():
+        fresh = fresh.model_copy(
+            update={"rationale": (fresh.rationale + " Relabelled in this snapshot.")[:2000]}
+        )
+    return fresh
+
+
 def cmd_snapshot(args) -> int:
     """Freeze lab case batches into one immutable snapshot (split by trial)."""
     from engine_loop import bundle as raw
@@ -122,6 +176,8 @@ def cmd_snapshot(args) -> int:
             value = raw.read(path)
             label = EvalLabel.model_validate_json((folder / "labels" / path.name).read_bytes())
             meta = _read(folder / "meta" / path.name)
+            if args.relabel:
+                label = _relabel(value, label, meta)
             if meta.get("contaminated"):
                 excluded.append({"case_id": value.case_id, "reason": "contaminated"})
                 continue
@@ -186,7 +242,16 @@ def cmd_snapshot(args) -> int:
 
 
 def _bundle_slots(value) -> dict[str, str]:
-    return {item.slot: item.coverage_status for item in value.slots}
+    """Slot coverage, with `empty` for a slot whose stored payload projects no entry."""
+    from engine_loop import bundle as raw
+
+    entries = {material.slot: bool(material.entries) for material in raw.materials(value)}
+    return {
+        item.slot: item.coverage_status
+        if item.coverage_status not in {"available", "partial"} or entries.get(item.slot)
+        else "empty"
+        for item in value.slots
+    }
 
 
 async def _replay(args, cases, settings, run_dir: Path, base_scores: dict | None) -> list[dict]:
@@ -304,6 +369,15 @@ def _score(run_dir: Path) -> dict:
 
     labels = EvalLabels.model_validate_json(label_path.read_bytes()).cases
     records = [_read(path) for path in sorted((run_dir / "cases").glob("*.json"))]
+    # Usability is recomputed from the frozen bundles, so every run uses the same rule.
+    bundles = {
+        value.case_id: value
+        for value, _ in dataset.load(
+            snapshot, split, milestone=split == "test", cases=[r["case_id"] for r in records]
+        )
+    }
+    for record in records:
+        record["bundle_slots"] = _bundle_slots(bundles[record["case_id"]])
     scores = [metrics.case_score(record, labels[record["case_id"]]) for record in records]
     card = metrics.scorecard(scores)
     card["run_id"] = config["run_id"]
@@ -350,6 +424,125 @@ def cmd_compare(args) -> int:
     return 0
 
 
+def cmd_report(args) -> int:
+    """Milestone report: scorecards with intervals, paired McNemar and noise robustness."""
+
+    lines = [f"# {args.title}", ""]
+    if args.preamble:
+        lines += [Path(args.preamble).read_text(encoding="utf-8").strip(), ""]
+    runs = [_run_dir(item) for item in args.run]
+    cards = {}
+    for path in runs:
+        if not (path / "scorecard.json").exists():
+            _score(path)
+        cards[path.name] = (_read(path / "config.json"), _read(path / "scorecard.json"))
+    lines += [
+        "## Runs",
+        "",
+        "| Run | Config | Dataset | Split | n | Commit | Model |",
+        "| --- | --- | --- | --- | ---: | --- | --- |",
+    ]
+    for name, (config, card) in cards.items():
+        lines.append(
+            f"| `{name}` | {config['config']} {config['settings'].get('variant') or ''} | "
+            f"`{config['dataset']}` (`{config['dataset_manifest_sha256'][:12]}`) | "
+            f"{config['split']} | {card['n']} | `{config['commit'][:12]}` | "
+            f"{config.get('model') or '-'} |"
+        )
+
+    def rate(item):
+        if not isinstance(item, dict) or item.get("value") is None:
+            return "-"
+        interval = item.get("wilson95") or ["?", "?"]
+        return f"{item['value']:.3f} ({item['k']}/{item['n']}; {interval[0]:.2f}-{interval[1]:.2f})"
+
+    lines += [
+        "",
+        "## Scorecards",
+        "",
+        "| Metric | " + " | ".join(f"`{name}`" for name in cards) + " |",
+        "| --- |" + " --- |" * len(cards),
+    ]
+    rows = [
+        ("Family accuracy", lambda c: rate(c["family_accuracy"])),
+        ("Macro-F1", lambda c: f"{c['macro_f1']:.3f}"),
+        ("Negatives false positive", lambda c: rate(c["negatives_fp"])),
+        ("Abstention precision", lambda c: rate(c["abstention_precision"])),
+        ("Abstention recall", lambda c: rate(c["abstention_recall"])),
+        ("Citation precision", lambda c: rate(c["citation_precision"])),
+        ("Citation recall", lambda c: rate(c["citation_recall"])),
+        ("Hallucinated aliases", lambda c: str(c["hallucinated_aliases"])),
+        ("First-attempt valid", lambda c: rate(c["first_attempt_valid"])),
+        ("Plan correct", lambda c: rate(c["plan_correct"])),
+        ("Manual-only correct", lambda c: rate(c["manual_only_correct"])),
+        ("Required-source recall (sent)", lambda c: rate(c["required_source_recall_sent"])),
+        (
+            "Message bytes p50 / max",
+            lambda c: f"{c['message_bytes']['p50']} / {c['message_bytes']['max']}",
+        ),
+        ("Overflow at 65,536", lambda c: str(c["overflow"])),
+        (
+            "Latency p50 / p95 (ms)",
+            lambda c: f"{c['latency_ms']['p50']} / {c['latency_ms']['p95']}",
+        ),
+        ("Reasoning tokens p50", lambda c: str(c["reasoning_tokens_per_case"]["p50"])),
+        (
+            "Failure tags",
+            lambda c: ", ".join(f"{k} {v}" for k, v in sorted(c["tags"].items())) or "-",
+        ),
+    ]
+    for label, fn in rows:
+        lines.append(f"| {label} | " + " | ".join(fn(card) for _, card in cards.values()) + " |")
+    for pair in args.pair:
+        base, head = (_run_dir(item) for item in pair.split(":"))
+        result = metrics.compare(
+            _read(base / "scores.json"),
+            _read(head / "scores.json"),
+            _read(base / "scorecard.json"),
+            _read(head / "scorecard.json"),
+            None,
+        )
+        test = result["mcnemar"]
+        lines += [
+            "",
+            f"## Paired comparison `{base.name}` -> `{head.name}`",
+            "",
+            f"n paired = {result['n_paired']}; base-only correct = {test['base_only_correct']}; "
+            f"head-only correct = {test['head_only_correct']}; exact McNemar p = {test['p_value']}.",
+        ]
+    if args.robustness:
+        path = _run_dir(args.robustness)
+        config = _read(path / "config.json")
+        scores = {item["case_id"]: item for item in _read(path / "scores.json")}
+        snapshot = STATE / "datasets" / config["dataset"]
+        groups: dict[str, list[bool]] = {}
+        for value, _ in dataset.load(
+            snapshot, config["split"], milestone=config["split"] == "test"
+        ):
+            variant = value.source.variant or "fixture"
+            clean = variant == "clean"
+            score = scores.get(value.case_id)
+            if score is None or score["gold"] == "unknown":
+                continue
+            groups.setdefault("clean" if clean else "noise", []).append(score["correct"])
+        lines += ["", f"## Noise robustness (`{path.name}`, positive labels)", ""]
+        for name, values in sorted(groups.items()):
+            lines.append(
+                f"- {name}: {sum(values)}/{len(values)} correct "
+                f"({sum(values) / len(values):.3f}, Wilson {metrics.wilson(sum(values), len(values))})"
+            )
+        if "clean" in groups and "noise" in groups:
+            drop = sum(groups["clean"]) / len(groups["clean"]) - sum(groups["noise"]) / len(
+                groups["noise"]
+            )
+            lines.append(f"- accuracy drop clean -> noise: {drop * 100:.1f} points")
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(json.dumps({"report": str(out)}))
+    return 0
+
+
 def cmd_ledger(args) -> int:
     entry = json.loads(Path(args.entry).read_text(encoding="utf-8"))
     missing = LEDGER_KEYS - set(entry)
@@ -375,6 +568,7 @@ def main() -> int:
     snap = sub.add_parser("snapshot")
     snap.add_argument("--id", required=True)
     snap.add_argument("--description", required=True)
+    snap.add_argument("--relabel", action="store_true", help="Apply the current label rule.")
     snap.add_argument("sources", nargs="+", help="Lab case batch directories.")
     replay = sub.add_parser("replay")
     replay.add_argument("--dataset", required=True)
@@ -396,6 +590,18 @@ def main() -> int:
     comparison.add_argument("--base", required=True)
     comparison.add_argument("--head", required=True)
     comparison.add_argument("--target")
+    derive = sub.add_parser("derive")
+    derive.add_argument("--source", required=True)
+    derive.add_argument("--out", required=True)
+    derive.add_argument("--variant", choices=["injection-logs", "benign-logs"], required=True)
+    derive.add_argument("--where-variant", required=True)
+    report = sub.add_parser("report")
+    report.add_argument("--title", required=True)
+    report.add_argument("--out", required=True)
+    report.add_argument("--run", action="append", required=True)
+    report.add_argument("--pair", action="append", default=[], help="BASE:HEAD")
+    report.add_argument("--robustness", help="Run whose split is grouped by variant.")
+    report.add_argument("--preamble", help="Markdown file inserted after the title.")
     ledger = sub.add_parser("ledger")
     ledger.add_argument("--entry", required=True, help="JSON file with one ledger entry.")
     args = parser.parse_args()
@@ -408,6 +614,8 @@ def main() -> int:
         "triage": cmd_triage,
         "compare": cmd_compare,
         "ledger": cmd_ledger,
+        "report": cmd_report,
+        "derive": cmd_derive,
     }
     return handlers[args.command](args)
 

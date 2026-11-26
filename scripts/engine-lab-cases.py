@@ -57,6 +57,27 @@ def plan(name: str) -> list[dict]:
         return [{"kind": kind, "variant": "clean"} for kind in KINDS] + [
             {"kind": None, "variant": "healthy"}
         ]
+    if name == "b":
+        # Families without derived log variants (pending, imagepull) and the lost crashloop.
+        trials = []
+        for variant in (
+            "clean",
+            "event-spam",
+            "clean",
+            "shifted-window",
+            "unrelated-restart",
+            "clean",
+        ):
+            for kind in ("pending", "imagepull"):
+                trials.append({"kind": kind, "variant": variant})
+        trials += [
+            {"kind": "crashloop", "variant": "clean", "derive": ["benign-logs", "injection-logs"]},
+            {"kind": "crashloop", "variant": "event-spam"},
+            {"kind": None, "variant": "healthy"},
+            {"kind": "oom", "variant": "event-spam"},
+            {"kind": "traffic", "variant": "unrelated-restart"},
+        ]
+        return trials
     if name != "m0":
         raise SystemExit(f"unknown plan {name}")
     rounds = [
@@ -152,7 +173,13 @@ class Generator:
             timeout=30,
         )
         deadline = time.monotonic() + 60
-        while time.monotonic() < deadline and self.lab.active_loads():
+        while time.monotonic() < deadline:
+            try:
+                if not self.lab.active_loads():
+                    return
+            except RuntimeError:
+                # A --rm container can vanish between listing and inspection; retry.
+                pass
             time.sleep(2)
 
     def event_spam(self, deployment_uid: str) -> int:
@@ -195,9 +222,10 @@ class Generator:
         return len(items)
 
     def wait_running_restart(self, kind: str, seconds: int = 170) -> bool:
-        """Crash-type faults: collect just after a restarted instance starts. The kubelet
+        """Crash-type faults: collect 1.5-4 s after a restarted instance starts. The kubelet
         keeps one dead instance per container, so the previous log is readable only while
-        a restarted instance runs (measured on this lab: unreadable during back-off)."""
+        a restarted instance runs (measured on this lab: unreadable during back-off), and
+        the new instance needs a moment to write its first current log lines."""
         field = "initContainerStatuses" if kind == "init-retry" else "containerStatuses"
         deadline = time.monotonic() + seconds
         while time.monotonic() < deadline:
@@ -212,7 +240,7 @@ class Generator:
                         age = (
                             now() - datetime.fromisoformat(started.replace("Z", "+00:00"))
                         ).total_seconds()
-                        if age <= 3:
+                        if 1.5 <= age <= 4:
                             return True
             time.sleep(0.5)
         return False

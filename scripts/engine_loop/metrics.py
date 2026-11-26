@@ -121,12 +121,12 @@ def case_score(record: dict, label: EvalLabel) -> dict:
             tag = "CONTEXT_OVERFLOW"
         elif pred == "invalid":
             tag = "SCHEMA_FAIL"
+        elif gold == "unknown" or pred == "unknown":
+            tag = "ABSTAIN_WRONG"
         elif not correct and required - usable_required:
             tag = "MISSING_SOURCE"
         elif not correct and context.get("outcome") == "prepared" and usable_required - sent:
             tag = "SIGNAL_DROPPED"
-        elif (pred == "unknown") != (gold == "unknown"):
-            tag = "ABSTAIN_WRONG"
         elif not correct:
             tag = "WRONG_FAMILY"
         else:
@@ -236,8 +236,11 @@ def scorecard(scores: list[dict]) -> dict:
         "per_class": f1s,
         "families": families,
         "confusion": {gold: dict(preds) for gold, preds in sorted(confusion.items())},
+        # A false positive is a supported fault claim on a negative. An invalid output (no
+        # answer) is a schema failure and still counts against abstention recall.
         "negatives_fp": _rate(
-            sum(1 for item in negatives if item["pred"] != "unknown"), len(negatives)
+            sum(1 for item in negatives if item["pred"] not in {"unknown", "invalid"}),
+            len(negatives),
         ),
         "abstention_precision": _rate(
             sum(1 for item in pred_abstain if item["gold"] == "unknown"), len(pred_abstain)
