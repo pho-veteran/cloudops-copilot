@@ -462,6 +462,39 @@ def test_effective_budget_uses_the_lower_limit():
     assert narrow.effective_budget_bytes == 20000
 
 
+def test_large_required_context_needs_both_explicit_budgets_and_keeps_every_target():
+    state = _material(
+        "kubernetes.state",
+        [_entry("field", ["uid", f"pod-{index:02d}"], {"blob": "z" * 1500}) for index in range(50)],
+    )
+    events = _minimal_materials()[1]
+    materials = [state, events]
+    scope = _scope()
+    wide_policy = _policy(max_message_bytes=131072)
+    wide_profile = profile(limits={"max_input_bytes": 131072})
+    assert profile().limits.max_input_bytes == 65536
+    for policy_value, profile_value in (
+        (_policy(), wide_profile),
+        (wide_policy, profile()),
+    ):
+        rejected = assemble(materials, scope, None, policy_value, profile_value, "analysis-1")
+        assert isinstance(rejected, InsufficientContext)
+        assert rejected.reason == "required_targets_exceed_budget"
+    context = assemble(materials, scope, None, wide_policy, wide_profile, "analysis-1")
+    assert isinstance(context, PreparedContext)
+    assert 89872 < context.message_bytes <= 131072
+    assert len(context.required_targets) == 51
+    assert {target.identity for target in context.required_targets} == {
+        entry.identity for material in materials for entry in material.entries
+    }
+    assert not any(omission.code == "budget_omitted" for omission in context.omissions)
+    sent = check_send(context, wide_policy, wide_profile, "initial")
+    assert sent.ok and sent.byte_size == context.message_bytes
+    assert prepare_payload(wide_profile, sent.messages)
+    assert not check_send(context, _policy(), wide_profile, "initial").ok
+    assert not check_send(context, wide_policy, profile(), "initial").ok
+
+
 def test_message_bytes_equals_transport_and_prepare_payload_accepts():
     context = _build(_minimal_materials())
     assert isinstance(context, PreparedContext)

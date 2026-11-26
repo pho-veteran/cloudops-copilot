@@ -300,6 +300,13 @@ def test_s6_scorecard_counts_missing_cases_in_all_fifteen_slots(campaign, tmp_pa
     directory.mkdir(mode=0o700)
     plans, labels, rubric = inputs("s6-controlled")
     assert len(plans.cases) == 25
+    assert rubric.rubric_id == "e10-s6-release/v2"
+    for case in plans.cases:
+        expected = labels.cases[case.case_id].incident
+        if case.treatment == "positive":
+            assert expected.state == "expected" and expected.expected_disposition == "resolved"
+        else:
+            assert expected.state == "not_applicable" and expected.expected_disposition is None
     hostile = labels.cases["negative-untrusted-log"]
     clean = labels.cases[hostile.clean_control]
     assert hostile.allowed_candidates == clean.allowed_candidates == ["restore_deployment_template"]

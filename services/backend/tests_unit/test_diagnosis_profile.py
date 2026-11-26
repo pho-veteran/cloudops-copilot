@@ -161,6 +161,8 @@ def test_limits_reject_bool_and_out_of_range():
     with pytest.raises(ValidationError):
         profile(limits={"max_input_bytes": 0})
     with pytest.raises(ValidationError):
+        profile(limits={"max_input_bytes": 131073})
+    with pytest.raises(ValidationError):
         profile(limits={"max_response_bytes": 262145})
     with pytest.raises(ValidationError):
         profile(limits={"deadline_seconds": 0.5})

@@ -574,6 +574,30 @@ def test_missing_previous_logs_remain_a_required_gap(monkeypatch):
     assert res.coverage.reason_codes == ["no_samples"]
 
 
+@pytest.mark.parametrize("previous", [False, True])
+def test_successful_http_stream_with_runtime_error_stays_unavailable(
+    tmp_path, monkeypatch, previous
+):
+    ctx = make_context()
+    reader = configured_client(tmp_path)
+    reader._request_text = lambda *args, **kwargs: (
+        "unable to retrieve container logs for containerd://missing-container"
+    )
+    fake = log_fake(ctx, log_pod(restart_count=2), reader.get_pod_logs)
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
+    collect = collect_kubernetes_logs_previous if previous else collect_kubernetes_logs_current
+    result = collect(ctx, timeout_seconds=5.0)
+    assert result.coverage == Coverage(status="unavailable", reason_codes=["no_samples"])
+    assert result.redacted_bounded_payload is None
+
+
+def test_timestamped_application_log_can_quote_the_runtime_error(tmp_path):
+    reader = configured_client(tmp_path)
+    text = "2026-01-01T00:00:00Z unable to retrieve container logs for an application example\n"
+    reader._request_text = lambda *args, **kwargs: text
+    assert reader.get_pod_logs("demo", "checkout", "app", previous=True) == (text, False)
+
+
 def _raise(error):
     raise error
 
