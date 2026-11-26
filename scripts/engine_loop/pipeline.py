@@ -444,7 +444,7 @@ async def run_b4(value, *, settings: Settings, gateway: Gateway) -> dict:
         gateway.model_profile,
         egress,
         with_signals=True,
-        default_prompt=prompt.PROMPT_V2,
+        default_prompt=prompt.PROMPT_V3,
     )
     summary = context_summary(context)
     record = {"context": summary, "detector": detection.record()}
@@ -456,7 +456,7 @@ async def run_b4(value, *, settings: Settings, gateway: Gateway) -> dict:
     if advice is None:
         return {**record, "attempts": attempts, "final": {"source": "model_invalid"}}
     checked, note = consistency.check(
-        advice, detection, context, policy=settings.variant.get("consistency", "downgrade")
+        advice, detection, context, policy=settings.variant.get("consistency", "off")
     )
     return {
         **record,
