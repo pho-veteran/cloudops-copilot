@@ -427,7 +427,7 @@ async def run_c0(value, *, settings: Settings, gateway: Gateway | None = None) -
         profile(max_input_bytes=settings.budget),
         egress,
         with_signals=with_signals,
-        default_prompt="engine.rca_prompt/v2" if with_signals else None,
+        default_prompt="engine.rca_prompt/v3" if with_signals else None,
     )
     return {"context": context_summary(context), "attempts": [], "final": _abstain_record()}
 
