@@ -96,7 +96,8 @@ local K3s lab).
    `eventTime` or `creationTimestamp`. Stored live event summaries carry `first_seen`
    and `last_seen` (`kubernetes_collector._event_summary`). The sort therefore falls
    back to entry-key order. Unit fixtures use `lastTimestamp`, which hides this. This was
-   found by reading the code on `9eb2b06` and has not been confirmed at runtime.
+   found by reading the code on `9eb2b06`. Fixed in `e06.context/v3`: `last_seen` is now
+   read first, and a unit test uses live-shaped events.
 
 ## Milestones and targets
 

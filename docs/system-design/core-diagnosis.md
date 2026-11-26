@@ -232,7 +232,7 @@ Invariants: a family is eligible only if every required slot is usable or a waiv
 `context._select` implements the rules:
 
 - `key_asc`: sort by locator key. The key is a SHA-256 hash, so the order is deterministic but unrelated to meaning or time. A slot with more than 250 entries keeps an arbitrary-looking but reproducible subset.
-- `newest_first`: `_newest_key` reads `lastTimestamp`, `eventTime` or `creationTimestamp` from the entry value; entries without a stamp sort last, by key. Stored live events carry `first_seen`/`last_seen` instead (`_event_summary`, `storage.EVENT_FIELDS`), so live events appear to fall back to key order. The unit test uses `lastTimestamp` fixtures. This is a code-reading observation, not measured.
+- `newest_first`: `_newest_key` reads `last_seen`, `lastTimestamp`, `eventTime`, `first_seen` or `creationTimestamp` from the entry value, in that order; entries without a stamp sort last, by key. Stored live events carry `first_seen`/`last_seen` (`_event_summary`, `storage.EVENT_FIELDS`). Before `e06.context/v3` only the raw Kubernetes keys were read, so live events fell back to key order; a unit test with live-shaped events now covers this.
 - `group_newest`: `_log_identity` groups log segments by (pod UID, container, previous); within each group the newest segment timestamp comes first; the cap applies per group.
 
 ### 4.2 Targets and aliases
@@ -274,7 +274,7 @@ Runbook chunks are added the same way as `K001...` aliases when the pinned selec
 | --- | --- |
 | `request` | Run question text and source (`operator`, `title_default`, `automatic`) |
 | `scope` | incident, Run, workload IDs, UID, cluster, namespace, name, kind, window |
-| `versions` | `e06.context/v2`, `e06.targets/v1`, `e06.rca_prompt/v3`, `e06.validator/v1` |
+| `versions` | `e06.context/v3`, `e06.targets/v1`, `e06.rca_prompt/v3`, `e06.validator/v1` |
 | `source_coverage` | the envelope-only `run.request` row plus all 12 slots |
 | `families` | the family matrix |
 | `required_targets`, `optional_targets` | `alias`, `source_key`, `locator.kind`, `identity`, `value`, `time_relation`, `coverage_status`, `family_slots` |
@@ -514,7 +514,7 @@ The planned improvements are described in [../engine-loop/algorithm.md](../engin
 ## Verification notes
 
 - Function names, constants and reason codes in this document were read from the source at `9eb2b06`. No tests, model calls or lab runs were executed for this document.
-- Two behaviours are inferred from code reading and are not confirmed at runtime: the `newest_first` event order falling back to key order for live events (section 4.1), and the rules comparator's first/last sample depending on `key_asc` truncation (section 9). The 100-event collection cut by `uid` order (section 2.3) is also inferred from code.
+- One behaviour is inferred from code reading and is not confirmed at runtime: the rules comparator's first/last sample depending on `key_asc` truncation (section 9). The 100-event collection cut by `uid` order (section 2.3) is also inferred from code.
 - The complexity figures in section 4.5 are estimates from code structure.
 - The PromQL example comes from the lab bootstrap script. Production query templates are deployment configuration and may differ.
 - R3 campaign figures are quoted from `docs/engine-loop/README.md`.

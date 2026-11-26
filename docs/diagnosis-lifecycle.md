@@ -31,12 +31,13 @@ Operational mode requires a qualification record:
 
 The authenticated status endpoint exposes the secret-free identity to match. It includes config ID/version, endpoint label, behavioral digest, requested model, policy digest, prompt/context/validator versions and the fixed lifecycle budget version. This JSON example is a template, not a qualification. Only install a real qualification after the owning #72 rubric is demonstrated. The behavioral digest excludes activation mode: evaluation-to-operational promotion does not invalidate itself. Endpoint/model/wire/budget/policy changes invalidate the tuple. Every send and result settlement recheck current configuration; a successful schema probe never grants diagnostic quality.
 
-Context `e06.context/v2` keeps every selected observation value, semantic identity,
+Context `e06.context/v3` keeps every selected observation value, semantic identity,
 source, alias and coverage field in the model prompt, including locator kind.
 Opaque citation keys, repeated hashes and other server citation metadata remain
 in the complete stored context and validator; the model returns aliases. This
 reduces request bytes without dropping required observations or enlarging the
-configured input limit. Earlier context-v1 quality qualifications do not match
+configured input limit. Since v3, stored live events are ordered newest-first by
+`last_seen`. Earlier context-v1 and v2 quality qualifications do not match
 this identity: rerun the owning rubric before operational activation. Historical
 results and their recorded identities remain readable.
 
