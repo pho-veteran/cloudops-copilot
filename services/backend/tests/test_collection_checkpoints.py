@@ -9,7 +9,7 @@ from uuid import UUID
 
 import checkpoint_adapters as adapters
 import pytest
-from conftest import sign_in
+from conftest import sign_in, wait_for_job_lease_expiry
 from sqlalchemy import func, select
 from test_access_admission import create, incident_body
 from test_jobs import expire
@@ -27,7 +27,7 @@ from cloudops.features.investigations.collector import (
 )
 from cloudops.features.investigations.models import Evidence, EvidencePin
 from cloudops.shared.config import settings
-from cloudops.shared.database import database_now, sessions
+from cloudops.shared.database import sessions
 from cloudops.shared.jobs import Job, JobAttempt, JobCheckpoint, checkpoint, claim_next, finish
 
 TESTS = Path(__file__).resolve().parent
@@ -348,13 +348,8 @@ def test_real_worker_killed_after_a_committed_checkpoint_resumes(client):
         process.wait(timeout=5)
         before = evidence_ids(ids)
         assert len(before) == 3 and run_state(client, ids)["state"] == "collecting"
-        with sessions()() as db:
-            remaining = (
-                db.scalar(select(Job.lease_until).where(Job.subject_id == UUID(ids["run_id"])))
-                - database_now(db)
-            ).total_seconds()
         # Wait for the actual database lease to expire, without editing its deadline.
-        time.sleep(max(0, remaining) + 0.2)
+        wait_for_job_lease_expiry(UUID(ids["run_id"]))
         subprocess.run(
             [sys.executable, "-c", script.replace("worker.run_once()", "assert worker.run_once()")],
             env={**environment, "CHECKPOINT_FIXTURE_DELAY": "0"},
