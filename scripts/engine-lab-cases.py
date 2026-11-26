@@ -222,9 +222,10 @@ class Generator:
         return len(items)
 
     def wait_running_restart(self, kind: str, seconds: int = 170) -> bool:
-        """Crash-type faults: collect just after a restarted instance starts. The kubelet
+        """Crash-type faults: collect 1.5-4 s after a restarted instance starts. The kubelet
         keeps one dead instance per container, so the previous log is readable only while
-        a restarted instance runs (measured on this lab: unreadable during back-off)."""
+        a restarted instance runs (measured on this lab: unreadable during back-off), and
+        the new instance needs a moment to write its first current log lines."""
         field = "initContainerStatuses" if kind == "init-retry" else "containerStatuses"
         deadline = time.monotonic() + seconds
         while time.monotonic() < deadline:
@@ -239,7 +240,7 @@ class Generator:
                         age = (
                             now() - datetime.fromisoformat(started.replace("Z", "+00:00"))
                         ).total_seconds()
-                        if age <= 3:
+                        if 1.5 <= age <= 4:
                             return True
             time.sleep(0.5)
         return False
