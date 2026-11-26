@@ -69,6 +69,9 @@ For a populated upgrade of this core installation, stage and verify the new bund
 
 Measured sizes, idle use and the qualified environment for a specific candidate are recorded in the [release package evidence](evidence/e10-s1-release/README.md).
 
+For E10 release acceptance, follow the [second-operator walkthrough](release-second-operator.md)
+and record the deployed results in the [release packet](evidence/e10-s7/README.md).
+
 ## Upgrade a populated core project
 
 Run each step with the same `release_project` and `host_env`. Stage the new bundle while the current release still serves.
