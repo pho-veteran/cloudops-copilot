@@ -13,7 +13,7 @@ the local ledger (see [environment](environment.md#directory-layout-outside-git)
 | [data-and-evaluation.md](data-and-evaluation.md) | Case generation, bundle format, splits, configurations, metrics, failure taxonomy |
 | [environment.md](environment.md) | Local tiers, model endpoint variables, the three loop speeds, CLI and directory layout |
 
-Status: design. Items marked **(exists)** are on `main` at `31b9a1c`. Items marked
+Status: in progress. Items marked **(exists)** are on `main`. Items marked
 **(to build)** do not exist yet.
 
 ## Purpose and scope
