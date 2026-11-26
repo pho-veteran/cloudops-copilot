@@ -323,7 +323,16 @@ def _value(card: dict, metric: str):
     return value
 
 
-LOWER_IS_BETTER = {"overflow", "hallucinated_aliases", "message_bytes.p50", "message_bytes.max"}
+LOWER_IS_BETTER = {
+    "overflow",
+    "hallucinated_aliases",
+    "negatives_fp",
+    "message_bytes.p50",
+    "message_bytes.max",
+    "latency_ms.p50",
+    "latency_ms.p95",
+    "reasoning_tokens_per_case.p50",
+}
 
 
 def compare(
