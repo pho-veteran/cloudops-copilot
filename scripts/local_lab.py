@@ -13,6 +13,9 @@ RELEASE_BUNDLE = os.environ.get("CLOUDOPS_RELEASE_BUNDLE")
 OWNED_PROJECTS = {
     "cloudops-local-testing-lab": "tmp/local-testing-lab",
     "cloudops-e10-s3-lab": "tmp/e10-s3-lab",
+    # Diagnosis engine loop case generation; diagnosis stays disabled in this lab. Its
+    # private directory sits beside the loop's datasets, outside every checkout.
+    "cloudops-engine-lab": str(Path.home() / ".local/state/cloudops-copilot/engine-loop/lab"),
 }
 RECOVERY_LAB_PROJECT = "cloudops-e10-s3-lab"
 # A new owned recovery lab run from verified release bundle images. Keep the pattern in
