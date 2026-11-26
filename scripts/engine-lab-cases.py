@@ -152,7 +152,13 @@ class Generator:
             timeout=30,
         )
         deadline = time.monotonic() + 60
-        while time.monotonic() < deadline and self.lab.active_loads():
+        while time.monotonic() < deadline:
+            try:
+                if not self.lab.active_loads():
+                    return
+            except RuntimeError:
+                # A --rm container can vanish between listing and inspection; retry.
+                pass
             time.sleep(2)
 
     def event_spam(self, deployment_uid: str) -> int:
