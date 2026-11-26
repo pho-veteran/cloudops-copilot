@@ -4,7 +4,7 @@ Part of the [engine improvement loop](README.md).
 
 ## Data
 
-### Case generation (exists, with one fix to build)
+### Case generation (exists)
 
 `scripts/manage-local-lab.py fault <scenario>` supports `crashloop`, `oom`,
 `traffic`, `pending`, `imagepull`, `init-retry` and the recovery faults `memory-limit`,
@@ -14,27 +14,41 @@ Part of the [engine improvement loop](README.md).
 Per case: reset, then a baseline period, inject, wait for detection, collect through
 the normal API and worker (diagnosis disabled), export, and reset.
 
-**Required fix (to build):** reset must remove namespace events, and the next injection
-must start after the previous window has closed, so no trial sees another trial's
-evidence. Record the reset receipt with the bundle.
+`scripts/engine-lab-cases.py` runs this sequence on the engine lab. It purges namespace
+events before and after every trial and starts the next baseline at least 45 s after the
+previous window closed, so no trial sees another trial's evidence. The cleanup receipt
+digest is stored in the bundle (`reset_receipt_sha256`); an event last seen before the
+cleanup marks the case contaminated and the snapshot excludes it. Crash, init-retry and
+OOM trials are collected within 3 s of a container restart: the kubelet keeps one dead
+instance per container, and on this lab its previous log is unreadable during back-off.
+
+Labels come from the injected fault and the bundle coverage only. If a required slot of
+the fault's family is unusable (not `not_applicable` for a log slot), the product cannot
+support that family, so the label is an abstention.
 
 Variants to generate for each fault kind:
 
 - clean
-- event spam from an unrelated object
-- unrelated Pod restart
-- benign noisy logs
-- untrusted instruction text in logs
-- shifted window (fault near the window edge)
+- event spam from an unrelated object (benign Normal events on the checkout and history
+  Deployments)
+- unrelated Pod restart (the history Pod)
+- benign noisy logs (derived)
+- untrusted instruction text in logs (derived)
+- shifted window (fault near the window start)
 
-Negatives: healthy, insufficient evidence (source disabled), out of scope, and the
-injection-only case.
+Negatives: healthy, insufficient evidence (source disabled, derived), out of scope (a
+Run on the healthy history workload while checkout is faulted), and the injection-only
+case (derived from healthy).
+
+The sample application's log text is fixed by its image, so log variants are derived:
+a lab bundle copy with added lines and recomputed slot digests, marked
+`derived:<variant>:<parent>`. A derived case inherits its trial's split.
 
 Existing synthetic set: `services/backend/tests/fixtures/e06/cases.json`, 12 cases
 (`c01`-`c10`, `n-healthy`, `n-injection`) with `oracle.json`. This set is T0 smoke and
 regression only.
 
-### RawEvidenceBundle/v1 (to build)
+### RawEvidenceBundle/v1 (exists: `scripts/engine_loop/bundle.py`)
 
 `EvalBundle/v1` freezes a prepared context, so it cannot test new selection or encoding.
 The loop needs the evidence from *before* selection:
@@ -69,8 +83,10 @@ in the tests: `services/backend/tests/eval_fixtures.py` `context_from_evidence` 
 
 - Snapshots are immutable directories: `datasets/<snapshot-id>/{bundles/, labels.json,
   manifest.json}`. New cases go into the next snapshot.
-- Each case is assigned deterministically: `sha256(case_id) mod 10 < 7` goes to dev,
-  the rest to test. Assignment is decided at generation time and never changes.
+- Each case is assigned deterministically: `sha256(trial_id) mod 10 < 7` goes to dev,
+  the rest to test. A lab trial's own case has `case_id == trial_id`; derived cases use
+  their trial's id so no trial spans both splits. Assignment is decided at generation
+  time and never changes. The E06 fixtures form their own `smoke` split.
 - The test split is sealed. No agent reads its bundles or labels during iteration.
   Only `report --split test` at a milestone may touch it.
 - Dataset targets: ≥ 80 cases in total, ≥ 8 per fault kind, ≥ 15 negatives and noise

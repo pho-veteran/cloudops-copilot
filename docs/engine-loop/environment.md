@@ -7,7 +7,7 @@ Part of the [engine improvement loop](README.md).
 | Tier | Purpose | Setup |
 | --- | --- | --- |
 | T0 offline | Inner loop, unit tests, replay | Host Python 3.13 with `uv sync --project services/backend --frozen`. A PostgreSQL test container is needed only for the backend DB tests (`TEST_DATABASE_URL` must end in `_test`) |
-| T1 lab | Case generation | `manage-local-lab.py --project cloudops-engine-lab --directory <lab>` with `preflight` then `start`; Operator account via the CLI. Ceiling 8.5 GiB RAM, 8 CPU, 20 GB disk. Diagnosis stays disabled in the lab |
+| T1 lab | Case generation | `CLOUDOPS_LAB_PROJECT=cloudops-engine-lab manage-local-lab.py --project cloudops-engine-lab --directory ~/.local/state/cloudops-copilot/engine-loop/lab` (the fixed private directory) with `preflight` then `start`; Operator account via the CLI. Ceiling 8.5 GiB RAM, 8 CPU, 20 GB disk. Diagnosis stays disabled in the lab |
 | T2 model | Replay calls | Local OpenAI-compatible proxy; see [model endpoint](#model-endpoint) and [model call policy](#model-call-policy) |
 | T3 cloud | Final demo only | `deploy/ec2` under separately approved budget; not part of the loop |
 
@@ -117,24 +117,39 @@ call must earn its cost.
 Do not re-run `manage-local-lab.py start` during iteration. It verifies registries and
 host containment and is meant for setup.
 
-### CLI (to build: `scripts/engine-loop.py`)
+### CLI (exists: `scripts/engine-loop.py`, `scripts/engine-lab-cases.py`)
+
+Run both through the backend environment, for example
+`uv run --project services/backend --frozen python scripts/engine-loop.py ...`.
 
 ```text
-export   --lab-dir DIR --run RUN_ID --case-id ID --label FILE   # Run -> RawEvidenceBundle
-snapshot --from DIR --out datasets/<id>                         # freeze bundles + labels + split
-replay   --dataset ID --split dev --config B4 [--variant k=v] [--concurrency 3]
-score    --run runs/<run-id>
-triage   --run runs/<run-id>                                    # failure tags
-compare  --base runs/<a> --head runs/<b>                        # paired diff, McNemar
-report   --run runs/<run-id> [--split test]                     # milestone only
+engine-lab-cases.py --out lab-cases/<batch> --plan smoke|m0 --batch <letter>
+                                    # lab trials -> RawEvidenceBundle + label + meta
+engine-loop.py probe                # session-start endpoint probe
+engine-loop.py fixture-snapshot     # freeze the 12 E06 fixtures (split "smoke")
+engine-loop.py snapshot --id ID --description TEXT lab-cases/<batch>...
+                                    # freeze bundles + labels + split
+engine-loop.py replay --dataset ID --split dev --config B0|B1|B2 [--pilot] [--base RUN]
+                      [--no-repair] [--variant k=v] [--concurrency 3] [--run-id ID]
+engine-loop.py score   --run RUN    # scorecard.json, scores.json, triage.json
+engine-loop.py triage  --run RUN    # failure tags
+engine-loop.py compare --base RUN --head RUN [--target METRIC]
+                                    # paired diff, McNemar, acceptance rule
+engine-loop.py ledger --entry FILE  # append one experiment line
 ```
 
-- **Cache:** key = `sha256(model id, parameters, serialized messages)`. A hit returns
-  the stored response and costs nothing.
-- **Concurrency:** bounded by the endpoint rate limit and the daily cap. Stop at the
-  cap; never retry past it.
-- **Determinism:** temperature and seed are fixed and recorded. Self-consistency
-  variants record every sample.
+The lab generator exports each Run through the HTTPS API: the Run's evidence rows are
+the `evidence_views` projection that `load_materials` reads. `replay --split test`
+requires `--milestone`. `--pilot` runs the snapshot's fixed pilot set with repair off and,
+with `--base`, aborts after 2 regressions.
+
+- **Cache:** key = `sha256` of the exact serialized request body (model, parameters and
+  messages). A hit returns the stored response and costs nothing.
+- **Concurrency:** at most 3 requests in flight. Authentication, payment, quota or
+  rate-limit errors, or 3 consecutive 5xx/timeouts, stop the replay.
+- **Determinism:** the product profile has no temperature or seed field, so neither is
+  sent; the run config records this. Reasoning length varies between identical requests,
+  which the cache makes reproducible for replays.
 
 ### Directory layout (outside Git)
 

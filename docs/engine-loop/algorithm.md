@@ -35,7 +35,7 @@ RawEvidenceBundle
 
 Each stage has its own version string. Each stage can be switched off for ablation.
 
-### A. Signal extraction (to build)
+### A. Signal extraction (exists: `diagnosis/engine/signals.py`, `engine.signals/v1`)
 
 Input is raw slot entries. Output is a `SignalTable` of typed facts, each with the
 source aliases that support it.
@@ -52,7 +52,7 @@ source aliases that support it.
 
 Rule: every signal keeps the aliases of its supporting entries, so citations stay exact.
 
-### B. Family detector (to build)
+### B. Family detector (exists: `diagnosis/engine/detector.py`, `engine.detector/v1`)
 
 - Score each of the five families from signals, using explicit weighted features
   (versioned weights in code, for example `engine.detector/v1`). Output a ranked list of
@@ -63,6 +63,8 @@ Rule: every signal keeps the aliases of its supporting entries, so citations sta
   prior for stage D.
 - Weights can be tuned on the dev split only. Simple logistic regression over signal
   features is an allowed variant, provided it keeps the per-feature explanation.
+- v1: threshold 3.0, margin 1.0, fixed weights per named feature; replayed as B2 with no
+  model call. Neither stage is used by the product diagnosis path.
 
 ### C. Budget-aware selection and compact encoding (to build)
 
