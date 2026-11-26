@@ -242,7 +242,16 @@ def cmd_snapshot(args) -> int:
 
 
 def _bundle_slots(value) -> dict[str, str]:
-    return {item.slot: item.coverage_status for item in value.slots}
+    """Slot coverage, with `empty` for a slot whose stored payload projects no entry."""
+    from engine_loop import bundle as raw
+
+    entries = {material.slot: bool(material.entries) for material in raw.materials(value)}
+    return {
+        item.slot: item.coverage_status
+        if item.coverage_status not in {"available", "partial"} or entries.get(item.slot)
+        else "empty"
+        for item in value.slots
+    }
 
 
 async def _replay(args, cases, settings, run_dir: Path, base_scores: dict | None) -> list[dict]:
@@ -360,6 +369,15 @@ def _score(run_dir: Path) -> dict:
 
     labels = EvalLabels.model_validate_json(label_path.read_bytes()).cases
     records = [_read(path) for path in sorted((run_dir / "cases").glob("*.json"))]
+    # Usability is recomputed from the frozen bundles, so every run uses the same rule.
+    bundles = {
+        value.case_id: value
+        for value, _ in dataset.load(
+            snapshot, split, milestone=split == "test", cases=[r["case_id"] for r in records]
+        )
+    }
+    for record in records:
+        record["bundle_slots"] = _bundle_slots(bundles[record["case_id"]])
     scores = [metrics.case_score(record, labels[record["case_id"]]) for record in records]
     card = metrics.scorecard(scores)
     card["run_id"] = config["run_id"]

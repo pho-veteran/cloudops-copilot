@@ -121,12 +121,12 @@ def case_score(record: dict, label: EvalLabel) -> dict:
             tag = "CONTEXT_OVERFLOW"
         elif pred == "invalid":
             tag = "SCHEMA_FAIL"
+        elif gold == "unknown" or pred == "unknown":
+            tag = "ABSTAIN_WRONG"
         elif not correct and required - usable_required:
             tag = "MISSING_SOURCE"
         elif not correct and context.get("outcome") == "prepared" and usable_required - sent:
             tag = "SIGNAL_DROPPED"
-        elif (pred == "unknown") != (gold == "unknown"):
-            tag = "ABSTAIN_WRONG"
         elif not correct:
             tag = "WRONG_FAMILY"
         else:
