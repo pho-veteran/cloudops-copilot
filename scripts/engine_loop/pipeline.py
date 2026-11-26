@@ -224,6 +224,15 @@ async def run_b0(value, *, settings: Settings, gateway: Gateway | None = None) -
     }
 
 
+async def run_b1_context(value, *, settings: Settings, gateway: Gateway | None = None) -> dict:
+    """Product context only (no model): the zero-call twin of B1 for byte metrics."""
+    from engine_loop.gateway import profile
+
+    egress = policy(max_message_bytes=settings.budget)
+    context = product_context(value, profile(max_input_bytes=settings.budget), egress)
+    return {"context": context_summary(context), "attempts": [], "final": _abstain_record()}
+
+
 async def run_b1(value, *, settings: Settings, gateway: Gateway) -> dict:
     egress = policy(max_message_bytes=settings.budget)
     context = product_context(value, gateway.model_profile, egress)
@@ -344,10 +353,64 @@ async def run_b2(value, *, settings: Settings, gateway: Gateway | None = None) -
     }
 
 
+def engine_context(value, settings: Settings, model_profile, egress, *, with_signals: bool):
+    from cloudops.features.diagnosis.engine import prompt, selection, signals
+
+    materials = raw.materials(value)
+    table = signals.extract(materials)
+    version = settings.variant.get("prompt", prompt.PROMPT_V1)
+    context = selection.assemble(
+        materials,
+        raw.scope(value),
+        egress,
+        model_profile,
+        f"engine-loop.{value.case_id}",
+        system_prompt=prompt.PROMPTS[version],
+        prompt_version=version,
+        table=table,
+        soft_budget=int(settings.variant.get("soft_budget", selection.SOFT_BUDGET_BYTES)),
+    )
+    return context, table
+
+
+async def run_b3(value, *, settings: Settings, gateway: Gateway) -> dict:
+    """Compact selection and encoding (stage C) with the v1 prompt; no signal table."""
+    egress = policy(max_message_bytes=settings.budget)
+    context, _ = engine_context(value, settings, gateway.model_profile, egress, with_signals=False)
+    summary = context_summary(context)
+    if isinstance(context, InsufficientContext):
+        return {"context": summary, "attempts": [], "final": _abstain_record()}
+    advice, attempts = await model_advice(
+        context, case_id=value.case_id, gateway=gateway, egress=egress, repair=settings.repair
+    )
+    if advice is None:
+        return {"context": summary, "attempts": attempts, "final": {"source": "model_invalid"}}
+    return {
+        "context": summary,
+        "attempts": attempts,
+        "final": {**advice.model_dump(mode="json"), "source": "model", "valid": True},
+    }
+
+
+async def run_c0(value, *, settings: Settings, gateway: Gateway | None = None) -> dict:
+    """Stage C context only (no model): bytes, overflow and required-source recall."""
+    from engine_loop.gateway import profile
+
+    egress = policy(max_message_bytes=settings.budget)
+    context, _ = engine_context(
+        value, settings, profile(max_input_bytes=settings.budget), egress, with_signals=False
+    )
+    return {"context": context_summary(context), "attempts": [], "final": _abstain_record()}
+
+
 Runner = Callable[..., Any]
 CONFIGS: dict[str, tuple[Runner, bool]] = {
     # name -> (runner, needs model)
     "B0": (run_b0, False),
     "B1": (run_b1, True),
     "B2": (run_b2, False),
+    "B3": (run_b3, True),
+    # Zero-call gate for stage C: context metrics only, the answer is a fixed abstention.
+    "C0": (run_c0, False),
+    "P1": (run_b1_context, False),
 }
