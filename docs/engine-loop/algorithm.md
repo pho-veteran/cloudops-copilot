@@ -19,7 +19,7 @@ Part of the [engine improvement loop](README.md).
 | Bundle | `evaluation/bundle.py` `EvalBundle/v1` | Freezes an already **prepared** context. It cannot replay a different selection or encoding |
 
 Prompt and versions: `PROMPT_VERSION = e06.rca_prompt/v3`, `CONTEXT_VERSION =
-e06.context/v2`, `VALIDATOR_VERSION = e06.validator/v1`.
+e06.context/v3`, `VALIDATOR_VERSION = e06.validator/v1`.
 
 ## Target algorithm
 

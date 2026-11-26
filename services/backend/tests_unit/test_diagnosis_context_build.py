@@ -39,14 +39,14 @@ from cloudops.features.knowledge.schemas import KnowledgeApplicability, Knowledg
 
 def test_versions_are_unique_and_pinned():
     values = {
-        versions.CONTEXT_VERSION: "e06.context/v2",
+        versions.CONTEXT_VERSION: "e06.context/v3",
         versions.TARGET_RULES_VERSION: "e06.targets/v1",
         versions.PROMPT_VERSION: "e06.rca_prompt/v3",
         versions.VALIDATOR_VERSION: "e06.validator/v1",
         versions.PROBE_PROMPT_VERSION: "e06.probe_prompt/v1",
     }
     assert list(values.values()) == [
-        "e06.context/v2",
+        "e06.context/v3",
         "e06.targets/v1",
         "e06.rca_prompt/v3",
         "e06.validator/v1",
@@ -200,6 +200,26 @@ def test_events_are_newest_first_and_capped():
     optional = extract_optional(_material("kubernetes.events", entries))
     assert len(optional.entries) == 20
     assert optional.entries[0].value["lastTimestamp"] == 59
+
+
+def test_live_event_summaries_are_newest_first_by_last_seen():
+    # Stored live events carry first_seen/last_seen (kubernetes_collector._event_summary).
+    entries = [
+        _entry(
+            "event",
+            ["uid", f"uid-{59 - index:02d}"],
+            {
+                "uid": f"uid-{59 - index:02d}",
+                "first_seen": "2026-11-26T15:00:00Z",
+                "last_seen": f"2026-11-26T15:{index:02d}:00Z",
+            },
+        )
+        for index in range(60)
+    ]
+    required = extract_required(_material("kubernetes.events", entries))
+    assert len(required.entries) == 50
+    assert required.entries[0].value["last_seen"] == "2026-11-26T15:59:00Z"
+    assert required.entries[-1].value["last_seen"] == "2026-11-26T15:10:00Z"
 
 
 def test_logs_keep_three_newest_segments_per_group():

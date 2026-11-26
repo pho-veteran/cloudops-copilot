@@ -313,9 +313,14 @@ def _clean(material: SlotMaterial) -> tuple[list[Entry], int]:
     return kept, ambiguous
 
 
+# Stored live event summaries carry `last_seen`/`first_seen` (`_event_summary`); raw
+# Kubernetes shapes carry `lastTimestamp`/`eventTime`. The most recent observation wins.
+_STAMP_KEYS = ("last_seen", "lastTimestamp", "eventTime", "first_seen", "creationTimestamp")
+
+
 def _value_stamp(entry: Entry) -> Decimal | None:
     if isinstance(entry.value, dict):
-        for key in ("lastTimestamp", "eventTime", "creationTimestamp"):
+        for key in _STAMP_KEYS:
             if key in entry.value:
                 stamp = normalize_timestamp(entry.value[key])
                 if stamp is not None:
