@@ -256,6 +256,24 @@ At most two dataset attempts are allowed.
 - Confidence intervals for accuracy and paired differences use the trial-level cluster
   bootstrap; McNemar tests stay exact and paired by case.
 
+### Generator smoke findings (before collection)
+
+The smoke ran one trial per cell (seed prefix `smoke-v4`, not part of `lab-v4`) on both
+hosts. Changes made before the full run, without changing the cell table:
+
+- `crash-setting` exited before its restarted instance could be read, so the previous
+  log was always unreadable; the sample application now spends 6 s loading
+  configuration before the error.
+- `throttle` used a time-bounded work loop, which a CPU limit cannot slow; it now uses a
+  fixed amount of computation per request (`LAB_WORK_LOOPS`).
+- Traffic cells and traffic look-alikes wait longer after the rollout (130 s early,
+  100 s late onset), so the new Pod serves for several 30 s scrape intervals.
+- `missing-backoff` collects while the container is in `CrashLoopBackOff`. On this lab
+  the previous log stayed readable, so these trials are ordinary crash positives
+  collected in back-off rather than missing sources. The label follows the evidence.
+- `missing-prometheus` checks that every Prometheus slot is unavailable instead of the
+  traffic cue; the family matrix then labels it `unknown`.
+
 ## Delivery slices
 
 Each slice is one PR. Slices 2-6 need no model calls.
@@ -265,11 +283,12 @@ Each slice is one PR. Slices 2-6 need no model calls.
 2. Opaque ids, neutral lab names, the meta fields above, stratified split assignment,
    and the new scorecard breakdowns with the cluster bootstrap *(exists: `engine_loop/splits.py`, `metrics.py`)*.
 3. Sample application: crash-after, error fraction, leak, required setting, log
-   profiles and the request-field log flag.
+   profiles and the request-field log flag *(exists: `config/lab/sample_app.py`)*.
 4. Lab fault mechanisms and look-alikes in `manage-local-lab.py`, each with a verified
-   reset.
+   reset *(exists: `engine-fault`, `engine-reset`)*.
 5. Generator plan v2: the scenario matrix, observability check, herring presence check
-   and collected missing sources.
+   and collected missing sources *(exists: `engine_loop/plan_v2.py`,
+   `engine-lab-cases.py --plan v2`)*.
 6. Snapshot `lab-v4`, run P0, T0 and B2@`74d16ef`, and apply the acceptance check.
 7. Resume the loop on `lab-v4` dev and re-measure M1-M4.
 

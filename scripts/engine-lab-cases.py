@@ -33,6 +33,7 @@ if os.environ.get("CLOUDOPS_LAB_PROJECT") != PROJECT:
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from engine_loop import lab as cases  # noqa: E402
+from engine_loop import plan_v2  # noqa: E402
 
 spec = importlib.util.spec_from_file_location(
     "manage_local_lab", ROOT / "scripts/manage-local-lab.py"
@@ -139,8 +140,16 @@ class Generator:
         after = json.loads(self.kubectl("get", "events", "-n", "demo", "-o", "json"))["items"]
         return {"deleted": len(before), "remaining": len(after), "at": now().isoformat()}
 
-    def start_load(self, case_id: str, target: str, seconds: int) -> str:
+    def start_load(
+        self,
+        case_id: str,
+        target: str,
+        seconds: int,
+        rate: int = LOAD_RATE,
+        note: str | None = None,
+    ) -> str:
         name = f"{PROJECT}-engine-load-{case_id}"[:63]
+        extra = ["--note", note] if note else []
         subprocess.Popen(
             [
                 *self.lab.compose,
@@ -156,7 +165,8 @@ class Generator:
                 "--seconds",
                 str(seconds),
                 "--rate",
-                str(LOAD_RATE),
+                str(rate),
+                *extra,
             ],
             cwd=ROOT,
             env=self.lab.env,
@@ -392,14 +402,333 @@ class Generator:
         }
 
 
+V2_BASELINE = {"early": 45, "late": 90}
+V2_DWELL = {"early": 70, "late": 40}
+# Traffic needs the new Pod to serve for several 30 s scrape intervals after the rollout.
+V2_TRAFFIC_DWELL = {"early": 130, "late": 100}
+CRASH_KINDS = {"crashloop", "oom"}
+
+
+class GeneratorV2(Generator):
+    """Dataset v2 trials: opaque ids, mechanisms through engine-fault, observability check."""
+
+    def pods(self) -> list[dict]:
+        return json.loads(
+            self.kubectl("get", "pods", "-n", "demo", "-l", "app=checkout", "-o", "json")
+        )["items"]
+
+    def poll(self, check, seconds: int, step: float = 2) -> bool:
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            if check():
+                return True
+            time.sleep(step)
+        return False
+
+    def statuses(self):
+        for pod in self.pods():
+            for status in pod.get("status", {}).get("containerStatuses", []) or []:
+                yield pod, status
+
+    def cue_seen(self, trial: dict) -> bool:
+        kind, scenario = trial["kind"], trial["scenario"]
+        if kind in CRASH_KINDS:
+            return any(status.get("restartCount", 0) > 0 for _, status in self.statuses())
+        if kind == "pending":
+            return any(
+                condition.get("reason") == "Unschedulable"
+                for pod in self.pods()
+                for condition in pod.get("status", {}).get("conditions", [])
+            )
+        if kind == "imagepull" or scenario == "config-ref":
+            return any(
+                (status.get("state", {}).get("waiting") or {}).get("reason")
+                in plan_v2.IMAGE_WAITING | {"CreateContainerConfigError"}
+                for _, status in self.statuses()
+            )
+        return True
+
+    def wait_backoff(self, seconds: int = 170) -> bool:
+        return self.poll(
+            lambda: any(
+                (status.get("state", {}).get("waiting") or {}).get("reason") == "CrashLoopBackOff"
+                for _, status in self.statuses()
+            ),
+            seconds,
+            1,
+        )
+
+    def wait_healed(self, seconds: int = 150) -> bool:
+        """A fail-once Pod restarted and has served for at least 20 s."""
+
+        def healed():
+            for pod, status in self.statuses():
+                started = (status.get("state", {}).get("running") or {}).get("startedAt")
+                if status.get("restartCount", 0) > 0 and started and status.get("ready"):
+                    age = (
+                        now() - datetime.fromisoformat(started.replace("Z", "+00:00"))
+                    ).total_seconds()
+                    if age >= 20:
+                        return True
+            return False
+
+        return self.poll(healed, seconds)
+
+    def wait_ready(self, seconds: int = 150) -> bool:
+        def ready():
+            deployment = self.lab.deployment("checkout")
+            status = deployment.get("status") or {}
+            return (
+                status.get("updatedReplicas") == 1
+                and status.get("readyReplicas") == 1
+                and status.get("replicas") == 1
+            )
+
+        return self.poll(ready, seconds)
+
+    def prometheus(self, operation: str) -> None:
+        self.lab.dc(operation, "prometheus", timeout=120)
+        if operation == "start":
+
+            def up():
+                try:
+                    self.lab.prom("/api/v1/status/buildinfo")
+                    return True
+                except (RuntimeError, ValueError):
+                    return False
+
+            driver.require(self.poll(up, 120), "Prometheus did not come back.")
+
+    def trial_v2(self, trial: dict) -> dict:
+        case_id = trial["case_id"]
+        require = driver.require
+        require(not (LAB_DIR / "fault.json").exists(), "A recorded fault exists; reset first.")
+        steps: dict = {}
+        purge = self.purge_events()
+        steps["purge_before"] = purge
+        last = self.state.get("last_window_end")
+        if last:
+            wait = (
+                datetime.fromisoformat(last) + timedelta(seconds=GAP_SECONDS) - now()
+            ).total_seconds()
+            if wait > 0:
+                time.sleep(wait)
+        receipts = sorted((LAB_DIR / "receipts").glob("*reset-private.json"))
+        cleanup = {
+            "case_id": case_id,
+            "purge": purge,
+            "previous_window_end": last,
+            "gap_seconds": GAP_SECONDS,
+            "previous_reset_receipt_sha256": (
+                hashlib.sha256(receipts[-1].read_bytes()).hexdigest() if receipts else None
+            ),
+            "at": now().isoformat(),
+        }
+        cleanup_bytes = (json.dumps(cleanup, sort_keys=True) + "\n").encode()
+        receipt_path = self.out / "receipts" / f"{case_id}-cleanup.json"
+        receipt_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        receipt_path.write_bytes(cleanup_bytes)
+        cleanup_sha = hashlib.sha256(cleanup_bytes).hexdigest()
+        cleanup_at = datetime.fromisoformat(cleanup["at"])
+        untrusted = trial.get("untrusted") or {}
+        profile = {
+            "seed": case_id,
+            "log_profile": trial["log_profile"],
+            **({"log_field": "1"} if untrusted else {}),
+            **({"warn_every_s": "15"} if int(case_id[2:], 16) % 2 else {}),
+        }
+        loads: list[str] = []
+        stopped_prometheus = False
+        onset = trial["onset"]
+        try:
+            self.lab.engine_apply("profile", profile)
+            for name, params in trial["pre"]:
+                self.lab.engine_apply(name, params)
+            self.kubectl(
+                "rollout",
+                "status",
+                "deployment/checkout",
+                "-n",
+                "demo",
+                "--timeout=150s",
+                timeout=170,
+            )
+            if trial["pre"]:
+                steps["healed"] = self.wait_healed()
+            else:
+                steps["ready"] = self.wait_ready()
+            loads.append(self.start_load(case_id, "checkout", 480, note=untrusted.get("text")))
+            start = now()
+            time.sleep(V2_BASELINE[onset])
+            inject_at = now()
+            for name, params in trial["steps"]:
+                self.lab.engine_apply(name, params)
+            if trial.get("load"):
+                loads.append(self.start_load(case_id + "-b", "checkout", 300, rate=trial["load"]))
+            steps["cue_seen"] = self.poll(lambda: self.cue_seen(trial), 150)
+            steps["cue_at"] = now().isoformat()
+            traffic = trial["kind"] == "traffic" or trial.get("lookalike") == "traffic"
+            time.sleep((V2_TRAFFIC_DWELL if traffic else V2_DWELL)[onset])
+            if trial.get("missing") == "backoff":
+                steps["backoff"] = self.wait_backoff()
+            elif trial["kind"] in CRASH_KINDS:
+                steps["running_restart"] = self.wait_running_restart(trial["kind"])
+            if trial.get("missing") == "events":
+                steps["purge_before_collection"] = self.purge_events()
+            if trial.get("missing") == "prometheus":
+                self.prometheus("stop")
+                stopped_prometheus = True
+            end = now()
+            api = cases.Api(LAB_DIR, self.password)
+            try:
+                workload = api.workloads()["checkout"]
+                ids = api.create_run(workload, start, end)
+                run = api.wait_run(ids)
+                value = cases.export(
+                    api,
+                    ids,
+                    run,
+                    workload,
+                    case_id=case_id,
+                    lab_project=PROJECT,
+                    source_revision=self.revision,
+                    variant="v2",
+                    reset_receipt_sha256=cleanup_sha,
+                )
+            finally:
+                api.close()
+        finally:
+            for name in loads:
+                self.stop_load(name)
+            if stopped_prometheus:
+                self.prometheus("start")
+            if (LAB_DIR / "fault.json").exists():
+                steps["reset"] = self.lab.engine_reset()
+            steps["purge_after"] = self.purge_events()
+        self.state["last_window_end"] = end.isoformat()
+        stale = cases.stale_events(value, cleanup_at)
+        observation = plan_v2.observe(value, trial)
+        kind, tags = plan_v2.expected_kind(trial, observation)
+        rationale = (
+            f"Lab trial {case_id}: cell {trial['cell']}; expected label from the observed cue "
+            f"({observation['cue']}: {'present' if observation['present'] else 'absent'}) "
+            "and the bundle coverage."
+        )
+        label = cases.label(value, kind, rationale=rationale)
+        meta = {
+            key: trial[key]
+            for key in (
+                "seed",
+                "cell",
+                "split",
+                "dev_check",
+                "scenario",
+                "mechanism",
+                "intensity",
+                "onset",
+                "contrast_group",
+                "holdout",
+                "host",
+                "log_profile",
+                "untrusted",
+                "lookalike",
+                "herring",
+                "missing",
+            )
+        }
+        meta.update(
+            {
+                "trial_id": case_id,
+                "plan": plan_v2.PLAN_VERSION,
+                "kind": trial["kind"],
+                "injected_family": trial["family"],
+                "observable": observation,
+                "tags": tags,
+                "distractor_sources": plan_v2.distractors(value, trial),
+                "window": {"start": start.isoformat(), "end": end.isoformat()},
+                "inject_at": inject_at.isoformat(),
+                "run_state": run["state"],
+                "contaminated": stale > 0,
+                "stale_events": stale,
+                "cleanup_receipt_sha256": cleanup_sha,
+                "steps": steps,
+            }
+        )
+        cases.write_case(self.out, value, label, meta)
+        self.state["done"].append({"seed": trial["seed"], "case": case_id, "tags": tags})
+        self.save()
+        return {
+            "trial": case_id,
+            "cell": trial["cell"],
+            "label": label.category,
+            "observable": observation["present"],
+            "tags": tags,
+            "stale_events": stale,
+            "run_state": run["state"],
+        }
+
+
+def smoke_v2(trials: list[dict], host: str) -> list[dict]:
+    """One trial per cell of the plan, taken from the dev-work split, for the given host."""
+    chosen, seen = [], set()
+    for trial in trials:
+        if trial["cell"] in seen or trial["split"] != "dev" or trial["dev_check"]:
+            continue
+        seen.add(trial["cell"])
+        chosen.append({**trial, "host": host})
+    return chosen
+
+
+def main_v2(args) -> int:
+    password = (LAB_DIR / "operator-password").read_text().strip()
+    generator = GeneratorV2(args.out, args.batch, password)
+    trials = plan_v2.build(args.prefix)
+    if args.plan == "v2-smoke":
+        todo = smoke_v2(trials, args.host)
+        if args.cells:
+            todo = [item for item in todo if item["cell"] in args.cells.split(",")]
+    else:
+        todo = [item for item in trials if item["host"] == args.host]
+    done = {item.get("seed") for item in generator.state["done"] if item.get("case")}
+    todo = [item for item in todo if item["seed"] not in done]
+    if args.limit:
+        todo = todo[: args.limit]
+    failures = 0
+    with (LAB_DIR / "operation.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        generator.lab.ownership()
+        for trial in todo:
+            try:
+                result = generator.trial_v2(trial)
+                failures = 0
+                print(json.dumps(result), flush=True)
+            except Exception as error:  # noqa: BLE001 - recorded, then bounded
+                failures += 1
+                print(json.dumps({"failed": trial["seed"], "error": str(error)[:300]}), flush=True)
+                traceback.print_exc()
+                if "containment" in str(error).lower() or failures >= 3:
+                    print(json.dumps({"stopped": "containment or repeated trial failure"}))
+                    return 1
+                if (LAB_DIR / "fault.json").exists():
+                    generator.lab.engine_reset()
+                generator.state["done"].append({"seed": trial["seed"], "error": str(error)[:300]})
+                generator.save()
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--plan", default="smoke")
     parser.add_argument("--batch", default="a")
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--host", choices=plan_v2.HOSTS, default="laptop")
+    parser.add_argument("--prefix", default="lab-v4", help="Seed prefix of a v2 plan.")
+    parser.add_argument("--cells", help="Comma-separated cells for v2-smoke.")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if args.plan in {"v2", "v2-smoke"}:
+        return main_v2(args)
     password = (LAB_DIR / "operator-password").read_text().strip()
     generator = Generator(args.out, args.batch, password)
     trials = plan(args.plan)

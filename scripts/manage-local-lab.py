@@ -442,7 +442,7 @@ def engine_template(mechanism, spec, replicas, params):
     elif mechanism == "throttle":
         container["resources"]["limits"]["cpu"] = get("cpu", "25m")
         container["resources"]["requests"]["cpu"] = "10m"
-        _set_env(container, {"LAB_WORK_MS": get("work_ms", "20")})
+        _set_env(container, {"LAB_WORK_LOOPS": get("loops", "100000")})
     elif mechanism == "pending-cpu":
         container["resources"]["requests"]["cpu"] = "100"
         container["resources"]["limits"]["cpu"] = "100"

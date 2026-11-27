@@ -13,7 +13,8 @@ Engine-lab values (dataset v2):
 - Parameters: ``LAB_DELAY_MS``, ``LAB_SLOW_ERRORS`` (``0`` disables the slow 503s),
   ``LAB_SLOW_SHARE`` (the share of slowed requests),
   ``LAB_ERROR_FRACTION``, ``LAB_ALLOC_MIB``, ``LAB_LEAK_MIB_PER_S``, ``LAB_HOLD_MIB``,
-  ``LAB_CRASH_AFTER_S``, ``LAB_SERVICE_MS``, ``LAB_WORK_MS``, ``LAB_READY_DELAY_S``.
+  ``LAB_CRASH_AFTER_S``, ``LAB_SERVICE_MS``, ``LAB_WORK_MS``, ``LAB_WORK_LOOPS`` (fixed
+  computation per request), ``LAB_READY_DELAY_S``.
 - ``LAB_ONCE`` (``crash`` or ``oom``) with ``LAB_STATE_DIR``: fail once in a Pod, then
   serve normally after the restart (a marker file in the Pod's ``emptyDir``).
 - ``LAB_IGNORE_TERM=1``: ignore SIGTERM, so a kubelet kill ends with SIGKILL.
@@ -70,6 +71,8 @@ SLOW_SHARE = min(1.0, _number("LAB_SLOW_SHARE", 1))
 ERROR_FRACTION = min(1.0, _number("LAB_ERROR_FRACTION", 0))
 SERVICE = _number("LAB_SERVICE_MS", 10) / 1000
 WORK = _number("LAB_WORK_MS", 5) / 1000
+# A fixed amount of computation per request, so a CPU limit throttles the handler.
+WORK_LOOPS = int(_number("LAB_WORK_LOOPS", 0))
 READY_DELAY = _number("LAB_READY_DELAY_S", 0)
 if PROFILE not in {"plain", "json", "kv"}:
     raise SystemExit("LAB_LOG_PROFILE must be plain, json or kv")
@@ -189,9 +192,13 @@ class Handler(BaseHTTPRequestHandler):
                         TICKETS[0] += 1
                     slow = MODE == "slow" and (SLOW_SHARE >= 1 or _share(ticket, SLOW_SHARE))
                     block = bytearray(1024 * 1024)
-                    until = time.monotonic() + (0.08 if slow else WORK)
-                    while time.monotonic() < until:
-                        block[0] = (block[0] + 1) % 256
+                    if WORK_LOOPS and not slow:
+                        for _ in range(WORK_LOOPS):
+                            block[0] = (block[0] + 1) % 256
+                    else:
+                        until = time.monotonic() + (0.08 if slow else WORK)
+                        while time.monotonic() < until:
+                            block[0] = (block[0] + 1) % 256
                     time.sleep(DELAY if slow else SERVICE)
                     with LOCK:
                         number = COUNTS["200"] + COUNTS["503"]
@@ -366,7 +373,9 @@ def main():
             raise SystemExit(_traceback("main"))
         raise SystemExit("startup configuration rejected")
     if MODE == "setting":
-        log("INFO", "loading application configuration", logger="config")
+        for _ in range(6):
+            log("INFO", "loading application configuration", logger="config")
+            time.sleep(1)
         name = choose(SETTINGS, "setting")
         log("ERROR", f"configuration error: required setting {name} is not set", logger="config")
         raise SystemExit(choose((1, 2, 78), "exit"))
