@@ -196,3 +196,13 @@ def test_fixed_reset_refuses_an_engine_record(lab, driver, monkeypatch):
     monkeypatch.setattr(lab, "active_loads", lambda: [])
     with pytest.raises(RuntimeError, match="engine-reset"):
         lab.reset()
+
+
+def test_attempt_two_mechanisms(driver):
+    base = canonical(driver)["spec"]["template"]["spec"]
+    spec, _, _ = driver.engine_template("no-readiness", base, 1, {})
+    assert "readinessProbe" not in spec["containers"][0]
+    spec, _, _ = driver.engine_template("secret-ref", base, 1, {})
+    assert spec["containers"][0]["env"][0]["valueFrom"]["secretKeyRef"]["name"] == (
+        "checkout-credentials"
+    )

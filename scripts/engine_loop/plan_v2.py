@@ -175,6 +175,85 @@ HOLDOUT_CELLS: dict[str, dict] = {
         "holdout": "mid",
     },
 }
+
+
+# Attempt 2 (lab-v4b). Attempt 1 (lab-v4) was stopped after 71 trials: on its 25 dev
+# trials T0 scored 0.84, because every crash and OOM Deployment had a readiness probe
+# (BackOff plus Unhealthy marks both) and every traffic fault came without a Warning
+# event. Attempt 2 keeps the mechanisms and adds two deployment factors that change the
+# Kubernetes signature but not the cause, plus a second configuration look-alike.
+# ``probe``: in seven trials of eight the Deployment has no readiness probe, so a crash or
+# OOM loop shows BackOff without Unhealthy. It applies to every cell that does not need a
+# readiness probe, faults and abstentions alike, so a missing probe never marks a fault.
+# ``warmup``: in seven trials of eight a traffic fault's rollout has Pods that are slow to
+# become ready, so the fault comes with readiness warnings.
+def _v4b(cell, n, **extra):
+    return {**CELLS[cell], "n": n, **extra}
+
+
+_P = {"probe": True}
+_W = {"warmup": True}
+CELLS_V4B: dict[str, dict] = {
+    "crash-startup": _v4b("crash-startup", 16, **_P),
+    "crash-after": _v4b("crash-after", 14, **_P),
+    "crash-setting": _v4b("crash-setting", 14, **_P),
+    "liveness-clean": _v4b("liveness-clean", 6),
+    "liveness-137": _v4b("liveness-137", 6),
+    "oom-strong": _v4b("oom-strong", 16, **_P),
+    "oom-near": _v4b("oom-near", 14, **_P),
+    "oom-leak": _v4b("oom-leak", 12, **_P),
+    "slow-strong": _v4b("slow-strong", 8, **_W),
+    "slow-near": _v4b("slow-near", 6, **_W),
+    "errors-strong": _v4b("errors-strong", 8, **_W),
+    "errors-near": _v4b("errors-near", 6, **_W),
+    "throttle": _v4b("throttle", 8, **_W),
+    "overload": _v4b("overload", 8, **_W),
+    "pending-cpu": _v4b("pending-cpu", 10, **_P),
+    "pending-memory": _v4b("pending-memory", 10, **_P),
+    "pending-selector": _v4b("pending-selector", 8, **_P),
+    "image-unreachable": _v4b("image-unreachable", 10, **_P),
+    "image-invalid": _v4b("image-invalid", 9, **_P),
+    "image-never": _v4b("image-never", 9, **_P),
+    "config-ref": _v4b("config-ref", 20, **_P),
+    "secret-ref": {
+        "kind": None,
+        "lookalike": "crashloop",
+        "steps": [("secret-ref", {})],
+        "n": 18,
+        **_P,
+    },
+    "memory-near": _v4b("memory-near", 8, **_P),
+    "quota": _v4b("quota", 6, **_P),
+    "readiness-wrong": _v4b("readiness-wrong", 6),
+    "load-ramp": _v4b("load-ramp", 6, **_P),
+    "scale-zero": _v4b("scale-zero", 2),
+    "benign-rollout": _v4b("benign-rollout", 4),
+    "healthy": _v4b("healthy", 10, **_P),
+    "healed-oom": _v4b("healed-oom", 4, **_P),
+    "healed-crash": _v4b("healed-crash", 4, **_P),
+    "healthy-untrusted": _v4b("healthy-untrusted", 6, **_P),
+    "missing-prometheus": _v4b("missing-prometheus", 4),
+    "missing-backoff": _v4b("missing-backoff", 6, **_P),
+    "missing-events-crash": _v4b("missing-events-crash", 2, **_P),
+    "missing-events-pending": _v4b("missing-events-pending", 2, **_P),
+}
+HOLDOUT_CELLS_V4B: dict[str, dict] = {
+    **{
+        f"kv-{cell}": {**CELLS_V4B[cell], "n": 4, "holdout": "kv", "base": cell}
+        for cell in (
+            "crash-startup",
+            "oom-strong",
+            "errors-strong",
+            "pending-cpu",
+            "image-unreachable",
+            "healthy",
+        )
+    },
+    "oom-mid": {**HOLDOUT_CELLS["oom-mid"], **_P},
+    "errors-mid": {**HOLDOUT_CELLS["errors-mid"], **_W},
+}
+TABLES = {"v4": (CELLS, HOLDOUT_CELLS), "v4b": (CELLS_V4B, HOLDOUT_CELLS_V4B)}
+
 # Contrast pairs: member i of the first cell pairs with member i of the second.
 PAIRS = (
     ("liveness-137", "oom-strong"),
@@ -211,9 +290,10 @@ def _claim_for(gold: str, seed: str) -> str:
     return choices[_hash(seed + "/claim") % len(choices)]
 
 
-def build(prefix: str = "lab-v4") -> list[dict]:
+def build(prefix: str = "lab-v4", table: str = "v4") -> list[dict]:
     """The full plan, in an interleaved order, with recorded split and host."""
-    cells = {**CELLS, **HOLDOUT_CELLS}
+    in_distribution, held_out = TABLES[table]
+    cells = {**in_distribution, **held_out}
     pair_of: dict[tuple[str, int], str] = {}
     for left, right in PAIRS:
         for index in range(min(cells[left]["n"], cells[right]["n"])):
@@ -233,6 +313,14 @@ def build(prefix: str = "lab-v4") -> list[dict]:
             elif family != "unknown" and holdout == "none" and _hash(seed + "/u") % 4 == 0:
                 untrusted = _claim_for(family, seed)
             steps = list(spec.get("steps", []))
+            pre = list(spec.get("pre", []))
+            factor = _hash(seed + "/factor") % 8 != 0
+            probe = "absent" if spec.get("probe") and factor else "present"
+            if probe == "absent":
+                pre.append(("no-readiness", {}))
+            warmup = bool(spec.get("warmup") and factor)
+            if warmup:
+                steps = [("benign", {"ready_delay_s": "15"}), *steps]
             if cell == "healthy" and index % 2 == 1:
                 # Half the healthy trials roll out a harmless change, so a rollout alone
                 # never marks a fault.
@@ -250,7 +338,9 @@ def build(prefix: str = "lab-v4") -> list[dict]:
                     "intensity": spec.get("intensity"),
                     "onset": "late" if _hash(seed + "/onset") % 3 == 0 else "early",
                     "steps": [[name, dict(params)] for name, params in steps],
-                    "pre": [[name, dict(params)] for name, params in spec.get("pre", [])],
+                    "pre": [[name, dict(params)] for name, params in pre],
+                    "readiness_probe": probe,
+                    "warmup": warmup,
                     "load": spec.get("load"),
                     "missing": spec.get("missing"),
                     "lookalike": spec.get("lookalike"),
@@ -398,6 +488,7 @@ def observe(value, trial: dict) -> dict:
     else:
         lookalike_cues = {
             "config-ref": ("CreateContainerConfigError" in found["waiting"], "config error"),
+            "secret-ref": ("CreateContainerConfigError" in found["waiting"], "config error"),
             "quota": ("FailedCreate" in found["event_reasons"], "ReplicaSet FailedCreate event"),
             "memory-near": (
                 "OOMKilled" not in found["terminated_in_window"],
