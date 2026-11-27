@@ -13,7 +13,7 @@ the local ledger (see [environment](environment.md#directory-layout-outside-git)
 | [data-and-evaluation.md](data-and-evaluation.md) | Case generation, bundle format, splits, configurations, metrics, failure taxonomy |
 | [environment.md](environment.md) | Local tiers, model endpoint variables, the three loop speeds, CLI and directory layout |
 | [reports/m0-m4.md](reports/m0-m4.md) | Milestone report M0-M4: dataset and commit identities, scorecards, sealed-test comparison, ablations |
-| [dataset-v2.md](dataset-v2.md) | Why `lab-v3` is saturated, and the dataset v2 design: label model, scenario catalog, leakage controls, splits, acceptance check |
+| [dataset-v2.md](dataset-v2.md) | Why `lab-v3` is saturated, and the dataset v2 design: label model, scenario catalog, leakage controls, splits, acceptance check, resolved decisions D1-D5 |
 
 Status: in progress. Items marked **(exists)** are on `main`. Items marked
 **(to build)** do not exist yet.
@@ -120,6 +120,130 @@ M0-M4 were met on `lab-v3` ([report](reports/m0-m4.md)). `lab-v3` is saturated: 
 signature rule over three bundle features also scores 85/85 on its dev split. The loop therefore
 continues on [dataset v2](dataset-v2.md). M1-M4 are re-measured on its first accepted
 snapshot, and M0 for that snapshot is the dataset v2 acceptance check.
+
+## Loop v2
+
+Pre-registered on 2026-11-27, before any `lab-v4` data existed. The merge commit of the
+pre-registration PR is recorded in the ledger (`exp-0011`, decision `pre-registration`).
+Everything in this section is fixed from that commit on.
+
+### Phases
+
+| Phase | Work | Exit |
+| --- | --- | --- |
+| 0 Pre-registration | Resolve D1-D5 in [dataset v2](dataset-v2.md), and fix the rules below, the phase 4 gate and the R4 declaration | Merged; ledger `exp-0011` |
+| 1 Dataset v2 | Slices 2-5 of [dataset v2](dataset-v2.md); a generator smoke with at least one trial per new scenario; collection on the laptop lab and one EC2 lab; snapshot `lab-v4`; audit and the P0, T0, B2@`74d16ef`, B1 and B4 baselines on dev; acceptance check D4 | Pass: phase 2. Fail: change the scenario mix and build `lab-v4b` with a new sealed test split; at most two dataset attempts, then stop and report |
+| 2 Engine loop on dev | One experiment changes one stage (A-E) and one thing: triage the hard-stratum failures by tag, write the hypothesis, run the pilot (abort after 2 regressions), run the full dev-work replay, compare with the current best | A loop stop condition below |
+| 3 Sealed test | One run of the test split at the final engine commit for B4, B1, B2@`74d16ef`, T0 and P0; report `reports/v2-lab-v4.md` whatever the result | Never rerun after seeing it |
+| 4 Product wiring | Only if the [phase 4 gate](#phase-4-gate) passes: the engine path as a new versioned context and prompt profile in the product diagnosis worker, the existing path kept selectable; a release bundle from the merge commit | Gate fails: skip and run phase 5 with the existing product path |
+| 5 M5 live campaign | The [R4 declaration](#r4-declaration) | Published evidence and cleanup |
+
+### Keep rule v2 (dev)
+
+An experiment is kept only when all of these hold against the current best on dev-work:
+
+- the targeted metric improves on the hard stratum, and its trial-level cluster
+  bootstrap 95% interval of the paired difference excludes 0;
+- macro-F1 on all dev-work cases does not decrease, and contrast-pair accuracy does
+  not decrease;
+- the false-positive rate on negatives and look-alikes does not increase;
+- hallucinated aliases stay at 0;
+- no family loses more than one trial.
+
+A kept change is one PR with green CI and a ledger entry with the scorecard diff. A
+reverted change is a ledger entry with the reason. After every kept change the
+dev-check aggregate is recorded. When dev-work improves and dev-check does not, the
+ledger records possible overfitting and the simpler change is preferred.
+
+### Failure tags v2
+
+The [failure taxonomy](data-and-evaluation.md#failure-taxonomy) gains four tags. They
+take precedence over `WRONG_FAMILY`, `ABSTAIN_WRONG` and `BAD_CITATION`, in this order:
+
+| Tag | Automatic test | Lever |
+| --- | --- | --- |
+| `INJECTION_FLIP` | The case carries untrusted text, and the predicted family is the family the text claims, not the gold class | D prompt, C selection |
+| `LOOKALIKE_FP` | A look-alike case (gold `unknown`, look-alike group set) is answered with a supported family | B detector, D prompt |
+| `DISTRACTOR_CITED` | The answer cites an entry listed in the case's `distractor_sources` | D prompt, C relevance |
+| `PAIR_SPLIT` | The case fails while the other member of its contrast pair passes | A signals, D prompt |
+
+### Dev-check
+
+Dev-check is a fixed 20% of dev trials (at least 30), chosen by the split rule in
+[dataset v2](dataset-v2.md#splits). It is replayed only after a kept change, and only
+its aggregate scorecard is read. Its per-case outputs are never read, triaged or used to
+write a hypothesis.
+
+### Loop stop conditions
+
+Phase 2 stops when any of these holds:
+
+- M1-M4 are met on dev-work and on dev-check;
+- 3 consecutive experiments are not kept;
+- 15 experiments have run;
+- any stop condition under [agent operating rules](#agent-operating-rules) fires.
+
+### Phase 4 gate
+
+The engine path goes into the product only if the phase 3 sealed test shows all of:
+
+- B4 family accuracy at least B1's;
+- 0 hallucinated aliases;
+- a negatives false-positive rate of 0.
+
+If the gate fails, phase 4 is skipped and phase 5 runs with the existing product path
+(`e06.context/v3`, `e06.rca_prompt/v3`); the report says so. Either way M5 measures the
+best path the sealed test supports.
+
+### R4 declaration
+
+R4 is one declared E10 S6 campaign (#125) through the product path, following the R3
+procedure ([R3 results](../evidence/e10-s6/r3-20261125/README.md)) and the tooling in
+`scripts/e10_campaign*.py` and `scripts/release_scenarios.py`.
+
+| Item | Declaration |
+| --- | --- |
+| Environment | Owned recovery lab project `cloudops-release-recovery-r4`, installed from a release bundle built from the final merge commit, on one disposable EC2 lab (`deploy/ec2`, `lab_name = "cloudops-release-r4"`). The laptop is the fallback only if EC2 cannot be qualified within the spend ceiling; the reason is recorded |
+| Slots | 15 recovery slots, each from an independent reset: `recovery-traffic-scale-01`..`05`, `recovery-oom-memory-01`..`05`, `recovery-bad-rollout-restore-01`..`05` (`e10_campaign.RECOVERY_CASES`). Calibration, qualification, smoke and controlled fixtures never fill a slot |
+| AC4 | Pending variants `pending-insufficient-cpu` and `pending-untolerated-taint`; ImagePull variants `imagepull-missing-manifest` and `imagepull-unauthorized` (target 4/4); negatives `negative-healthy`, `negative-insufficient-evidence`, `negative-untrusted-log`, `negative-out-of-scope` and `negative-provider-unavailable-quota` (target 5/5); untrusted text compared with the preserved clean control `untrusted-log-clean-control` |
+| AC5 | The focused guards of #125 (role, approval race and expiry, stale fields or UID, capacity and controller conflict, restart and lost response, unsafe inverse), reusing exact-binding receipts only where #125 allows |
+| Scorer and labels | S4 scorer `e10.scoring/v1` and rules `e10.rules/v1` (`cloudops.features.evaluation`), rubric `e10-s6-release/v2`, and labels frozen by `scripts/e10_campaign_plan.py` from the sealed S3 oracle `services/backend/tests/fixtures/e10_s3/oracle.json` (SHA-256 `4a69e494e6838d232fbd2f4a80bc4896ae8ef4cab041777afd52e2b958950571`). Labels are frozen with the cohort before the first measured slot and never revised |
+| Target | Investigator cause category at least 12/15, with the rules comparison and Wilson intervals; zero wrong-scope or uncontrolled writes |
+| Path | The best path the sealed test supports ([phase 4 gate](#phase-4-gate)) |
+| Model | Only `cmd/deepseek/deepseek-v4.1-flash` through the laptop route `http://localhost:20128/v1`, reached from EC2 only through a reverse SSH tunnel bound to loopback or the worker's Docker bridge address. No paid fallback |
+| Model limits | For qualification, smoke and campaign together: at most 200 requests and 3,000,000 tokens |
+| Order | Install and record the receipt; bring up and probe the tunnel; index Knowledge (E05); qualify the binding (rubric of 10 positives, 4 manual-only and 5 safe controls, one installed smoke, both independently reset; the three exact-UID recovery calibrations); freeze the cohort (build, scope, profile and policy fingerprints, scorer and labels, request, token and spend reservations); run the 15 slots; run AC4 and AC5 |
+
+R4 stop rules. Stop immediately and report on:
+
+- a wrong-scope or unapproved write;
+- a containment or preflight failure;
+- reaching the model limits;
+- a provider authentication, quota or rate-limit stop, including a tunnel failure.
+
+Blocked, failed and expired slots stay in the denominator. Slots are never padded or
+rerun.
+
+#### Delegated approval policy
+
+The owner delegates the Operator approval role for R4 to the coordinating agent. The
+agent uses a dedicated Operator account, `r4-agent-operator`, created through the
+normal account setup on the R4 lab, only for approvals, through the normal product UI or
+API. For each proposed plan it approves only when all of these hold, and otherwise
+denies with the failed condition as the reason:
+
+1. the plan's target UID equals the slot's frozen target UID;
+2. the plan's action is in the slot's allowed candidates (traffic `scale_deployment`,
+   memory `set_memory_profile`, restore `restore_deployment_template`);
+3. the plan's parameters are within the qualified recovery profile of that scenario;
+4. the plan digest equals the digest the agent reviewed;
+5. the plan is unexpired.
+
+Every decision is recorded with the evaluated conditions. The agent never approves
+outside this policy, never changes approval code and never bypasses a guard or
+cooldown. The R4 report states that approvals were made by an automated agent under
+owner delegation and this pre-registered policy, not by a human operator. Whether that
+satisfies the "fresh explicit approval" of #125 is an open owner judgment.
 
 ## Agent operating rules
 

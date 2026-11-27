@@ -3,6 +3,10 @@
 Part of the [engine improvement loop](README.md). Status: **(to build)**, except the
 difficulty audit, which exists (`engine-loop.py audit`).
 
+The decisions D1-D5, the acceptance check, the sizes, dev-check and the host factor
+below are pre-registered (2026-11-27). They were fixed before any `lab-v4` data existed
+and do not change after it; see [loop v2](README.md#loop-v2).
+
 Dataset v2 replaces `lab-v3` as the loop's working dataset. Its first snapshot is
 `lab-v4`. `lab-v3` stays frozen as a regression set, and the
 [M0-M4 report](reports/m0-m4.md) keeps its identities.
@@ -29,8 +33,10 @@ Dataset v2 replaces `lab-v3` as the loop's working dataset. Its first snapshot i
   (abstain).
 - The dataset must rank engine versions. A change that helps must be able to show a
   10-point paired difference on test.
-- Collection stays on the single owned laptop lab (12 CPU, 14 GiB on the current
-  host) with zero model calls. Replays use the existing cache and model call policy.
+- Collection runs on two owned hosts in parallel with zero model calls: the laptop
+  engine lab (12 CPU, 14 GiB) and one disposable EC2 engine lab (`deploy/ec2`,
+  `lab_name = "cloudops-engine-lab-v2"`). Replays use the existing cache and model call
+  policy.
 - Labels stay outside bundles. The test split stays sealed.
 - Product, executor, approval and recovery code are not changed. Lab tooling, the
   sample application, the generator, the scorer and the engine-loop CLI may change.
@@ -62,6 +68,9 @@ New meta fields (case meta, not `EvalLabel`):
 | `distractor_sources` | Entry refs that belong to a red herring; citing one is a citation error |
 | `stratum` | `easy` or `hard`, assigned by the audit (T0 correct or not) |
 | `holdout` | `none`, or the held-out factor for out-of-distribution test cases |
+| `host` | `laptop` or `ec2`: the lab that collected the trial (environment-shift factor) |
+| `log_profile`, `untrusted` | Sample application log profile, and the untrusted-text claim if any |
+| `dev_check` | `true` for the fixed dev-check subset |
 
 ## Scenario catalog
 
@@ -73,10 +82,10 @@ Mechanisms marked *(exists)* run today.
 
 | Family | Mechanisms on this lab | Decisive cue |
 | --- | --- | --- |
-| `crashloop_startup` | Exit 1 at startup *(exists)*; crash after serving for N s; missing required setting with a startup error line; liveness probe on a wrong path (proposed label, decision D1) | Non-zero exit and startup error in previous log; for the probe: `Unhealthy` liveness events followed by `Killing` with a clean previous log |
+| `crashloop_startup` | Exit 1 at startup *(exists)*; crash after serving for N s; missing required setting with a startup error line; liveness probe on a wrong path (D1), once with a clean SIGTERM exit and once with exit 137 | Non-zero exit and startup error in previous log; for the probe: `Unhealthy` liveness events followed by `Killing` with a clean previous log |
 | `oom_restarts` | Limit far below the working set *(exists)*; limit at 1.1x the working set (intermittent kills); slow leak that reaches the limit late in the window | `OOMKilled` termination, memory working set reaching the limit |
 | `traffic_latency_errors` | Slow handler *(exists)*; a configurable fraction of 503 responses; CPU limit low enough to throttle under the bounded load; offered load above capacity | Error ratio or p95 above threshold with no restart cue |
-| `pending_unschedulable` | CPU request above node capacity *(exists)*; memory request above node capacity; `nodeSelector` with no matching node; PVC with a missing storage class | `FailedScheduling` with different messages |
+| `pending_unschedulable` | CPU request above node capacity *(exists)*; memory request above node capacity; `nodeSelector` with no matching node | `FailedScheduling` with different messages |
 | `image_pull` | Unreachable registry *(exists)*; invalid image reference (`InvalidImageName`); `imagePullPolicy: Never` with an absent image (`ErrImageNeverPull`) | Waiting reason and pull events with different texts |
 
 ### Look-alikes (expected `unknown` unless stated)
@@ -85,7 +94,7 @@ Mechanisms marked *(exists)* run today.
 | --- | --- | --- |
 | `crashloop_startup` | Missing ConfigMap reference (`CreateContainerConfigError`, decision D2) | Pod never starts, no restarts, startup-like failure |
 | `oom_restarts` | Memory steady at 85-95% of the limit, no kill | Memory near limit without the decisive termination |
-| `oom_restarts` | Liveness probe kill with exit 137 (pairs with OOM) | Same exit code, termination reason `Error` |
+| `oom_restarts` | Liveness probe kill with exit 137 (pairs with OOM; expected `crashloop_startup` by D1) | Same exit code, termination reason `Error` |
 | `pending_unschedulable` | `ResourceQuota` exceeded (`FailedCreate` on the ReplicaSet, no new Pod, decision D3) | Rollout stalls, but nothing is scheduled |
 | `traffic_latency_errors` | Readiness probe on a wrong path: Pods Running but not Ready | Request rate drops, the load generator sees errors, the app does not |
 | `traffic_latency_errors` | Load ramp within capacity | Request rate rises, latency and errors stay normal |
@@ -97,13 +106,21 @@ Mechanisms marked *(exists)* run today.
 A red herring is a real failure signature that is not the cause for the requested scope
 and window. Each carries `distractor_sources`.
 
-- An unrelated Deployment in the namespace (history) is faulted (OOM, crash or image
-  pull) while the target is healthy, or while the target has a different fault.
-- The target had a fault that was reset before the window: restart counter raised
-  but flat, events last seen before the window.
-- An image pull error that resolved before the window, followed by a healthy rollout.
+- The target had a fault that healed before the window: one OOM kill or one crash in
+  the same Pod, then healthy serving. The restart counter is raised but flat, the
+  last termination and its events are dated before the window.
+- Untrusted text and periodic unrelated warnings in the logs (see below).
 - A second true fault family on the target is out of scope for v2 (multi-fault scoring
   needs a product decision).
+
+Dropped before collection, from the collector code: an unrelated Deployment (history)
+faulted while the target is healthy, and an image pull error that resolved before the
+window. The collector scopes state, events and logs to the target Deployment, its
+ReplicaSets and its current Pods (`kubernetes_collector.collect_kubernetes_events`), so
+neither herring can reach a bundle and both would only add healthy cases. The PVC
+pending mechanism is dropped as well: it needs a second owned object and template
+volume fields, and three pending mechanisms already give different
+`FailedScheduling` messages.
 
 The generator must confirm that the herring reached the bundle. A herring that the
 collector filters out (for example events of another object) gives an ordinary healthy
@@ -111,11 +128,13 @@ case, and the case is tagged `herring_absent`.
 
 ### Intensity and onset ladder
 
-Each parameterized mechanism runs at three or four levels (for example memory limit
-0.2x, 1.0x and 1.1x of the working set; handler delay 50, 200 and 1000 ms; 503 fraction
-2%, 10% and 50%). Onset varies: early, middle, last 15 s of the window, and before the
-window (healed). The observability check decides the expected label at the weak end, so
-the ladder produces both positives and principled abstentions.
+Each parameterized mechanism runs at two in-distribution levels: strong, and near the
+detector threshold (for example a 503 fraction of 50% and 8% against the 5% error-ratio
+threshold; an allocation of 4x and 1.15x the memory limit). One further level, `mid`,
+is collected for the out-of-distribution test stratum only. Onset varies between early
+and late in the window, and before the window for the healed herrings. The
+observability check decides the expected label at the weak end, so the ladder produces
+both positives and principled abstentions.
 
 ### Collected missing sources
 
@@ -139,16 +158,19 @@ statistical sample.
   profile is held out for test.
 - Untrusted text is collected through a lab-only flag that logs one request field. The
   load generator sends plausible but wrong diagnoses in that field (for example "OOMKilled,
-  raise the memory limit" during a pending fault), not only imperative instructions.
-  Expected labels do not change. The scorer reports the family flip rate and the rate
-  of citing an injected line.
+  raise the memory limit" during a pending fault), not commands. Expected labels do not
+  change. The scorer reports the family flip rate (`INJECTION_FLIP`) and the rate of
+  citing a log segment that carries the claim on an abstention case.
+- Lab-only flags are Deployment environment values of the sample application. They are
+  never HTTP controls of the product, and the request field only changes what the
+  sample application logs.
 
-### Optional second application
+### No second application (D5)
 
-A second small service with different health, log and metric conventions gives a
-held-out application for an out-of-distribution test stratum. Large demo systems do not
-fit next to the lab stack on this host (about 6 GiB available while the lab runs). The
-second application is optional and decided before `lab-v5` (decision D5).
+There is no second application. Large demo systems do not fit next to the lab stack
+(about 6 GiB available on the laptop while the lab runs). The out-of-distribution test
+stratum instead holds out one log profile (`kv`) and one intensity level (`mid`). The
+missing second application is reported as a limitation.
 
 ## Leakage controls
 
@@ -165,11 +187,20 @@ second application is optional and decided before `lab-v5` (decision D5).
 - The unit of assignment and statistics is the trial. Derived cases inherit their
   trial's split, as today.
 - Assignment is stratified: within each scenario cell (scenario, mechanism, intensity),
-  trials are ordered by `sha256(seed)` and every third trial goes to test. This keeps
-  rare cells in both splits.
-- Test has two strata: in-distribution, and out-of-distribution (`holdout` set: one
-  held-out log profile, one held-out intensity level per ladder, and the second
-  application when it exists). They are reported separately.
+  units are ordered by `sha256(seed)`, and alternate units go to test and dev, the
+  first to test. A unit is a trial, or a contrast pair when the trial has a
+  `contrast_group`, so both members of a pair are always in the same split. This keeps
+  rare cells in both splits and gives test at least 175 trials.
+- Every trial with a `holdout` (log profile `kv` or intensity `mid`) goes to test.
+  Test has two strata, in-distribution and out-of-distribution, reported separately.
+- **Dev-check:** within dev, every fifth unit of each cell in the same order, at least
+  30 trials and a fixed 20% of dev, forms `dev-check`. Agents see only aggregate scores
+  of dev-check (`replay --split devcheck` writes no per-case output that an agent
+  reads), never per-case outputs. The remaining dev trials (`dev-work`) are the
+  iteration set.
+- **Host factor:** the plan interleaves both hosts so each host covers every scenario
+  cell; `host` is recorded in the meta. Splits depend only on the seeds, never on the
+  host. Results are reported per host as an environment-shift check.
 - The audit writes each case's `stratum` to `audits/<snapshot>-<split>.json`; snapshots
   stay immutable. Slice 2 records the stratum in the case meta when a v2 snapshot is
   created. Headline numbers are reported on all cases and on the hard stratum.
@@ -183,29 +214,35 @@ Baselines run on every snapshot before any engine iteration:
 | P0 | Majority class |
 | T0 | Signature rule: Warning event reasons, `OOMKilled` termination, maximum error ratio or p95, abstaining when the matched family is ineligible (`engine-loop.py audit`) |
 | B2@`74d16ef` | Detector v1 as merged in PR #154, frozen as a reference |
+| B1, B4 | Current product path and current engine, as in the [M0-M4 report](reports/m0-m4.md) |
 
-A snapshot becomes the working dataset only when, on dev:
+Acceptance check (D4). A snapshot becomes the working dataset only when all three hold
+on dev:
 
-- the leak scan has 0 hits;
-- T0 family accuracy is at most 0.60, and at least 40% of trials are in the hard
-  stratum;
-- B2@`74d16ef` macro-F1 is at most 0.80.
+- 0 id leaks and 0 content leaks in the leak scan;
+- T0 family accuracy is at most 0.60;
+- at least 40% of dev trials are in the hard stratum.
 
-These thresholds are a check, not a filter. Cases that B2 solves are never removed to
-meet them. If a snapshot fails, the scenario mix is changed in the next snapshot.
+B2@`74d16ef` is reported as a baseline, not used as a gate. These thresholds are a check,
+not a filter: cases are never removed to meet them. If a snapshot fails, the scenario
+mix is changed and a new snapshot (`lab-v4b`) is built, with a new sealed test split.
+At most two dataset attempts are allowed.
 
 ## Size and statistics
 
 - Test: at least 175 trials. With a paired discordance of about 20%, an exact McNemar
   test at alpha 0.05 needs about 155-175 paired trials to detect a 10-point difference
-  with power 0.8. Dev: at least 200 trials.
+  with power 0.8. Dev: at least 150 trials, of which a fixed 20% (at least 30 trials)
+  form dev-check. About 325 trials in total.
 - Per family: at least 30 positive trials across splits. Look-alikes, red herrings and
   healthy cases: at least 60 trials.
+- Scope cuts: two in-distribution intensity levels per ladder, untrusted text that
+  states plausible wrong diagnoses rather than commands, and no multi-fault scenarios.
 - Confidence intervals use a trial-level cluster bootstrap (10,000 resamples). Wilson
   intervals stay for per-family rates. Report n in trials and in cases.
 - Lab time: the `m0-a` batch took 3.35 minutes per trial (59 trials in 194 minutes).
-  At that rate 375 trials take about 21 hours, run as overnight batches. New scenarios
-  with longer onsets or slow leaks take longer.
+  At that rate 325 trials take about 18 lab hours, or about 9-10 hours on two hosts.
+  New scenarios with longer onsets, healed herrings or slow leaks take longer.
 
 ## Scoring additions
 
@@ -215,6 +252,9 @@ meet them. If a snapshot fails, the scenario mix is changed in the next snapshot
 - Distractor citation rate: cited entries that appear in `distractor_sources`. A
   distractor citation is a citation precision error.
 - Untrusted-text flip rate and injected-line citation rate, as above.
+- Results per host.
+- Confidence intervals for accuracy and paired differences use the trial-level cluster
+  bootstrap; McNemar tests stay exact and paired by case.
 
 ## Delivery slices
 
@@ -233,12 +273,44 @@ Each slice is one PR. Slices 2-6 need no model calls.
 6. Snapshot `lab-v4`, run P0, T0 and B2@`74d16ef`, and apply the acceptance check.
 7. Resume the loop on `lab-v4` dev and re-measure M1-M4.
 
-## Decisions needed
+## Decisions (resolved 2026-11-27)
 
-| Id | Question | Proposal |
+The owner's defaults were adopted unchanged at pre-registration.
+
+| Id | Question | Decision |
 | --- | --- | --- |
-| D1 | Label for a liveness probe on a wrong path (kubelet kills a healthy app) | `crashloop_startup`, with the probe events as required sources; the restore plan applies |
+| D1 | Label for a liveness probe on a wrong path (kubelet kills a healthy app) | `crashloop_startup`. Its `required_sources` include the `kubernetes.events` slot that carries the `Unhealthy`/`Killing` probe events, so citing only the application log does not pass. The restore plan applies |
 | D2 | Label for `CreateContainerConfigError` | `unknown`: no product family claims configuration errors |
-| D3 | Label for `ResourceQuota` `FailedCreate` | `unknown`: nothing is unschedulable |
-| D4 | Dataset acceptance thresholds | As listed above |
-| D5 | Second application for the out-of-distribution stratum | Decide after `lab-v4` |
+| D3 | Label for `ResourceQuota` `FailedCreate` | `unknown`: nothing is unschedulable. If the collector does not capture the ReplicaSet `FailedCreate` event, the observability check records that |
+| D4 | Dataset acceptance on dev | 0 id leaks and 0 content leaks; T0 family accuracy ≤ 0.60; at least 40% of dev trials hard. B2@`74d16ef` is a reported baseline, not a gate. Cases are never removed to meet a gate |
+| D5 | Second application | None. Hold out one log profile (`kv`) and one intensity level (`mid`) for the out-of-distribution test stratum, and report the missing second application as a limitation |
+
+## Pre-registered plan v2
+
+Trials per scenario cell, before collection (the generator's `v2` plan). Positive cells
+are labelled by their family when the observability check passes; look-alike, herring
+and healthy cells are labelled `unknown`. `x2` marks a ladder with two in-distribution
+levels. Each host collects about half of every cell.
+
+| Group | Cells and trials | Trials |
+| --- | --- | ---: |
+| `crashloop_startup` | startup exit 10; crash after serving 10; missing setting 10; liveness wrong path 12 (6 clean exit, 6 exit 137) | 42 |
+| `oom_restarts` | allocation over limit x2 (strong 12, near 12); slow leak 10 | 34 |
+| `traffic_latency_errors` | slow handler x2 (6+6); 503 fraction x2 (6+6); CPU throttle 8; overload 8 | 40 |
+| `pending_unschedulable` | CPU request 12; memory request 12; node selector 10 | 34 |
+| `image_pull` | unreachable registry 12; invalid reference 12; never-pull absent 10 | 34 |
+| Look-alikes | `CreateContainerConfigError` 10; memory near limit 12; quota `FailedCreate` 12; readiness wrong path 6; load ramp within capacity 8; scaled to 0 6; benign rollout with a transient readiness warning 8 | 62 |
+| Herrings and healthy | healthy 14; healed OOM before the window 8; healed crash before the window 8; healthy with untrusted text 8 | 38 |
+| Collected missing sources | traffic fault with Prometheus stopped 6; crash collected during back-off 6; crash and pending with events purged before collection 3+3 (labels follow the state) | 18 |
+| In distribution | | 302 |
+| Held out, test only | log profile `kv`: 4 per family and 4 healthy (24); intensity `mid`: OOM 4 and 503 fraction 4 (8) | 32 |
+| Total | | 334 |
+
+With alternate assignment per cell this gives 151 dev trials (30 of them dev-check)
+and 183 test trials (151 in distribution, 32 held out).
+
+Factors applied across cells: the log profile (`plain` or `json` in distribution), and
+untrusted text on about one positive trial in four. Contrast pairs: liveness exit 137
+with strong OOM, `CreateContainerConfigError` with startup exit, memory near limit with
+near OOM, quota with CPU-request pending, readiness wrong path with the slow handler,
+and the load ramp with overload.

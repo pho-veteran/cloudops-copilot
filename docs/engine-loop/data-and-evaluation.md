@@ -154,6 +154,8 @@ Ablations on B4:
 
 ### Acceptance rule for keeping a change (dev split)
 
+This is the v1 rule. On dataset v2 the [keep rule v2](README.md#keep-rule-v2-dev) applies.
+
 - Macro-F1 does not decrease, and the targeted metric improves.
 - Negatives false positive rate stays 0. Hallucinated aliases stay 0.
 - No family loses more than one case relative to the current best.
