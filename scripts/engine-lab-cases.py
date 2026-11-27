@@ -636,7 +636,13 @@ class GeneratorV2(Generator):
                 "missing",
             )
         }
-        meta.update({key: trial.get(key) for key in ("readiness_probe", "warmup") if key in trial})
+        meta.update(
+            {
+                key: trial.get(key)
+                for key in ("readiness_probe", "warmup", "planned_host")
+                if key in trial
+            }
+        )
         meta.update(
             {
                 "trial_id": case_id,
@@ -688,6 +694,15 @@ def main_v2(args) -> int:
         todo = smoke_v2(trials, args.host)
         if args.cells:
             todo = [item for item in todo if item["cell"] in args.cells.split(",")]
+    elif args.seeds:
+        # Re-collection of named seeds (for example after a lab collection failure): the
+        # meta records the host that actually collected the trial and the planned host.
+        wanted = set(json.loads(Path(args.seeds).read_text()))
+        todo = [
+            {**item, "planned_host": item["host"], "host": args.host}
+            for item in trials
+            if item["seed"] in wanted
+        ]
     else:
         todo = [item for item in trials if item["host"] == args.host]
     done = {item.get("seed") for item in generator.state["done"] if item.get("case")}
@@ -727,6 +742,7 @@ def main() -> int:
     parser.add_argument("--prefix", default="lab-v4", help="Seed prefix of a v2 plan.")
     parser.add_argument("--cells", help="Comma-separated cells for v2-smoke.")
     parser.add_argument("--table", choices=sorted(plan_v2.TABLES), default="v4")
+    parser.add_argument("--seeds", type=Path, help="JSON list of v2 seeds to (re)collect.")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True, mode=0o700)
     if args.plan in {"v2", "v2-smoke"}:
