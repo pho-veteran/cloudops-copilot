@@ -136,6 +136,8 @@ engine-loop.py triage  --run RUN    # failure tags
 engine-loop.py compare --base RUN --head RUN [--target METRIC]
                                     # paired diff, McNemar, acceptance rule
 engine-loop.py ledger --entry FILE  # append one experiment line
+engine-loop.py audit --dataset ID [--split dev]
+                                    # shortcut baselines P0/T0, strata, leak scan -> audits/
 ```
 
 The lab generator exports each Run through the HTTPS API: the Run's evidence rows are
@@ -160,6 +162,7 @@ with `--base`, aborts after 2 regressions.
   cache/               # model responses by request digest
   runs/<run-id>/       # config, per-case outputs, scorecard.json, triage.json
   ledger.jsonl         # one line per experiment
+  audits/              # dataset difficulty audits, one file per snapshot and split
   lab/                 # private lab dir (credentials, receipts), mode 0700
 ```
 

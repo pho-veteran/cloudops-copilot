@@ -17,7 +17,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from engine_loop import dataset, metrics, pipeline
+from engine_loop import audit, dataset, metrics, pipeline
 from engine_loop import gateway as gw
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -543,6 +543,34 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_audit(args) -> int:
+    snapshot = STATE / "datasets" / args.dataset
+    if args.split == "test" and not args.milestone:
+        raise SystemExit("The test split is sealed; pass --milestone only for a milestone report.")
+    cases = dataset.load(snapshot, args.split, milestone=args.milestone)
+    result = audit.audit(cases, dataset.manifest(snapshot)["cases"])
+    result.update(
+        {
+            "dataset": args.dataset,
+            "dataset_manifest_sha256": dataset.snapshot_digest(snapshot),
+            "split": args.split,
+            "commit": _commit(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    out = STATE / "audits" / f"{args.dataset}-{args.split}.json"
+    _json(out, result)
+    summary = {key: result[key] for key in ("n_cases", "n_trials", "n_derived", "strata")}
+    summary["p0"] = result["p0"]["family_accuracy"]["value"]
+    summary["t0"] = result["t0"]["family_accuracy"]["value"]
+    summary["t0_macro_f1"] = result["t0"]["macro_f1"]
+    summary["leaks"] = {
+        key: result["leaks"][key] for key in ("cases_with_id_leaks", "cases_with_content_leaks")
+    }
+    print(json.dumps({"audit": str(out), **summary}, sort_keys=True))
+    return 0
+
+
 def cmd_ledger(args) -> int:
     entry = json.loads(Path(args.entry).read_text(encoding="utf-8"))
     missing = LEDGER_KEYS - set(entry)
@@ -602,6 +630,10 @@ def main() -> int:
     report.add_argument("--pair", action="append", default=[], help="BASE:HEAD")
     report.add_argument("--robustness", help="Run whose split is grouped by variant.")
     report.add_argument("--preamble", help="Markdown file inserted after the title.")
+    check = sub.add_parser("audit")
+    check.add_argument("--dataset", required=True)
+    check.add_argument("--split", choices=dataset.SPLITS, default="dev")
+    check.add_argument("--milestone", action="store_true")
     ledger = sub.add_parser("ledger")
     ledger.add_argument("--entry", required=True, help="JSON file with one ledger entry.")
     args = parser.parse_args()
@@ -616,6 +648,7 @@ def main() -> int:
         "ledger": cmd_ledger,
         "report": cmd_report,
         "derive": cmd_derive,
+        "audit": cmd_audit,
     }
     return handlers[args.command](args)
 

@@ -242,3 +242,78 @@ def test_paired_comparison_statistics(loop):
     assert loop.metrics.mcnemar(0, 0) == 1.0
     assert loop.metrics.mcnemar(0, 6) == pytest.approx(0.03125)
     assert loop.metrics.wilson(5, 15) == [0.1518, 0.5829]
+
+
+def _with_payload(value, slot: str, payload: dict, **update):
+    slots = [
+        item.model_copy(update={"payload": payload}) if item.slot == slot else item
+        for item in value.slots
+    ]
+    return value.model_copy(update={"slots": slots, **update})
+
+
+def _warnings(*reasons: str) -> dict:
+    return {
+        "events": [
+            {"name": f"event-{index}", "type": "Warning", "reason": reason, "message": "m"}
+            for index, reason in enumerate(reasons)
+        ]
+    }
+
+
+def test_signature_rule_maps_warning_reasons_and_respects_eligibility(loop):
+    from engine_loop import audit
+
+    bundles = _bundles(loop)
+    pending = _with_payload(bundles["c07"], "kubernetes.events", _warnings("FailedScheduling"))
+    pull = _with_payload(bundles["c07"], "kubernetes.events", _warnings("Failed", "BackOff"))
+    crash = _with_payload(bundles["c01"], "kubernetes.events", _warnings("BackOff", "Unhealthy"))
+    # c07 has no log slots, so a crash signature is ineligible there and T0 abstains.
+    no_logs = _with_payload(bundles["c07"], "kubernetes.events", _warnings("BackOff", "Unhealthy"))
+    assert audit.t0(audit.features(pending)) == "pending_unschedulable"
+    assert audit.t0(audit.features(pull)) == "image_pull"
+    assert audit.t0(audit.features(crash)) == "crashloop_startup"
+    assert audit.t0(audit.features(no_logs)) == "unknown"
+    oom = dict(audit.features(crash), oomkilled=True)
+    assert audit.t0(oom) == "oom_restarts"
+    quiet = dict(audit.features(crash), warning_reasons=[], max_p95=1.0)
+    assert audit.t0(quiet) == "unknown"  # traffic slots are absent in c01
+    assert audit.t0(dict(quiet, eligible=["traffic_latency_errors"])) == "traffic_latency_errors"
+
+
+def test_leak_scan_flags_scenario_words_but_not_kubernetes_vocabulary(loop):
+    from engine_loop import audit
+
+    value = _with_payload(
+        _bundles(loop)["c07"],
+        "kubernetes.events",
+        {
+            "events": [
+                {"name": "engine-noise-1", "reason": "OOMKilled", "message": "Pending"},
+                {"name": "e2", "source": "default-scheduler", "message": "Unavailable"},
+            ]
+        },
+        case_id="oom-clean-a01",
+    )
+    found = {(item["where"].split(".")[0], item["token"]) for item in audit.leaks(value)}
+    assert ("case_id", "oom") in found and ("case_id", "clean") in found
+    content = {token for where, token in found if where == "kubernetes"}
+    assert content == {"engine-noise", "noise"}
+    assert audit.leaks(_bundles(loop)["c07"]) == []
+
+
+def test_audit_partitions_cases_into_strata_with_shortcut_baselines(loop, tmp_path):
+    from engine_loop import audit
+
+    snapshot = tmp_path / "snap"
+    loop.dataset.fixture_snapshot(snapshot)
+    cases = loop.dataset.load(snapshot, "smoke")
+    result = audit.audit(cases, loop.dataset.manifest(snapshot)["cases"])
+    assert result["n_cases"] == result["n_trials"] == 12
+    assert result["p0"]["family_accuracy"]["n"] == 12
+    rows = result["cases"]
+    assert all((row["stratum"] == "easy") == (row["t0"] == row["gold"]) for row in rows)
+    easy = sum(1 for row in rows if row["stratum"] == "easy")
+    assert result["t0"]["family_accuracy"]["k"] == easy
+    assert result["strata"]["cases"].get("hard", 0) == 12 - easy
+    assert result["leaks"]["cases_with_content_leaks"] == 0
