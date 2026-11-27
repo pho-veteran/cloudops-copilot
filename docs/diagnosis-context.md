@@ -98,6 +98,38 @@ and matching `analysis_identity`; a manual selection or another analysis's selec
 returns `analysis_selection_mismatch` without a send. Pure `assemble` rejects manual
 views; callers needing persisted identity verification use `build`.
 
+## Context profiles
+
+The deployment selects one context profile with `DIAGNOSIS_CONTEXT_PROFILE`. `e06` (the
+default) is the product context above. `engine` is the engine path of the
+[improvement loop](engine-loop/algorithm.md): stage A signals (`engine.signals/v1`),
+stage B detector hypotheses (`engine.detector/v1`), stage C relevance-ranked compact
+selection (`engine.context/v1`), the stage D prompt `engine.rca_prompt/v3` and stage E
+(`engine.consistency/v2`, policy `required_citations`): after the validator accepts an
+answer, support aliases outside the answered family's required slots are removed, the
+result is validated again, and the answer is kept unchanged if it would no longer
+validate.
+`diagnosis.engine.path.prepare` builds it; the offline replay
+(`scripts/engine_loop/pipeline.py`, config B4) calls the same function, so a replayed
+bundle and a stored Run with the same evidence produce the same context digest.
+
+Both profiles produce `PreparedContext/v1` and share the family matrix, egress allowlist,
+deny scan, alias space, 999-alias and byte budgets, the repair reserve and the unchanged
+validator. Pending and ImagePull stay manual-only, an ineligible family cannot be
+supported, and findings cite only aliases that were sent. The engine path sends at
+least one entry of every required slot and fails closed with
+`required_targets_exceed_budget` otherwise. Further entries are added by relevance per
+byte up to a 16 KB soft budget; the rest are recorded as omissions and counted in the
+prompt, never silently dropped. A trusted analysis Knowledge
+selection adds its runbook chunks as K aliases with the same rules as the product
+context. The model never authorizes an action.
+
+The profile is part of the deployment identity: `engine` reports its own
+`prompt_version` and `context_version` and adds `context_profile` and `engine_version`.
+A qualification of one profile therefore never qualifies the other. `e06` keeps the
+existing identity unchanged, so switching back is the rollback. The stored context and
+the `RCAResult` record the versions of the profile that built them.
+
 ## Aliases, budget and repair
 
 - Required targets are extracted before budgeting and are never byte-trimmed. Any

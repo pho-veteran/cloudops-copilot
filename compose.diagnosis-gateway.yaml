@@ -1,4 +1,6 @@
-# Docker Desktop opt-in; the host gateway must stay bound to Windows loopback.
+# Opt-in model route. Docker Desktop: the host gateway stays bound to Windows loopback.
+# Linux (for example the EC2 lab): host.docker.internal resolves to the Docker bridge
+# address, where only an authorized reverse tunnel listens; nothing is published.
 services:
   diagnosis-gateway:
     image: alpine/socat@sha256:22c2a5781660f23fa678ff560312fc1bc208a989efa03a7c445ea9a27df3a0ca
@@ -13,6 +15,8 @@ services:
     pids_limit: 32
     mem_limit: 32m
     cpus: 0.125
+    extra_hosts:
+      - host.docker.internal:host-gateway
   worker:
     # Namespace anchor also works for compose run --rm one-shot workers.
     network_mode: service:diagnosis-gateway

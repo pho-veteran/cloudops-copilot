@@ -367,36 +367,23 @@ def engine_context(
     with_signals: bool,
     default_prompt: str | None = None,
 ):
-    from cloudops.features.diagnosis.context import family_matrix
-    from cloudops.features.diagnosis.engine import detector, prompt, selection, signals
+    """The product engine path (`diagnosis.engine.path.prepare`) with the ablation knobs."""
+    from cloudops.features.diagnosis.engine import path, prompt
 
-    materials = raw.materials(value)
-    table = signals.extract(materials)
-    detection = detector.detect(table, family_matrix(materials, egress))
     version = settings.variant.get("prompt", default_prompt or prompt.PROMPT_V1)
-    show_signals = with_signals and settings.variant.get("signals", "on") == "on"
-    show_hypotheses = with_signals and settings.variant.get("hypotheses", "on") == "on"
-
-    def extra(aliases):
-        return prompt.sections(
-            table if show_signals else None,
-            detection if show_hypotheses else None,
-            aliases,
-        )
-
-    context = selection.assemble(
-        materials,
+    prepared = path.prepare(
+        raw.materials(value),
         raw.scope(value),
         egress,
         model_profile,
         f"engine-loop.{value.case_id}",
-        system_prompt=prompt.PROMPTS[version],
         prompt_version=version,
-        table=table if settings.variant.get("relevance", "signals") == "signals" else None,
-        extra_sections=extra,
-        soft_budget=int(settings.variant.get("soft_budget", selection.SOFT_BUDGET_BYTES)),
+        show_signals=with_signals and settings.variant.get("signals", "on") == "on",
+        show_hypotheses=with_signals and settings.variant.get("hypotheses", "on") == "on",
+        signal_relevance=settings.variant.get("relevance", "signals") == "signals",
+        soft_budget=int(settings.variant.get("soft_budget", path.selection.SOFT_BUDGET_BYTES)),
     )
-    return context, table, detection
+    return prepared.context, prepared.table, prepared.detection
 
 
 async def run_b3(value, *, settings: Settings, gateway: Gateway) -> dict:

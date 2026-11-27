@@ -13,10 +13,11 @@ API and worker read three trusted, secret-free files:
 | `DIAGNOSIS_PROFILE_FILE` | Existing `DiagnosisModelProfile/v1`; one endpoint/model, fixed transport limits and credential reference |
 | `DIAGNOSIS_EGRESS_FILE` | Existing `EgressPolicy/v1`; destination/source allowlist, redaction and byte limits |
 | `DIAGNOSIS_QUALIFICATION_FILE` | Optional `DiagnosisQualification/v1`; exact trusted cohort and evidence reference |
+| `DIAGNOSIS_CONTEXT_PROFILE` | Optional context profile: `e06` (default, the product context) or `engine` (the engine path, see [diagnosis context](diagnosis-context.md#context-profiles)). Any other value fails closed as `configuration_invalid` |
 
 Missing configuration makes no HTTP calls. Invalid files fail closed. A credential named by the profile is supplied to the **worker only**. Never put it in API responses, frontend variables, images, qualification files or committed `.env` files.
 
-The optional `compose.diagnosis.yaml` overlay mounts `DIAGNOSIS_CONFIG_DIR` read-only at `/run/cloudops-diagnosis` in API/worker. Name files `profile.json` and `egress.json`. Set `DIAGNOSIS_SECRET_ENV_FILE` to a private worker-only env file. If operational qualification exists, set `DIAGNOSIS_QUALIFICATION_PATH=/run/cloudops-diagnosis/qualification.json`; otherwise leave it empty. The overlay is used explicitly with `docker compose -f compose.yaml -f compose.diagnosis.yaml ...`. It does not choose a provider, pay for inference, deploy AWS resources or grant execution capability.
+The optional `compose.diagnosis.yaml` overlay mounts `DIAGNOSIS_CONFIG_DIR` read-only at `/run/cloudops-diagnosis` in API/worker and passes `DIAGNOSIS_CONTEXT_PROFILE` (default `e06`) to both, so the API and the worker compute the same identity. Name files `profile.json` and `egress.json`. Set `DIAGNOSIS_SECRET_ENV_FILE` to a private worker-only env file. If operational qualification exists, set `DIAGNOSIS_QUALIFICATION_PATH=/run/cloudops-diagnosis/qualification.json`; otherwise leave it empty. The overlay is used explicitly with `docker compose -f compose.yaml -f compose.diagnosis.yaml ...`. It does not choose a provider, pay for inference, deploy AWS resources or grant execution capability.
 
 Operational mode requires a qualification record:
 

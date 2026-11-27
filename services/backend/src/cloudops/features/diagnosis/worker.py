@@ -171,6 +171,7 @@ def _prepare(claim, gate, slot):
                 policy=deployment.policy,
                 profile=deployment.profile,
                 analysis_identity=str(analysis.id),
+                context_profile=deployment.context_profile,
             )
             stored = AnalysisContext(
                 analysis_id=analysis.id,
@@ -312,8 +313,13 @@ def analyze(claim, gate, slot, lease_lost, *, before_request=None, after_request
     # Exact-reference validation occurs before settlement, never checkpoint raw output.
     validated = None
     if call.kind == "text":
+        refine = None
+        if deployment.context_profile == "engine":
+            from cloudops.features.diagnosis.engine import path
+
+            refine = path.refine
         with sessions()() as db:
-            validated = advice.validate(db, context_snapshot, call.text)
+            validated = advice.validate(db, context_snapshot, call.text, refine)
     with fenced(claim, gate, slot) as (db, job, attempt):
         analysis, run = _analysis(db, claim.subject_id)
         if not _deployment_matches(analysis):

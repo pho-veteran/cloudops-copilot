@@ -315,7 +315,7 @@ def _crashloop_evidence(db, context):
     add_evidence(db, context, "kubernetes.logs.previous", LOGS)
 
 
-def _build(db, context, selection=None):
+def _build(db, context, selection=None, context_profile="e06"):
     return build(
         db,
         context[0],
@@ -324,7 +324,23 @@ def _build(db, context, selection=None):
         policy=policy(),
         profile=profile(),
         analysis_identity="analysis-1",
+        context_profile=context_profile,
     )
+
+
+def test_engine_profile_build_matches_the_engine_path(db, context):
+    from cloudops.features.diagnosis.engine import path, selection
+
+    _crashloop_evidence(db, context)
+    scope = resolve_scope(db, context[0], context[1])
+    pure = path.prepare(load_materials(db, scope), scope, policy(), profile(), "analysis-1")
+    rebuilt = _build(db, context, context_profile="engine")
+    assert isinstance(rebuilt, PreparedContext)
+    assert rebuilt.digest == pure.context.digest
+    assert rebuilt.context_version == selection.CONTEXT_VERSION
+    assert rebuilt.prompt_version == path.PROMPT_VERSION
+    assert "runbook_not_selected" in rebuilt.limitations
+    assert rebuilt.digest != _build(db, context).digest
 
 
 def test_build_over_persisted_run_matches_the_pure_assembly(db, context):
@@ -414,6 +430,20 @@ def test_analysis_selection_is_independent_of_manual_selection(db, context, tmp_
     assert [(item.alias, item.reference.document_key) for item in first.runbooks] == [
         ("K001", "fixture-guide")
     ]
+    # The engine profile sends the same trusted selection's runbooks and rejects others.
+    for mismatched in (manual.selection, other_analysis.selection):
+        rejected = _build(db, context, mismatched, context_profile="engine")
+        assert isinstance(rejected, InsufficientContext)
+        assert rejected.reason == "analysis_selection_mismatch"
+    engine = _build(db, context, analysis.selection, context_profile="engine")
+    assert isinstance(engine, PreparedContext)
+    assert engine.selection_id == analysis.selection.id
+    assert engine.runbook_status == "matched"
+    assert [(item.alias, item.reference.document_key) for item in engine.runbooks] == [
+        ("K001", "fixture-guide")
+    ]
+    assert "K001" in engine.messages[1].content
+    assert "runbook_not_selected" not in engine.limitations
 
     with sessions()() as session, session.begin():
         manual_row = session.scalar(
