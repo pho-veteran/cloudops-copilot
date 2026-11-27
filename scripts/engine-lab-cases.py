@@ -440,7 +440,7 @@ class GeneratorV2(Generator):
                 for pod in self.pods()
                 for condition in pod.get("status", {}).get("conditions", [])
             )
-        if kind == "imagepull" or scenario == "config-ref":
+        if kind == "imagepull" or scenario in {"config-ref", "secret-ref"}:
             return any(
                 (status.get("state", {}).get("waiting") or {}).get("reason")
                 in plan_v2.IMAGE_WAITING | {"CreateContainerConfigError"}
@@ -553,7 +553,7 @@ class GeneratorV2(Generator):
                 "--timeout=150s",
                 timeout=170,
             )
-            if trial["pre"]:
+            if trial.get("herring"):
                 steps["healed"] = self.wait_healed()
             else:
                 steps["ready"] = self.wait_ready()
@@ -636,6 +636,7 @@ class GeneratorV2(Generator):
                 "missing",
             )
         }
+        meta.update({key: trial.get(key) for key in ("readiness_probe", "warmup") if key in trial})
         meta.update(
             {
                 "trial_id": case_id,
@@ -682,7 +683,7 @@ def smoke_v2(trials: list[dict], host: str) -> list[dict]:
 def main_v2(args) -> int:
     password = (LAB_DIR / "operator-password").read_text().strip()
     generator = GeneratorV2(args.out, args.batch, password)
-    trials = plan_v2.build(args.prefix)
+    trials = plan_v2.build(args.prefix, args.table)
     if args.plan == "v2-smoke":
         todo = smoke_v2(trials, args.host)
         if args.cells:
@@ -725,6 +726,7 @@ def main() -> int:
     parser.add_argument("--host", choices=plan_v2.HOSTS, default="laptop")
     parser.add_argument("--prefix", default="lab-v4", help="Seed prefix of a v2 plan.")
     parser.add_argument("--cells", help="Comma-separated cells for v2-smoke.")
+    parser.add_argument("--table", choices=sorted(plan_v2.TABLES), default="v4")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True, mode=0o700)
     if args.plan in {"v2", "v2-smoke"}:

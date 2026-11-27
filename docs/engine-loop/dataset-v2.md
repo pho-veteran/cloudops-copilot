@@ -274,6 +274,65 @@ hosts. Changes made before the full run, without changing the cell table:
 - `missing-prometheus` checks that every Prometheus slot is unavailable instead of the
   traffic cue; the family matrix then labels it `unknown`.
 
+### Attempt 1 (`lab-v4`) result
+
+Collection on both hosts was stopped on 2026-11-27 after 71 trials (the first two
+rounds of the interleaved plan, every cell covered), because the dev trials already
+failed D4 by a wide margin. Snapshot `lab-v4` (manifest SHA-256 `a8a49499...`) holds
+those 71 trials: 25 dev (4 of them dev-check) and 46 test, which stay sealed.
+
+| Check on dev (25 trials) | Value | D4 |
+| --- | --- | --- |
+| Id and content leaks | 0 and 0 | pass |
+| T0 family accuracy | 0.84 (21/25, Wilson 0.65-0.94) | fail (≤ 0.60) |
+| Hard stratum | 16% (4/25) | fail (≥ 40%) |
+| P0 | 0.36 | reported |
+| B2 (detector unchanged since `74d16ef`) | 20/21 dev-work, 4/4 dev-check | reported |
+| B1 / B4 | 7/21 and 25/25 on dev-work; 2/4 and 4/4 on dev-check | reported |
+
+The Wilson lower bound already exceeds the 0.60 threshold, so the full table could not
+pass. The cause is two fixed deployment properties, not the mechanisms: every crash and
+OOM Deployment had a readiness probe, so `{BackOff, Unhealthy}` marked both families,
+and traffic faults came without any Warning event. Pending and image pull cells are
+solved by `FailedScheduling` and `Failed` whatever the mechanism.
+
+### Attempt 2 (`lab-v4b`)
+
+The second and last attempt changes the scenario mix only. Labels, the label rule,
+the acceptance check, sizes, splits, dev-check and the host factor stay as
+pre-registered. The seed prefix is `lab-v4b`, so the test split is new.
+
+- **Readiness probe factor.** In seven trials of eight the Deployment has no readiness
+  probe. A crash or OOM loop then shows `BackOff` without `Unhealthy`. The factor
+  applies to every cell that does not need the probe, faults and abstentions alike
+  (liveness, readiness-wrong, benign rollout, scale-to-zero and traffic cells keep it),
+  so a missing probe never marks a fault.
+- **Warm-up factor.** In seven trials of eight a traffic fault rolls out Pods that take
+  15 s to become ready, so the fault comes with readiness warnings.
+- **Second configuration look-alike.** A missing Secret reference
+  (`CreateContainerConfigError`, labelled `unknown` by D2) joins the missing ConfigMap
+  reference.
+- **Mix.** More crash, OOM, traffic and configuration look-alike trials; pending and
+  image pull keep at least 30 positive trials each; other look-alikes, herrings and
+  healthy cases keep at least 60 trials together.
+
+| Group | Cells and trials (`v4b` table) | Trials |
+| --- | --- | ---: |
+| `crashloop_startup` | startup exit 16; crash after serving 14; missing setting 14; liveness 6 + 6 | 56 |
+| `oom_restarts` | allocation strong 16, near 14; slow leak 12 | 42 |
+| `traffic_latency_errors` | slow 8 + 6; 503 fraction 8 + 6; throttle 8; overload 8 | 44 |
+| `pending_unschedulable` | CPU 10; memory 10; node selector 8 | 28 |
+| `image_pull` | unreachable registry 10; invalid reference 9; never-pull absent 9 | 28 |
+| Configuration look-alikes | ConfigMap reference 20; Secret reference 18 | 38 |
+| Other look-alikes | memory near limit 8; quota 6; readiness wrong path 6; load ramp 6; scaled to 0 2; benign rollout 4 | 32 |
+| Herrings and healthy | healthy 10; healed OOM 4; healed crash 4; healthy with untrusted text 6 | 24 |
+| Collected missing sources | Prometheus stopped 4; back-off 6; events purged 2 + 2 | 14 |
+| Held out, test only | `kv` 4 per family and 4 healthy; `mid` OOM 4 and 503 fraction 4 | 32 |
+| Total | | 338 |
+
+With alternate assignment this gives 152 dev trials (31 of them dev-check) and 186 test
+trials. The decision and its reason are recorded in the ledger (`exp-0012`).
+
 ## Delivery slices
 
 Each slice is one PR. Slices 2-6 need no model calls.

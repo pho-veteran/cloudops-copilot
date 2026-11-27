@@ -137,3 +137,36 @@ def test_observability_relabels_silent_positives_and_checks_herrings(v2):
     assert plan_v2.observe(liveness, trials["liveness-137"])["present"]
     no_probe = _bundle(bundle, start=start, pods=[_pod("Error", inside)])
     assert not plan_v2.observe(no_probe, trials["liveness-137"])["present"]
+
+
+def test_attempt_two_table_keeps_the_sizes_and_spreads_the_factors(v2):
+    plan_v2, _ = v2
+    trials = plan_v2.build("lab-v4b", "v4b")
+    splits = Counter(trial["split"] for trial in trials)
+    assert splits["dev"] >= 150 and splits["test"] >= 175
+    assert sum(trial["dev_check"] for trial in trials) >= 30
+    families = Counter(trial["family"] for trial in trials)
+    assert all(families[name] >= 30 for name in plan_v2.FAMILY_BY_KIND.values())
+    absent = [trial for trial in trials if trial["readiness_probe"] == "absent"]
+    assert absent and all(["no-readiness", {}] in trial["pre"] for trial in absent)
+    assert {trial["family"] for trial in absent} >= {"crashloop_startup", "oom_restarts", "unknown"}
+    warm = [trial for trial in trials if trial["warmup"]]
+    assert warm and all(trial["steps"][0][0] == "benign" for trial in warm)
+    # The missing probe is spread over faults and abstentions, so it never marks a fault.
+    assert sum(trial["family"] == "unknown" for trial in absent) >= 40
+    first = {trial["case_id"] for trial in plan_v2.build()}
+    assert not first & {trial["case_id"] for trial in trials}
+
+
+def test_attempt_two_secret_reference_needs_the_config_error(v2):
+    plan_v2, bundle = v2
+    start = datetime(2026, 11, 27, 4, 0, tzinfo=timezone.utc)
+    trial = next(item for item in plan_v2.build("lab-v4b", "v4b") if item["cell"] == "secret-ref")
+    waiting = {
+        "status": "Pending",
+        "containers": [{"state": {"waiting": {"reason": "CreateContainerConfigError"}}}],
+    }
+    seen = plan_v2.observe(_bundle(bundle, start=start, pods=[waiting]), trial)
+    assert seen["present"] and plan_v2.expected_kind(trial, seen) == (None, [])
+    seen = plan_v2.observe(_bundle(bundle, start=start, pods=[]), trial)
+    assert plan_v2.expected_kind(trial, seen) == (None, ["lookalike_cue_absent"])

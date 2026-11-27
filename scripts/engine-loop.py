@@ -180,6 +180,9 @@ V2_META = (
     "log_profile",
     "untrusted",
     "lookalike",
+    "herring",
+    "readiness_probe",
+    "warmup",
 )
 
 

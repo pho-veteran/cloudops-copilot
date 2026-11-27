@@ -362,6 +362,8 @@ ENGINE_MECHANISMS = (
     "readiness-wrong",
     "scale-zero",
     "once",
+    "no-readiness",
+    "secret-ref",
 )
 ENGINE_PARAM = re.compile(r"^[a-z_]{1,32}$")
 ENGINE_VALUE = re.compile(r"^[A-Za-z0-9._-]{0,48}$")
@@ -480,6 +482,18 @@ def engine_template(mechanism, spec, replicas, params):
             **container.get("readinessProbe", {}),
             "httpGet": {"path": get("path", "/ready"), "port": 8080},
         }
+    elif mechanism == "no-readiness":
+        # A Deployment without a readiness probe: the same causes, without Unhealthy events.
+        container.pop("readinessProbe", None)
+    elif mechanism == "secret-ref":
+        env = [entry for entry in container.get("env") or [] if entry["name"] != "PAYMENT_TOKEN"]
+        env.append(
+            {
+                "name": "PAYMENT_TOKEN",
+                "valueFrom": {"secretKeyRef": {"name": "checkout-credentials", "key": "token"}},
+            }
+        )
+        container["env"] = sorted(env, key=lambda entry: entry["name"])
     elif mechanism == "scale-zero":
         replicas = 0
     elif mechanism == "once":
