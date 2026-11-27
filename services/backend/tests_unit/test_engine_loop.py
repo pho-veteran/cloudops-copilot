@@ -317,3 +317,191 @@ def test_audit_partitions_cases_into_strata_with_shortcut_baselines(loop, tmp_pa
     assert result["t0"]["family_accuracy"]["k"] == easy
     assert result["strata"]["cases"].get("hard", 0) == 12 - easy
     assert result["leaks"]["cases_with_content_leaks"] == 0
+
+
+def _v2_trials():
+    trials = []
+    for cell in ("oom-strong", "pending-cpu", "healthy"):
+        trials += [{"seed": f"{cell}/{index}", "cell": cell} for index in range(10)]
+    trials += [
+        {"seed": f"pair/{index}/{side}", "cell": side, "contrast_group": f"pair-{index}"}
+        for index in range(6)
+        for side in ("liveness-137", "oom-near")
+    ]
+    trials += [{"seed": f"kv/{index}", "cell": "oom-strong", "holdout": "kv"} for index in range(4)]
+    return trials
+
+
+def test_v2_split_keeps_pairs_together_holds_out_and_reserves_dev_check(loop, monkeypatch):
+    monkeypatch.syspath_prepend(str(ROOT / "scripts"))
+    from engine_loop import splits
+
+    trials = _v2_trials()
+    first = splits.assign(trials)
+    assert first == splits.assign(list(reversed(trials)))
+    for index in range(6):
+        sides = {first[f"pair/{index}/{side}"]["split"] for side in ("liveness-137", "oom-near")}
+        assert len(sides) == 1
+    assert {first[f"kv/{index}"]["split"] for index in range(4)} == {"test"}
+    for cell in ("oom-strong", "pending-cpu", "healthy"):
+        assert sum(first[f"{cell}/{i}"]["split"] == "test" for i in range(10)) == 5
+    dev = [seed for seed, item in first.items() if item["split"] == "dev"]
+    check = [seed for seed, item in first.items() if item["dev_check"]]
+    assert set(check) <= set(dev)
+    assert len(check) >= 0.2 * len(dev)
+    assert {seed.split("/")[0] for seed in check} >= {"oom-strong", "pending-cpu", "healthy"}
+    assert splits.opaque_id("oom-strong/1").startswith("c-")
+    assert len(splits.opaque_id("oom-strong/1")) == 14
+    with pytest.raises(ValueError):
+        splits.assign([{"seed": "a", "cell": "x"}, {"seed": "a", "cell": "y"}])
+
+
+def test_v2_snapshot_seals_test_meta_and_separates_dev_check(loop, tmp_path):
+    bundles = _bundles(loop)
+    labels = _labels(loop)
+    cases = []
+    for index, case_id in enumerate(FIXTURE_IDS):
+        split = "test" if index % 3 == 0 else "dev"
+        meta = {"trial_id": case_id, "dev_check": split == "dev" and index % 3 == 1}
+        cases.append((bundles[case_id], labels[case_id], split, meta))
+    snapshot = tmp_path / "v2"
+    loop.dataset.write_snapshot(
+        snapshot,
+        snapshot_id="v2",
+        cases=cases,
+        description="test",
+        pilot=[],
+        version=loop.dataset.MANIFEST_VERSION_V2,
+    )
+    manifest = loop.dataset.manifest(snapshot)
+    assert all(
+        set(entry) == {"split", "bundle_sha256", "manifest_sha256"}
+        for entry in manifest["cases"].values()
+        if entry["split"] == "test"
+    )
+    with pytest.raises(loop.dataset.SealedSplitError):
+        loop.dataset.case_meta(snapshot, "test")
+    sealed = loop.dataset.case_meta(snapshot, "test", milestone=True)
+    assert sorted(sealed) == sorted(c[0].case_id for c in cases if c[2] == "test")
+    work = {v.case_id for v, _ in loop.dataset.load(snapshot, "dev", subset="work")}
+    check = {v.case_id for v, _ in loop.dataset.load(snapshot, "dev", subset="check")}
+    every = {v.case_id for v, _ in loop.dataset.load(snapshot, "dev")}
+    assert work and check and not work & check and work | check == every
+
+
+def _v2_score(case_id, gold, pred, *, trial=None, **extra):
+    return {
+        "case_id": case_id,
+        "gold": gold,
+        "pred": pred,
+        "correct": gold == pred,
+        "passed": gold == pred,
+        "tag": None
+        if gold == pred
+        else ("ABSTAIN_WRONG" if "unknown" in (gold, pred) else "WRONG_FAMILY"),
+        "trial_id": trial or case_id,
+        **extra,
+    }
+
+
+def test_v2_tags_pairs_and_cluster_bootstrap(loop):
+    labels = _labels(loop)
+    record = {
+        "context": {
+            "aliases": {"E001": "kubernetes.state", "E002": "kubernetes.events"},
+            "alias_refs": {
+                "E001": ["kubernetes.state", "field", "k1"],
+                "E002": ["kubernetes.events", "event", "k2"],
+            },
+            "sent_slots": ["kubernetes.events", "kubernetes.state"],
+            "outcome": "prepared",
+        },
+        "final": {
+            "status": "supported",
+            "cause_category": "oom_restarts",
+            "supporting_evidence_ids": ["E001", "E002"],
+        },
+        "attempts": [],
+    }
+    oom = labels["c03"]
+    herring = {
+        "trial_id": "t1",
+        "distractor_sources": [{"slot": "kubernetes.state", "key": "k1"}],
+    }
+    score = loop.metrics.case_score(record, oom, herring)
+    assert score["distractor_cited"] == 1 and not score["citation_ok"]
+    assert score["tag"] == "DISTRACTOR_CITED" and score["trial_id"] == "t1"
+    healthy = labels["n-healthy"]
+    flip = loop.metrics.case_score(record, healthy, {"untrusted": {"claims": "oom_restarts"}})
+    assert flip["tag"] == "INJECTION_FLIP" and flip["flipped"]
+    lookalike = loop.metrics.case_score(record, healthy, {"lookalike": "oom"})
+    assert lookalike["tag"] == "LOOKALIKE_FP"
+
+    scores = [
+        _v2_score("a", "oom_restarts", "oom_restarts", contrast_group="p1"),
+        _v2_score("b", "crashloop_startup", "oom_restarts", contrast_group="p1"),
+        _v2_score("c", "unknown", "unknown", contrast_group="p2"),
+        _v2_score("d", "oom_restarts", "oom_restarts", contrast_group="p2"),
+    ]
+    loop.metrics.pair_tags(scores)
+    assert scores[1]["tag"] == "PAIR_SPLIT"
+    assert loop.metrics.pair_accuracy(scores)["k"] == 1
+    interval = loop.metrics.cluster_bootstrap(scores, resamples=500)
+    assert interval == loop.metrics.cluster_bootstrap(scores, resamples=500)
+    assert 0 <= interval[0] <= 0.75 <= interval[1] <= 1
+
+
+def test_v2_keep_rule_needs_a_hard_stratum_gain_with_a_clear_interval(loop):
+    def run(correct_hard: int):
+        scores = []
+        for index in range(40):
+            hard = index < 20
+            right = index < correct_hard if hard else True
+            scores.append(
+                _v2_score(
+                    f"c{index}",
+                    "oom_restarts",
+                    "oom_restarts" if right else "unknown",
+                    stratum="hard" if hard else "easy",
+                )
+            )
+        card = loop.metrics.scorecard(
+            [
+                {
+                    **item,
+                    "manual_ok": None,
+                    "first_attempt_valid": None,
+                    "message_bytes": None,
+                    "model_called": False,
+                    "usage_total": {},
+                    "usage_spent": {},
+                    "calls_sent": 0,
+                    "cited": 0,
+                    "cited_relevant": 0,
+                    "distractor_cited": 0,
+                    "required_covered": 0,
+                    "required_total": 0,
+                    "required_sent": 0,
+                    "required_usable": 0,
+                    "hallucinated": [],
+                    "plan_ok": True,
+                    "repaired": False,
+                    "overflow": False,
+                    "latency_ms": 0,
+                    "untrusted_claim": None,
+                    "flipped": False,
+                }
+                for item in scores
+            ]
+        )
+        return scores, card
+
+    base, base_card = run(4)
+    head, head_card = run(16)
+    result = loop.metrics.keep_v2(base, head, base_card, head_card, "family_accuracy")
+    assert result["hard_target_ci_excludes_zero"] and result["keep"] is True
+    assert result["family_loss"]["oom_restarts"] == -12
+    small, small_card = run(5)
+    assert not loop.metrics.keep_v2(base, small, base_card, small_card, None)[
+        "hard_target_ci_excludes_zero"
+    ]

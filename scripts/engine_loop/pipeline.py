@@ -114,6 +114,11 @@ def context_summary(context: PreparedContext | InsufficientContext) -> dict:
         "sent_slots": sorted({target.source_key for target in targets}),
         "omissions": [item.model_dump(mode="json") for item in context.omissions],
         "aliases": {target.alias: target.source_key for target in targets},
+        # Entry identity per alias, so a citation can be matched to distractor entries.
+        "alias_refs": {
+            target.alias: [target.source_key, target.locator.kind, target.locator.key]
+            for target in targets
+        },
         "runbooks": {item.alias: item.reference.document_key for item in context.runbooks},
         "digest": context.digest,
         "versions": {

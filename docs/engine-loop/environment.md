@@ -129,7 +129,8 @@ engine-loop.py probe                # session-start endpoint probe
 engine-loop.py fixture-snapshot     # freeze the 12 E06 fixtures (split "smoke")
 engine-loop.py snapshot --id ID --description TEXT lab-cases/<batch>...
                                     # freeze bundles + labels + split
-engine-loop.py replay --dataset ID --split dev --config B0|B1|B2 [--pilot] [--base RUN]
+engine-loop.py replay --dataset ID --split dev|devwork|devcheck --config B0|B1|B2|B4
+                      [--pilot] [--base RUN]
                       [--no-repair] [--variant k=v] [--concurrency 3] [--run-id ID]
 engine-loop.py score   --run RUN    # scorecard.json, scores.json, triage.json
 engine-loop.py triage  --run RUN    # failure tags

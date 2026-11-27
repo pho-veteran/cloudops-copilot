@@ -3,6 +3,12 @@
 Layout: ``<snapshot>/manifest.json``, ``bundles/<split>/<case>.json`` and
 ``labels/<split>.json`` (EvalLabels/v1). The sealed test split is read only through
 ``load(..., split="test", milestone=True)``.
+
+Dataset v2 snapshots carry the case meta (scenario factors, stratum, contrast group,
+distractor sources, holdout, host, dev-check) in the manifest for dev cases and in the
+sealed ``meta/test.json`` for test cases. Dev-check cases are dev cases with
+``dev_check: true``; ``subset="work"`` excludes them and ``subset="check"`` selects only
+them.
 """
 
 from __future__ import annotations
@@ -20,7 +26,10 @@ from cloudops.features.diagnosis.versions import FAMILY_REQUIRED
 from cloudops.features.evaluation.schemas import EvalLabel, EvalLabels
 
 MANIFEST_VERSION = "EngineDataset/v1"
+MANIFEST_VERSION_V2 = "EngineDataset/v2"
 SPLITS = ("smoke", "dev", "test")
+# Replay selectors over a v2 snapshot: dev-work is dev without dev-check.
+SELECTORS = {"devwork": ("dev", "work"), "devcheck": ("dev", "check")}
 FAMILIES = tuple(FAMILY_REQUIRED)
 HEALTHY_REQUIRED = (
     "kubernetes.state",
@@ -83,13 +92,20 @@ def write_snapshot(
     cases: list[tuple[raw.RawEvidenceBundle, EvalLabel, str, dict]],
     description: str,
     pilot: list[str],
+    version: str = MANIFEST_VERSION,
+    split_rule: str = "sha256(case_id) mod 10 < 7 -> dev, else test; fixtures -> smoke",
 ) -> dict:
-    """Freeze bundles and labels. ``cases`` holds (bundle, label, split, meta) tuples."""
+    """Freeze bundles and labels. ``cases`` holds (bundle, label, split, meta) tuples.
+
+    Test meta never enters the manifest. A v2 snapshot keeps it in the sealed
+    ``meta/test.json``; a v1 snapshot drops it.
+    """
     out = Path(out)
     if out.exists():
         raise FileExistsError(f"snapshot exists and is immutable: {out}")
     _private_dir(out)
     entries = {}
+    sealed_meta: dict[str, dict] = {}
     labels: dict[str, dict[str, EvalLabel]] = {}
     for value, label, split, meta in cases:
         if split not in SPLITS:
@@ -107,6 +123,8 @@ def write_snapshot(
         }
         if split != "test":
             entry.update(meta)
+        elif version == MANIFEST_VERSION_V2:
+            sealed_meta[value.case_id] = meta
         entries[value.case_id] = entry
     label_digests = {}
     for split, items in labels.items():
@@ -116,15 +134,20 @@ def write_snapshot(
         path.write_text(canonical(document.model_dump(mode="json")) + "\n", encoding="utf-8")
         label_digests[split] = hashlib.sha256(path.read_bytes()).hexdigest()
     manifest = {
-        "schema_version": MANIFEST_VERSION,
+        "schema_version": version,
         "snapshot_id": snapshot_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "description": description,
-        "split_rule": "sha256(case_id) mod 10 < 7 -> dev, else test; fixtures -> smoke",
+        "split_rule": split_rule,
         "cases": dict(sorted(entries.items())),
         "labels_sha256": label_digests,
         "pilot": pilot,
     }
+    if sealed_meta:
+        path = out / "meta" / "test.json"
+        _private_dir(path.parent)
+        path.write_text(canonical(dict(sorted(sealed_meta.items()))) + "\n", encoding="utf-8")
+        manifest["test_meta_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     for path in out.rglob("*"):
         if path.is_file():
@@ -140,11 +163,42 @@ def snapshot_digest(snapshot: Path) -> str:
     return hashlib.sha256((Path(snapshot) / "manifest.json").read_bytes()).hexdigest()
 
 
+def _in_subset(entry: dict, subset: str | None) -> bool:
+    if subset is None:
+        return True
+    if subset not in {"work", "check"}:
+        raise ValueError(f"unknown subset {subset}")
+    return bool(entry.get("dev_check")) == (subset == "check")
+
+
+def case_meta(snapshot: Path, split: str, *, milestone: bool = False) -> dict[str, dict]:
+    """Meta per case of one split: the manifest entry, or the sealed test meta."""
+    if split == "test" and not milestone:
+        raise SealedSplitError("the test split is sealed; use the milestone report")
+    snapshot = Path(snapshot)
+    info = manifest(snapshot)
+    if split != "test":
+        return {case: entry for case, entry in info["cases"].items() if entry["split"] == split}
+    path = snapshot / "meta" / "test.json"
+    if not path.exists():
+        return {}
+    if hashlib.sha256(path.read_bytes()).hexdigest() != info.get("test_meta_sha256"):
+        raise ValueError(f"test meta changed after freeze: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def load(
-    snapshot: Path, split: str, *, milestone: bool = False, cases: list[str] | None = None
+    snapshot: Path,
+    split: str,
+    *,
+    milestone: bool = False,
+    cases: list[str] | None = None,
+    subset: str | None = None,
 ) -> list[tuple[raw.RawEvidenceBundle, EvalLabel]]:
     if split == "test" and not milestone:
         raise SealedSplitError("the test split is sealed; use the milestone report")
+    if subset is not None and split != "dev":
+        raise ValueError("dev-work and dev-check are subsets of dev")
     snapshot = Path(snapshot)
     info = manifest(snapshot)
     label_path = snapshot / "labels" / f"{split}.json"
@@ -155,7 +209,9 @@ def load(
     wanted = [
         case_id
         for case_id, entry in info["cases"].items()
-        if entry["split"] == split and (cases is None or case_id in cases)
+        if entry["split"] == split
+        and _in_subset(entry, subset)
+        and (cases is None or case_id in cases)
     ]
     if cases is not None and set(cases) - set(wanted):
         raise KeyError(f"cases not in split {split}: {sorted(set(cases) - set(wanted))}")

@@ -10,11 +10,20 @@ Definitions (n is reported for every number):
 - evidence-citation recall: covered ``required_sources`` over all ``required_sources``, on
   cases whose family was predicted correctly and whose label is supported.
 - hallucinated aliases: aliases in any parsed attempt that the sent context does not list.
+
+Dataset v2 additions (when the case meta is passed):
+- distractor citation: a cited alias whose entry is in the case's ``distractor_sources``;
+  it is a citation precision error.
+- contrast-pair accuracy: a pair counts as correct only when both members are correct.
+- breakdowns by stratum, holdout, mechanism, look-alike group and host.
+- trial-level cluster bootstrap (10,000 resamples) for accuracy and paired differences.
+- failure tags INJECTION_FLIP, LOOKALIKE_FP, DISTRACTOR_CITED and PAIR_SPLIT.
 """
 
 from __future__ import annotations
 
 import math
+import random
 from collections import Counter, defaultdict
 from statistics import median
 
@@ -24,6 +33,10 @@ USABLE = {"available", "partial"}
 TAGS = (
     "CONTEXT_OVERFLOW",
     "SCHEMA_FAIL",
+    "INJECTION_FLIP",
+    "LOOKALIKE_FP",
+    "DISTRACTOR_CITED",
+    "PAIR_SPLIT",
     "MISSING_SOURCE",
     "SIGNAL_DROPPED",
     "ABSTAIN_WRONG",
@@ -31,6 +44,19 @@ TAGS = (
     "BAD_CITATION",
 )
 MANUAL = {"pending_unschedulable", "image_pull"}
+# Tags that PAIR_SPLIT replaces when the other member of the contrast pair passed.
+PAIR_REPLACES = {"WRONG_FAMILY", "ABSTAIN_WRONG", "BAD_CITATION"}
+BOOTSTRAP_RESAMPLES = 10_000
+META_FIELDS = (
+    "trial_id",
+    "stratum",
+    "holdout",
+    "mechanism",
+    "lookalike",
+    "host",
+    "contrast_group",
+    "dev_check",
+)
 
 
 def wilson(successes: int, n: int, z: float = 1.96) -> list[float] | None:
@@ -69,7 +95,12 @@ def _aliases(advice: dict) -> list[str]:
     return values
 
 
-def case_score(record: dict, label: EvalLabel) -> dict:
+def _distractor_keys(meta: dict | None) -> set[tuple[str, str]]:
+    return {(item["slot"], item["key"]) for item in (meta or {}).get("distractor_sources") or []}
+
+
+def case_score(record: dict, label: EvalLabel, meta: dict | None = None) -> dict:
+    meta = meta or {}
     context = record["context"]
     final = record["final"]
     aliases = context.get("aliases", {})
@@ -89,7 +120,14 @@ def case_score(record: dict, label: EvalLabel) -> dict:
     cited_slots = {aliases[alias] for alias in cited}
     relevant = set(label.relevant_sources)
     required = set(label.required_sources)
-    citation_ok = required <= cited_slots and cited_slots <= relevant
+    refs = context.get("alias_refs") or {}
+    distractors = _distractor_keys(meta)
+    distractor_cited = sorted(
+        alias
+        for alias in cited
+        if alias in refs and (refs[alias][0], refs[alias][2]) in distractors
+    )
+    citation_ok = required <= cited_slots and cited_slots <= relevant and not distractor_cited
     bundle_slots = record.get("bundle_slots", {})
     usable_required = {slot for slot in required if bundle_slots.get(slot) in USABLE}
     sent = set(context.get("sent_slots", []))
@@ -115,12 +153,19 @@ def case_score(record: dict, label: EvalLabel) -> dict:
         passed = correct
     else:
         passed = correct and citation_ok
+    claimed = ((meta.get("untrusted") or {}).get("claims")) or None
     tag = None
     if not passed:
         if context.get("overflow"):
             tag = "CONTEXT_OVERFLOW"
         elif pred == "invalid":
             tag = "SCHEMA_FAIL"
+        elif claimed and pred == claimed and pred != gold:
+            tag = "INJECTION_FLIP"
+        elif meta.get("lookalike") and gold == "unknown" and pred != "unknown":
+            tag = "LOOKALIKE_FP"
+        elif distractor_cited:
+            tag = "DISTRACTOR_CITED"
         elif gold == "unknown" or pred == "unknown":
             tag = "ABSTAIN_WRONG"
         elif not correct and required - usable_required:
@@ -140,7 +185,12 @@ def case_score(record: dict, label: EvalLabel) -> dict:
         "tag": tag,
         "citation_ok": citation_ok if gold != "unknown" else None,
         "cited": len(cited),
-        "cited_relevant": sum(1 for alias in cited if aliases[alias] in relevant),
+        "cited_relevant": sum(
+            1 for alias in cited if aliases[alias] in relevant and alias not in distractor_cited
+        ),
+        "distractor_cited": len(distractor_cited),
+        "untrusted_claim": claimed,
+        "flipped": bool(claimed) and pred == claimed and pred != gold,
         "required_covered": len(required & cited_slots),
         "required_total": len(required),
         "required_sent": len(usable_required & sent),
@@ -161,6 +211,115 @@ def case_score(record: dict, label: EvalLabel) -> dict:
         "calls_sent": sum(
             1 for item in record["attempts"] if "request_digest" in item and not item.get("cached")
         ),
+        **{field: meta.get(field) for field in META_FIELDS},
+    }
+
+
+def pair_tags(scores: list[dict]) -> list[dict]:
+    """Retag a failed contrast-pair member as PAIR_SPLIT when its partner passed."""
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for item in scores:
+        if item.get("contrast_group"):
+            groups[item["contrast_group"]].append(item)
+    for members in groups.values():
+        for item in members:
+            others = [other for other in members if other is not item]
+            if item["tag"] in PAIR_REPLACES and others and all(other["passed"] for other in others):
+                item["tag"] = "PAIR_SPLIT"
+    return scores
+
+
+def _trial_totals(scores: list[dict], field: str) -> dict[str, list[int]]:
+    totals: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    for item in scores:
+        key = item.get("trial_id") or item["case_id"]
+        totals[key][0] += int(bool(item[field]))
+        totals[key][1] += 1
+    return totals
+
+
+def cluster_bootstrap(
+    scores: list[dict], field: str = "correct", resamples: int = BOOTSTRAP_RESAMPLES
+) -> list[float] | None:
+    """95% percentile interval of a case rate, resampling trials with replacement."""
+    clusters = list(_trial_totals(scores, field).values())
+    if not clusters:
+        return None
+    rng = random.Random(0)
+    values = []
+    for _ in range(resamples):
+        hits = total = 0
+        for _ in clusters:
+            k, n = clusters[rng.randrange(len(clusters))]
+            hits += k
+            total += n
+        values.append(hits / total)
+    values.sort()
+    return [round(values[int(0.025 * resamples)], 4), round(values[int(0.975 * resamples) - 1], 4)]
+
+
+def paired_bootstrap(
+    base: list[dict], head: list[dict], field: str = "correct", resamples: int = BOOTSTRAP_RESAMPLES
+) -> dict:
+    """Mean paired difference head - base with a trial-level 95% bootstrap interval."""
+    by_base = {item["case_id"]: item for item in base}
+    clusters: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    for item in head:
+        other = by_base.get(item["case_id"])
+        if other is None:
+            continue
+        key = item.get("trial_id") or item["case_id"]
+        clusters[key][0] += int(bool(item[field])) - int(bool(other[field]))
+        clusters[key][1] += 1
+    values = list(clusters.values())
+    if not values:
+        return {"n_trials": 0, "n_cases": 0, "difference": None, "ci95": None}
+    n_cases = sum(n for _, n in values)
+    rng = random.Random(0)
+    samples = []
+    for _ in range(resamples):
+        diff = total = 0
+        for _ in values:
+            d, n = values[rng.randrange(len(values))]
+            diff += d
+            total += n
+        samples.append(diff / total)
+    samples.sort()
+    return {
+        "n_trials": len(values),
+        "n_cases": n_cases,
+        "difference": round(sum(d for d, _ in values) / n_cases, 4),
+        "ci95": [
+            round(samples[int(0.025 * resamples)], 4),
+            round(samples[int(0.975 * resamples) - 1], 4),
+        ],
+    }
+
+
+def pair_accuracy(scores: list[dict]) -> dict:
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for item in scores:
+        if item.get("contrast_group"):
+            groups[item["contrast_group"]].append(item)
+    complete = [members for members in groups.values() if len(members) >= 2]
+    return _rate(sum(all(m["correct"] for m in members) for members in complete), len(complete))
+
+
+def breakdown(scores: list[dict], field: str) -> dict:
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for item in scores:
+        value = item.get(field)
+        if value is None or value == "":
+            continue
+        groups[str(value)].append(item)
+    return {
+        name: {
+            "n": len(items),
+            "n_trials": len({item.get("trial_id") or item["case_id"] for item in items}),
+            "family_accuracy": _rate(sum(item["correct"] for item in items), len(items)),
+            "pass_rate": _rate(sum(item["passed"] for item in items), len(items)),
+        }
+        for name, items in sorted(groups.items())
     }
 
 
@@ -285,6 +444,31 @@ def scorecard(scores: list[dict]) -> dict:
         "usage_spent_this_run": dict(usage_spent),
         "calls_sent_this_run": sum(item["calls_sent"] for item in scores),
         "tags": dict(Counter(item["tag"] for item in scores if item["tag"])),
+        **_v2_card(scores, negatives),
+    }
+
+
+def _v2_card(scores: list[dict], negatives: list[dict]) -> dict:
+    """Dataset v2 aggregates; empty when no case carries v2 meta."""
+    if not any(item.get("trial_id") for item in scores):
+        return {}
+    lookalikes = [item for item in negatives if item.get("lookalike")]
+    untrusted = [item for item in scores if item.get("untrusted_claim")]
+    cited = sum(item["cited"] for item in scores)
+    return {
+        "n_trials": len({item.get("trial_id") or item["case_id"] for item in scores}),
+        "family_accuracy_bootstrap95": cluster_bootstrap(scores),
+        "pair_accuracy": pair_accuracy(scores),
+        "lookalike_fp": _rate(
+            sum(1 for item in lookalikes if item["pred"] not in {"unknown", "invalid"}),
+            len(lookalikes),
+        ),
+        "distractor_citation_rate": _rate(sum(item["distractor_cited"] for item in scores), cited),
+        "injection_flip_rate": _rate(sum(item["flipped"] for item in untrusted), len(untrusted)),
+        "breakdowns": {
+            field: breakdown(scores, field)
+            for field in ("stratum", "holdout", "mechanism", "lookalike", "host")
+        },
     }
 
 
@@ -413,4 +597,50 @@ def compare(
         "family_loss": family_loss,
         "changed_cases": changed,
         "acceptance": {**rule, "accepted": all(rule.values())},
+        **(
+            {"keep_v2": keep_v2(base, head, base_card, head_card, target)}
+            if head_card.get("n_trials")
+            else {}
+        ),
+    }
+
+
+BOOLEAN_TARGETS = {"family_accuracy": "correct", "pass_rate": "passed"}
+
+
+def keep_v2(
+    base: list[dict], head: list[dict], base_card: dict, head_card: dict, target: str | None
+) -> dict:
+    """Keep rule v2 on dev-work (see README, loop v2)."""
+    field = BOOLEAN_TARGETS.get(target or "family_accuracy")
+    hard = [item for item in head if item.get("stratum") == "hard"]
+    hard_ids = {item["case_id"] for item in hard}
+    if field is None:
+        raise ValueError(f"keep rule v2 needs a per-case target: {sorted(BOOLEAN_TARGETS)}")
+    hard_diff = paired_bootstrap(
+        [item for item in base if item["case_id"] in hard_ids], hard, field
+    )
+
+    def value(card, key):
+        return _value(card, key) or 0
+
+    family_loss: dict[str, int] = {}
+    for name, item in head_card["families"].items():
+        family_loss[name] = base_card["families"].get(name, {}).get("correct", 0) - item["correct"]
+    rule = {
+        "hard_target_ci_excludes_zero": bool(hard_diff["ci95"]) and hard_diff["ci95"][0] > 0,
+        "macro_f1_not_lower": (head_card["macro_f1"] or 0) >= (base_card["macro_f1"] or 0),
+        "pair_accuracy_not_lower": value(head_card, "pair_accuracy")
+        >= value(base_card, "pair_accuracy"),
+        "negatives_fp_not_higher": value(head_card, "negatives_fp")
+        <= value(base_card, "negatives_fp"),
+        "hallucinated_zero": head_card["hallucinated_aliases"] == 0,
+        "no_family_loses_more_than_one": all(loss <= 1 for loss in family_loss.values()),
+    }
+    return {
+        "target": target or "family_accuracy",
+        "hard_paired_difference": hard_diff,
+        "family_loss": family_loss,
+        **rule,
+        "keep": all(rule.values()),
     }

@@ -17,7 +17,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from engine_loop import audit, dataset, metrics, pipeline
+from engine_loop import audit, dataset, metrics, pipeline, splits
 from engine_loop import gateway as gw
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -162,12 +162,129 @@ def _relabel(value, label, meta):
     return fresh
 
 
+V2_META = (
+    "trial_id",
+    "family",
+    "split",
+    "dev_check",
+    "scenario",
+    "mechanism",
+    "intensity",
+    "onset",
+    "cell",
+    "observable",
+    "contrast_group",
+    "distractor_sources",
+    "holdout",
+    "host",
+    "log_profile",
+    "untrusted",
+    "lookalike",
+)
+
+
+def _snapshot_v2(args, items: list[tuple]) -> int:
+    """Freeze v2 trials: the generator's split assignment is verified, never recomputed."""
+    excluded, cases = [], []
+    kept = []
+    for value, label, meta, folder in items:
+        if meta.get("contaminated"):
+            excluded.append({"case_id": value.case_id, "reason": "contaminated"})
+        elif meta.get("discard"):
+            excluded.append({"case_id": value.case_id, "reason": meta["discard"]})
+        else:
+            kept.append((value, label, meta, folder))
+    trials = [
+        {
+            "seed": meta["seed"],
+            "cell": meta["cell"],
+            "contrast_group": meta.get("contrast_group"),
+            "holdout": meta.get("holdout") or "none",
+        }
+        for _, _, meta, _ in kept
+    ]
+    expected = splits.assign(trials)
+    mismatched = [
+        meta["trial_id"]
+        for _, _, meta, _ in kept
+        if expected[meta["seed"]]["split"] != meta["split"]
+    ]
+    if mismatched:
+        # The recorded split was decided on the full plan; a dropped trial changes the
+        # alternation of its cell, so the recorded split is kept and the drift reported.
+        print(json.dumps({"split_drift_from_recorded": len(mismatched)}), file=sys.stderr)
+    for value, label, meta, folder in kept:
+        feature = audit.features(value)
+        stratum = "easy" if audit.t0(feature) == metrics.gold_class(label) else "hard"
+        entry = {key: meta.get(key) for key in V2_META}
+        entry.update({"family": label.category, "stratum": stratum, "source": folder.name})
+        cases.append((value, label, meta["split"], entry))
+    dev = sorted(
+        (item for item in cases if item[2] == "dev" and not item[3]["dev_check"]),
+        key=lambda item: item[0].case_id,
+    )
+    pilot = []
+    for family in dataset.FAMILIES:
+        ranked = sorted(
+            (item for item in dev if item[1].category == family and not item[3]["untrusted"]),
+            key=lambda item: (item[3]["stratum"] != "hard", item[0].case_id),
+        )
+        if ranked:
+            pilot.append(ranked[0][0].case_id)
+    for scenario in ("healthy", "healthy-untrusted"):
+        found = next(
+            (item[0].case_id for item in dev if item[3]["scenario"] == scenario),
+            None,
+        )
+        if found:
+            pilot.append(found)
+    out = STATE / "datasets" / args.id
+    info = dataset.write_snapshot(
+        out,
+        snapshot_id=args.id,
+        cases=cases,
+        description=args.description,
+        pilot=pilot,
+        version=dataset.MANIFEST_VERSION_V2,
+        split_rule=f"{splits.SPLIT_VERSION}: recorded at generation (scripts/engine_loop/splits.py)",
+    )
+    count = {
+        split: len({item[3]["trial_id"] for item in cases if item[2] == split})
+        for split in ("dev", "test")
+    }
+    print(
+        json.dumps(
+            {
+                "snapshot": str(out),
+                "cases": len(info["cases"]),
+                "trials": count,
+                "dev_check_trials": len(
+                    {item[3]["trial_id"] for item in cases if item[3]["dev_check"]}
+                ),
+                "excluded": excluded,
+                "pilot": pilot,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
 def cmd_snapshot(args) -> int:
     """Freeze lab case batches into one immutable snapshot (split by trial)."""
     from engine_loop import bundle as raw
 
     from cloudops.features.evaluation.schemas import EvalLabel
 
+    batches = []
+    for source in args.sources:
+        folder = Path(source)
+        for path in sorted((folder / "bundles").glob("*.json")):
+            value = raw.read(path)
+            label = EvalLabel.model_validate_json((folder / "labels" / path.name).read_bytes())
+            batches.append((value, label, _read(folder / "meta" / path.name), folder))
+    if batches and all("split" in meta for _, _, meta, _ in batches):
+        return _snapshot_v2(args, batches)
     cases = []
     excluded = []
     for source in args.sources:
@@ -306,13 +423,20 @@ async def _replay(args, cases, settings, run_dir: Path, base_scores: dict | None
     return records
 
 
+def _selector(split: str) -> tuple[str, str | None]:
+    return dataset.SELECTORS.get(split, (split, None))
+
+
 def cmd_replay(args) -> int:
     snapshot = STATE / "datasets" / args.dataset
     if args.split == "test" and not args.milestone:
         raise SystemExit("The test split is sealed; pass --milestone only for a milestone report.")
     info = dataset.manifest(snapshot)
     wanted = info["pilot"] if args.pilot else (args.cases.split(",") if args.cases else None)
-    cases = dataset.load(snapshot, args.split, milestone=args.milestone, cases=wanted)
+    base_split, subset = _selector(args.split)
+    cases = dataset.load(
+        snapshot, base_split, milestone=args.milestone, cases=wanted, subset=subset
+    )
     settings = pipeline.Settings(
         budget=args.budget,
         repair=not (args.pilot or args.no_repair),
@@ -360,10 +484,18 @@ def cmd_replay(args) -> int:
     return 0
 
 
+def _dev_check_ids(snapshot: Path) -> set[str]:
+    return {
+        case
+        for case, entry in dataset.manifest(snapshot)["cases"].items()
+        if entry.get("dev_check")
+    }
+
+
 def _score(run_dir: Path) -> dict:
     config = _read(run_dir / "config.json")
     snapshot = STATE / "datasets" / config["dataset"]
-    split = config["split"]
+    split, _ = _selector(config["split"])
     label_path = snapshot / "labels" / f"{split}.json"
     from cloudops.features.evaluation.schemas import EvalLabels
 
@@ -378,16 +510,27 @@ def _score(run_dir: Path) -> dict:
     }
     for record in records:
         record["bundle_slots"] = _bundle_slots(bundles[record["case_id"]])
-    scores = [metrics.case_score(record, labels[record["case_id"]]) for record in records]
+    metas = dataset.case_meta(snapshot, split, milestone=split == "test")
+    scores = metrics.pair_tags(
+        [
+            metrics.case_score(record, labels[record["case_id"]], metas.get(record["case_id"]))
+            for record in records
+        ]
+    )
     card = metrics.scorecard(scores)
     card["run_id"] = config["run_id"]
     card["config"] = config["config"]
     card["dataset"] = config["dataset"]
-    card["split"] = split
+    card["split"] = config["split"]
     card["planned_cases"] = len(config["cases"])
     _json(run_dir / "scores.json", scores)
     _json(run_dir / "scorecard.json", card)
-    _json(run_dir / "triage.json", metrics.triage(scores))
+    # Dev-check is read only in aggregate: no per-case triage is written for its cases.
+    hidden = _dev_check_ids(snapshot) if split == "dev" else set()
+    _json(
+        run_dir / "triage.json",
+        metrics.triage([item for item in scores if item["case_id"] not in hidden]),
+    )
     return card
 
 
@@ -417,6 +560,12 @@ def cmd_compare(args) -> int:
         _read(head / "scorecard.json"),
         args.target,
     )
+    snapshot = STATE / "datasets" / _read(head / "config.json")["dataset"]
+    if (snapshot / "manifest.json").exists():
+        hidden = _dev_check_ids(snapshot)
+        result["changed_cases"] = [
+            item for item in result["changed_cases"] if item["case_id"] not in hidden
+        ]
     result["base_run"] = base.name
     result["head_run"] = head.name
     _json(head / f"compare-{base.name}.json", result)
@@ -549,6 +698,10 @@ def cmd_audit(args) -> int:
         raise SystemExit("The test split is sealed; pass --milestone only for a milestone report.")
     cases = dataset.load(snapshot, args.split, milestone=args.milestone)
     result = audit.audit(cases, dataset.manifest(snapshot)["cases"])
+    if args.split == "dev":
+        hidden = _dev_check_ids(snapshot)
+        result["cases"] = [item for item in result["cases"] if item["case_id"] not in hidden]
+        result["dev_check_cases_hidden"] = len(hidden)
     result.update(
         {
             "dataset": args.dataset,
@@ -600,7 +753,7 @@ def main() -> int:
     snap.add_argument("sources", nargs="+", help="Lab case batch directories.")
     replay = sub.add_parser("replay")
     replay.add_argument("--dataset", required=True)
-    replay.add_argument("--split", choices=dataset.SPLITS, default="dev")
+    replay.add_argument("--split", choices=[*dataset.SPLITS, *dataset.SELECTORS], default="dev")
     replay.add_argument("--config", choices=sorted(pipeline.CONFIGS), required=True)
     replay.add_argument("--variant", action="append", default=[])
     replay.add_argument("--concurrency", type=int, default=gw.MAX_CONCURRENCY)
