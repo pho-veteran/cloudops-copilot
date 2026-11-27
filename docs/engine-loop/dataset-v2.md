@@ -263,7 +263,7 @@ Each slice is one PR. Slices 2-6 need no model calls.
 1. Difficulty audit, leak scan and the T0 and P0 baselines over existing snapshots
    *(exists)*.
 2. Opaque ids, neutral lab names, the meta fields above, stratified split assignment,
-   and the new scorecard breakdowns with the cluster bootstrap.
+   and the new scorecard breakdowns with the cluster bootstrap *(exists: `engine_loop/splits.py`, `metrics.py`)*.
 3. Sample application: crash-after, error fraction, leak, required setting, log
    profiles and the request-field log flag.
 4. Lab fault mechanisms and look-alikes in `manage-local-lab.py`, each with a verified

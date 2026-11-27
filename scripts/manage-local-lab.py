@@ -3945,7 +3945,8 @@ print(json.dumps({
             wanted["resources"]["requests"]["cpu"] = "100"
             wanted["resources"]["limits"]["cpu"] = "100"
         elif scenario == "imagepull":
-            wanted["image"] = "127.0.0.1:1/cloudops-unavailable:bounded"
+            # A neutral name: the reference itself must not name the scenario.
+            wanted["image"] = "127.0.0.1:1/shop/checkout:2.4.1"
             wanted["imagePullPolicy"] = "Always"
         elif scenario == "init-retry":
             require(

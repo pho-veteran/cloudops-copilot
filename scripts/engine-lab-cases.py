@@ -197,7 +197,7 @@ class Generator:
                     "apiVersion": "v1",
                     "kind": "Event",
                     "metadata": {
-                        "name": f"engine-noise-{time.time_ns()}-{index}",
+                        "name": f"checkout.{time.time_ns():x}{index:02d}",
                         "namespace": "demo",
                     },
                     "involvedObject": {
@@ -215,7 +215,7 @@ class Generator:
                     "count": 1,
                     "firstTimestamp": stamp,
                     "lastTimestamp": stamp,
-                    "source": {"component": "engine-lab-noise"},
+                    "source": {"component": "config-agent"},
                 }
             )
         self.kubectl("apply", "-f", "-", body={"apiVersion": "v1", "kind": "List", "items": items})
