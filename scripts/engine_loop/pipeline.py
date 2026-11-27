@@ -461,7 +461,10 @@ async def run_b4(value, *, settings: Settings, gateway: Gateway) -> dict:
     if advice is None:
         return {**record, "attempts": attempts, "final": {"source": "model_invalid"}}
     checked, note = consistency.check(
-        advice, detection, context, policy=settings.variant.get("consistency", "off")
+        advice,
+        detection,
+        context,
+        policy=settings.variant.get("consistency", consistency.DEFAULT_POLICY),
     )
     return {
         **record,
