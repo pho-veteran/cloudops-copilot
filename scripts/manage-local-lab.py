@@ -4609,6 +4609,13 @@ print(json.dumps({
             record["quota"] = True
         private_write(path, json.dumps(record))
         if quota and self.engine_quota() is None:
+            # Exactly the Pods that exist now: the rollout's next Pod exceeds the quota.
+            pods = json.loads(self.kube("get", "pods", "-n", "demo", "-o", "json"))["items"]
+            count = sum(
+                1
+                for pod in pods
+                if (pod.get("status") or {}).get("phase") not in {"Succeeded", "Failed"}
+            )
             self.kube(
                 "apply",
                 "-f",
@@ -4617,7 +4624,7 @@ print(json.dumps({
                     "apiVersion": "v1",
                     "kind": "ResourceQuota",
                     "metadata": {"name": ENGINE_QUOTA, "namespace": "demo"},
-                    "spec": {"hard": {"pods": "2"}},
+                    "spec": {"hard": {"pods": str(count)}},
                 },
             )
         changes = []

@@ -82,6 +82,9 @@ class FakeCluster:
         return self.quota
 
     def kube(self, *args, body=None, timeout=60):
+        if args[:2] == ("get", "pods"):
+            phases = ("Running", "Running", "Succeeded")
+            return json.dumps({"items": [{"status": {"phase": phase}} for phase in phases]})
         if args[:2] == ("apply", "-f"):
             assert body["kind"] == "ResourceQuota" and body["spec"] == {"hard": {"pods": "2"}}
             self.quota = body
