@@ -153,3 +153,46 @@ def test_hypothesis_sections_cite_only_sent_aliases_and_consistency_downgrades()
     assert validate_structural(context, downgraded) == []
     flagged, note = consistency.check(wrong, detection, context, policy="flag")
     assert flagged == wrong and note["action"] == "flag"
+
+
+def test_required_citations_policy_moves_only_non_required_support():
+    from cloudops.features.diagnosis.context import family_matrix
+    from cloudops.features.diagnosis.engine import consistency, detector
+    from cloudops.features.diagnosis.versions import FAMILY_REQUIRED
+
+    case_id = "c03"
+    materials = [
+        _material(slot, payload, case_id)
+        for slot, payload in CASES[case_id]["evidence"].items()
+        if slot in SOURCE_CLASSES
+    ]
+    table = signals.extract(materials)
+    detection = detector.detect(table, family_matrix(materials, _policy()))
+    context = selection.assemble(
+        materials,
+        _scope(case_id),
+        _policy(),
+        profile(),
+        "engine-test",
+        system_prompt=prompt.PROMPTS[prompt.PROMPT_V3],
+        prompt_version=prompt.PROMPT_V3,
+        table=table,
+    )
+    assert isinstance(context, PreparedContext)
+    slot_of = {
+        t.alias: t.source_key for t in (*context.required_targets, *context.optional_targets)
+    }
+    advice = compare(context)
+    required = set(FAMILY_REQUIRED[advice.cause_category])
+    inside = [alias for alias, slot in slot_of.items() if slot in required][:2]
+    outside = [alias for alias, slot in slot_of.items() if slot not in required][:1]
+    assert inside and outside
+    mixed = advice.model_copy(update={"supporting_evidence_ids": sorted(inside + outside)})
+    assert validate_structural(context, mixed) == []
+    pruned, note = consistency.check(mixed, detection, context, policy="required_citations")
+    assert note["action"] == "prune_citations" and note["dropped"] == outside
+    assert pruned.supporting_evidence_ids == sorted(inside)
+    assert validate_structural(context, pruned) == []
+    only_outside = advice.model_copy(update={"supporting_evidence_ids": outside})
+    kept, note = consistency.check(only_outside, detection, context, policy="required_citations")
+    assert kept == only_outside and note["action"] == "none"
