@@ -125,6 +125,10 @@ Run both through the backend environment, for example
 ```text
 engine-lab-cases.py --out lab-cases/<batch> --plan smoke|m0 --batch <letter>
                                     # lab trials -> RawEvidenceBundle + label + meta
+engine-lab-cases.py --out lab-cases/<batch> --plan v2|v2-smoke --host laptop|ec2
+                    [--prefix lab-v4] [--cells A,B]
+                                    # dataset v2 trials of one host, opaque ids, split
+                                    # recorded at generation, observability check
 engine-loop.py probe                # session-start endpoint probe
 engine-loop.py fixture-snapshot     # freeze the 12 E06 fixtures (split "smoke")
 engine-loop.py snapshot --id ID --description TEXT lab-cases/<batch>...
