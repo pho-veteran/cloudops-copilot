@@ -1,4 +1,9 @@
-"""Finite load against one of two owned Services; no arbitrary destination or request data."""
+"""Finite load against one of two owned Services; no arbitrary destination.
+
+The only request data is an optional bounded, printable ``note`` query field that the
+engine lab uses for untrusted client text; the sample application logs it only when its
+Deployment enables that.
+"""
 
 import argparse
 from collections import Counter
@@ -9,10 +14,17 @@ import math
 import threading
 import time
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from urllib.request import ProxyHandler, build_opener
 
 
-def run(target, seconds, rate, *, concurrency=4, on_attempt=None, deadline=None):
+def run(target, seconds, rate, *, concurrency=4, on_attempt=None, deadline=None, note=None):
+    if note is not None and (
+        not isinstance(note, str)
+        or not 1 <= len(note) <= 200
+        or not all(ch.isprintable() for ch in note)
+    ):
+        raise ValueError("A note is 1..200 printable characters.")
     if (
         target not in {"checkout", "history", "both"}
         or not 1 <= seconds <= 21600
@@ -32,6 +44,8 @@ def run(target, seconds, rate, *, concurrency=4, on_attempt=None, deadline=None)
 
     def request(destination):
         url = f"http://k3s:{30080 if destination == 'checkout' else 30081}/work"
+        if note is not None:
+            url += "?" + urlencode({"note": note})
         try:
             remaining = 2 if deadline is None else min(2, deadline - time.time())
             if remaining <= 0:
@@ -90,5 +104,16 @@ if __name__ == "__main__":
     parser.add_argument("--seconds", type=int, default=90)
     parser.add_argument("--rate", type=int, default=5)
     parser.add_argument("--deadline", type=float)
+    parser.add_argument("--note")
     options = parser.parse_args()
-    print(json.dumps(run(options.target, options.seconds, options.rate, deadline=options.deadline)))
+    print(
+        json.dumps(
+            run(
+                options.target,
+                options.seconds,
+                options.rate,
+                deadline=options.deadline,
+                note=options.note,
+            )
+        )
+    )
