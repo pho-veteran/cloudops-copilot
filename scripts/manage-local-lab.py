@@ -325,6 +325,206 @@ def namespace_recreate_arguments():
     return ["up", "-d", "--no-deps", "--force-recreate", "prometheus"]
 
 
+# Dataset v2 engine-lab mechanisms. Only the engine lab accepts them; each changes the
+# checkout Pod template (and, for quota, one owned ResourceQuota) and is undone by
+# `engine-reset`, which restores the recorded template and verifies the canonical baseline.
+ENGINE_PROJECT = "cloudops-engine-lab"
+ENGINE_QUOTA = "checkout-capacity"
+ENGINE_PROFILE_KEYS = (
+    "LAB_SEED",
+    "LAB_LOG_PROFILE",
+    "LAB_REQUEST_LOG",
+    "LAB_SERVICE_MS",
+    "LAB_WARN_EVERY_S",
+    "LAB_LOG_FIELD",
+)
+ENGINE_MECHANISMS = (
+    "profile",
+    "benign",
+    "crash-startup",
+    "crash-after",
+    "crash-setting",
+    "liveness",
+    "oom-alloc",
+    "oom-leak",
+    "slow",
+    "errors",
+    "throttle",
+    "pending-cpu",
+    "pending-memory",
+    "pending-selector",
+    "image-unreachable",
+    "image-invalid",
+    "image-never",
+    "config-ref",
+    "memory-hold",
+    "quota",
+    "readiness-wrong",
+    "scale-zero",
+    "once",
+)
+ENGINE_PARAM = re.compile(r"^[a-z_]{1,32}$")
+ENGINE_VALUE = re.compile(r"^[A-Za-z0-9._-]{0,48}$")
+
+
+def _set_env(container, values):
+    env = [entry for entry in container.get("env") or [] if entry["name"] not in values]
+    env += [{"name": name, "value": str(value)} for name, value in values.items()]
+    container["env"] = sorted(env, key=lambda entry: entry["name"])
+
+
+def _memory(container, limit):
+    container["resources"]["limits"]["memory"] = limit
+    container["resources"]["requests"]["memory"] = "32Mi"
+
+
+def engine_template(mechanism, spec, replicas, params):
+    """Return the (pod spec, replicas, quota) after one mechanism; the input is not changed."""
+    require(mechanism in ENGINE_MECHANISMS, "Unknown engine-lab mechanism.")
+    for key, value in params.items():
+        require(
+            ENGINE_PARAM.fullmatch(key) and ENGINE_VALUE.fullmatch(str(value)),
+            "Engine-lab parameters must be short plain values.",
+        )
+    spec = copy.deepcopy(spec)
+    container = spec["containers"][0]
+    quota = False
+    get = params.get
+    if mechanism == "profile":
+        values = {
+            "LAB_SEED": get("seed", "0"),
+            "LAB_LOG_PROFILE": get("log_profile", "plain"),
+            "LAB_REQUEST_LOG": "1",
+            "LAB_SERVICE_MS": get("service_ms", "80"),
+        }
+        if get("warn_every_s"):
+            values["LAB_WARN_EVERY_S"] = get("warn_every_s")
+        if get("log_field") == "1":
+            values["LAB_LOG_FIELD"] = "1"
+        _set_env(container, values)
+    elif mechanism == "benign":
+        values = {"LAB_SEED": get("seed", "0") + "-r"}
+        if get("ready_delay_s"):
+            values["LAB_READY_DELAY_S"] = get("ready_delay_s")
+        _set_env(container, values)
+    elif mechanism == "crash-startup":
+        _set_env(container, {"LAB_MODE": "crash"})
+    elif mechanism == "crash-after":
+        _set_env(container, {"LAB_MODE": "crash_after", "LAB_CRASH_AFTER_S": get("after_s", "20")})
+    elif mechanism == "crash-setting":
+        _set_env(container, {"LAB_MODE": "setting"})
+    elif mechanism == "liveness":
+        container["livenessProbe"] = {
+            "httpGet": {"path": get("path", "/healthz"), "port": 8080},
+            "initialDelaySeconds": 5,
+            "periodSeconds": 3,
+            "timeoutSeconds": 1,
+            "failureThreshold": 2,
+        }
+        if get("ignore_term") == "1":
+            _set_env(container, {"LAB_IGNORE_TERM": "1"})
+            spec["terminationGracePeriodSeconds"] = 3
+    elif mechanism == "oom-alloc":
+        _memory(container, get("limit", "32Mi"))
+        _set_env(container, {"LAB_MODE": "oom", "LAB_ALLOC_MIB": get("alloc_mib", "128")})
+    elif mechanism == "oom-leak":
+        _memory(container, get("limit", "96Mi"))
+        _set_env(container, {"LAB_MODE": "leak", "LAB_LEAK_MIB_PER_S": get("mib_per_s", "1.5")})
+    elif mechanism == "slow":
+        values = {"LAB_MODE": "slow", "LAB_DELAY_MS": get("delay_ms", "400")}
+        if get("errors") == "0":
+            values["LAB_SLOW_ERRORS"] = "0"
+        if get("share"):
+            values["LAB_SLOW_SHARE"] = get("share")
+        _set_env(container, values)
+    elif mechanism == "errors":
+        _set_env(container, {"LAB_MODE": "errors", "LAB_ERROR_FRACTION": get("fraction", "0.5")})
+    elif mechanism == "throttle":
+        container["resources"]["limits"]["cpu"] = get("cpu", "25m")
+        container["resources"]["requests"]["cpu"] = "10m"
+        _set_env(container, {"LAB_WORK_MS": get("work_ms", "20")})
+    elif mechanism == "pending-cpu":
+        container["resources"]["requests"]["cpu"] = "100"
+        container["resources"]["limits"]["cpu"] = "100"
+    elif mechanism == "pending-memory":
+        container["resources"]["requests"]["memory"] = "64Gi"
+        container["resources"]["limits"]["memory"] = "64Gi"
+    elif mechanism == "pending-selector":
+        spec["nodeSelector"] = {"node.kubernetes.io/pool": get("pool", "checkout-large")}
+    elif mechanism == "image-unreachable":
+        container["image"] = "127.0.0.1:1/shop/checkout:2.4.1"
+        container["imagePullPolicy"] = "Always"
+    elif mechanism == "image-invalid":
+        container["image"] = "shop/Checkout:2.4.1"
+        container["imagePullPolicy"] = "IfNotPresent"
+    elif mechanism == "image-never":
+        container["image"] = "docker.io/library/checkout-cache:2.4.1"
+        container["imagePullPolicy"] = "Never"
+    elif mechanism == "config-ref":
+        env = [entry for entry in container.get("env") or [] if entry["name"] != "PAYMENT_ENDPOINT"]
+        env.append(
+            {
+                "name": "PAYMENT_ENDPOINT",
+                "valueFrom": {"configMapKeyRef": {"name": "checkout-settings", "key": "endpoint"}},
+            }
+        )
+        container["env"] = sorted(env, key=lambda entry: entry["name"])
+    elif mechanism == "memory-hold":
+        _memory(container, get("limit", "96Mi"))
+        _set_env(container, {"LAB_MODE": "hold", "LAB_HOLD_MIB": get("hold_mib", "70")})
+    elif mechanism == "quota":
+        quota = True
+        _set_env(container, {"LAB_SEED": get("seed", "0") + "-q"})
+    elif mechanism == "readiness-wrong":
+        container["readinessProbe"] = {
+            **container.get("readinessProbe", {}),
+            "httpGet": {"path": get("path", "/ready"), "port": 8080},
+        }
+    elif mechanism == "scale-zero":
+        replicas = 0
+    elif mechanism == "once":
+        kind = get("kind", "crash")
+        require(kind in {"crash", "oom"}, "LAB_ONCE is crash or oom.")
+        spec["volumes"] = [{"name": "state", "emptyDir": {"sizeLimit": "1Mi"}}]
+        container["volumeMounts"] = [{"name": "state", "mountPath": "/state"}]
+        values = {"LAB_ONCE": kind, "LAB_STATE_DIR": "/state", "LAB_ONCE_AFTER_S": "10"}
+        if kind == "oom":
+            _memory(container, get("limit", "96Mi"))
+            values["LAB_ALLOC_MIB"] = "256"
+        _set_env(container, values)
+    return spec, replicas, quota
+
+
+def engine_baseline_problems(deployment):
+    """Differences between the checkout Deployment and the engine lab's canonical baseline."""
+    spec = deployment["spec"]["template"]["spec"]
+    container = spec["containers"][0]
+    problems = []
+    if deployment["spec"].get("replicas", 1) != 1:
+        problems.append("replicas")
+    if container.get("image") != SAMPLE_CTR_IMAGE or container.get("imagePullPolicy") != "Never":
+        problems.append("image")
+    if container.get("resources") != {
+        "requests": {"cpu": "50m", "memory": "32Mi"},
+        "limits": {"cpu": "400m", "memory": "160Mi"},
+    }:
+        problems.append("resources")
+    if any(
+        entry["name"].startswith("LAB_") or "valueFrom" in entry
+        for entry in container.get("env") or []
+    ):
+        problems.append("env")
+    if container.get("livenessProbe") or container.get("volumeMounts"):
+        problems.append("probe_or_mounts")
+    if (container.get("readinessProbe") or {}).get("httpGet", {}).get("path") != "/health":
+        problems.append("readiness")
+    if spec.get("nodeSelector") or spec.get("volumes") or spec.get("initContainers"):
+        problems.append("pod_fields")
+    if spec.get("terminationGracePeriodSeconds", 30) != 30:
+        problems.append("grace_period")
+    return problems
+
+
 class Lab:
     def __init__(self, directory=DIRECTORY):
         self.directory = Path(directory)
@@ -4098,6 +4298,10 @@ print(json.dumps({
         fault_path = self.directory / "fault.json"
         has_fault = fault_path.is_file()
         require(
+            not has_fault or json.loads(fault_path.read_text()).get("kind") != "engine-v2",
+            "An engine-lab mechanism is recorded; use engine-reset.",
+        )
+        require(
             has_fault or trial is not None,
             "No recorded fault or E10 trial; refusing an unspecified reset.",
         )
@@ -4360,6 +4564,126 @@ print(json.dumps({
             if lab_restored:
                 self.trial_path.unlink(missing_ok=True)
                 fault_path.unlink(missing_ok=True)
+
+    def engine_quota(self):
+        return self.get("resourcequota", ENGINE_QUOTA, "demo")
+
+    def engine_apply(self, mechanism, params):
+        """Apply one dataset v2 mechanism to checkout; the first call records the baseline."""
+        require(
+            OWNED_PROJECT == ENGINE_PROJECT, "Engine-lab mechanisms run only in the engine lab."
+        )
+        require(
+            not self.trial_path.exists(), "An E10 trial is recorded; engine mechanisms refused."
+        )
+        self.no_execution()
+        path = self.directory / "fault.json"
+        live = self.deployment("checkout")
+        if path.exists():
+            record = json.loads(path.read_text())
+            require(record.get("kind") == "engine-v2", "A fixed fault is recorded; reset it first.")
+            require(live["metadata"]["uid"] == record["uid"], "Fault target was replaced.")
+        else:
+            problems = engine_baseline_problems(live)
+            require(not problems, f"Checkout is not at the engine baseline: {', '.join(problems)}.")
+            require(self.engine_quota() is None, "An engine quota already exists.")
+            record = {
+                "kind": "engine-v2",
+                "uid": live["metadata"]["uid"],
+                "scenario": "engine-v2",
+                "before": {
+                    "template_spec": live["spec"]["template"]["spec"],
+                    "replicas": live["spec"].get("replicas", 1),
+                },
+                "steps": [],
+                "quota": False,
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+        spec, replicas, quota = engine_template(
+            mechanism, live["spec"]["template"]["spec"], live["spec"].get("replicas", 1), params
+        )
+        record["steps"].append(
+            {"mechanism": mechanism, "params": params, "at": datetime.now(timezone.utc).isoformat()}
+        )
+        if quota:
+            record["quota"] = True
+        private_write(path, json.dumps(record))
+        if quota and self.engine_quota() is None:
+            # Exactly the Pods that exist now: the rollout's next Pod exceeds the quota.
+            pods = json.loads(self.kube("get", "pods", "-n", "demo", "-o", "json"))["items"]
+            count = sum(
+                1
+                for pod in pods
+                if (pod.get("status") or {}).get("phase") not in {"Succeeded", "Failed"}
+            )
+            self.kube(
+                "apply",
+                "-f",
+                "-",
+                body={
+                    "apiVersion": "v1",
+                    "kind": "ResourceQuota",
+                    "metadata": {"name": ENGINE_QUOTA, "namespace": "demo"},
+                    "spec": {"hard": {"pods": str(count)}},
+                },
+            )
+        changes = []
+        if spec != live["spec"]["template"]["spec"]:
+            changes.append({"op": "replace", "path": "/spec/template/spec", "value": spec})
+        if replicas != live["spec"].get("replicas", 1):
+            changes.append({"op": "replace", "path": "/spec/replicas", "value": replicas})
+        if changes:
+            self.patch(live, changes)
+        return {"mechanism": mechanism, "changed": bool(changes), "quota": quota}
+
+    def engine_reset(self):
+        """Restore the recorded template, remove the engine quota and verify the baseline."""
+        require(OWNED_PROJECT == ENGINE_PROJECT, "Engine-lab reset runs only in the engine lab.")
+        path = self.directory / "fault.json"
+        require(path.is_file(), "No recorded engine mechanism to reset.")
+        record = json.loads(path.read_text())
+        require(record.get("kind") == "engine-v2", "The recorded fault is not an engine mechanism.")
+        self.no_execution()
+        if self.engine_quota() is not None:
+            self.kube("delete", "resourcequota", ENGINE_QUOTA, "-n", "demo", "--wait=true")
+        live = self.deployment("checkout")
+        require(
+            live["metadata"]["uid"] == record["uid"], "Fault target was replaced; reset refused."
+        )
+        before = record["before"]
+        changes = []
+        if live["spec"]["template"]["spec"] != before["template_spec"]:
+            changes.append(
+                {"op": "replace", "path": "/spec/template/spec", "value": before["template_spec"]}
+            )
+        if live["spec"].get("replicas", 1) != before["replicas"]:
+            changes.append({"op": "replace", "path": "/spec/replicas", "value": before["replicas"]})
+        if changes:
+            self.patch(live, changes)
+        self.wait_settled()
+        restored = self.deployment("checkout")
+        problems = engine_baseline_problems(restored)
+        require(
+            restored["spec"]["template"]["spec"] == before["template_spec"] and not problems,
+            f"Engine reset did not restore the baseline: {', '.join(problems) or 'template'}.",
+        )
+        require(self.engine_quota() is None, "Engine quota still present after reset.")
+        self.wait(
+            lambda: (self.deployment("checkout").get("status") or {}).get("readyReplicas") == 1,
+            "ready engine baseline",
+            120,
+        )
+        private_write(
+            self.directory / "receipts" / f"{time.time_ns()}-reset-private.json",
+            json.dumps(record, indent=2) + "\n",
+        )
+        path.unlink()
+        return {
+            "target_uid": record["uid"],
+            "steps": [step["mechanism"] for step in record["steps"]],
+            "restored_template": True,
+            "quota_removed": record["quota"],
+        }
 
     def observe(self):
         record = json.loads((self.directory / "fault.json").read_text())
@@ -4681,6 +5005,10 @@ def main():
             *RECOVERY_FAULTS.values(),
         ],
     )
+    engine = sub.add_parser("engine-fault", help="Apply one engine-lab dataset v2 mechanism.")
+    engine.add_argument("mechanism", choices=ENGINE_MECHANISMS)
+    engine.add_argument("--param", action="append", default=[], metavar="KEY=VALUE")
+    sub.add_parser("engine-reset", help="Undo engine-lab mechanisms and verify the baseline.")
     reset = sub.add_parser("reset")
     reset.add_argument(
         "--interrupted",
@@ -4770,6 +5098,12 @@ def main():
             lab.fault(args.scenario)
         elif args.operation == "reset":
             lab.reset(interrupted=args.interrupted)
+        elif args.operation == "engine-fault":
+            params = dict(item.split("=", 1) for item in args.param if "=" in item)
+            require(len(params) == len(args.param), "Use --param KEY=VALUE.")
+            lab.receipt("engine-fault", lab.engine_apply(args.mechanism, params))
+        elif args.operation == "engine-reset":
+            lab.receipt("engine-reset", lab.engine_reset())
         elif args.operation == "trial":
             if args.trial_operation == "begin":
                 lab.begin_trial(args.scenario_id, args.qualification_receipt)
