@@ -333,6 +333,12 @@ pre-registered. The seed prefix is `lab-v4b`, so the test split is new.
 With alternate assignment this gives 152 dev trials (31 of them dev-check) and 186 test
 trials. The decision and its reason are recorded in the ledger (`exp-0012`).
 
+Result: accepted on dev (ledger `exp-0013`): 0/0 leaks, T0 0.454, 54.6% hard. The
+engine-lab reader token expires 8 hours after lab start; 131 trials collected after that
+had every Kubernetes slot unavailable and were re-collected with the same seeds
+(`engine-lab-cases.py --seeds`, PR #163). Restart long collections with
+`renew-readers` before 8 hours. See the [loop v2 report](reports/v2-lab-v4.md).
+
 ## Delivery slices
 
 Each slice is one PR. Slices 2-6 need no model calls.
