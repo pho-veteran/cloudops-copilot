@@ -13,6 +13,7 @@ the local ledger (see [environment](environment.md#directory-layout-outside-git)
 | [data-and-evaluation.md](data-and-evaluation.md) | Case generation, bundle format, splits, configurations, metrics, failure taxonomy |
 | [environment.md](environment.md) | Local tiers, model endpoint variables, the three loop speeds, CLI and directory layout |
 | [reports/m0-m4.md](reports/m0-m4.md) | Milestone report M0-M4: dataset and commit identities, scorecards, sealed-test comparison, ablations |
+| [dataset-v2.md](dataset-v2.md) | Why `lab-v3` is saturated, and the dataset v2 design: label model, scenario catalog, leakage controls, splits, acceptance check |
 
 Status: in progress. Items marked **(exists)** are on `main`. Items marked
 **(to build)** do not exist yet.
@@ -114,6 +115,11 @@ confirmation through the product path.
 | M3 AI | B4 family accuracy ≥ 90% on dev. Evidence-citation precision ≥ 95%, recall ≥ 80%. 0 hallucinated aliases. Abstention correct on 100% of negatives. First-attempt schema-valid ≥ 95%. Analysis p50 ≤ 15 s |
 | M4 Robustness | Accuracy drop ≤ 10 points on noise variants against clean. B4 beats B1 on the sealed test split, McNemar p < 0.05, n ≥ 25 |
 | M5 Confirmation | A new declared 15-slot live campaign through the product path (E10 S6 protocol): ≥ 12/15 cause category, zero wrong-scope writes |
+
+M0-M4 were met on `lab-v3` ([report](reports/m0-m4.md)). `lab-v3` is saturated: a
+signature rule over three bundle features also scores 85/85 on its dev split. The loop therefore
+continues on [dataset v2](dataset-v2.md). M1-M4 are re-measured on its first accepted
+snapshot, and M0 for that snapshot is the dataset v2 acceptance check.
 
 ## Agent operating rules
 

@@ -4,6 +4,9 @@ Part of the [engine improvement loop](README.md).
 
 ## Data
 
+This section describes dataset v1 (`lab-v1` to `lab-v3`). The next datasets follow
+[dataset v2](dataset-v2.md), which changes labels, scenarios, ids and splits.
+
 ### Case generation (exists)
 
 `scripts/manage-local-lab.py fault <scenario>` supports `crashloop`, `oom`,
