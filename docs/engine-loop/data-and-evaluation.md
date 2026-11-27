@@ -4,6 +4,9 @@ Part of the [engine improvement loop](README.md).
 
 ## Data
 
+This section describes dataset v1 (`lab-v1` to `lab-v3`). The next datasets follow
+[dataset v2](dataset-v2.md), which changes labels, scenarios, ids and splits.
+
 ### Case generation (exists)
 
 `scripts/manage-local-lab.py fault <scenario>` supports `crashloop`, `oom`,
@@ -150,6 +153,8 @@ Ablations on B4:
 - Report n for every number.
 
 ### Acceptance rule for keeping a change (dev split)
+
+This is the v1 rule. On dataset v2 the [keep rule v2](README.md#keep-rule-v2-dev) applies.
 
 - Macro-F1 does not decrease, and the targeted metric improves.
 - Negatives false positive rate stays 0. Hallucinated aliases stay 0.
