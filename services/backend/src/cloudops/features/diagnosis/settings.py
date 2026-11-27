@@ -21,16 +21,32 @@ class Qualification(BaseModel):
     identity: dict[str, str]
 
 
+# Context profiles: the E06 product context, or the engine path (stages A-D).
+CONTEXT_PROFILES = ("e06", "engine")
+
+
 @dataclass(frozen=True)
 class Deployment:
     profile: ModelProfile | None
     policy: EgressPolicy | None
     qualification: Qualification | None
     problem: str | None = None
+    context_profile: str = "e06"
 
     def identity(self) -> dict[str, str]:
         if not self.profile or not self.policy:
             return {}
+        if self.context_profile == "engine":
+            from cloudops.features.diagnosis.engine import path, selection
+
+            return {
+                **self._identity(path.PROMPT_VERSION, selection.CONTEXT_VERSION),
+                "context_profile": path.PROFILE,
+                "engine_version": path.STAGES_VERSION,
+            }
+        return self._identity(PROMPT_VERSION, CONTEXT_VERSION)
+
+    def _identity(self, prompt_version: str, context_version: str) -> dict[str, str]:
         return {
             "config_id": self.profile.config_id,
             "config_version": self.profile.config_version,
@@ -38,8 +54,8 @@ class Deployment:
             "behavior_digest": self.profile.behavior_digest(),
             "model": self.profile.model or "",
             "policy_digest": self.policy.digest(),
-            "prompt_version": PROMPT_VERSION,
-            "context_version": CONTEXT_VERSION,
+            "prompt_version": prompt_version,
+            "context_version": context_version,
             "validator_version": VALIDATOR_VERSION,
             "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
         }
@@ -74,6 +90,9 @@ def load() -> Deployment:
             if len(payload) > 65536:
                 raise ValueError("Qualification exceeds bound.")
             qualification = Qualification.model_validate(json.loads(payload))
-        return Deployment(profile, policy, qualification)
+        context_profile = os.environ.get("DIAGNOSIS_CONTEXT_PROFILE") or "e06"
+        if context_profile not in CONTEXT_PROFILES:
+            raise ValueError("Unknown diagnosis context profile.")
+        return Deployment(profile, policy, qualification, context_profile=context_profile)
     except (ValueError, OSError):
         return Deployment(None, None, None, "configuration_invalid")

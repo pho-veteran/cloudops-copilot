@@ -20,11 +20,9 @@ from cloudops.features.diagnosis.context import ContextTarget, PreparedContext
 from cloudops.features.diagnosis.messages import Message, MessageError, serialize_payload
 from cloudops.features.diagnosis.profile import ModelProfile
 from cloudops.features.diagnosis.versions import (
-    CONTEXT_VERSION,
     FAMILY_REQUIRED,
     MAX_FEEDBACK_BYTES,
     MAX_FEEDBACK_FAILURES,
-    PROMPT_VERSION,
     VALIDATOR_VERSION,
 )
 from cloudops.features.investigations.citation_schemas import CitationRef
@@ -513,8 +511,8 @@ def normalize(context: PreparedContext, advice: RCAAdvice, resolver: Resolver) -
         incident_id=context.incident_id,
         context_digest=context.digest,
         validator_version=VALIDATOR_VERSION,
-        prompt_version=PROMPT_VERSION,
-        context_version=CONTEXT_VERSION,
+        prompt_version=context.prompt_version,
+        context_version=context.context_version,
         policy_version=context.policy_version,
         status=advice.status,
         cause_category=advice.cause_category,
@@ -727,11 +725,13 @@ def _invalid(failures: list[ValidationFailure]) -> ValidationOutcome:
     )
 
 
-def validate(db, context: PreparedContext, raw_text: str) -> ValidationOutcome:
+def validate(db, context: PreparedContext, raw_text: str, refine=None) -> ValidationOutcome:
     """Parse, structurally check and resolve every citation in advice order.
 
     ``validate`` is read-only. Structural failures are repairable; any reference that
-    no longer resolves to the exact sent identity is terminal (§10.2).
+    no longer resolves to the exact sent identity is terminal (§10.2). ``refine`` (the
+    engine profile's stage E) may only narrow a structurally valid answer; the result is
+    checked again before resolution.
     """
     parsed = parse(raw_text)
     if isinstance(parsed, list):
@@ -739,6 +739,11 @@ def validate(db, context: PreparedContext, raw_text: str) -> ValidationOutcome:
     structural = validate_structural(context, parsed)
     if structural:
         return _invalid(structural)
+    if refine is not None:
+        parsed = refine(parsed, context)
+        structural = validate_structural(context, parsed)
+        if structural:
+            return _invalid(structural)
     resolver = _database_resolver(db, context)
     for alias, path, _runbook in _occurrences(parsed):
         resolved = resolver(alias)

@@ -70,7 +70,9 @@ def test_analysis_rejects_worker_credential_in_advice(client, db, context, deplo
 
 @pytest.fixture
 def deployment(tmp_path, monkeypatch):
-    def install(url, *, qualified=True, mode="operational", **profile_options):
+    def install(
+        url, *, qualified=True, mode="operational", context_profile="e06", **profile_options
+    ):
         model = profile(base_url=url + "/v1", mode=mode, **profile_options)
         egress = policy()
         p, e, q = (
@@ -89,7 +91,9 @@ def deployment(tmp_path, monkeypatch):
                         "schema_version": "DiagnosisQualification/v1",
                         "cohort_id": "loopback-fixture-not-provider-quality",
                         "evidence_reference": "pytest",
-                        "identity": Deployment(model, egress, None).identity(),
+                        "identity": Deployment(
+                            model, egress, None, context_profile=context_profile
+                        ).identity(),
                     }
                 )
             )
@@ -150,6 +154,30 @@ def test_supported_round_trip_private_context_and_result(db, context, deployment
         assert len(server.requests) == 1
         assert db.get(InvestigationRun, context[1]).state == "completed"
         capture(db, context, "supported")
+
+
+def test_engine_profile_round_trip_records_engine_versions(db, context, deployment, monkeypatch):
+    from cloudops.features.diagnosis.engine import path, selection
+
+    _crashloop(db, context)
+    monkeypatch.setenv("DIAGNOSIS_CONTEXT_PROFILE", "engine")
+    with serve(lambda h: respond(h, text_payload(_raw()))) as server:
+        deployment(server.url, context_profile="engine")
+        identifier = admission(db, context)
+        assert refresh(db, identifier).identity["context_profile"] == "engine"
+        assert run_once()
+        analysis = refresh(db, identifier)
+        assert analysis.state == "completed", analysis.reason
+        result = db.get(AnalysisResult, identifier).payload
+        assert result["status"] == "supported"
+        assert result["prompt_version"] == path.PROMPT_VERSION
+        assert result["context_version"] == selection.CONTEXT_VERSION
+        assert len(server.requests) == 1
+        sent = json.loads(server.requests[0]["body"])
+        assert "DETECTOR HYPOTHESES" in sent["messages"][1]["content"]
+    # Rollback: the default profile builds the E06 context again for a new deployment.
+    monkeypatch.delenv("DIAGNOSIS_CONTEXT_PROFILE")
+    assert load().context_profile == "e06"
 
 
 def test_terminal_context_does_not_keep_a_copy_after_telemetry_purge(db, context, deployment):

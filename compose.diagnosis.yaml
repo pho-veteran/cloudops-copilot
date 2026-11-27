@@ -5,6 +5,7 @@ services:
       DIAGNOSIS_PROFILE_FILE: /run/cloudops-diagnosis/profile.json
       DIAGNOSIS_EGRESS_FILE: /run/cloudops-diagnosis/egress.json
       DIAGNOSIS_QUALIFICATION_FILE: ${DIAGNOSIS_QUALIFICATION_PATH:-}
+      DIAGNOSIS_CONTEXT_PROFILE: ${DIAGNOSIS_CONTEXT_PROFILE:-e06}
     volumes:
       - type: bind
         source: ${DIAGNOSIS_CONFIG_DIR:?Choose the trusted diagnosis config directory}
@@ -15,6 +16,7 @@ services:
       DIAGNOSIS_PROFILE_FILE: /run/cloudops-diagnosis/profile.json
       DIAGNOSIS_EGRESS_FILE: /run/cloudops-diagnosis/egress.json
       DIAGNOSIS_QUALIFICATION_FILE: ${DIAGNOSIS_QUALIFICATION_PATH:-}
+      DIAGNOSIS_CONTEXT_PROFILE: ${DIAGNOSIS_CONTEXT_PROFILE:-e06}
     env_file:
       - ${DIAGNOSIS_SECRET_ENV_FILE:?Choose the private worker-only credential env file}
     volumes:

@@ -1355,7 +1355,9 @@ def build(
     policy: EgressPolicy,
     profile: ModelProfile,
     analysis_identity: str,
+    context_profile: str = "e06",
 ) -> PreparedContext | InsufficientContext:
+    """Prepare the stored context of one analysis with the deployment's context profile."""
     from cloudops.features.knowledge.guidance import analysis_selection
 
     scope = resolve_scope(db, incident_id, run_id)
@@ -1378,4 +1380,10 @@ def build(
                 coverage=[_request_coverage(scope, policy), *_coverage(materials)],
                 families=family_matrix(materials, policy),
             )
+    if context_profile == "engine":
+        from cloudops.features.diagnosis.engine import path
+
+        return path.prepare(
+            materials, scope, policy, profile, analysis_identity, knowledge=selection
+        ).context
     return assemble(materials, scope, selection, policy, profile, analysis_identity)

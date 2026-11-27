@@ -7,6 +7,10 @@ short field list replaces the embedded JSON Schema. Entries are ranked by releva
 (stage A supporting entries first) and filled greedily by relevance per byte. When the
 soft budget is reached, the lowest-relevance entries are dropped and counted as
 omissions; the build fails closed only when a required slot would send no entry.
+
+A trusted Knowledge selection adds its runbook chunks (K aliases) after the evidence,
+within the hard budget minus the repair reserve, with the product's runbook rules.
+Without a selection the context is unchanged (offline bundles carry none).
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ from cloudops.features.diagnosis.context import (
     ContextScope,
     ContextTarget,
     InsufficientContext,
+    KnowledgeSelectionView,
     Omission,
     PreparedContext,
     RequestRecord,
@@ -393,6 +398,46 @@ def _user(
     return "\n".join(out)
 
 
+def _runbooks(knowledge: KnowledgeSelectionView, policy: EgressPolicy, fits):
+    """Runbook chunks of a trusted selection, with the product context's rules."""
+    retrieval = knowledge.retrieval
+    runbooks: list[ContextRunbook] = []
+    omissions: list[Omission] = []
+    notes: list[str] = []
+    if retrieval.status in {"matched", "partial"} and not policy.allows("runbook"):
+        return (
+            runbooks,
+            [Omission(code="content_denied", slot="runbook")],
+            ["runbook_policy_denied"],
+        )
+    if retrieval.status not in {"matched", "partial"}:
+        if retrieval.status != "not_selected":
+            notes.append(f"runbook_{retrieval.status}")
+        return runbooks, omissions, notes
+    for chunk in retrieval.chunks:
+        if len(runbooks) >= 999:
+            omissions.append(Omission(code="alias_space_omitted", slot="runbook"))
+            break
+        if policy.scan(chunk.content) or policy.scan(chunk.title):
+            omissions.append(Omission(code="content_denied", slot="runbook"))
+            continue
+        candidate = ContextRunbook(
+            alias=f"K{len(runbooks) + 1:03d}",
+            selection_id=knowledge.id,
+            reference=chunk.reference,
+            title=chunk.title[:200] or "Runbook chunk",
+            heading_path=chunk.heading_path,
+            content=chunk.content,
+            content_bytes=len(chunk.content.encode("utf-8")),
+            truncated=retrieval.truncated,
+        )
+        if not fits([*runbooks, candidate]):
+            omissions.append(Omission(code="budget_omitted", slot="runbook"))
+            continue
+        runbooks.append(candidate)
+    return runbooks, omissions, notes
+
+
 def assemble(
     materials: list[SlotMaterial],
     scope: ContextScope,
@@ -405,6 +450,7 @@ def assemble(
     table: SignalTable | None = None,
     extra_sections=None,
     soft_budget: int = SOFT_BUDGET_BYTES,
+    knowledge: KnowledgeSelectionView | None = None,
 ) -> PreparedContext | InsufficientContext:
     """``extra_sections`` is a list of lines or a callable of the final alias map
     ``{(evidence_id, kind, key): alias}`` that returns lines (hypotheses, signals)."""
@@ -430,6 +476,10 @@ def assemble(
             limitations=limitations,
         )
 
+    if knowledge is not None and (
+        knowledge.run_id != scope.knowledge.run_id or knowledge.origin != "trusted"
+    ):
+        return insufficient("analysis_selection_mismatch")
     if not scope.request_text.strip():
         return insufficient("request_not_captured")
     if policy.scan(scope.request_text):
@@ -563,9 +613,24 @@ def assemble(
     alias_of = {
         (str(t.evidence_id), t.locator.kind, t.locator.key): t.alias for t in (*required, *optional)
     }
-    user = _user(
-        scope, coverage, families, lines, [], limitations, omitted_counts, section_fn(alias_of)
-    )
+    sections = section_fn(alias_of)
+    runbooks: list[ContextRunbook] = []
+    runbook_status, runbook_limitations = "not_selected", []
+    if knowledge is not None:
+        runbook_status = knowledge.retrieval.status
+        runbook_limitations = list(knowledge.retrieval.limitations)
+
+        def fits(trial: list[ContextRunbook]) -> bool:
+            user = _user(
+                scope, coverage, families, lines, trial, limitations, omitted_counts, sections
+            )
+            size = len(serialize_payload(profile, _messages(system_prompt, user)))
+            return size <= budget - REPAIR_RESERVE_BYTES
+
+        runbooks, runbook_omissions, runbook_notes = _runbooks(knowledge, policy, fits)
+        omissions.extend(runbook_omissions)
+        limitations = [*limitations, *runbook_notes]
+    user = _user(scope, coverage, families, lines, runbooks, limitations, omitted_counts, sections)
     messages = _messages(system_prompt, user)
     try:
         message_bytes = len(serialize_payload(profile, messages))
@@ -573,7 +638,8 @@ def assemble(
         return insufficient("message_shape_invalid")
     if message_bytes > budget:
         return insufficient("required_targets_exceed_budget")
-    limitations = [*limitations, "runbook_not_selected"]
+    if knowledge is None:
+        limitations = [*limitations, "runbook_not_selected"]
     slots = []
     for slot in SLOT_CAPS:
         sent_required = [t for t in required if t.source_key == slot]
@@ -613,8 +679,10 @@ def assemble(
         "omissions": [item.model_dump(mode="json") for item in omissions],
         "limitations": limitations,
     }
+    if knowledge is not None:
+        manifest["runbooks"] = [item.model_dump(mode="json") for item in runbooks]
     digest = base._context_digest(policy.digest(), scope, manifest, messages)
-    knowledge = scope.knowledge
+    run_scope = scope.knowledge
     return PreparedContext(
         context_version=CONTEXT_VERSION,
         target_rules_version=TARGET_RULES_VERSION,
@@ -624,27 +692,27 @@ def assemble(
         validator_version=VALIDATOR_VERSION,
         analysis_identity=analysis_identity,
         profile_identity=profile.identity(),
-        run_id=knowledge.run_id,
-        incident_id=knowledge.incident_id,
-        workload_id=knowledge.workload_id,
-        workload_uid=knowledge.workload_uid,
-        cluster=knowledge.cluster,
-        namespace=knowledge.namespace,
-        name=knowledge.name,
-        kind=knowledge.kind,
+        run_id=run_scope.run_id,
+        incident_id=run_scope.incident_id,
+        workload_id=run_scope.workload_id,
+        workload_uid=run_scope.workload_uid,
+        cluster=run_scope.cluster,
+        namespace=run_scope.namespace,
+        name=run_scope.name,
+        kind=run_scope.kind,
         window=WindowRecord(
-            start=knowledge.window_start, end=knowledge.window_end, source=scope.window_source
+            start=run_scope.window_start, end=run_scope.window_end, source=scope.window_source
         ),
         request=RequestRecord(text=scope.request_text, source=scope.request_source),
-        selection_id=None,
-        runbook_status="not_selected",
-        runbook_limitations=[],
+        selection_id=knowledge.id if knowledge is not None else None,
+        runbook_status=runbook_status,
+        runbook_limitations=runbook_limitations,
         source_coverage=coverage,
         sent_coverage=sent,
         families=families,
         required_targets=required,
         optional_targets=optional,
-        runbooks=[],
+        runbooks=runbooks,
         omissions=omissions,
         limitations=limitations,
         effective_budget_bytes=budget,
