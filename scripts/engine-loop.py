@@ -177,6 +177,7 @@ V2_META = (
     "distractor_sources",
     "holdout",
     "host",
+    "planned_host",
     "log_profile",
     "untrusted",
     "lookalike",
