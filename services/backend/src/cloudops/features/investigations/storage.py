@@ -216,6 +216,14 @@ LOG_FIELDS = {
     "timestamp",
     "previous",
     "truncated",
+    # Previous-log read attempts (kubernetes.logs.previous) and their timing.
+    "attempts",
+    "attempt",
+    "at",
+    "elapsed_ms",
+    "state",
+    "restart_count",
+    "outcome",
 }
 SERIES_FIELDS = {
     "series",

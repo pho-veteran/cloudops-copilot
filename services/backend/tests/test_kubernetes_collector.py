@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -634,3 +635,89 @@ def test_logs_disclose_extends_after_window(monkeypatch):
     monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
     res = collect_kubernetes_logs_current(ctx, timeout_seconds=5.0)
     assert res.source_times.time_relation == "extends_after_window"
+
+
+class FakeClock:
+    def __init__(self):
+        self.now = 1000.0
+        self.sleeps = []
+
+    def monotonic(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.sleeps.append(seconds)
+        self.now += seconds
+
+
+def _waiting(pod):
+    waiting = json.loads(json.dumps(pod))
+    status = waiting["status"]["containerStatuses"][0]
+    status["state"] = {"waiting": {"reason": "CrashLoopBackOff"}}
+    status["started"] = False
+    return waiting
+
+
+def test_previous_log_waits_for_a_running_restarted_instance(monkeypatch):
+    ctx = make_context()
+    clock = FakeClock()
+    monkeypatch.setattr(kubernetes_collector, "time", clock)
+    running = log_pod(restart_count=1)
+    waiting = _waiting(running)
+    views = iter([waiting, waiting, running])
+    current = {"pod": waiting}
+
+    def get_pod(ns, name, expected_uid, rs_uids):
+        current["pod"] = next(views, running)
+        return current["pod"]
+
+    def logs(ns, pod_name, container, previous=False, since_time=None, line_limit=200):
+        if "running" not in current["pod"]["status"]["containerStatuses"][0]["state"]:
+            raise ScopedK8sError("container_not_ready")
+        return "2025-12-31T23:59:59Z allocating working set\n", False
+
+    fake = log_fake(ctx, waiting, logs)
+    fake.get_pod = get_pod
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
+    res = collect_kubernetes_logs_previous(
+        ctx, timeout_seconds=kubernetes_collector.PREVIOUS_LOG_TIMEOUT_SECONDS
+    )
+    assert res.coverage.status == "available"
+    assert res.redacted_bounded_payload["logs"][0]["previous"] is True
+    [container] = res.redacted_bounded_payload["containers"]
+    assert container["previous"] == "available"
+    attempts = container["attempts"]
+    assert [item["outcome"] for item in attempts] == ["not_readable", "not_running", "read"]
+    assert [item["state"] for item in attempts] == ["waiting", "waiting", "running"]
+    assert [item["elapsed_ms"] for item in attempts] == [0, 2000, 4000]
+    assert all(item["restart_count"] == 1 and item["at"] for item in attempts)
+    assert clock.sleeps == [2.0, 2.0]
+
+
+def test_previous_log_window_ends_unavailable_and_logs_every_attempt(monkeypatch, caplog):
+    ctx = make_context()
+    clock = FakeClock()
+    monkeypatch.setattr(kubernetes_collector, "time", clock)
+    waiting = _waiting(log_pod(restart_count=3))
+    fake = log_fake(
+        ctx,
+        waiting,
+        lambda ns, pod, container, previous=False, since_time=None, line_limit=200: (
+            _raise(ScopedK8sError("container_not_ready"))
+        ),
+    )
+    monkeypatch.setattr(kubernetes_collector, "_scoped_client", lambda _deadline: fake)
+    with caplog.at_level("INFO", logger=kubernetes_collector.__name__):
+        res = collect_kubernetes_logs_previous(
+            ctx, timeout_seconds=kubernetes_collector.PREVIOUS_LOG_TIMEOUT_SECONDS
+        )
+    assert res.coverage == Coverage(status="unavailable", reason_codes=["no_samples"])
+    assert res.redacted_bounded_payload is None
+    assert sum(clock.sleeps) <= kubernetes_collector.PREVIOUS_LOG_WAIT_SECONDS
+    assert len(clock.sleeps) == 45
+    [record] = [r for r in caplog.records if "previous log attempts" in r.getMessage()]
+    logged = json.loads(record.getMessage().split(" ", 3)[3])
+    attempts = logged["containers"][0]["attempts"]
+    assert len(attempts) == 46
+    assert attempts[0]["outcome"] == "not_readable"
+    assert {item["outcome"] for item in attempts[1:]} == {"not_running"}

@@ -222,3 +222,32 @@ def test_final_source_timeout_uses_persisted_two_attempt_budget(client, monkeypa
     fixture = next(row for row in result["evidence"] if row["source_key"] == "development_fixture")
     assert fixture["coverage"] == {"status": "unavailable", "reason_codes": ["timeout"]}
     assert fixture["sha256"] is None and fixture["payload_ref"] is None
+
+
+def test_previous_log_wait_window_does_not_take_time_from_other_sources(monkeypatch):
+    now = [0.0]
+    monkeypatch.setattr(collector.time, "monotonic", lambda: now[0])
+    budgets = {}
+
+    def result(key):
+        return collector._unavailable(key, "source_unavailable")
+
+    def previous(_context, timeout):
+        budgets["kubernetes.logs.previous"] = timeout
+        now[0] += 88.0  # the bounded wait for a running restarted instance
+        return result("kubernetes.logs.previous")
+
+    def state(_context, timeout):
+        budgets["kubernetes.state"] = timeout
+        return result("kubernetes.state")
+
+    adapters = {"kubernetes.logs.previous": previous, "kubernetes.state": state}
+    for key, adapter in adapters.items():
+        monkeypatch.setitem(collector.REGISTERED_ADAPTERS, key, adapter)
+    now[0] = 0.0
+    collector.collect(context(attempt=3), adapters)
+    assert (
+        budgets["kubernetes.logs.previous"] == collector.ADAPTER_SECONDS["kubernetes.logs.previous"]
+    )
+    # 88 s were spent waiting; the next source still gets its ordinary read budget.
+    assert budgets["kubernetes.state"] == 5.0

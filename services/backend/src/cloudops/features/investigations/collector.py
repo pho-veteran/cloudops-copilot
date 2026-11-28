@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from cloudops.features.investigations.catalog import CATALOG_VERSION, SOURCES
 from cloudops.features.investigations.kubernetes_collector import (
+    PREVIOUS_LOG_TIMEOUT_SECONDS,
     collect_kubernetes_configmap_metadata,
     collect_kubernetes_events,
     collect_kubernetes_logs_current,
@@ -77,8 +78,28 @@ class SourceTimeout(TransientSourceError):
 
 
 # Adapters must apply timeout_seconds to the actual underlying read; they must not
-# start background calls which outlive that deadline or perform nested retries.
+# start background calls which outlive that deadline or perform nested retries. The one
+# bounded exception is the previous-log wait window of kubernetes.logs.previous, which
+# has its own adapter budget below.
 SourceAdapter = Callable[[CollectionContext, float], SourceResult]
+ADAPTER_SECONDS = {"kubernetes.logs.previous": PREVIOUS_LOG_TIMEOUT_SECONDS}
+COLLECTION_SECONDS = 90
+
+
+def _allowance(key: str) -> float:
+    """Seconds a source may run past the shared collection deadline (its wait window)."""
+    return ADAPTER_SECONDS.get(key, 5.0) - 5.0
+
+
+def _collect_within(context, key, adapter, deadline, **options) -> tuple[SourceResult, float]:
+    """Collect one source; the shared deadline moves by the wait-window time it used, so
+    the previous-log window never takes time from the other sources."""
+    if adapter is None or not _allowance(key):
+        return collect_one(context, key, adapter, deadline, **options), deadline
+    started = time.monotonic()
+    result = collect_one(context, key, adapter, deadline + _allowance(key), **options)
+    used = min(_allowance(key), max(0.0, time.monotonic() - started - 5.0))
+    return result, deadline + used
 
 
 def prepare(subject_id: UUID, *, attempt_number: int, max_attempts: int) -> CollectionContext:
@@ -238,7 +259,7 @@ def collect_one(
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise SourceTimeout()
-        result = adapter(context, min(5.0, remaining))
+        result = adapter(context, min(ADAPTER_SECONDS.get(key, 5.0), remaining))
         if result.source_key != key or result.payload_kind != SOURCES[key].payload_kind:
             raise ValueError("Adapter returned a mismatched source result.")
         return result
@@ -263,10 +284,13 @@ def _validate(context: CollectionContext, adapters: Mapping[str, SourceAdapter])
 
 def collect(context: CollectionContext, adapters: Mapping[str, SourceAdapter]) -> CollectionResult:
     _validate(context, adapters)
-    deadline = time.monotonic() + 90
+    deadline = time.monotonic() + COLLECTION_SECONDS
     # Sequential reads intentionally use less than the four-read maximum. There
     # are no thread-based pseudo-timeouts or unbounded background provider calls.
-    results = [collect_one(context, key, adapters.get(key), deadline) for key in SOURCES]
+    results = []
+    for key in SOURCES:
+        result, deadline = _collect_within(context, key, adapters.get(key), deadline)
+        results.append(result)
     return CollectionResult(context.workload_uid, tuple(results))
 
 
@@ -304,7 +328,7 @@ def collect_checkpointed(
 
     _validate(context, adapters)
     done = committed_stages(claim)
-    deadline = time.monotonic() + 90
+    deadline = time.monotonic() + COLLECTION_SECONDS
     unconfigured = []
     # Match store_batch's canonical cross-source budget allocation order.
     for key in sorted(SOURCES):
@@ -320,7 +344,7 @@ def collect_checkpointed(
             if (lease_lost is not None and lease_lost.is_set()) or not start_call(claim, gate):
                 raise Interrupted()
 
-        result = collect_one(context, key, adapter, deadline, before_call=before_call)
+        result, deadline = _collect_within(context, key, adapter, deadline, before_call=before_call)
 
         def write(db, carry, result=result):
             return store_source(db, context.run_id, context.workload_uid, result, carry)

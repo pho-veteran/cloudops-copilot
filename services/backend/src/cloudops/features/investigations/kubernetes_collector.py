@@ -8,6 +8,7 @@ publishing evidence for a different workload.
 import asyncio
 import base64
 import json
+import logging
 import os
 import ssl
 import time
@@ -22,6 +23,17 @@ MAX_RESPONSE_BYTES = 2_000_000
 MAX_LIST_PAGES = 5
 PAGE_SIZE = 200
 EVENT_LIMIT = 100
+# A restarted container's previous log is readable only while its restarted instance
+# exists. When the first read is not readable, wait for a running restarted instance
+# and read again, at fixed steps inside one bounded window. Every attempt is recorded.
+PREVIOUS_LOG_WAIT_SECONDS = 90.0
+PREVIOUS_LOG_STEP_SECONDS = 2.0
+# Kept free after the window for the closing scoped reads of the adapter.
+PREVIOUS_LOG_RESERVE_SECONDS = 15.0
+# The adapter budget of kubernetes.logs.previous: the window plus the ordinary reads.
+PREVIOUS_LOG_TIMEOUT_SECONDS = PREVIOUS_LOG_WAIT_SECONDS + PREVIOUS_LOG_RESERVE_SECONDS + 5.0
+
+logger = logging.getLogger(__name__)
 
 
 class ScopedK8sError(Exception):
@@ -790,6 +802,77 @@ def _log_timestamp(text: str) -> datetime | None:
     return latest
 
 
+def _container_status(pod: dict, container_name: str, kind: str) -> dict:
+    field = "initContainerStatuses" if kind == "init" else "containerStatuses"
+    for status in (pod.get("status") or {}).get(field) or []:
+        if isinstance(status, dict) and status.get("name") == container_name:
+            return status
+    return {}
+
+
+def _instance(status: dict) -> tuple[str, int]:
+    state = status.get("state") if isinstance(status.get("state"), dict) else {}
+    name = next((key for key in ("running", "waiting", "terminated") if state.get(key)), "unknown")
+    return name, _integer(status.get("restartCount")) or 0
+
+
+def _read_previous(client, namespace, pod_name, pod_uid, replicaset_uids, container, deadline):
+    """Read a restarted container's previous log within the bounded wait window.
+
+    The first read happens at once, as before. If it is not readable, the adapter polls
+    the scoped Pod every step and reads again only when a restarted instance is
+    running. Returns (text, hit_cap, attempts); text is None when the window ended
+    without a readable previous log, which stays an explicit gap."""
+    container_name, status, kind, since_time = container
+    started = time.monotonic()
+    window_end = min(started + PREVIOUS_LOG_WAIT_SECONDS, deadline - PREVIOUS_LOG_RESERVE_SECONDS)
+    attempts = []
+
+    def record(outcome, status):
+        state, restarts = _instance(status)
+        attempts.append(
+            {
+                "attempt": len(attempts) + 1,
+                "at": _now().isoformat(),
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+                "state": state,
+                "restart_count": restarts,
+                "outcome": outcome,
+            }
+        )
+
+    first = True
+    while True:
+        state, restarts = _instance(status)
+        if first or (state == "running" and restarts > 0):
+            first = False
+            _guard(deadline)
+            try:
+                text, hit_cap = client.get_pod_logs(
+                    namespace,
+                    pod_name,
+                    container_name,
+                    previous=True,
+                    since_time=since_time,
+                    line_limit=200,
+                )
+            except ScopedK8sError as error:
+                if error.code != "container_not_ready":
+                    raise
+                record("not_readable", status)
+            else:
+                record("read", status)
+                return text, hit_cap, attempts
+        else:
+            record("not_running", status)
+        if time.monotonic() + PREVIOUS_LOG_STEP_SECONDS > window_end:
+            return None, False, attempts
+        time.sleep(PREVIOUS_LOG_STEP_SECONDS)
+        _guard(deadline)
+        pod = _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
+        status = _container_status(pod, container_name, kind)
+
+
 def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceResult:
     key = "kubernetes.logs.previous" if previous else "kubernetes.logs.current"
 
@@ -808,6 +891,7 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
         owned = _owned_pods(raw_pods, replicaset_uids, namespace)
         pods = owned[:10]
         logs, containers, timestamps = [], [], []
+        all_attempts = []
         read_any = False
         gaps = set()
         entries = [(pod, entry) for pod in pods for entry in _container_entries(pod)]
@@ -846,22 +930,46 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
             _guard(deadline)
             _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
             _guard(deadline)
-            try:
-                text, hit_cap = client.get_pod_logs(
+            if previous:
+                text, hit_cap, attempts = _read_previous(
+                    client,
                     namespace,
                     pod_name,
-                    container_name,
-                    previous=previous,
-                    since_time=since_time,
-                    line_limit=200,
+                    pod_uid,
+                    replicaset_uids,
+                    (container_name, status, kind, since_time),
+                    deadline,
                 )
-            except ScopedK8sError as error:
-                if error.code != "container_not_ready":
-                    raise
-                gaps.add("no_samples")
-                containers.append({**reference, "previous": "unavailable"})
-                _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
-                continue
+                if attempts != [] and (len(attempts) > 1 or attempts[0]["outcome"] != "read"):
+                    # The wait window was entered: keep every attempt in the evidence.
+                    # A first read that succeeds is the ordinary single read, timed by
+                    # the source's collected time.
+                    reference = {**reference, "attempts": attempts}
+                    all_attempts.append(
+                        {"pod_uid": pod_uid, "container": container_name, "attempts": attempts}
+                    )
+                if text is None:
+                    gaps.add("no_samples")
+                    containers.append({**reference, "previous": "unavailable"})
+                    _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
+                    continue
+            else:
+                try:
+                    text, hit_cap = client.get_pod_logs(
+                        namespace,
+                        pod_name,
+                        container_name,
+                        previous=previous,
+                        since_time=since_time,
+                        line_limit=200,
+                    )
+                except ScopedK8sError as error:
+                    if error.code != "container_not_ready":
+                        raise
+                    gaps.add("no_samples")
+                    containers.append({**reference, "previous": "unavailable"})
+                    _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
+                    continue
             _guard(deadline)
             _scoped_pod(client, namespace, pod_name, pod_uid, replicaset_uids)
             if hit_cap:
@@ -888,6 +996,12 @@ def _collect_logs(context, timeout_seconds: float, *, previous: bool) -> SourceR
             containers.append({**reference, "previous": "available"})
         _guard(deadline)
         _scoped_deployment(client, namespace, name, context)
+        if all_attempts:
+            # An unavailable result carries no payload, so the attempts are also logged.
+            logger.info(
+                "previous log attempts %s",
+                json.dumps({"run_id": str(context.run_id), "containers": all_attempts}),
+            )
         if not read_any and not gaps:
             return _NOT_APPLICABLE
         if not read_any and "no_samples" in gaps and "truncated" not in gaps:
