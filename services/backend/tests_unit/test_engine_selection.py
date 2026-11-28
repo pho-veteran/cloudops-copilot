@@ -132,6 +132,10 @@ def test_hypothesis_sections_cite_only_sent_aliases_and_consistency_downgrades()
         extra_sections=lambda aliases: prompt.sections(table, detection, aliases),
     )
     assert isinstance(context, PreparedContext)
+    from cloudops.features.diagnosis.context import recomputed_digest
+
+    # Trusted evaluation tooling recomputes a retained engine context's digest from content.
+    assert recomputed_digest(context) == context.digest
     text = context.messages[1].content
     assert "DETECTOR HYPOTHESES" in text and "1. oom_restarts" in text
     sent = {t.alias for t in (*context.required_targets, *context.optional_targets)}

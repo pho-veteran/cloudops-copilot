@@ -918,6 +918,20 @@ def recomputed_digest(context: PreparedContext) -> str:
         "omissions": [item.model_dump(mode="json") for item in context.omissions],
         "limitations": context.limitations,
     }
+    if context.context_version.startswith("engine."):
+        # The engine profile's manifest (diagnosis.engine.selection.assemble): its own
+        # versions, and runbooks only when a Knowledge selection was supplied.
+        manifest = {
+            "versions": {
+                "context": context.context_version,
+                "targets": context.target_rules_version,
+                "prompt": context.prompt_version,
+                "validator": context.validator_version,
+            },
+            **{key: value for key, value in manifest.items() if key != "runbooks"},
+        }
+        if context.selection_id is not None:
+            manifest["runbooks"] = [item.model_dump(mode="json") for item in context.runbooks]
     return _context_digest(context.policy_digest, scope, manifest, context.messages)
 
 
