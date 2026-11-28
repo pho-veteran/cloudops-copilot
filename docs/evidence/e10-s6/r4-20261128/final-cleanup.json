@@ -1,0 +1,96 @@
+{
+  "lab_cleanup_receipt": {
+    "operation": "cleanup",
+    "at": "2026-11-28T05:01:14.476016+00:00",
+    "project": "cloudops-release-recovery-r4",
+    "owner": "8bb49c62-b437-455d-ab68-d4d1dc621e5f",
+    "source_commit": "8b82a5d690450b67e0bb8290be3282314718e80d",
+    "source_files": {
+      "compose.yaml": "766aa3ae97aa44370a9c83eb98a01c86f2c9d8f8d4693cde43b82882ac46f6a9",
+      "compose.https.yaml": "2279e781febf649e528c25369fed0daa3eee0add842e6f94d74bfa59721f8f6d",
+      "compose.integration.yaml": "f55fe77ab7fda00b0a9ddc75340cdf7607959bf2d779587c211556323b03fe25",
+      "compose.alertmanager.yaml": "d523f841498f089ab5fb41ba8cde2bdbb9488b05a5ff223c87a91a02c533cfd0",
+      "compose.lab.yaml": "49aef1aa2eb34f4f0edd26dc51337aef0a5a1f2e1511b03ec1738e60965db455",
+      "compose.lab-recovery.yaml": "3fd6bf8ee25356fbcdc42d1df881fa7a14502ffa41a80b9e357d9aad95bafffb",
+      "compose.lab-release.yaml": "70057209ffcdf211676f62cb045e2991d52cc01a9599bc93f2891c9cb6aae759",
+      "config/lab/load.py": "071437afbecfc3f21b5de3c578555886ce304ea67426cdd51c8b0b5f562c3c34",
+      "config/lab/recovery-reset.json": "fb347feb6de8764a0dfd87801cb30c59ae9fd60419145d24369ae25c31c8e6c7",
+      "config/lab/alertmanager.yml": "5d2afcbfedd6dc76b81d5d998909f04a42e64a074e54cb22ee4617b5622a27df",
+      "config/lab/monitoring.yaml": "44a1c33d35d6b383b0d02d7e2530d245c7909bdd494f4a065bc88cdf1fb65169",
+      "config/lab/Dockerfile.sample": "c02dc5bc7ee92dc920d9e59d641ca773877b5c4f3b4936f36f4cbd9c1bea88c2",
+      "config/lab/kubernetes-incident-families.yaml": "2cd4608a80c32f97aeed4f506b16d378f659c5e63a0b35470590a43585339430",
+      "config/lab/kubernetes-log-cap.yaml": "8fa6b02935184ffb150a9d68066ba95a96fd7b8a7f6e3844b6b86606b1796b64",
+      "config/lab/metrics_fixture.py": "457d61453aaf754f085433951956f5528e36af8523f3734963f64e1d5e54070e",
+      "config/lab/recovery_load.py": "2d25ee50d7f8815307f86cb330abbb6ea8883dbca748d12535002f8b4150d575",
+      "config/lab/workload.yaml": "874e4797b2f8d7330203a7127c423bda6c30d0455f6d91a30eb308150bad5097",
+      "config/lab/recovery_app.py": "d463b506bbe63afefbe11d3dae32d439e7029c83178d0e7a2cc2cec77a30bab6",
+      "config/lab/prometheus-real.yaml": "2d8a2361696d97f3c903a9c828ad3b2c66702414ee4e5aa7465717cd78255185",
+      "config/lab/e10-s3-trial-reset-receipt.schema.json": "44fb3eecb5fe16d3246b37359b88c72dfc85efe10bcfb3f33d5e6568e85df427",
+      "config/lab/prometheus.yaml": "31d7817919504df79bc5cc6dc1ad972c1dc112c517c17c085f6087af36d62c57",
+      "config/lab/restore-standby.yaml": "0a5f68dcdd9a28842eeafaf3a6e0b3e906a3e94c271ebd8852514e56ba74426c",
+      "config/lab/prometheus-rules.yaml": "8dc3608bf29ce745d4542bc612febf47f727317b6428c35e653efff72fbf96ce",
+      "config/lab/release-scenarios-v1.json": "26af8d1dde2aad6e1ebb5c9cedf8a5b18c0b76b03f7e773669b803a752ae03e3",
+      "config/lab/recovery-audit-policy.yaml": "e5732a2544d2902ca333c9dd98d5a8d51943ac0d2ad31c150fa0c91f01620f77",
+      "config/lab/Dockerfile.recovery": "4c1e6102615289fafe95441eb5978a0827522a40ba960b2373297597eac55c2b",
+      "config/lab/prometheus-rules.test.yaml": "65c2e8e6b4381fe6240f8f9bd29865cb8eaff2a08e9f2abed7079783e04bcdbb",
+      "config/lab/sample_app.py": "9e0f4121ebe391ad11a67dccd6f6a768180caafc8ae10e9b02b1e465cc837403",
+      "config/lab/e10-s3-qualification-receipt.schema.json": "b47260142bed1b9fb7ec143627267eaef5385fb474c0981d3b21160cfc7245b4",
+      "scripts/manage-local-lab.py": "e5a8f550418ab131daf59c8436f634e49f97bcfd15e670ea6a7f9ff89bd59d3c",
+      "scripts/local_lab.py": "9ddf9a3ec5c9ba8fac527f87a03a9af76f82c4de2de49e6ac9ae6dfcaead25eb",
+      "scripts/release_scenarios.py": "03d6648dc4fc0d8b9e4c06f453ac292c70b8f5d63879edf22b8e95de5cc39e9d",
+      "services/backend/tests/fixtures/e10_s3/inputs.json": "f526c7a7a8f23dbfba18451ff30b09964d19381dd09fc7b52d10993fc90ee9f2",
+      "services/backend/tests/fixtures/e10_s3/oracle.json": "4a69e494e6838d232fbd2f4a80bc4896ae8ef4cab041777afd52e2b958950571",
+      "services/backend/tests/fixtures/e10_s3/controls.json": "3f9c48932837e56b8dea047bbd186c015c2f60f6805fb0e7de6847eee68ef115"
+    },
+    "release_bundle": {
+      "revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "manifest_sha256": "b1ab6d2fbf24fa16607f2e5a82903abd3290cb4d152fc2904609267eff9a615a"
+    },
+    "working_diff_sha256": null,
+    "deployment_uids": {
+      "checkout": "ad682620-726b-4f0d-8ab0-83dd464adae3",
+      "history": "db7f8d34-4f96-42d5-86de-b642843c8ed9"
+    },
+    "removed": {
+      "container": [
+        "fbc04c028b78a6a0564b5ef1cfb3080c61b987a3679631277b76dc3c2033a0e5",
+        "4dd7d0bd52ca16fc9104287451466deed1f55301754dc4c649220ffc6d4dce4c",
+        "236fb439fdc34275a6ce9ec6c9e1b42d6f598c39db92b4121b71a235536b4fc8",
+        "9efbd0ed6ea0c7ffa58e2927fb100282f1891603fee2bdcc48a5d4134d6e7a49",
+        "ecd5650f4bdef05e967d79470ffe051486bf1341ea8dc6a45f4b975c58c92211",
+        "1a7829bc2c7882ab33dddaf883043566a3a488caf51afceca115de1d0f028ff2",
+        "297ebcf6a19b6cf94206b0a94cdc493cd3f022eb0b6c8f19db1e8900f31b470d",
+        "b4827753c89df415725e3ba04e49020f38d91b45d84c00d5dd998e3114d00a87",
+        "0c10ddb3abae09cef46d8b411de897170330143d36528f46c1ea186ce3d8b91c",
+        "412453e499fdbfd42a93f17cea9da9e2fc53b3e95febaf1a2b90e4b01156970f"
+      ],
+      "network": [
+        "131fa6cedee35e666627060ac1bb1d153746dd62cc15337833e9bd8d62780d39"
+      ],
+      "volume": [
+        "cloudops-release-recovery-r4_alertmanager_data",
+        "cloudops-release-recovery-r4_database",
+        "cloudops-release-recovery-r4_executor_authority",
+        "cloudops-release-recovery-r4_executor_identity",
+        "cloudops-release-recovery-r4_job_dispatch",
+        "cloudops-release-recovery-r4_k3s_cni",
+        "cloudops-release-recovery-r4_k3s_data",
+        "cloudops-release-recovery-r4_k3s_kubelet",
+        "cloudops-release-recovery-r4_k3s_logs",
+        "cloudops-release-recovery-r4_local_https_config",
+        "cloudops-release-recovery-r4_local_https_data",
+        "cloudops-release-recovery-r4_prometheus_data"
+      ]
+    },
+    "generated_private_files": "retained locally; remove this exact directory separately if no longer needed"
+  },
+  "dispatch_at_export": "recovery",
+  "writer_targets_at_export": [
+    [
+      false,
+      true
+    ]
+  ],
+  "tunnel": "stopped 2026-11-28T05:00Z; one session from 01:31Z with no reconnect",
+  "aws": "destroy plan applied (10 deletes), retained root vol-0d2219f9579f37b3a deleted, key pair key-09e36495db7c30b69 deleted, inventory empty in all regions at 2026-11-28T05:04Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "R4CohortFreeze/v1",
+  "frozen_at": "2026-11-28T02:40:27.292990+00:00",
+  "cohort_id": "e10-s6-r4-engine-deepseek",
+  "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+  "sha256": {
+    "bundle_manifest": "b1ab6d2fbf24fa16607f2e5a82903abd3290cb4d152fc2904609267eff9a615a",
+    "campaign_seal": "5573c403680198328f03d780f371294fdfe0e17280e17ab298e6829eabe377ef",
+    "campaign_ledger": "838623b6e36ea6c87394eacc70638ad8879ba76eb9b76bd5450ed52e5fa2321a",
+    "campaign_labels": "893c40f8776ed9df4fa8c181b84938e05bd27fd42d6871816e5d6faaf9fe40c3",
+    "campaign_rubric": "72dead6e4faab52407476dc147e12bb0211c2c269b902f9b54c3a97b46f60bcc",
+    "campaign_cohort": "e4168c875b224d870be1f1956764050b492784121744f72835de649f89397170",
+    "campaign_source": "a53f96503296b73278f293a29f6594672f394e30373489ca9f30f8a45b26fa54",
+    "authorization": "0ceaed601b041da0b2a9bf3dc29e340b68dce3ff99197c4b3bf422d9a4811f9c",
+    "diagnosis_profile": "08d80a2fd28a573459db521160687d16d12e1a08c52a1d7509a01cd4747a8f40",
+    "diagnosis_egress": "65274688e80ebea4ee82e22e0871e277c9ebe602bb0f9eff51a3c6bd68329361",
+    "diagnosis_qualification": "ebb93854f630bb0235f826b4b51ccf8928f62132b6da8fc436e10be9f1806c5e",
+    "approval_policy": "e1652d97c1716026fd48dc922414e544f8ecb252b359ace156bf90ca9d1be300",
+    "slot_binding": "6a1d24e8a6676480dd20954a87cfe9caca2fa0e4b7c377592948a8bb2930c615",
+    "slot_procedure": "cb777642725b5d0adde54647db822deef60621f7762a2def4930b5eb78c61fc4",
+    "campaign_runner": "9a6f754ad40f303ba6b57a6fda2b68327a155e556bf94a4a6bf1421fea4091bd",
+    "scope_qualification_traffic": "0a71e83b6d16506f6f7b3e82f486b06408484b36abf7780c1938ec61360b175c",
+    "scope_qualification_memory": "1efafc7eae67e84ba53c7eea5b976a1a74d4bb61c679f5813cd7b10545ffb14f",
+    "scope_qualification_restore": "f37911deb17d6d43df365f0b8a0b059fce32476aaddc5fd77d6062d7221943c4"
+  },
+  "reservations": {
+    "max_requests": 45,
+    "max_tokens": 1744560,
+    "max_requests_per_case": 3,
+    "token_reserve_per_request": 38768,
+    "max_spend_microusd": 0,
+    "expires_at": "2026-11-28T22:08:56.783562+00:00",
+    "served_model": "deepseek/deepseek-v4.1-flash"
+  },
+  "audit_prefix_lines": 1807,
+  "scorer": "e10.scoring/v1",
+  "rules": "e10.rules/v1",
+  "rubric": "e10-s6-release/v2"
+}

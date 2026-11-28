@@ -1,0 +1,56 @@
+{
+  "schema": "R4ProviderAccounting/v1",
+  "model": "cmd/deepseek/deepseek-v4.1-flash via the operator laptop route http://localhost:20128/v1, reached from EC2 only through a reverse SSH tunnel bound to the Docker bridge 172.17.0.1",
+  "limits": {
+    "requests": 200,
+    "tokens": 3000000,
+    "paid_fallback": "none allowed"
+  },
+  "campaign": {
+    "requests": 11,
+    "observed_tokens": 64689,
+    "http_status": [
+      200
+    ],
+    "model_matches_all": true,
+    "stop_reasons": [],
+    "reserved": {
+      "requests_reserved": 11,
+      "requests_with_receipt": 11,
+      "observed_tokens_lower_bound": 64689,
+      "requests_without_observed_tokens": 0,
+      "reserved_tokens": 426448,
+      "reserved_spend_microusd": 0,
+      "stop_reasons": []
+    }
+  },
+  "smoke": {
+    "requests": 2,
+    "observed_tokens": 8837
+  },
+  "qualification_and_controls_laptop": {
+    "qualification_rubric_9136510": {
+      "requests": 12,
+      "observed_tokens": 28693
+    },
+    "controls_6c87e47_superseded": {
+      "requests": 12,
+      "observed_tokens": 28793
+    },
+    "controls_8b82a5d": {
+      "requests": 12,
+      "observed_tokens": 27649
+    }
+  },
+  "route_probes_retained": {
+    "count": 13,
+    "tokens": 632,
+    "served_models": [
+      "deepseek/deepseek-v4.1-flash"
+    ],
+    "http_status": [
+      200
+    ]
+  },
+  "no_paid_fallback": "Every settled usage receipt and route probe reports the requested model (served id deepseek/deepseek-v4.1-flash); the OmniRoute configuration was not changed; pricing is unavailable, so spend is reported as null, never zero."
+}

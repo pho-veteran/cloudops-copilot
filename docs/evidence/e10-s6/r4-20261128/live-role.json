@@ -1,0 +1,22 @@
+{
+  "schema": "R4LiveRole/v1",
+  "at": "2026-11-28T04:57:09.457644+00:00",
+  "account": "r4-viewer",
+  "role": null,
+  "calls": {
+    "propose_plan": {
+      "status": 403,
+      "code": null
+    },
+    "decide_plan": {
+      "status": 403,
+      "code": null
+    },
+    "propose_inverse_plan": {
+      "status": 403,
+      "code": null
+    }
+  },
+  "ids": "nonexistent; establishes permission ordering only",
+  "pass": true
+}

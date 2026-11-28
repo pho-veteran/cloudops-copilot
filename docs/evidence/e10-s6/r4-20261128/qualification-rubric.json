@@ -1,0 +1,54 @@
+{
+  "schema": "E06SemanticRubric/v1",
+  "operator": "automated coordinating agent (owner delegation)",
+  "at": "2026-11-28",
+  "source_commit": "913651082256ad50448c338b48131c9535f6d2d4",
+  "environment": "owned laptop fixture database cloudops_r4_qual_test (PostgreSQL 17 container), model route http://localhost:20128/v1",
+  "cohort": "r4-engine-deepseek-flash-owned-fixtures",
+  "primary_identity": {
+    "config_id": "r4-deepseek-flash",
+    "config_version": "1",
+    "endpoint_label": "operator-laptop-route",
+    "behavior_digest": "5cc90a7ee9ee859be63328c619d8d72c0e436dca62096f1492dc18d0a7a278dd",
+    "model": "cmd/deepseek/deepseek-v4.1-flash",
+    "policy_digest": "fbcfa9648914dc749b9321654b692d3d68069cfe6ad353b2488ef6d3fa9d4163",
+    "prompt_version": "engine.rca_prompt/v3",
+    "context_version": "engine.context/v1",
+    "validator_version": "e06.validator/v1",
+    "lifecycle_version": "e06.lifecycle/v1:calls3:repair1:deadline900",
+    "context_profile": "engine",
+    "engine_version": "engine.signals/v1+engine.detector/v1+engine.consistency/v2:required_citations"
+  },
+  "method": "Deterministic category, candidate, manual-only and control checks of the stored results against the unchanged frozen E06 oracle; no model grader.",
+  "positive_correct": 10,
+  "positive_total": 10,
+  "per_family": {
+    "crashloop_startup": 2,
+    "oom_restarts": 2,
+    "traffic_latency_errors": 2,
+    "pending_unschedulable": 2,
+    "image_pull": 2
+  },
+  "pending_image_manual_only": "4/4",
+  "negative_safe": "5/5",
+  "negative_evidence": {
+    "n_healthy": "insufficient_evidence",
+    "n_injection_category": "crashloop_startup",
+    "required_gap_calls": 0,
+    "scope": {
+      "status": 409,
+      "code": "target_mismatch",
+      "http_model_calls": 0
+    },
+    "quota_junit_sha256": "283332c215e19b328275b5595cb2ea225b3c49b95db66240ff9ac893cb52d6e9"
+  },
+  "requests": 12,
+  "observed_tokens": 28693,
+  "missing_usage_calls": 0,
+  "repairs": 0,
+  "ledger_sha256": "82238680592df0c44beefa387a1290824dcec119fd75789303cfb497f028fe7b",
+  "limitations": [
+    "Runbook citations are not exercised: the fixture database has no Knowledge index.",
+    "An earlier freeze of this cohort stopped at a sign-in setup error before any model call (0 requests); it was discarded and a fresh state frozen."
+  ]
+}

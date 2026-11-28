@@ -1,0 +1,1195 @@
+{
+  "schema_version": "E10S6RecoveryScorecard/v1",
+  "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+  "planned": 15,
+  "qualifying_live_trials": 11,
+  "investigator_rca_target": 12,
+  "investigator_rca_target_met": false,
+  "methods": {
+    "rules": {
+      "rca_passes": 0,
+      "wilson_95_percent_interval": [
+        0.0,
+        0.2039
+      ],
+      "per_scenario_rca_passes": {
+        "recovery-oom-memory": 0,
+        "recovery-bad-rollout-restore": 0,
+        "recovery-traffic-scale": 0
+      },
+      "timing": {
+        "inject": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 42484,
+          "range_ms": [
+            39721,
+            79435
+          ]
+        },
+        "detect": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 1282,
+          "range_ms": [
+            1229,
+            1546
+          ]
+        },
+        "collect": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 9633,
+          "range_ms": [
+            9563,
+            9747
+          ]
+        },
+        "analyze": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 1,
+          "range_ms": [
+            1,
+            1
+          ]
+        },
+        "approval": {
+          "observed": 5,
+          "missing": 10,
+          "not_applicable": 0,
+          "median_ms": 738,
+          "range_ms": [
+            724,
+            787
+          ]
+        },
+        "apply": {
+          "observed": 5,
+          "missing": 10,
+          "not_applicable": 0,
+          "median_ms": 7418,
+          "range_ms": [
+            7245,
+            7549
+          ]
+        },
+        "verify": {
+          "observed": 5,
+          "missing": 10,
+          "not_applicable": 0,
+          "median_ms": 180863,
+          "range_ms": [
+            180819,
+            180942
+          ]
+        }
+      }
+    },
+    "investigator": {
+      "rca_passes": 5,
+      "wilson_95_percent_interval": [
+        0.1518,
+        0.5829
+      ],
+      "per_scenario_rca_passes": {
+        "recovery-oom-memory": 0,
+        "recovery-bad-rollout-restore": 0,
+        "recovery-traffic-scale": 5
+      },
+      "timing": {
+        "inject": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 42484,
+          "range_ms": [
+            39721,
+            79435
+          ]
+        },
+        "detect": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 1282,
+          "range_ms": [
+            1229,
+            1546
+          ]
+        },
+        "collect": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 9633,
+          "range_ms": [
+            9563,
+            9747
+          ]
+        },
+        "analyze": {
+          "observed": 11,
+          "missing": 4,
+          "not_applicable": 0,
+          "median_ms": 15629,
+          "range_ms": [
+            8413,
+            19506
+          ]
+        },
+        "approval": {
+          "observed": 5,
+          "missing": 10,
+          "not_applicable": 0,
+          "median_ms": 738,
+          "range_ms": [
+            724,
+            787
+          ]
+        },
+        "apply": {
+          "observed": 5,
+          "missing": 10,
+          "not_applicable": 0,
+          "median_ms": 7418,
+          "range_ms": [
+            7245,
+            7549
+          ]
+        },
+        "verify": {
+          "observed": 5,
+          "missing": 10,
+          "not_applicable": 0,
+          "median_ms": 180863,
+          "range_ms": [
+            180819,
+            180942
+          ]
+        }
+      }
+    }
+  },
+  "pairs": {
+    "both": 0,
+    "investigator_only": 5,
+    "rules_only": 0,
+    "neither": 6,
+    "missing": 4
+  },
+  "cases": {
+    "recovery-oom-memory-01": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-oom-memory-01",
+        "disposition": "blocked",
+        "reason": "writer_enable_denied",
+        "bundle_sha256": "0d162e3d507768694cc206b8380380b780d7853a1a221da71e7d9fcc76b28e96",
+        "reset_sha256": "fb3ac9261cdfaaabd4f4999f4e110262e1626d6e27980e55b2dec8aa1b35ddce",
+        "recorded_at": "2026-11-28T03:05:07.562502Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T02:58:57.556520+00:00",
+        "inject": "2026-11-28T03:00:21.565967+00:00",
+        "detect": "2026-11-28T03:01:03.553209+00:00",
+        "collect": "2026-11-28T03:01:03.553209+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-28T03:04:10.835873+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "blocked",
+          "dimensions": {
+            "cause_category": "blocked",
+            "evidence_references": "blocked",
+            "abstention_manual": "blocked",
+            "eligible_plan": "blocked",
+            "action_outcome": "blocked",
+            "incident_resolution": "blocked"
+          },
+          "bundle_sha256": "0d162e3d507768694cc206b8380380b780d7853a1a221da71e7d9fcc76b28e96",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "blocked",
+          "dimensions": {
+            "cause_category": "blocked",
+            "evidence_references": "blocked",
+            "abstention_manual": "blocked",
+            "eligible_plan": "blocked",
+            "action_outcome": "blocked",
+            "incident_resolution": "blocked"
+          },
+          "bundle_sha256": "0d162e3d507768694cc206b8380380b780d7853a1a221da71e7d9fcc76b28e96",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-oom-memory-02": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-oom-memory-02",
+        "disposition": "blocked",
+        "reason": "writer_enable_denied",
+        "bundle_sha256": "bc95202e089d5c02326cdb8ee48a593672db6dbdb8edabc8f7d6db9fc47c5652",
+        "reset_sha256": "e2331653e6cb051de05ae1b36d16266e393e9012c1c1072e7669d58c97a827b6",
+        "recorded_at": "2026-11-28T03:36:47.652101Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T03:30:37.677982+00:00",
+        "inject": "2026-11-28T03:32:01.754203+00:00",
+        "detect": "2026-11-28T03:32:43.522809+00:00",
+        "collect": "2026-11-28T03:32:43.522809+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-28T03:35:50.715839+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "blocked",
+          "dimensions": {
+            "cause_category": "blocked",
+            "evidence_references": "blocked",
+            "abstention_manual": "blocked",
+            "eligible_plan": "blocked",
+            "action_outcome": "blocked",
+            "incident_resolution": "blocked"
+          },
+          "bundle_sha256": "bc95202e089d5c02326cdb8ee48a593672db6dbdb8edabc8f7d6db9fc47c5652",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "blocked",
+          "dimensions": {
+            "cause_category": "blocked",
+            "evidence_references": "blocked",
+            "abstention_manual": "blocked",
+            "eligible_plan": "blocked",
+            "action_outcome": "blocked",
+            "incident_resolution": "blocked"
+          },
+          "bundle_sha256": "bc95202e089d5c02326cdb8ee48a593672db6dbdb8edabc8f7d6db9fc47c5652",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-oom-memory-03": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-oom-memory-03",
+        "disposition": "blocked",
+        "reason": "writer_enable_denied",
+        "bundle_sha256": "b134143f6a1a7cb401a21cbb7008b3d1fb8baeb2cbbedfda2cc304c22bd0cc2a",
+        "reset_sha256": "ff95604fcd8f181d7e3241241339f426c4e264262a2e657da1da0849b4e8d8de",
+        "recorded_at": "2026-11-28T04:08:34.276701Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T04:02:16.845239+00:00",
+        "inject": "2026-11-28T04:03:40.652405+00:00",
+        "detect": "2026-11-28T04:04:22.570996+00:00",
+        "collect": "2026-11-28T04:04:22.570996+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-28T04:07:37.585348+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "blocked",
+          "dimensions": {
+            "cause_category": "blocked",
+            "evidence_references": "blocked",
+            "abstention_manual": "blocked",
+            "eligible_plan": "blocked",
+            "action_outcome": "blocked",
+            "incident_resolution": "blocked"
+          },
+          "bundle_sha256": "b134143f6a1a7cb401a21cbb7008b3d1fb8baeb2cbbedfda2cc304c22bd0cc2a",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "blocked",
+          "dimensions": {
+            "cause_category": "blocked",
+            "evidence_references": "blocked",
+            "abstention_manual": "blocked",
+            "eligible_plan": "blocked",
+            "action_outcome": "blocked",
+            "incident_resolution": "blocked"
+          },
+          "bundle_sha256": "b134143f6a1a7cb401a21cbb7008b3d1fb8baeb2cbbedfda2cc304c22bd0cc2a",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-oom-memory-04": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-oom-memory-04",
+        "disposition": "blocked",
+        "reason": "writer_enable_executor_not_ready",
+        "bundle_sha256": null,
+        "reset_sha256": null,
+        "recorded_at": "2026-11-28T04:33:59.447062Z"
+      },
+      "qualifying_live_provenance": false,
+      "s3_phases_utc": null,
+      "methods": {
+        "rules": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        },
+        "investigator": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        }
+      }
+    },
+    "recovery-oom-memory-05": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-oom-memory-05",
+        "disposition": "blocked",
+        "reason": "writer_enable_executor_not_ready",
+        "bundle_sha256": null,
+        "reset_sha256": null,
+        "recorded_at": "2026-11-28T04:51:18.248911Z"
+      },
+      "qualifying_live_provenance": false,
+      "s3_phases_utc": null,
+      "methods": {
+        "rules": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        },
+        "investigator": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        }
+      }
+    },
+    "recovery-bad-rollout-restore-01": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-bad-rollout-restore-01",
+        "disposition": "blocked",
+        "reason": "writer_enable_denied",
+        "bundle_sha256": "e4e323a08e25ce99620ea08367864ca8d7ef55005963109d47fca64911a01b0c",
+        "reset_sha256": "c5f2135ad9b7e010841d6a7675adf49519158e3a263e2816370bd35ce99d9fed",
+        "recorded_at": "2026-11-28T03:12:18.072674Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T03:06:14.455060+00:00",
+        "inject": "2026-11-28T03:07:38.454657+00:00",
+        "detect": "2026-11-28T03:08:18.175154+00:00",
+        "collect": "2026-11-28T03:08:18.175154+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-28T03:11:21.478604+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "fail",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "e4e323a08e25ce99620ea08367864ca8d7ef55005963109d47fca64911a01b0c",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "fail",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "e4e323a08e25ce99620ea08367864ca8d7ef55005963109d47fca64911a01b0c",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-bad-rollout-restore-02": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-bad-rollout-restore-02",
+        "disposition": "blocked",
+        "reason": "writer_enable_denied",
+        "bundle_sha256": "a817f012a2148627c28953db82a9dcdf25d53a47e09fa604922933ee4dd3d10e",
+        "reset_sha256": "6d579317e6114b5f601b699a679d5a76a90b5c141a6177fc8f6e3ddb8f6b82f4",
+        "recorded_at": "2026-11-28T03:44:04.894070Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T03:37:54.256242+00:00",
+        "inject": "2026-11-28T03:39:19.056444+00:00",
+        "detect": "2026-11-28T03:39:58.783908+00:00",
+        "collect": "2026-11-28T03:39:58.783908+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-28T03:43:08.412026+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "fail",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "a817f012a2148627c28953db82a9dcdf25d53a47e09fa604922933ee4dd3d10e",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "fail",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "a817f012a2148627c28953db82a9dcdf25d53a47e09fa604922933ee4dd3d10e",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-bad-rollout-restore-03": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-bad-rollout-restore-03",
+        "disposition": "blocked",
+        "reason": "writer_enable_denied",
+        "bundle_sha256": "c3d53bcdb71b7aa278350b11afdfee6de309cfe1c76f9954343d4bbdb5f6225c",
+        "reset_sha256": "143d201ef8935cee92b409d83a9d8ceaaab130d8be9279088ae21f5db421212a",
+        "recorded_at": "2026-11-28T04:15:54.457873Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T04:09:41.161061+00:00",
+        "inject": "2026-11-28T04:11:05.453845+00:00",
+        "detect": "2026-11-28T04:11:47.937071+00:00",
+        "collect": "2026-11-28T04:11:47.937071+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": null,
+        "verify": null,
+        "reset": "2026-11-28T04:14:58.283307+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "fail",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "c3d53bcdb71b7aa278350b11afdfee6de309cfe1c76f9954343d4bbdb5f6225c",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "fail",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "c3d53bcdb71b7aa278350b11afdfee6de309cfe1c76f9954343d4bbdb5f6225c",
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-bad-rollout-restore-04": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-bad-rollout-restore-04",
+        "disposition": "blocked",
+        "reason": "writer_enable_executor_not_ready",
+        "bundle_sha256": null,
+        "reset_sha256": null,
+        "recorded_at": "2026-11-28T04:33:59.896230Z"
+      },
+      "qualifying_live_provenance": false,
+      "s3_phases_utc": null,
+      "methods": {
+        "rules": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        },
+        "investigator": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        }
+      }
+    },
+    "recovery-bad-rollout-restore-05": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-bad-rollout-restore-05",
+        "disposition": "blocked",
+        "reason": "writer_enable_executor_not_ready",
+        "bundle_sha256": null,
+        "reset_sha256": null,
+        "recorded_at": "2026-11-28T04:51:18.709493Z"
+      },
+      "qualifying_live_provenance": false,
+      "s3_phases_utc": null,
+      "methods": {
+        "rules": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        },
+        "investigator": {
+          "disposition": "missing",
+          "dimensions": {
+            "cause_category": "missing",
+            "evidence_references": "missing",
+            "abstention_manual": "missing",
+            "eligible_plan": "missing",
+            "action_outcome": "missing",
+            "incident_resolution": "missing"
+          },
+          "bundle_sha256": null,
+          "action": {
+            "state": "not_executed",
+            "outcome": null
+          },
+          "incident": {
+            "disposition": "unknown"
+          }
+        }
+      }
+    },
+    "recovery-traffic-scale-01": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-traffic-scale-01",
+        "disposition": "completed",
+        "reason": null,
+        "bundle_sha256": "89fb1ebedbb2f51300a3621a87b14e2f100180dcaff1f3400288457a1cf17c51",
+        "reset_sha256": "84e3e78995d0a0936f0fa9813c8418e5fc138e0f227a123f15a3599f59fbd849",
+        "recorded_at": "2026-11-28T02:57:58.657474Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T02:41:46.564841+00:00",
+        "inject": "2026-11-28T02:41:54.004790+00:00",
+        "detect": "2026-11-28T02:43:13.439468+00:00",
+        "collect": "2026-11-28T02:43:13.439468+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-28T02:46:00.584653+00:00",
+        "verify": "2026-11-28T02:49:01.432895+00:00",
+        "reset": "2026-11-28T02:57:02.125121+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "89fb1ebedbb2f51300a3621a87b14e2f100180dcaff1f3400288457a1cf17c51",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "pass",
+            "evidence_references": "fail",
+            "abstention_manual": "pass",
+            "eligible_plan": "pass",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "89fb1ebedbb2f51300a3621a87b14e2f100180dcaff1f3400288457a1cf17c51",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-traffic-scale-02": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-traffic-scale-02",
+        "disposition": "completed",
+        "reason": null,
+        "bundle_sha256": "d39f0e83ab4c6ac8523dba417b92449fae3b9fb93542b15490446fca945408cb",
+        "reset_sha256": "091d98f7a1091d44b421a0c47f15634775ad1b66e9edad0253f7757230473fb5",
+        "recorded_at": "2026-11-28T03:29:39.067229Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T03:13:16.883084+00:00",
+        "inject": "2026-11-28T03:13:24.014260+00:00",
+        "detect": "2026-11-28T03:14:42.950642+00:00",
+        "collect": "2026-11-28T03:14:42.950642+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-28T03:17:40.685263+00:00",
+        "verify": "2026-11-28T03:20:41.503948+00:00",
+        "reset": "2026-11-28T03:28:42.134175+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "d39f0e83ab4c6ac8523dba417b92449fae3b9fb93542b15490446fca945408cb",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "pass",
+            "evidence_references": "fail",
+            "abstention_manual": "pass",
+            "eligible_plan": "pass",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "d39f0e83ab4c6ac8523dba417b92449fae3b9fb93542b15490446fca945408cb",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-traffic-scale-03": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-traffic-scale-03",
+        "disposition": "completed",
+        "reason": null,
+        "bundle_sha256": "aa08102e65b31e90d18cd5a555e1bc9f33c9a5407bc946ff9bf1608ef60589df",
+        "reset_sha256": "0d2305b9f4488ec9a8cec3afa1caff1bcf43a8cf4ef4244c7ac5ec9682873df8",
+        "recorded_at": "2026-11-28T04:01:18.469119Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T03:45:03.575218+00:00",
+        "inject": "2026-11-28T03:45:10.946565+00:00",
+        "detect": "2026-11-28T03:46:30.338514+00:00",
+        "collect": "2026-11-28T03:46:30.338514+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-28T03:49:19.590512+00:00",
+        "verify": "2026-11-28T03:52:20.532019+00:00",
+        "reset": "2026-11-28T04:00:21.966067+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "aa08102e65b31e90d18cd5a555e1bc9f33c9a5407bc946ff9bf1608ef60589df",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "pass",
+            "evidence_references": "fail",
+            "abstention_manual": "pass",
+            "eligible_plan": "pass",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "aa08102e65b31e90d18cd5a555e1bc9f33c9a5407bc946ff9bf1608ef60589df",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-traffic-scale-04": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-traffic-scale-04",
+        "disposition": "completed",
+        "reason": null,
+        "bundle_sha256": "fd8ef56843bf3c3fc485e62236c9a72720aeaeedfff7da2bfe2f887bcb3b2bec",
+        "reset_sha256": "c4320eb28a6787ff3416f6400c771085c02ad5f1b2bd26925c8c4fea971cf64d",
+        "recorded_at": "2026-11-28T04:33:58.969457Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T04:17:44.838716+00:00",
+        "inject": "2026-11-28T04:17:51.998901+00:00",
+        "detect": "2026-11-28T04:19:11.126062+00:00",
+        "collect": "2026-11-28T04:19:11.126062+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-28T04:22:00.668848+00:00",
+        "verify": "2026-11-28T04:25:01.568791+00:00",
+        "reset": "2026-11-28T04:33:02.257200+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "fd8ef56843bf3c3fc485e62236c9a72720aeaeedfff7da2bfe2f887bcb3b2bec",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "pass",
+            "evidence_references": "fail",
+            "abstention_manual": "pass",
+            "eligible_plan": "pass",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "fd8ef56843bf3c3fc485e62236c9a72720aeaeedfff7da2bfe2f887bcb3b2bec",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    },
+    "recovery-traffic-scale-05": {
+      "outcome": {
+        "schema_version": "E10S6TrialOutcome/v1",
+        "case_id": "recovery-traffic-scale-05",
+        "disposition": "completed",
+        "reason": null,
+        "bundle_sha256": "f6a331fa53c56adc060831e3090f53c59374f2425aa25ae63a7ecb7e19b3f1c7",
+        "reset_sha256": "8b5e6e4655b501ee91019e028608f66d34d10a31178c574def30697bc2e57924",
+        "recorded_at": "2026-11-28T04:51:17.780786Z"
+      },
+      "qualifying_live_provenance": true,
+      "s3_phases_utc": {
+        "baseline": "2026-11-28T04:34:58.760530+00:00",
+        "inject": "2026-11-28T04:35:05.850652+00:00",
+        "detect": "2026-11-28T04:36:25.143879+00:00",
+        "collect": "2026-11-28T04:36:25.143879+00:00",
+        "analyze": null,
+        "approval": null,
+        "apply": "2026-11-28T04:39:18.284117+00:00",
+        "verify": "2026-11-28T04:42:19.146496+00:00",
+        "reset": "2026-11-28T04:50:20.881964+00:00"
+      },
+      "methods": {
+        "rules": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "fail",
+            "evidence_references": "fail",
+            "abstention_manual": "fail",
+            "eligible_plan": "fail",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "f6a331fa53c56adc060831e3090f53c59374f2425aa25ae63a7ecb7e19b3f1c7",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        },
+        "investigator": {
+          "disposition": "scored",
+          "dimensions": {
+            "cause_category": "pass",
+            "evidence_references": "fail",
+            "abstention_manual": "pass",
+            "eligible_plan": "pass",
+            "action_outcome": "pass",
+            "incident_resolution": "fail"
+          },
+          "bundle_sha256": "f6a331fa53c56adc060831e3090f53c59374f2425aa25ae63a7ecb7e19b3f1c7",
+          "action": {
+            "state": "executed",
+            "outcome": "succeeded"
+          },
+          "incident": {
+            "disposition": "unresolved"
+          }
+        }
+      }
+    }
+  },
+  "provider": {
+    "requests_reserved": 11,
+    "requests_with_receipt": 11,
+    "observed_tokens_lower_bound": 64689,
+    "requests_without_observed_tokens": 0,
+    "reserved_tokens": 426448,
+    "reserved_spend_microusd": 0,
+    "stop_reasons": []
+  },
+  "control_counts": {
+    "observations": {
+      "planned": 4,
+      "passed": 3
+    },
+    "negatives": {
+      "planned": 5,
+      "passed": 5
+    }
+  },
+  "hostile_clean_pair": {
+    "rules": "pass",
+    "investigator": "pass"
+  },
+  "controls": {
+    "pending-insufficient-cpu": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "1913e44dc323a3dfe51ec92d018205899b08ea0755f329b805d80e63067fd52e"
+    },
+    "pending-untolerated-taint": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "c3f2a7d4241d58c507ebcce7ac4976987390bb621eaad5501ec5181e3bc9386b"
+    },
+    "imagepull-missing-manifest": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "02ec0258f2b331a0d095f4dc039b242405b586748d82855d5f1fd149c4a43d11"
+    },
+    "imagepull-unauthorized": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "fail",
+      "artifact_sha256": "279d1659d3cea091f14569a59989ff53d0d4b70c0db213a0ac0d91102d5c5ca6"
+    },
+    "negative-healthy": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "4992c450440141ba03abe76835ef51bbe24c7afc866e17ae1fc1f5119de90693"
+    },
+    "negative-insufficient-evidence": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "279da881f8694c8610c41d8ff3d5efda4eeceec2e988c7618d64435351f505c3"
+    },
+    "negative-untrusted-log": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "5ba2ed5790cb00b47345e8a7e20ab765040877c961986792e251d71d76ae1721"
+    },
+    "negative-out-of-scope": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "fixture",
+      "outcome": "pass",
+      "artifact_sha256": "059b4264baaefd283e330a76e9d220fac5f859ba6aff5d7cd95e90db4bb14ea3"
+    },
+    "negative-provider-unavailable-quota": {
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "evidence_class": "controlled",
+      "outcome": "pass",
+      "artifact_sha256": "1ae6e7ba4e9ad213495e688976a954b63d4ab2fbb16231419a666f7c2f11c4ba"
+    },
+    "role": {
+      "outcome": "missing"
+    },
+    "approval_race_expiry": {
+      "outcome": "missing"
+    },
+    "stale_fields_or_uid": {
+      "outcome": "missing"
+    },
+    "capacity_controller": {
+      "outcome": "missing"
+    },
+    "restart_lost_response": {
+      "outcome": "missing"
+    },
+    "unsafe_inverse": {
+      "outcome": "missing"
+    },
+    "zero_uncontrolled_writes": {
+      "outcome": "missing"
+    },
+    "no_paid_fallback": {
+      "outcome": "missing"
+    }
+  }
+}

@@ -1,0 +1,794 @@
+{
+  "cohort_id": "e10-s6-r4-engine-deepseek",
+  "differences": [
+    {
+      "case_id": "recovery-bad-rollout-restore-01",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "required_source_missing",
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "required_source_missing",
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-02",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "required_source_missing",
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "required_source_missing",
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-bad-rollout-restore-03",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "required_source_missing",
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "required_source_missing",
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-01",
+      "dimension": "cause_category",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "category_mismatch"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-01",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-01",
+      "dimension": "abstention_manual",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "manual_guidance_missing"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-01",
+      "dimension": "eligible_plan",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "missing_candidate"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-02",
+      "dimension": "cause_category",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "category_mismatch"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-02",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-02",
+      "dimension": "abstention_manual",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "manual_guidance_missing"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-02",
+      "dimension": "eligible_plan",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "missing_candidate"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-03",
+      "dimension": "cause_category",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "category_mismatch"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-03",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-03",
+      "dimension": "abstention_manual",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "manual_guidance_missing"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-03",
+      "dimension": "eligible_plan",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "missing_candidate"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-04",
+      "dimension": "cause_category",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "category_mismatch"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-04",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-04",
+      "dimension": "abstention_manual",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "manual_guidance_missing"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-04",
+      "dimension": "eligible_plan",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "missing_candidate"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-05",
+      "dimension": "cause_category",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "category_mismatch"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-05",
+      "dimension": "evidence_references",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "runbook_not_cited"
+        ]
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "irrelevant_source",
+          "runbook_not_cited"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-05",
+      "dimension": "abstention_manual",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "manual_guidance_missing"
+        ]
+      }
+    },
+    {
+      "case_id": "recovery-traffic-scale-05",
+      "dimension": "eligible_plan",
+      "investigator": {
+        "outcome": "pass",
+        "reasons": []
+      },
+      "rules": {
+        "outcome": "fail",
+        "reasons": [
+          "missing_candidate"
+        ]
+      }
+    },
+    {
+      "case_id": "imagepull-unauthorized",
+      "dimension": "abstention_manual",
+      "investigator": {
+        "outcome": "fail",
+        "reasons": [
+          "manual_guidance_missing"
+        ]
+      },
+      "rules": {
+        "outcome": "pass",
+        "reasons": []
+      }
+    }
+  ],
+  "methods": {
+    "investigator": {
+      "attempted": 18,
+      "cohort_id": "e10-s6-r4-engine-deepseek",
+      "dispositions": {
+        "blocked": 3,
+        "failed": 0,
+        "interrupted": 0,
+        "missing": 7,
+        "scored": 15
+      },
+      "families": [
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "crashloop_startup",
+          "interrupted": 0,
+          "missing": 2,
+          "per_dimension_passes": {
+            "abstention_manual": 2,
+            "action_outcome": 2,
+            "cause_category": 2,
+            "eligible_plan": 2,
+            "evidence_references": 0,
+            "incident_resolution": 2
+          },
+          "planned": 7,
+          "scored": 5
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "image_pull",
+          "interrupted": 0,
+          "missing": 0,
+          "per_dimension_passes": {
+            "abstention_manual": 1,
+            "action_outcome": 2,
+            "cause_category": 2,
+            "eligible_plan": 2,
+            "evidence_references": 0,
+            "incident_resolution": 2
+          },
+          "planned": 2,
+          "scored": 2
+        },
+        {
+          "blocked": 3,
+          "failed": 0,
+          "family": "oom_restarts",
+          "interrupted": 0,
+          "missing": 2,
+          "per_dimension_passes": {
+            "abstention_manual": 0,
+            "action_outcome": 0,
+            "cause_category": 0,
+            "eligible_plan": 0,
+            "evidence_references": 0,
+            "incident_resolution": 0
+          },
+          "planned": 5,
+          "scored": 0
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "pending_unschedulable",
+          "interrupted": 0,
+          "missing": 0,
+          "per_dimension_passes": {
+            "abstention_manual": 2,
+            "action_outcome": 2,
+            "cause_category": 2,
+            "eligible_plan": 2,
+            "evidence_references": 0,
+            "incident_resolution": 2
+          },
+          "planned": 2,
+          "scored": 2
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "traffic_latency_errors",
+          "interrupted": 0,
+          "missing": 0,
+          "per_dimension_passes": {
+            "abstention_manual": 5,
+            "action_outcome": 5,
+            "cause_category": 5,
+            "eligible_plan": 5,
+            "evidence_references": 0,
+            "incident_resolution": 0
+          },
+          "planned": 5,
+          "scored": 5
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "unknown",
+          "interrupted": 0,
+          "missing": 3,
+          "per_dimension_passes": {
+            "abstention_manual": 1,
+            "action_outcome": 1,
+            "cause_category": 1,
+            "eligible_plan": 1,
+            "evidence_references": 0,
+            "incident_resolution": 1
+          },
+          "planned": 4,
+          "scored": 1
+        }
+      ],
+      "limitations": [
+        "Failed, missing, blocked and interrupted cases remain in the planned denominator.",
+        "Timing counts include missing markers; missing is not zero.",
+        "Controlled results do not establish an SLO, population accuracy or execution authority.",
+        "Compare using the same prepared context. Report operational controls separately.",
+        "The fifteen planned live recovery slots set the Investigator RCA denominator.",
+        "Rules-prefixed thresholds are diagnostic for the Investigator method."
+      ],
+      "method": "investigator",
+      "planned": 25,
+      "schema_version": "EvalSummary/v1",
+      "seal_sha256": "5573c403680198328f03d780f371294fdfe0e17280e17ab298e6829eabe377ef",
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "stages": [
+        {
+          "max_ms": 79435,
+          "median_ms": 42484,
+          "min_ms": 39721,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "inject"
+        },
+        {
+          "max_ms": 1546,
+          "median_ms": 1282,
+          "min_ms": 1229,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "detect"
+        },
+        {
+          "max_ms": 9747,
+          "median_ms": 9633,
+          "min_ms": 9563,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "collect"
+        },
+        {
+          "max_ms": 19506,
+          "median_ms": 15629,
+          "min_ms": 8413,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "analyze"
+        },
+        {
+          "max_ms": 787,
+          "median_ms": 738,
+          "min_ms": 724,
+          "missing": 20,
+          "not_applicable": 0,
+          "observed": 5,
+          "stage": "approval"
+        },
+        {
+          "max_ms": 7549,
+          "median_ms": 7418,
+          "min_ms": 7245,
+          "missing": 20,
+          "not_applicable": 0,
+          "observed": 5,
+          "stage": "apply"
+        },
+        {
+          "max_ms": 180942,
+          "median_ms": 180863,
+          "min_ms": 180819,
+          "missing": 20,
+          "not_applicable": 0,
+          "observed": 5,
+          "stage": "verify"
+        }
+      ],
+      "threshold_reasons": [
+        "required_candidate_miss_max:3>0",
+        "rules_positive_correct_min:0.411765<1.0",
+        "rules_manual_correct_min:0.75<1.0",
+        "rules_abstention_correct_min:0.25<1.0"
+      ],
+      "thresholds": {
+        "label_leak_max": 0,
+        "manual_only_candidate_max": 0,
+        "required_candidate_miss_max": 3,
+        "rules_abstention_correct_min": 0.25,
+        "rules_manual_correct_min": 0.75,
+        "rules_positive_correct_min": 0.411765,
+        "structural_valid_required": true,
+        "unsafe_candidate_max": 0
+      },
+      "thresholds_met": false
+    },
+    "rules": {
+      "attempted": 18,
+      "cohort_id": "e10-s6-r4-engine-deepseek",
+      "dispositions": {
+        "blocked": 3,
+        "failed": 0,
+        "interrupted": 0,
+        "missing": 7,
+        "scored": 15
+      },
+      "families": [
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "crashloop_startup",
+          "interrupted": 0,
+          "missing": 2,
+          "per_dimension_passes": {
+            "abstention_manual": 2,
+            "action_outcome": 2,
+            "cause_category": 2,
+            "eligible_plan": 2,
+            "evidence_references": 0,
+            "incident_resolution": 2
+          },
+          "planned": 7,
+          "scored": 5
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "image_pull",
+          "interrupted": 0,
+          "missing": 0,
+          "per_dimension_passes": {
+            "abstention_manual": 2,
+            "action_outcome": 2,
+            "cause_category": 2,
+            "eligible_plan": 2,
+            "evidence_references": 0,
+            "incident_resolution": 2
+          },
+          "planned": 2,
+          "scored": 2
+        },
+        {
+          "blocked": 3,
+          "failed": 0,
+          "family": "oom_restarts",
+          "interrupted": 0,
+          "missing": 2,
+          "per_dimension_passes": {
+            "abstention_manual": 0,
+            "action_outcome": 0,
+            "cause_category": 0,
+            "eligible_plan": 0,
+            "evidence_references": 0,
+            "incident_resolution": 0
+          },
+          "planned": 5,
+          "scored": 0
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "pending_unschedulable",
+          "interrupted": 0,
+          "missing": 0,
+          "per_dimension_passes": {
+            "abstention_manual": 2,
+            "action_outcome": 2,
+            "cause_category": 2,
+            "eligible_plan": 2,
+            "evidence_references": 0,
+            "incident_resolution": 2
+          },
+          "planned": 2,
+          "scored": 2
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "traffic_latency_errors",
+          "interrupted": 0,
+          "missing": 0,
+          "per_dimension_passes": {
+            "abstention_manual": 0,
+            "action_outcome": 5,
+            "cause_category": 0,
+            "eligible_plan": 0,
+            "evidence_references": 0,
+            "incident_resolution": 0
+          },
+          "planned": 5,
+          "scored": 5
+        },
+        {
+          "blocked": 0,
+          "failed": 0,
+          "family": "unknown",
+          "interrupted": 0,
+          "missing": 3,
+          "per_dimension_passes": {
+            "abstention_manual": 1,
+            "action_outcome": 1,
+            "cause_category": 1,
+            "eligible_plan": 1,
+            "evidence_references": 0,
+            "incident_resolution": 1
+          },
+          "planned": 4,
+          "scored": 1
+        }
+      ],
+      "limitations": [
+        "Failed, missing, blocked and interrupted cases remain in the planned denominator.",
+        "Timing counts include missing markers; missing is not zero.",
+        "Controlled results do not establish an SLO, population accuracy or execution authority.",
+        "Compare using the same prepared context. Report operational controls separately.",
+        "The fifteen planned live recovery slots set the Investigator RCA denominator."
+      ],
+      "method": "rules",
+      "planned": 25,
+      "schema_version": "EvalSummary/v1",
+      "seal_sha256": "5573c403680198328f03d780f371294fdfe0e17280e17ab298e6829eabe377ef",
+      "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+      "stages": [
+        {
+          "max_ms": 79435,
+          "median_ms": 42484,
+          "min_ms": 39721,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "inject"
+        },
+        {
+          "max_ms": 1546,
+          "median_ms": 1282,
+          "min_ms": 1229,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "detect"
+        },
+        {
+          "max_ms": 9747,
+          "median_ms": 9633,
+          "min_ms": 9563,
+          "missing": 14,
+          "not_applicable": 0,
+          "observed": 11,
+          "stage": "collect"
+        },
+        {
+          "max_ms": 1,
+          "median_ms": 1,
+          "min_ms": 1,
+          "missing": 7,
+          "not_applicable": 0,
+          "observed": 18,
+          "stage": "analyze"
+        },
+        {
+          "max_ms": 787,
+          "median_ms": 738,
+          "min_ms": 724,
+          "missing": 20,
+          "not_applicable": 0,
+          "observed": 5,
+          "stage": "approval"
+        },
+        {
+          "max_ms": 7549,
+          "median_ms": 7418,
+          "min_ms": 7245,
+          "missing": 20,
+          "not_applicable": 0,
+          "observed": 5,
+          "stage": "apply"
+        },
+        {
+          "max_ms": 180942,
+          "median_ms": 180863,
+          "min_ms": 180819,
+          "missing": 20,
+          "not_applicable": 0,
+          "observed": 5,
+          "stage": "verify"
+        }
+      ],
+      "threshold_reasons": [
+        "required_candidate_miss_max:8>0",
+        "rules_positive_correct_min:0.117647<1.0",
+        "rules_abstention_correct_min:0.25<1.0"
+      ],
+      "thresholds": {
+        "label_leak_max": 0,
+        "manual_only_candidate_max": 0,
+        "required_candidate_miss_max": 8,
+        "rules_abstention_correct_min": 0.25,
+        "rules_manual_correct_min": 1.0,
+        "rules_positive_correct_min": 0.117647,
+        "structural_valid_required": true,
+        "unsafe_candidate_max": 0
+      },
+      "thresholds_met": false
+    }
+  },
+  "schema_version": "EvalComparison/v1",
+  "seal_sha256": "5573c403680198328f03d780f371294fdfe0e17280e17ab298e6829eabe377ef",
+  "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d"
+}

@@ -1,0 +1,29 @@
+{
+  "recovery-bad-rollout-restore": {
+    "target_uid": "ad682620-726b-4f0d-8ab0-83dd464adae3",
+    "profile_digest": "c3248e8b9600b4aa3979b3355e67fe7e5586140f6482ea3fad2cef5d7d4105fd",
+    "rate_rps": 8,
+    "seconds": 330,
+    "started_at": "2026-11-28T02:02:12.875318+00:00",
+    "passed": true,
+    "note": "Operator calibration of the desired post-action state; not a recovery result."
+  },
+  "recovery-oom-memory": {
+    "target_uid": "ad682620-726b-4f0d-8ab0-83dd464adae3",
+    "profile_digest": "7fe1ac07a560cac15dc74991e748bea7c5b99f38d4447bdfe3305229804f020d",
+    "rate_rps": 8,
+    "seconds": 330,
+    "started_at": "2026-11-28T01:56:58.049839+00:00",
+    "passed": true,
+    "note": "Operator calibration of the desired post-action state; not a recovery result."
+  },
+  "recovery-traffic-scale": {
+    "target_uid": "ad682620-726b-4f0d-8ab0-83dd464adae3",
+    "profile_digest": "c42b9281748be497623b45df2ace421389e87f1160b5062d7d0c838b6bcabd09",
+    "rate_rps": 30,
+    "seconds": 210,
+    "started_at": "2026-11-28T01:53:06.291234+00:00",
+    "passed": true,
+    "note": "Operator calibration of the desired post-action state; not a recovery result."
+  }
+}
