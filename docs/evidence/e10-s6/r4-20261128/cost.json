@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-28",
+  "region": "us-east-1",
+  "source": "AWS list prices as recorded in docs/evidence/e10-s2-ec2/cost.json (Price List API, effective 2026-11-01); per-second Linux billing; no Cost Explorer queries",
+  "rates_usd": {
+    "c5a.2xlarge_hour": 0.308,
+    "c6a.2xlarge_hour": 0.306,
+    "gp3_gb_month": 0.08,
+    "public_ipv4_hour": 0.005,
+    "snapshot_gb_month": 0.05,
+    "transfer_out_gb": "first 100 GB per month free, then 0.09"
+  },
+  "approval": {
+    "ceiling_usd": 15.0,
+    "max_running_hours": 45,
+    "owner_decision": "goal prompt, engine loop v2 and M5, 2026-11-26",
+    "stacks": [
+      "cloudops-engine-lab-v2 (phase 1)",
+      "cloudops-release-r4 (phase 5)"
+    ],
+    "shutdown_timer": "sudo shutdown -h +300 on every start"
+  },
+  "estimate_before_apply": {
+    "phase1": "about 14 running hours x 0.308 = 4.31, gp3 50 GiB for 1 day = 0.13, IPv4 14 h = 0.07; total about 4.5",
+    "phase5": "about 10 running hours x 0.308 = 3.08 plus gp3 and IPv4 = about 3.2",
+    "upper_total_usd": 12.0
+  },
+  "stacks": {
+    "cloudops-engine-lab-v2": {
+      "instance_id": "i-071f5554c0c0c803b",
+      "root_volume_id": "vol-0d2219f9579f37b3a",
+      "key_pair_id": "key-09e36495db7c30b69",
+      "segments": [
+        {
+          "from": "2026-11-27T03:43:37Z",
+          "to": "2026-11-27T07:41:10Z",
+          "type": "c5a.2xlarge",
+          "usd_per_hour": 0.308,
+          "hours": 3.959,
+          "usd": 1.219,
+          "purpose": "lab-v4 smoke and collection (attempt 1, stopped early: interim D4 estimate failed)"
+        },
+        {
+          "from": "2026-11-27T08:10:20Z",
+          "to": "2026-11-28T05:02:50Z",
+          "type": "c5a.2xlarge",
+          "usd_per_hour": 0.308,
+          "purpose": "lab-v4b collection (attempt 2), re-collection, engine-lab cleanup, then R4 install, qualification, smoke, 15 slots and cleanup on the reused stack (clean host state)",
+          "hours": 20.875,
+          "usd": 6.429
+        }
+      ],
+      "volume": {
+        "gib": 50,
+        "created": "2026-11-27T03:43:54Z",
+        "usd_per_gb_month": 0.08,
+        "deleted": "2026-11-28T05:03:10Z",
+        "hours": 25.32,
+        "usd": 0.139
+      },
+      "public_ipv4": {
+        "hours": 24.834,
+        "usd": 0.124
+      },
+      "teardown": {
+        "destroy_plan": "engine-lab-v2-destroy.tfplan (10 deletes, reviewed)",
+        "applied": "2026-11-28T05:02Z",
+        "retained_root_volume_deleted": "vol-0d2219f9579f37b3a",
+        "key_pair_deleted": "key-09e36495db7c30b69",
+        "inventory_empty_checked": "2026-11-28T05:04Z, all 17 enabled regions"
+      }
+    },
+    "cloudops-release-r4": {
+      "created": false,
+      "reason": "R4 reused the cloudops-engine-lab-v2 stack after a full engine-lab cleanup and image prune (cheaper than a second stack; clean host state)"
+    }
+  },
+  "elastic_ip": {
+    "allocated": 0,
+    "usd": 0
+  },
+  "snapshots": {
+    "created": 0,
+    "usd": 0
+  },
+  "totals": {
+    "running_hours": 24.834,
+    "instance_usd": 7.648,
+    "volume_usd": 0.139,
+    "public_ipv4_usd": 0.124,
+    "total_usd_list_price": 7.91,
+    "ceiling_usd": 15.0,
+    "max_running_hours": 45,
+    "note": "List-price estimate; actual charges come from the AWS bill. Data transfer out under the 100 GB free tier."
+  }
+}

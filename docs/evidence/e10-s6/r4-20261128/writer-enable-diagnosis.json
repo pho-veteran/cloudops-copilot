@@ -1,0 +1,37 @@
+{
+  "schema": "R4WriterEnableDiagnosis/v1",
+  "at": "2026-11-28T04:16Z",
+  "trigger": "owner update: treat the writer-enable failures of memory and restore slots as a preflight defect and diagnose before the next memory or restore slot",
+  "lab_step": "scripts/manage-local-lab.py --project cloudops-release-recovery-r4 writer enable",
+  "exact_command": "docker compose <R4 lab compose files> exec -T executor python -m cloudops.features.recovery.maintenance enable_target --target <checkout uid> --reason \"Owned lab lifecycle\" --evidence local://lab/lifecycle",
+  "exit_status": 1,
+  "lab_output": "Lab operation stopped: docker operation failed (exit 1); no success claimed.. No additional authority granted.",
+  "client_rule": "cloudops/features/recovery/maintenance.py exits 1 when the executor answers status denied or outcome_unknown",
+  "executor_answer": {
+    "status": "denied",
+    "code": "maintenance_state_changed",
+    "reason": "Target is not fully ready. Repair it manually before enabling product writes."
+  },
+  "executor_rule": "services/backend/src/cloudops/features/recovery/gateway.py prove(): enable_target requires healthy(current Deployment) before product writes are enabled",
+  "denied_attempts_from_executor_audit": [
+    "2026-11-28T03:03:48Z recovery-oom-memory-01",
+    "2026-11-28T03:10:58Z recovery-bad-rollout-restore-01",
+    "2026-11-28T03:35:27Z recovery-oom-memory-02",
+    "2026-11-28T03:42:42Z recovery-bad-rollout-restore-02",
+    "2026-11-28T04:07:14Z recovery-oom-memory-03"
+  ],
+  "applied_attempts_from_executor_audit": [
+    "2026-11-28T02:27:43Z smoke traffic-02",
+    "2026-11-28T02:45:50Z traffic-01",
+    "2026-11-28T03:17:30Z traffic-02",
+    "2026-11-28T03:49:09Z traffic-03"
+  ],
+  "target_readiness_at_observation": {
+    "recovery-oom-memory-01": "pod ready false, ContainersNotReady, last state OOMKilled, 1 restart",
+    "recovery-bad-rollout-restore-01": "pod ready false, ContainersNotReady, last state Error, 1 restart",
+    "traffic slots": "pods ready (overload fault changes load only)"
+  },
+  "cause": "Not host state and not the lab docker path: the lab tooling reports the executor readiness denial as a docker exit 1. The memory and restore faults leave the Deployment not ready by construction, and the executor guard refuses to enable product writes on a not-ready target. The same denial stopped R3 memory-01.",
+  "fix_scope": "Requires executor/recovery code (the enable_target readiness rule) or a procedure that opens the writer on a not-ready target, which would bypass that guard. Both are outside R4 authority; no change made.",
+  "disposition": "Owner update rule 3: record the remaining memory and restore slots as blocked with this cause and finish the traffic slots. Slots already blocked stay in the denominator and are not rerun."
+}

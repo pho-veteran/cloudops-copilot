@@ -1,0 +1,36 @@
+{
+  "schema": "R4InstallReceipt/v1",
+  "project": "cloudops-release-recovery-r4",
+  "host": "EC2 c5a.2xlarge i-071f5554c0c0c803b, Debian 13 ami-01757311770dc7690, us-east-1a (deploy/ec2, stack cloudops-engine-lab-v2 reused)",
+  "source_revision": "8b82a5d690450b67e0bb8290be3282314718e80d",
+  "bundle_manifest_sha256": "b1ab6d2fbf24fa16607f2e5a82903abd3290cb4d152fc2904609267eff9a615a",
+  "images": {
+    "backend": {
+      "id": "sha256:9aa8247ba8562394d4af0c7b6c5867e54e2e4ef68e4ffc5275909003ae7745ed",
+      "ref": "cloudops-release-backend:8b82a5d690450b67e0bb8290be3282314718e80d-9aa8247ba8562394d4af0c7b6c5867e54e2e4ef68e4ffc5275909003ae7745ed"
+    },
+    "db": {
+      "id": "sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7",
+      "ref": "cloudops-release-db:8b82a5d690450b67e0bb8290be3282314718e80d-1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7"
+    },
+    "https": {
+      "id": "sha256:4c089e39c12673cfddd8583a3b1bd8a62a7ce35f378b559c3a47b106254ffc2d",
+      "ref": "cloudops-release-https:8b82a5d690450b67e0bb8290be3282314718e80d-4c089e39c12673cfddd8583a3b1bd8a62a7ce35f378b559c3a47b106254ffc2d"
+    }
+  },
+  "verification": [
+    "Verified 8b82a5d690450b67e0bb8290be3282314718e80d linux/amd64 with lab images",
+    "Verified 8b82a5d690450b67e0bb8290be3282314718e80d linux/amd64 with lab images and loaded image IDs",
+    "INSTALL-VERIFIED"
+  ],
+  "knowledge_status": {
+    "retained": {
+      "chunks": 64,
+      "document_versions": 8,
+      "generations": 1
+    },
+    "retrieval_mode": "catalog_full_text",
+    "semantic_mode": "not_configured",
+    "state": "ready"
+  }
+}

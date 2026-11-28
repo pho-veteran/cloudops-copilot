@@ -1,0 +1,635 @@
+{
+  "recovery-oom-memory-01": {
+    "disposition": "blocked",
+    "reason": "writer_enable_denied",
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "insufficient_evidence",
+      "cause_category": "unknown",
+      "candidate": null,
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 14099,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "blocked",
+      "evidence_references": "blocked",
+      "abstention_manual": "blocked",
+      "eligible_plan": "blocked",
+      "action_outcome": "blocked",
+      "incident_resolution": "blocked"
+    },
+    "investigator_score": {
+      "cause_category": "blocked",
+      "evidence_references": "blocked",
+      "abstention_manual": "blocked",
+      "eligible_plan": "blocked",
+      "action_outcome": "blocked",
+      "incident_resolution": "blocked"
+    },
+    "timing_ms": {
+      "inject": 41988,
+      "detect": 1282,
+      "collect": 9563,
+      "analyze": 16619,
+      "approval": "missing",
+      "apply": "missing",
+      "verify": "missing"
+    }
+  },
+  "recovery-oom-memory-02": {
+    "disposition": "blocked",
+    "reason": "writer_enable_denied",
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "insufficient_evidence",
+      "cause_category": "unknown",
+      "candidate": null,
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 16326,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "blocked",
+      "evidence_references": "blocked",
+      "abstention_manual": "blocked",
+      "eligible_plan": "blocked",
+      "action_outcome": "blocked",
+      "incident_resolution": "blocked"
+    },
+    "investigator_score": {
+      "cause_category": "blocked",
+      "evidence_references": "blocked",
+      "abstention_manual": "blocked",
+      "eligible_plan": "blocked",
+      "action_outcome": "blocked",
+      "incident_resolution": "blocked"
+    },
+    "timing_ms": {
+      "inject": 41769,
+      "detect": 1246,
+      "collect": 9670,
+      "analyze": 15781,
+      "approval": "missing",
+      "apply": "missing",
+      "verify": "missing"
+    }
+  },
+  "recovery-oom-memory-03": {
+    "disposition": "blocked",
+    "reason": "writer_enable_denied",
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "insufficient_evidence",
+      "cause_category": "unknown",
+      "candidate": null,
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 17059,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "blocked",
+      "evidence_references": "blocked",
+      "abstention_manual": "blocked",
+      "eligible_plan": "blocked",
+      "action_outcome": "blocked",
+      "incident_resolution": "blocked"
+    },
+    "investigator_score": {
+      "cause_category": "blocked",
+      "evidence_references": "blocked",
+      "abstention_manual": "blocked",
+      "eligible_plan": "blocked",
+      "action_outcome": "blocked",
+      "incident_resolution": "blocked"
+    },
+    "timing_ms": {
+      "inject": 41919,
+      "detect": 1265,
+      "collect": 9592,
+      "analyze": 15656,
+      "approval": "missing",
+      "apply": "missing",
+      "verify": "missing"
+    }
+  },
+  "recovery-oom-memory-04": {
+    "disposition": "blocked",
+    "reason": "writer_enable_executor_not_ready",
+    "qualifying_live_provenance": false,
+    "rules_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    },
+    "investigator_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    }
+  },
+  "recovery-oom-memory-05": {
+    "disposition": "blocked",
+    "reason": "writer_enable_executor_not_ready",
+    "qualifying_live_provenance": false,
+    "rules_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    },
+    "investigator_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    }
+  },
+  "recovery-bad-rollout-restore-01": {
+    "disposition": "blocked",
+    "reason": "writer_enable_denied",
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "insufficient_evidence",
+      "cause_category": "unknown",
+      "candidate": null,
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 15137,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "fail",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "fail",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 39721,
+      "detect": 1546,
+      "collect": 9572,
+      "analyze": 12480,
+      "approval": "missing",
+      "apply": "missing",
+      "verify": "missing"
+    }
+  },
+  "recovery-bad-rollout-restore-02": {
+    "disposition": "blocked",
+    "reason": "writer_enable_denied",
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "insufficient_evidence",
+      "cause_category": "unknown",
+      "candidate": null,
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 16584,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "fail",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "fail",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 39728,
+      "detect": 1237,
+      "collect": 9747,
+      "analyze": 15629,
+      "approval": "missing",
+      "apply": "missing",
+      "verify": "missing"
+    }
+  },
+  "recovery-bad-rollout-restore-03": {
+    "disposition": "blocked",
+    "reason": "writer_enable_denied",
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "insufficient_evidence",
+      "cause_category": "unknown",
+      "candidate": null,
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 16902,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "fail",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "fail",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 42484,
+      "detect": 1229,
+      "collect": 9617,
+      "analyze": 19177,
+      "approval": "missing",
+      "apply": "missing",
+      "verify": "missing"
+    }
+  },
+  "recovery-bad-rollout-restore-04": {
+    "disposition": "blocked",
+    "reason": "writer_enable_executor_not_ready",
+    "qualifying_live_provenance": false,
+    "rules_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    },
+    "investigator_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    }
+  },
+  "recovery-bad-rollout-restore-05": {
+    "disposition": "blocked",
+    "reason": "writer_enable_executor_not_ready",
+    "qualifying_live_provenance": false,
+    "rules_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    },
+    "investigator_score": {
+      "cause_category": "missing",
+      "evidence_references": "missing",
+      "abstention_manual": "missing",
+      "eligible_plan": "missing",
+      "action_outcome": "missing",
+      "incident_resolution": "missing"
+    }
+  },
+  "recovery-traffic-scale-01": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 12730,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "23a1ac3c-7d45-4e8d-a9e8-6ff2ef20639c",
+      "digest": "99c83b43c9473d976cbef25b298c283a55f48804ebb699c96a7a006a5229d34a",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 79435,
+      "detect": 1332,
+      "collect": 9681,
+      "analyze": 8413,
+      "approval": 724,
+      "apply": 7245,
+      "verify": 180849
+    }
+  },
+  "recovery-traffic-scale-02": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 14254,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "d05f6014-61bb-482b-bf50-866813c54b41",
+      "digest": "e713e06f3c63570757167737004398b49c0b205470ed142c22d3738899f149c8",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 78937,
+      "detect": 1273,
+      "collect": 9708,
+      "analyze": 19506,
+      "approval": 738,
+      "apply": 7330,
+      "verify": 180819
+    }
+  },
+  "recovery-traffic-scale-03": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 15547,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "e3596493-2fa0-458f-893d-da8935c0ea9e",
+      "digest": "5e7c5b28b4ed1cb32b7355715d508a47bca7482c849172e7552144516df669ef",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 79392,
+      "detect": 1385,
+      "collect": 9713,
+      "analyze": 9797,
+      "approval": 777,
+      "apply": 7549,
+      "verify": 180942
+    }
+  },
+  "recovery-traffic-scale-04": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 15362,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "8c370140-25bb-4c82-b63f-41654e5065da",
+      "digest": "9ee8ca29bc7abfbdef82ac4165d55f527580468a6b2b3a8a1c3c8a859b6fc41b",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 79128,
+      "detect": 1297,
+      "collect": 9633,
+      "analyze": 8753,
+      "approval": 732,
+      "apply": 7418,
+      "verify": 180900
+    }
+  },
+  "recovery-traffic-scale-05": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 0,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "no_matches",
+      "message_bytes": 15207,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "e57732f6-d1ab-4f2a-8beb-72a9a3b107c5",
+      "digest": "6c21788be5e9a3afec06a57689dfb184978b7de24f9e029b04548988899f165e",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 79294,
+      "detect": 1282,
+      "collect": 9624,
+      "analyze": 13124,
+      "approval": 787,
+      "apply": 7524,
+      "verify": 180863
+    }
+  }
+}

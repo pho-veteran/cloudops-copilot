@@ -1,0 +1,27 @@
+{
+  "schema": "R4SmokeReceipt/v1",
+  "cohort": "e10-s6-r4-smoke-not-measured",
+  "authority": "separate (3 requests)",
+  "requests": 2,
+  "observed_tokens": 8837,
+  "http_status": [
+    200
+  ],
+  "model_matches": true,
+  "slots": {
+    "recovery-traffic-scale-01": {
+      "recorded_disposition": "blocked",
+      "recorded_reason": "context_not_sent",
+      "reset": "incomplete",
+      "note": "The send settled (1 request, 4,572 tokens); the slot script's bundle check misfired and recorded context_not_sent. Superseded by smoke 02 for pipeline qualification. Not a measured slot."
+    },
+    "recovery-traffic-scale-02": {
+      "recorded_disposition": "completed",
+      "recorded_reason": "",
+      "reset": "reset_complete",
+      "policy": "approve",
+      "execution": "succeeded",
+      "verification": "passed"
+    }
+  }
+}
