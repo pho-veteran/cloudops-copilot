@@ -195,7 +195,17 @@ def test_same_product_run_cannot_fill_a_second_case(campaign, state, trial):
 
 
 @pytest.mark.parametrize(
-    "stop", ["request", "tokens", "spend", "unsettled", "unknown_usage", "outbound_bound"]
+    "stop",
+    [
+        "request",
+        "tokens",
+        "spend",
+        "unsettled",
+        "unknown_usage",
+        "outbound_bound",
+        "served_alias",
+        "served_other",
+    ],
 )
 def test_finite_worker_reserves_and_enforces_limits(campaign, state, trial, stop, monkeypatch):
     from e10_campaign_worker import Authorization, RECOVERY_CASES, RequestGuard
@@ -235,6 +245,7 @@ def test_finite_worker_reserves_and_enforces_limits(campaign, state, trial, stop
         token_reserve_per_request=10,
         max_spend_microusd=25 if stop == "spend" else 50,
         spend_reserve_microusd_per_request=25,
+        served_model="route/" + model if stop.startswith("served") else None,
     )
     active = directory / "trial.json"
     active.write_text(
@@ -277,11 +288,18 @@ def test_finite_worker_reserves_and_enforces_limits(campaign, state, trial, stop
             SimpleNamespace(
                 kind=CallKind.TEXT,
                 usage=None if stop == "unknown_usage" else Usage(4, 5, 9),
-                served_model=model,
+                served_model={"served_alias": "route/" + model, "served_other": "other"}.get(
+                    stop, model
+                ),
                 http_status=200,
             ),
             deployment,
         )
+    if stop.startswith("served"):
+        usage = json.loads(next((authority / "provider").glob("*.usage.json")).read_text())
+        assert usage["model_matches"] is (stop == "served_alias")
+        assert guard.stop_reason == (None if stop == "served_alias" else "provider_response_denied")
+        return
     restart = RequestGuard(directory, auth, admission, active, authority)
     expected = {
         "unsettled": "unsettled_provider_request",

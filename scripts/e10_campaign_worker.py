@@ -73,6 +73,9 @@ class Authorization(BaseModel):
     token_reserve_per_request: int = Field(gt=0)
     max_spend_microusd: int = Field(ge=0)
     spend_reserve_microusd_per_request: int = Field(ge=0)
+    # The exact model id the route reports for the requested model, when it differs (for
+    # example a router that strips its own prefix). Any other served model still stops.
+    served_model: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class RequestReceipt(BaseModel):
@@ -258,7 +261,10 @@ class RequestGuard:
             if usage is not None and usage.total_tokens is not None
             else None
         )
-        model_matches = call.served_model == deployment.profile.model
+        model_matches = call.served_model is not None and call.served_model in {
+            deployment.profile.model,
+            self.authorization.served_model,
+        }
         if observed is None:
             self.stop_reason = "provider_usage_unavailable"
         elif observed > request.reserved_tokens:
