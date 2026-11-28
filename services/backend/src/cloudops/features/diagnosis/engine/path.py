@@ -17,7 +17,6 @@ from cloudops.features.diagnosis.context import (
     KnowledgeSelectionView,
     PreparedContext,
     SlotMaterial,
-    family_matrix,
 )
 from cloudops.features.diagnosis.egress import EgressPolicy
 from cloudops.features.diagnosis.advice import RCAAdvice
@@ -33,6 +32,31 @@ STAGES_VERSION = (
     f"{signals.SIGNALS_VERSION}+{detector.DETECTOR_VERSION}"
     f"+{consistency.CONSISTENCY_VERSION}:{CONSISTENCY_POLICY}"
 )
+
+
+# The trusted runbook query of each family: the title of its E05 diagnosis guide
+# (`runbooks/catalog.json`) as one phrase. The title is indexed into every chunk of
+# that guide, so the phrase selects that guide's chunks.
+RUNBOOK_QUERIES = {
+    "crashloop_startup": '"Investigate CrashLoop and startup failures after a change"',
+    "oom_restarts": '"Investigate OOM and repeated restarts"',
+    "traffic_latency_errors": '"Investigate traffic, latency and error increases"',
+    "pending_unschedulable": '"Investigate Pending and unschedulable Pods"',
+    "image_pull": '"Investigate image pull failures"',
+}
+
+
+def guidance_query(materials: list[SlotMaterial], policy: EgressPolicy) -> str | None:
+    """The Knowledge query for an analysis: the guide of the deterministic detector's top
+    scoring family (stages A-B over the stored evidence), or None to keep the Run's own
+    question. The guide is methodology only; it never decides the family."""
+    detection = detector.detect(
+        signals.extract(materials), selection.family_matrix(materials, policy)
+    )
+    top = max(detection.hypotheses, key=lambda item: item.score, default=None)
+    if top is None or top.score < detector.THRESHOLD:
+        return None
+    return RUNBOOK_QUERIES.get(top.family)
 
 
 @dataclass(frozen=True)
@@ -59,7 +83,7 @@ def prepare(
     """Build the engine context. The keyword knobs exist for offline ablations only;
     the product uses the defaults."""
     table = signals.extract(materials)
-    detection = detector.detect(table, family_matrix(materials, policy))
+    detection = detector.detect(table, selection.family_matrix(materials, policy))
 
     def extra(aliases):
         return prompt.sections(

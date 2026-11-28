@@ -9,8 +9,9 @@ from eval_fixtures import _material, _policy, _scope
 
 from cloudops.features.diagnosis.advice import validate_structural
 from cloudops.features.diagnosis.context import PreparedContext, assemble as product_assemble
+from cloudops.features.diagnosis.context import family_matrix as product_family_matrix
 from cloudops.features.diagnosis.egress import check_send
-from cloudops.features.diagnosis.engine import prompt, selection, signals
+from cloudops.features.diagnosis.engine import path, prompt, selection, signals
 from cloudops.features.diagnosis.versions import SOURCE_CLASSES
 from cloudops.features.evaluation.rules import compare
 
@@ -200,3 +201,62 @@ def test_required_citations_policy_moves_only_non_required_support():
     only_outside = advice.model_copy(update={"supporting_evidence_ids": outside})
     kept, note = consistency.check(only_outside, detection, context, policy="required_citations")
     assert kept == only_outside and note["action"] == "none"
+
+
+def _restarted_without_current_output(case_id: str, *, previous: bool = True):
+    """A restarted container whose current instance has not written yet."""
+    materials = []
+    for slot, payload in CASES[case_id]["evidence"].items():
+        if slot not in SOURCE_CLASSES:
+            continue
+        if slot == "kubernetes.logs.current":
+            payload = {"pods": []}
+        if slot == "kubernetes.logs.previous" and not previous:
+            payload = {"pods": []}
+        materials.append(_material(slot, payload, case_id))
+    return materials
+
+
+@pytest.mark.parametrize("case_id,family", [("c01", "crashloop_startup"), ("c03", "oom_restarts")])
+def test_restart_family_waives_an_empty_current_log_when_the_previous_log_is_usable(
+    case_id, family
+):
+    materials = _restarted_without_current_output(case_id)
+    base = {item.family: item for item in product_family_matrix(materials, _policy())}
+    engine = {item.family: item for item in selection.family_matrix(materials, _policy())}
+    assert not base[family].eligible_for_assessment
+    assert engine[family].eligible_for_assessment and engine[family].reasons == []
+    current = next(s for s in engine[family].required_slots if s.slot == "kubernetes.logs.current")
+    assert current.waived and current.status == "waived" and current.targets == 0
+    context, _ = _build(case_id, materials)
+    assert isinstance(context, PreparedContext)
+    assert context.families == list(engine.values())
+    assert "kubernetes.logs.current" not in {t.source_key for t in context.required_targets}
+    assert "(waived: kubernetes.logs.current)" in context.messages[1].content
+
+
+def test_waiver_needs_a_usable_previous_log_and_leaves_other_cases_unchanged():
+    materials = _restarted_without_current_output("c01", previous=False)
+    assert selection.family_matrix(materials, _policy()) == product_family_matrix(
+        materials, _policy()
+    )
+    for case_id in sorted(CASES):
+        materials = [
+            _material(slot, payload, case_id)
+            for slot, payload in CASES[case_id]["evidence"].items()
+            if slot in SOURCE_CLASSES
+        ]
+        assert selection.family_matrix(materials, _policy()) == product_family_matrix(
+            materials, _policy()
+        )
+
+
+def test_guidance_query_names_the_detector_top_family_guide():
+    materials = _restarted_without_current_output("c01")
+    assert path.guidance_query(materials, _policy()) == path.RUNBOOK_QUERIES["crashloop_startup"]
+    healthy = [
+        _material(slot, payload, "n-healthy")
+        for slot, payload in CASES["n-healthy"]["evidence"].items()
+        if slot in SOURCE_CLASSES
+    ]
+    assert path.guidance_query(healthy, _policy()) is None

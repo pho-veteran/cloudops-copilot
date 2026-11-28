@@ -8,6 +8,13 @@ short field list replaces the embedded JSON Schema. Entries are ranked by releva
 soft budget is reached, the lowest-relevance entries are dropped and counted as
 omissions; the build fails closed only when a required slot would send no entry.
 
+For the restart families (crashloop_startup, oom_restarts) the family matrix waives the
+current-log slot when that log was read but holds no entry and the previous log of the
+restarted container is usable (`engine.context/v2`). A restarted container that has
+not written yet has no current output; its previous log is the closed record of the
+failing run. Nothing is treated as present: the waived slot sends no entry, is shown as
+waived, and every other required slot still has to be usable.
+
 A trusted Knowledge selection adds its runbook chunks (K aliases) after the evidence,
 within the hard budget minus the repair reserve, with the product's runbook rules.
 Without a selection the context is unchanged (offline bundles carry none).
@@ -24,11 +31,13 @@ from cloudops.features.diagnosis.context import (
     ContextRunbook,
     ContextScope,
     ContextTarget,
+    FamilyAssessment,
     InsufficientContext,
     KnowledgeSelectionView,
     Omission,
     PreparedContext,
     RequestRecord,
+    RequiredSlot,
     SentCoverage,
     SentSlot,
     SlotMaterial,
@@ -48,7 +57,7 @@ from cloudops.features.diagnosis.versions import (
 )
 from cloudops.features.investigations.locators import Entry, canonical, timestamp
 
-CONTEXT_VERSION = "engine.context/v1"
+CONTEXT_VERSION = "engine.context/v2"
 SOFT_BUDGET_BYTES = 16384
 MIN_PER_REQUIRED_SLOT = 1
 MAX_LOG_TEMPLATES = 24
@@ -438,6 +447,51 @@ def _runbooks(knowledge: KnowledgeSelectionView, policy: EgressPolicy, fits):
     return runbooks, omissions, notes
 
 
+RESTART_FAMILIES = ("crashloop_startup", "oom_restarts")
+CURRENT_LOG = "kubernetes.logs.current"
+PREVIOUS_LOG = "kubernetes.logs.previous"
+
+
+def family_matrix(materials: list[SlotMaterial], policy: EgressPolicy) -> list[FamilyAssessment]:
+    """The product family matrix with the restart-family current-log waiver."""
+    families = base.family_matrix(materials, policy)
+    current = next((m for m in materials if m.slot == CURRENT_LOG), None)
+    if current is None or base.usability(current, policy)[2] != ["no_selectable_entries"]:
+        return families
+    result = []
+    for family in families:
+        slots = {slot.slot: slot for slot in family.required_slots}
+        previous = slots.get(PREVIOUS_LOG)
+        if (
+            family.family not in RESTART_FAMILIES
+            or family.eligible_for_assessment
+            or CURRENT_LOG not in slots
+            or previous is None
+            or not previous.usable
+            or previous.waived
+            or previous.targets == 0
+            or any(not slot.usable for name, slot in slots.items() if name != CURRENT_LOG)
+        ):
+            result.append(family)
+            continue
+        waived = RequiredSlot(
+            slot=CURRENT_LOG, status="waived", usable=True, waived=True, targets=0
+        )
+        result.append(
+            family.model_copy(
+                update={
+                    "eligible_for_assessment": True,
+                    "reasons": [],
+                    "required_slots": [
+                        waived if slot.slot == CURRENT_LOG else slot
+                        for slot in family.required_slots
+                    ],
+                }
+            )
+        )
+    return result
+
+
 def assemble(
     materials: list[SlotMaterial],
     scope: ContextScope,
@@ -456,7 +510,14 @@ def assemble(
     ``{(evidence_id, kind, key): alias}`` that returns lines (hypotheses, signals)."""
     budget = min(policy.max_message_bytes, profile.limits.max_input_bytes)
     coverage = [base._request_coverage(scope, policy), *base._coverage(materials)]
-    families = base.family_matrix(materials, policy)
+    families = family_matrix(materials, policy)
+    waived_slots = {
+        slot.slot
+        for family in families
+        if family.eligible_for_assessment
+        for slot in family.required_slots
+        if slot.waived
+    }
     limitations = base._limitations(scope, materials)
     if callable(extra_sections):
         section_fn = extra_sections
@@ -558,7 +619,7 @@ def assemble(
         if slot in by_slot:
             continue
         material = next((m for m in materials if m.slot == slot), None)
-        if material is not None and base.usability(material, policy)[1]:
+        if slot in waived_slots or (material is not None and base.usability(material, policy)[1]):
             continue  # a waived log slot needs no entry
         return insufficient("required_targets_exceed_budget")
     fixed_bytes = len(

@@ -161,7 +161,18 @@ def _prepare(claim, gate, slot):
         stored = db.get(AnalysisContext, analysis.id)
         if stored is None:
             guidance = pin_guidance(
-                db, run.incident_id, run.id, consumer="analysis", request_identity=str(analysis.id)
+                db,
+                run.incident_id,
+                run.id,
+                consumer="analysis",
+                request_identity=str(analysis.id),
+                query=context.guidance_query(
+                    db,
+                    run.incident_id,
+                    run.id,
+                    policy=deployment.policy,
+                    context_profile=deployment.context_profile,
+                ),
             )
             prepared = context.build(
                 db,
