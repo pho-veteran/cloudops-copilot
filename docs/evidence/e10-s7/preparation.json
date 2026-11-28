@@ -1,0 +1,124 @@
+{
+  "date_utc": "2026-11-26",
+  "evidence_class": "Local Linux/amd64 Docker Desktop and WSL2 rehearsal",
+  "binding_scope": "Core HTTPS, core-only restore and dummy Alertmanager permission probe. No deployed second-operator acceptance.",
+  "engine_version": "29.1.3",
+  "compose_version": "2.40.3-desktop.1",
+  "bundle": {
+    "revision": "887197c5880a328be3e2c78738e2ddcf4b387bf5",
+    "platform": "linux/amd64",
+    "manifest_sha256": "d3a6e4fa39b845152fc70279184f68551945d85c3abcc2d7dc1da7b8db79afb1",
+    "artifact_sha256": {
+      "images.env": "448dbb263ad9c5be325e1aa9ae367236e3d08dd00434dcb6b39a1862a5aac269",
+      "images.tar": "3135227149bccc64cd29ff05611cb08a7ace65c9b74a18e3f1ec4f25e841bf55",
+      "source.tar": "7dc0ed476b54eab1a0d62c5e0174a45511b249947f1cbb3fe3fddd5cd2bcfc22"
+    },
+    "image_ids": {
+      "backend": "sha256:f983884750a099a28bdd4d6e7f95f93344f96431538a115ad76d2da6a6db9374",
+      "db": "sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7",
+      "https": "sha256:e31695c7ed561b34cbe8170676fb2a4721fba9608a81e0474f645880ca92a216"
+    },
+    "verify_passed": true,
+    "verify_loaded_passed": true
+  },
+  "core_install": {
+    "project": "cloudops-e10-s7-core-run-9tqoic",
+    "launch_options": [
+      "--no-build",
+      "--pull",
+      "never"
+    ],
+    "origin": "https://localhost:8443",
+    "ca_sha256": "e41fddbbc465219b9e9a4456adfdf6afba6a8a21ac7c064b6e1569a7bea82ae0",
+    "readiness": "available",
+    "alembic_head": "0020_operations_quota_wait_index",
+    "container_image_ids": {
+      "db": "sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7",
+      "migrate": "sha256:f983884750a099a28bdd4d6e7f95f93344f96431538a115ad76d2da6a6db9374",
+      "api": "sha256:f983884750a099a28bdd4d6e7f95f93344f96431538a115ad76d2da6a6db9374",
+      "worker": "sha256:f983884750a099a28bdd4d6e7f95f93344f96431538a115ad76d2da6a6db9374",
+      "https": "sha256:e31695c7ed561b34cbe8170676fb2a4721fba9608a81e0474f645880ca92a216"
+    },
+    "https_smoke": {
+      "incident_id": "511449ad-e740-4efb-ad05-08bd190ebefa",
+      "run_id": "c85d81a8-beb4-42ab-a498-2ae24d2dd0aa",
+      "state": "queued",
+      "queue_reason": null,
+      "window": {
+        "start": "2026-11-26T00:15:09.966569Z",
+        "end": "2026-11-26T00:45:09.966569Z",
+        "source": "legacy_default"
+      }
+    },
+    "stop": {
+      "running_containers": 0,
+      "retained_volumes": [
+        "cloudops-e10-s7-core-run-9tqoic_database",
+        "cloudops-e10-s7-core-run-9tqoic_job_dispatch",
+        "cloudops-e10-s7-core-run-9tqoic_local_https_config",
+        "cloudops-e10-s7-core-run-9tqoic_local_https_data"
+      ]
+    }
+  },
+  "core_restore": {
+    "project": "cloudops-e10-s7-restore-run-9tqoic",
+    "cutoff_observed_at": "2026-11-26 00:45:44.515069+00",
+    "database": "cloudops_restore_test",
+    "dump_sha256": "16395250b8683c35456cbb2b753824fffed77c0d6c42d156defbe8829d98beb5",
+    "tables_identical": 42,
+    "tables_compared_or_classified": 45,
+    "evidence": {
+      "metadata_rows": 12,
+      "nonempty_payload_digests": 0,
+      "digest_map_unchanged": true
+    },
+    "post_cutoff_rows_lost": {
+      "incidents": [
+        "12d44361-636a-4929-893c-6411d1e2599c"
+      ],
+      "investigation_runs": [
+        "b1512a8b-ca07-4874-8965-cbb6e5aafa7f"
+      ],
+      "jobs": [
+        "b86b2608-fef7-4e85-9c39-3ca50f1625b8"
+      ]
+    },
+    "restored_session_http": 401,
+    "saved_reads_http": {
+      "incident": 200,
+      "run": 200
+    },
+    "proposal_without_executor": {
+      "code": "live_target_required",
+      "status": 409
+    },
+    "permit_mode_after_restore": "recovery",
+    "permit_mode_after_exit": "normal",
+    "worker_under_recovery": {
+      "attempts_unchanged": true,
+      "container": "running",
+      "heartbeat_advanced": true,
+      "jobs_unchanged": true,
+      "queued_run_state_under_recovery": "queued"
+    },
+    "queued_run_state_after_exit": "insufficient_evidence",
+    "fresh_run_state": "insufficient_evidence",
+    "stop": {
+      "running_containers": 0,
+      "retained_volumes": [
+        "cloudops-e10-s7-restore-run-9tqoic_database",
+        "cloudops-e10-s7-restore-run-9tqoic_job_dispatch",
+        "cloudops-e10-s7-restore-run-9tqoic_local_https_config",
+        "cloudops-e10-s7-restore-run-9tqoic_local_https_data"
+      ]
+    }
+  },
+  "alertmanager_permissions": {
+    "image": "prom/alertmanager@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b",
+    "sender_uid_gid": "65534:65534",
+    "operator_private_bind_readable": false,
+    "read_only_sender_volume_readable": true,
+    "staged_token_mode": "0400",
+    "evidence_class": "local container permission check with a dummy file"
+  }
+}
