@@ -435,7 +435,7 @@ flowchart TD
 
 ## 8. Knowledge: runbooks and retrieval
 
-- **Corpus** (`runbooks/catalog.json`, `RunbookCatalog/v1`, checked by `scripts/check-runbook-corpus.py`): five diagnosis guides (one per family) and three recovery-template guides. Bounds: 100 documents, 256 KiB per file, 8 MiB total. See [../runbook-corpus.md](../runbook-corpus.md).
+- **Corpus** (`runbooks/catalog.json`, `RunbookCatalog/v1`, checked by `scripts/check-runbook-corpus.py`): five diagnosis guides (one per family) and three recovery-template guides. Bounds: 100 documents, 256 KiB per file, 8 MiB total. See [../runbook-corpus.md](../features/knowledge/runbook-corpus.md).
 - **Index** (Opt-in, `knowledge-index` CLI, `knowledge/indexing.py` `index_corpus`): under a PostgreSQL writer guard it captures one snapshot, chunks each document (`chunking.chunk_document`, chunker `2`: heading-aware, exact UTF-8 slices ≤ 4 KiB, ≤ 200 chunks), stores immutable document versions and chunks, and activates a new generation in one transaction. Outcomes: `indexed`, `unchanged`, `reactivated`, `index_busy`, `failed`. A changed body under an existing (key, version) is rejected. Search vectors weight title `A`, headings `B`, body `C` (`indexing._vector`).
 - **Retrieval** (`knowledge/guidance.py` `_retrieve`):
 

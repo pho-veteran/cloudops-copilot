@@ -16,7 +16,10 @@ the local ledger (see [environment](environment.md#directory-layout-outside-git)
 | [reports/v2-lab-v4.md](reports/v2-lab-v4.md) | Milestone report loop v2: `lab-v4` rejected, `lab-v4b` accepted, dev experiments, one sealed test, phase 4 gate |
 | [dataset-v2.md](dataset-v2.md) | Why `lab-v3` is saturated, and the dataset v2 design: label model, scenario catalog, leakage controls, splits, acceptance check, resolved decisions D1-D5 |
 
-Status: in progress. Items marked **(exists)** are on `main`. Items marked
+Status: M0-M5 met. M0-M4 were met on `lab-v4b` ([report](reports/v2-lab-v4.md)), and M5 on
+the R5 live campaign, with 15/15 cause category and 0 wrong-scope writes
+([R5](../evidence/e10-s6/r5-20261128/README.md)). The capstone summary is in the
+[report](../report/README.md). Items marked **(exists)** are on `main`. Items marked
 **(to build)** do not exist yet.
 
 ## Purpose and scope

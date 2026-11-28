@@ -14,7 +14,7 @@ This is investigation methodology. A CrashLoop symptom does not identify a cause
 - Inspect `kubernetes.logs.current` and `kubernetes.logs.previous` for regular and init containers when those sources are applicable. A never-started container may make current logs `not_applicable`; a restarted container with missing previous logs is an explicit gap.
 - Use `kubernetes.configmap.metadata` only when it is configured and only for reference identity. ConfigMap contents and Secret values are outside this evidence boundary.
 
-See [scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md) for the source and retention contract.
+See [scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md) for the source and retention contract.
 
 ## Supporting and contradicting observations
 
@@ -47,6 +47,6 @@ Abstain from a root-cause statement, a ruled-out cause, or an automatic recovery
 
 ## Related guidance
 
-- [Scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md)
+- [Scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md)
 - [Review a known-good Deployment template restore](restore-deployment-template.md)
 - [Review bounded Deployment scaling](scale-deployment.md)

@@ -1,6 +1,6 @@
 # Single-host EC2 release lab
 
-This OpenTofu root provisions one owned Linux EC2 instance and an encrypted gp3 root volume in `us-east-1`. The existing [HTTPS release package](../../docs/release-package.md) is built outside the EC2 lab. The [owned lab procedure](../../docs/e01-local-lab.md) establishes scoped K3s/monitoring/isolated writer inputs separately.
+This OpenTofu root provisions one owned Linux EC2 instance and an encrypted gp3 root volume in `us-east-1`. The existing [HTTPS release package](../../docs/guides/release-package.md) is built outside the EC2 lab. The [owned lab procedure](../../docs/guides/local-lab.md) establishes scoped K3s/monitoring/isolated writer inputs separately.
 
 ## Prepare a plan
 
@@ -69,7 +69,7 @@ Host constraints:
 
 ## Install and reach the existing origin
 
-Verify prerequisites on the host and transfer the pinned package over the authorized connection. Follow the [release package install](../../docs/release-package.md) to verify the core artifact. Stop that core project with volume retention before starting the separate owned lab project. Both use loopback port 8443 and need separate project volumes. Qualify scoped services and reader/writer isolation using the owned lab procedure. Run the tunnel from the operator workstation while the app is up. Replace the SSH user and address with the approved AMI user and current instance output.
+Verify prerequisites on the host and transfer the pinned package over the authorized connection. Follow the [release package install](../../docs/guides/release-package.md) to verify the core artifact. Stop that core project with volume retention before starting the separate owned lab project. Both use loopback port 8443 and need separate project volumes. Qualify scoped services and reader/writer isolation using the owned lab procedure. Run the tunnel from the operator workstation while the app is up. Replace the SSH user and address with the approved AMI user and current instance output.
 
 ```sh
 ssh -N -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=yes -o ForwardAgent=no \

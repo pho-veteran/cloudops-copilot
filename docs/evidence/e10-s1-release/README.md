@@ -32,7 +32,7 @@ After the candidate, the PR adds this evidence directory and one host-script adj
 | Writer credential and executor socket separated from API/worker | The lab ran only bundle images, with no local build. API and worker have no writer credential or maintenance socket, and the API has no dispatch key. No container mounts the Docker socket. Real K3s returned 403 for reader patches, reader/writer Secret reads and writer patches outside the named target. The executor started in recovery mode with its target disabled. | `separation.json` |
 | Sanitized configuration, logs and artifacts | Container logs of every release project and all raw and final receipts were scanned for the real private values: passwords, the database password, reader/writer tokens, and dispatch, KRR and intake keys. The scan also looked for bearer, JWT, cookie and URL-credential patterns. No hits. | `resources.json` → `sanitization` |
 | Reproducible build metadata, defined architecture/OS | Two B2 builds were compared: default builder and an empty-cache `docker-container` builder. Revision, upstream digests, `source.tar`, lock files, Python package set, backend application tree, compiled web tree and Caddyfile were all equal. Image IDs differ by build metadata and are bound by each manifest. Bit-for-bit reproducibility is not claimed. | `build.json` |
-| Port, storage and image requirements, deliberate stop | Bundle: about 285 MB (images 263 MB, source 22 MB). Loaded images: backend 385 MB, https 93 MB, db 646 MB. Idle core: about 214 MiB in total. Startup: about 17 s. `compose stop` kept all four volumes, and a restart preserved data, CA and the dispatch permit. | `resources.json`, [requirements](../../release-package.md#requirements) |
+| Port, storage and image requirements, deliberate stop | Bundle: about 285 MB (images 263 MB, source 22 MB). Loaded images: backend 385 MB, https 93 MB, db 646 MB. Idle core: about 214 MiB in total. Startup: about 17 s. `compose stop` kept all four volumes, and a restart preserved data, CA and the dispatch permit. | `resources.json`, [requirements](../../guides/release-package.md#requirements) |
 | Default writer/dispatch safe, readiness separate from worker | Dispatch starts `paused/permit_missing` until the trusted `dispatch-admin bootstrap --fresh-install`. The upgrade records the prior dispatch state (`normal`, generation 1) and enters recovery. It resumes with `exit-recovery` only because that prior state was normal. With the worker stopped past its 45 s bound, readiness stayed 200 and health reported `worker: stale`. | `install.json`, `upgrade.json` |
 
 ## Dependency advisories
@@ -88,7 +88,7 @@ Exposure is limited to the loopback HTTPS origin and the private Compose network
 7. Check readiness, the smoke and saved records.
 8. Restore only the recorded dispatch classes.
 
-**Scoped lab topology:** [scoped lab with release images](../../release-package.md#scoped-lab-with-release-images). It needs an explicit new `CLOUDOPS_LAB_PROJECT`. The executor and every target stay disabled until the E07 maintenance proof. Release PostgreSQL now matches the retained owned lab's 17.12 minor version.
+**Scoped lab topology:** [scoped lab with release images](../../guides/release-package.md#scoped-lab-with-release-images). It needs an explicit new `CLOUDOPS_LAB_PROJECT`. The executor and every target stay disabled until the E07 maintenance proof. Release PostgreSQL now matches the retained owned lab's 17.12 minor version.
 
 ## Limits
 

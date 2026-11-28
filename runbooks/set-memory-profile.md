@@ -15,7 +15,7 @@ A memory-profile change is not a universal remedy for OOM or repeated restarts. 
 - Checked capacity/quota and a controller that can accept the change without conflicting with HPA/VPA or another controller.
 - An exact target identity and fresh evidence; a same-name replacement is a different target.
 
-See [scoped Prometheus metric evidence](../docs/prometheus-metrics.md) and [healthy baseline preparation](../docs/workload-baselines.md).
+See [scoped Prometheus metric evidence](../docs/features/investigations/prometheus-metrics.md) and [healthy baseline preparation](../docs/features/workloads/baselines.md).
 
 ## Evidence and eligibility gates
 
@@ -44,6 +44,6 @@ Do not supply a patch, manifest, arbitrary resource quantity or executable endpo
 ## References
 
 - [Investigate OOM and repeated restarts](oom-restarts.md)
-- [Scoped Prometheus metric evidence](../docs/prometheus-metrics.md)
-- [Healthy baseline preparation](../docs/workload-baselines.md)
-- [Trusted job dispatch and recovery administration](../docs/job-dispatch.md)
+- [Scoped Prometheus metric evidence](../docs/features/investigations/prometheus-metrics.md)
+- [Healthy baseline preparation](../docs/features/workloads/baselines.md)
+- [Trusted job dispatch and recovery administration](../docs/features/investigations/job-dispatch.md)

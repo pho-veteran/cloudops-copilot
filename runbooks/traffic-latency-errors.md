@@ -11,7 +11,7 @@ Use this guide when a Deployment's request rate, error ratio or latency changes,
 - Inspect `kubernetes.state` and `kubernetes.events` for revision, readiness, restarts and related events. Inspect logs only when their coverage is applicable and usable.
 - Read the Run timeline for window, rollout observation, incident activity and execution markers. Markers align recorded times; they do not prove causality.
 
-See [scoped Prometheus metric evidence](../docs/prometheus-metrics.md) and [Run timeline](../docs/prometheus-metrics.md#timeline).
+See [scoped Prometheus metric evidence](../docs/features/investigations/prometheus-metrics.md) and [Run timeline](../docs/features/investigations/prometheus-metrics.md#timeline).
 
 ## Supporting and contradicting observations
 
@@ -46,6 +46,6 @@ Abstain from a root cause, a ruled-out cause, or a recovery recommendation when 
 
 ## Related guidance
 
-- [Scoped Prometheus metric evidence](../docs/prometheus-metrics.md)
-- [Run timeline](../docs/prometheus-metrics.md#timeline)
+- [Scoped Prometheus metric evidence](../docs/features/investigations/prometheus-metrics.md)
+- [Run timeline](../docs/features/investigations/prometheus-metrics.md#timeline)
 - [Review bounded Deployment scaling](scale-deployment.md)

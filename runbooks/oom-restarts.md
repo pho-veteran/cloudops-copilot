@@ -14,7 +14,7 @@ An OOM event is an observation about a termination. It is not proof of a memory 
 - Inspect `prometheus.restarts` when available as supporting telemetry, not as a standalone conclusion.
 - Inspect `kubernetes.logs.current` and `kubernetes.logs.previous` when applicable. Missing previous logs after a restart are a gap.
 
-See [scoped Prometheus metric evidence](../docs/prometheus-metrics.md) for metric coverage and missing-sample semantics.
+See [scoped Prometheus metric evidence](../docs/features/investigations/prometheus-metrics.md) for metric coverage and missing-sample semantics.
 
 ## Supporting and contradicting observations
 
@@ -49,6 +49,6 @@ Abstain from claiming a leak, a required limit, or a guaranteed fix when the evi
 
 ## Related guidance
 
-- [Scoped Prometheus metric evidence](../docs/prometheus-metrics.md)
+- [Scoped Prometheus metric evidence](../docs/features/investigations/prometheus-metrics.md)
 - [Review a bounded memory profile change](set-memory-profile.md)
 - [Review bounded Deployment scaling](scale-deployment.md)

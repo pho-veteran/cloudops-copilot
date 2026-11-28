@@ -15,7 +15,7 @@ A guide match is not a scale decision. Scale is not a remedy for Pending or Imag
 - Fresh target authority and no active, blocking or unclassified execution on the same workload.
 - The bounded replica policy, currently 1–3, from the actual implementation.
 
-See [scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md) and [healthy baseline preparation](../docs/workload-baselines.md).
+See [scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md) and [healthy baseline preparation](../docs/features/workloads/baselines.md).
 
 ## Evidence and eligibility gates
 
@@ -43,7 +43,7 @@ Do not provide a patch, manifest or shell command. Do not scale Pending/ImagePul
 
 ## References
 
-- [Scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md)
+- [Scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md)
 - [Investigate traffic, latency and error increases](traffic-latency-errors.md)
-- [Trusted job dispatch and recovery administration](../docs/job-dispatch.md)
-- [Foundation operation and contributor handoff](../docs/foundation.md)
+- [Trusted job dispatch and recovery administration](../docs/features/investigations/job-dispatch.md)
+- [Foundation operation and contributor handoff](../docs/guides/foundation.md)

@@ -14,7 +14,7 @@ This guide describes the evidence, review and limitations a future authorized re
 - Fresh current evidence for the same identity. A historical baseline plus a same-name replacement is insufficient.
 - An owner who can inspect any external configuration references outside the supported envelope.
 
-See [healthy baseline preparation](../docs/workload-baselines.md) for the current selection and confirmation behavior.
+See [healthy baseline preparation](../docs/features/workloads/baselines.md) for the current selection and confirmation behavior.
 
 ## Evidence and eligibility gates
 
@@ -42,7 +42,7 @@ Do not provide YAML patches, kubectl commands, arbitrary template payloads or a 
 
 ## References
 
-- [Healthy baseline preparation](../docs/workload-baselines.md)
-- [Scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md)
-- [Trusted job dispatch and recovery administration](../docs/job-dispatch.md)
+- [Healthy baseline preparation](../docs/features/workloads/baselines.md)
+- [Scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md)
+- [Trusted job dispatch and recovery administration](../docs/features/investigations/job-dispatch.md)
 - [Investigate CrashLoop and startup failures after a change](crashloop-startup.md)

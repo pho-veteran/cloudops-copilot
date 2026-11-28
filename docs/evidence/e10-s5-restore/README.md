@@ -1,6 +1,6 @@
 # E10 S5 release backup and recovery qualification (#124)
 
-This ledger records one qualification run of the [release backup and restore](../../release-restore.md) procedure for [#124](https://github.com/pho-veteran/cloudops-copilot/issues/124) under [E10 #13](https://github.com/pho-veteran/cloudops-copilot/issues/13).
+This ledger records one qualification run of the [release backup and restore](../../guides/release-restore.md) procedure for [#124](https://github.com/pho-veteran/cloudops-copilot/issues/124) under [E10 #13](https://github.com/pho-veteran/cloudops-copilot/issues/13).
 
 **Environment.** The run used two disposable projects on a Docker Desktop 29.9.2 Linux engine with a WSL2 Ubuntu client:
 

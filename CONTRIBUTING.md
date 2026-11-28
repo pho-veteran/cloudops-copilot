@@ -48,7 +48,7 @@ Each EPIC owns its feature implementation and consumer integration. Its active o
 - Keep shared modules small. Add a shared abstraction for a demonstrated cross-feature need, with an owner; avoid copying another feature's persistence or introducing a generic framework.
 - Keep changes to shared UI primitives separate from unrelated feature work when possible. Feature-specific components stay with their feature.
 
-System-wide decisions live in #3; foundation boundaries and F0–F4 acceptance live in E00 #15. The local runtime is implemented in `services/backend`; the persisted UI uses feature modules in `apps/web/src/features`. The simulation model in `apps/web/src/demo` is not a server API schema. Operational handoff and consumer instructions live in [docs/foundation.md](docs/foundation.md).
+System-wide decisions live in #3; foundation boundaries and F0–F4 acceptance live in E00 #15. The local runtime is implemented in `services/backend`; the persisted UI uses feature modules in `apps/web/src/features`. The simulation model in `apps/web/src/demo` is not a server API schema. Operational handoff and consumer instructions live in [docs/guides/foundation.md](docs/guides/foundation.md).
 
 ## API and contract changes
 

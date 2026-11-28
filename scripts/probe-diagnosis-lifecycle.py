@@ -1,7 +1,7 @@
 """Linux owned-lab restore acceptance stages; no external provider or cluster calls.
 
 Run seed, take a real pg_dump, enter host dispatch recovery, restore the dump,
-then run verify. See docs/diagnosis-lifecycle.md for the explicit procedure.
+then run verify. See docs/features/diagnosis/lifecycle.md for the explicit procedure.
 """
 
 import argparse
