@@ -100,7 +100,7 @@ def load_config(path):
         "output_usd_per_mtok",
         "rates_date",
     }
-    optional = {"prior_receipts", "capture_contexts", "pricing_available"}
+    optional = {"prior_receipts", "capture_contexts", "pricing_available", "egress"}
     if value.get("schema") != CONFIG_SCHEMA or set(value) - required - optional:
         raise ValueError("Unsupported campaign config")
     if required - set(value):
@@ -125,6 +125,19 @@ def load_config(path):
         raise ValueError("The campaign profile must name a model, output limit and credential")
     if profile.credential.name != "DIAGNOSIS_LIVE_TOKEN":
         raise ValueError("The campaign worker credential must be DIAGNOSIS_LIVE_TOKEN")
+    egress = None
+    if "egress" in value:
+        # The operational deployment's own egress policy, so the qualified identity is the
+        # one the installed lab uses; its destination must name this profile.
+        egress_path = Path(value["egress"])
+        if not egress_path.is_absolute():
+            egress_path = path.parent / egress_path
+        egress_raw = egress_path.read_bytes()
+        if len(egress_raw) > 65536:
+            raise ValueError("Campaign egress policy exceeds bound")
+        egress = EgressPolicy.model_validate(json.loads(egress_raw))
+        if not egress.destination_matches(profile.identity()):
+            raise ValueError("The campaign egress policy must name the campaign profile")
     prior = []
     for item in value.get("prior_receipts", []):
         receipt = Path(item) if Path(item).is_absolute() else path.parent / item
@@ -134,6 +147,8 @@ def load_config(path):
         "profile_path": str(profile_path),
         "profile_sha256": profile_sha256,
         "profile": profile,
+        "egress_policy": egress,
+        "egress_sha256": hashlib.sha256(egress_raw).hexdigest() if egress else None,
         "config_sha256": hashlib.sha256(raw).hexdigest(),
         "prior_receipt_hashes": prior,
         "model": profile.model,
@@ -345,7 +360,8 @@ def configure(root, model, *, operational=False):
 
 
 def _install(root, profile, operational):
-    policy = EgressPolicy.model_validate(
+    configured = (CONFIG or {}).get("egress_policy")
+    policy = configured or EgressPolicy.model_validate(
         {
             "schema": "EgressPolicy/v1",
             "policy_id": "e06-owned-controlled-fixtures",
@@ -382,7 +398,10 @@ def _install(root, profile, operational):
             raise ValueError("Exact primary qualification required before operational smoke")
     else:
         os.environ.pop("DIAGNOSIS_QUALIFICATION_FILE", None)
-    return Deployment(profile, policy, None).identity()
+    # The identity of the context profile the lifecycle will use (DIAGNOSIS_CONTEXT_PROFILE).
+    return Deployment(
+        profile, policy, None, context_profile=os.environ.get("DIAGNOSIS_CONTEXT_PROFILE") or "e06"
+    ).identity()
 
 
 def seed_case(db, actor, case):

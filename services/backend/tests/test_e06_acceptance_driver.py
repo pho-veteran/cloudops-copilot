@@ -678,3 +678,39 @@ def test_relative_campaign_ca_stays_bound_to_the_trusted_profile_directory(tmp_p
     assert Path(installed["tls"]["ca_file"]) == expected
     assert load().problem is None
     assert seen and all(item.resolve() == expected for item in seen)
+
+
+def test_campaign_config_can_bind_the_operational_egress_and_context_profile(tmp_path, monkeypatch):
+    for key in ("DIAGNOSIS_PROFILE_FILE", "DIAGNOSIS_EGRESS_FILE", "DIAGNOSIS_QUALIFICATION_FILE"):
+        monkeypatch.setenv(key, "owned-test-placeholder")
+    egress = {
+        "schema": "EgressPolicy/v1",
+        "policy_id": "operational-fixture",
+        "policy_version": "2",
+        "destination": {
+            "config_id": "fixture-luna",
+            "config_version": "3",
+            "endpoint_label": "loopback",
+        },
+        "allowed_source_classes": ["operator_request", "kubernetes_state", "runbook"],
+        "max_message_bytes": 65536,
+        "max_target_bytes": 8192,
+        "redaction_policy_version": "redaction/v1",
+        "deny_patterns": [],
+    }
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "egress.json").write_text(json.dumps(egress))
+    path = configured_campaign(tmp_path, monkeypatch, egress="egress.json")
+    config = campaign.load_config(path)
+    assert config["egress_policy"].policy_id == "operational-fixture"
+    monkeypatch.setenv("DIAGNOSIS_CONTEXT_PROFILE", "engine")
+    state = tmp_path / "state"
+    campaign.freeze(state)
+    identity = campaign.configure(state, "fixture-luna")
+    assert load().policy.policy_id == "operational-fixture"
+    assert identity == load().identity()
+    assert identity["context_profile"] == "engine"
+    wrong = dict(egress, destination={**egress["destination"], "config_id": "other"})
+    (tmp_path / "config" / "egress.json").write_text(json.dumps(wrong))
+    with pytest.raises(ValueError, match="egress"):
+        campaign.load_config(path)
