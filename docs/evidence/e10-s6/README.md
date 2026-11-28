@@ -1,8 +1,9 @@
 # S6 local verification — November 24, 2026
 
 Campaign results are recorded separately in
-[R3 S6 original campaign results](r3-20261125/README.md) and
-[R4 S6 live campaign results](r4-20261128/README.md). S6 remains open;
+[R3 S6 original campaign results](r3-20261125/README.md),
+[R4 S6 live campaign results](r4-20261128/README.md) and
+[R5 S6 live campaign results](r5-20261128/README.md). S6 remains open;
 the historical candidate-specific evidence below is preserved unchanged.
 
 Issue #125 remains incomplete. This checks the uncommitted candidate based on

@@ -1,0 +1,866 @@
+{
+  "schema": "R5MutationReconciliation/v1",
+  "audit_source": "k3s kube-apiserver audit log (config/lab/recovery-audit-policy.yaml)",
+  "after": "2026-11-28T08:28:55.634108+00:00",
+  "audit_prefix_lines": 1656,
+  "writes": 60,
+  "by_attribution": {
+    "maintenance_fence": 30,
+    "approved_action": 15,
+    "trusted_reset": 5,
+    "trusted_fault": 10
+  },
+  "approved_plans": [
+    "recovery-bad-rollout-restore-01",
+    "recovery-bad-rollout-restore-02",
+    "recovery-bad-rollout-restore-03",
+    "recovery-bad-rollout-restore-04",
+    "recovery-bad-rollout-restore-05",
+    "recovery-oom-memory-01",
+    "recovery-oom-memory-02",
+    "recovery-oom-memory-03",
+    "recovery-oom-memory-04",
+    "recovery-oom-memory-05",
+    "recovery-traffic-scale-01",
+    "recovery-traffic-scale-02",
+    "recovery-traffic-scale-03",
+    "recovery-traffic-scale-04",
+    "recovery-traffic-scale-05"
+  ],
+  "approved_action_writes_per_plan": {
+    "recovery-traffic-scale-01": 1,
+    "recovery-oom-memory-01": 1,
+    "recovery-bad-rollout-restore-01": 1,
+    "recovery-traffic-scale-02": 1,
+    "recovery-oom-memory-02": 1,
+    "recovery-bad-rollout-restore-02": 1,
+    "recovery-traffic-scale-03": 1,
+    "recovery-oom-memory-03": 1,
+    "recovery-bad-rollout-restore-03": 1,
+    "recovery-traffic-scale-04": 1,
+    "recovery-oom-memory-04": 1,
+    "recovery-bad-rollout-restore-04": 1,
+    "recovery-traffic-scale-05": 1,
+    "recovery-oom-memory-05": 1,
+    "recovery-bad-rollout-restore-05": 1
+  },
+  "uncontrolled_writes": 0,
+  "wrong_scope_writes": 0,
+  "rows": [
+    {
+      "at": "2026-11-28T08:30:08.959975Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-01"
+    },
+    {
+      "at": "2026-11-28T08:30:09.549397Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-01"
+    },
+    {
+      "at": "2026-11-28T08:34:37.799629Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-traffic-scale-01"
+    },
+    {
+      "at": "2026-11-28T08:39:37.445322Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "trusted_reset",
+      "case": "recovery-traffic-scale-01"
+    },
+    {
+      "at": "2026-11-28T08:42:18.368449Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-01"
+    },
+    {
+      "at": "2026-11-28T08:42:18.763793Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-01"
+    },
+    {
+      "at": "2026-11-28T08:43:35.987244Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-oom-memory-01"
+    },
+    {
+      "at": "2026-11-28T08:47:35.257080Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/resources/limits/memory",
+        "/spec/template/spec/containers/0/resources/requests/memory"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-oom-memory-01"
+    },
+    {
+      "at": "2026-11-28T08:56:00.747435Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-01"
+    },
+    {
+      "at": "2026-11-28T08:56:01.559943Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-01"
+    },
+    {
+      "at": "2026-11-28T08:57:18.794376Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-bad-rollout-restore-01"
+    },
+    {
+      "at": "2026-11-28T09:01:16.950368Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/image"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-bad-rollout-restore-01"
+    },
+    {
+      "at": "2026-11-28T09:09:34.362436Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-02"
+    },
+    {
+      "at": "2026-11-28T09:09:35.358656Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-02"
+    },
+    {
+      "at": "2026-11-28T09:14:09.914434Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-traffic-scale-02"
+    },
+    {
+      "at": "2026-11-28T09:19:09.492183Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "trusted_reset",
+      "case": "recovery-traffic-scale-02"
+    },
+    {
+      "at": "2026-11-28T09:21:51.258342Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-02"
+    },
+    {
+      "at": "2026-11-28T09:21:51.850242Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-02"
+    },
+    {
+      "at": "2026-11-28T09:23:09.669697Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-oom-memory-02"
+    },
+    {
+      "at": "2026-11-28T09:27:08.893285Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/resources/limits/memory",
+        "/spec/template/spec/containers/0/resources/requests/memory"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-oom-memory-02"
+    },
+    {
+      "at": "2026-11-28T09:35:35.058695Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-02"
+    },
+    {
+      "at": "2026-11-28T09:35:35.650195Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-02"
+    },
+    {
+      "at": "2026-11-28T09:36:53.009790Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-bad-rollout-restore-02"
+    },
+    {
+      "at": "2026-11-28T09:40:42.800718Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/image"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-bad-rollout-restore-02"
+    },
+    {
+      "at": "2026-11-28T09:49:00.860871Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-03"
+    },
+    {
+      "at": "2026-11-28T09:49:01.646856Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-03"
+    },
+    {
+      "at": "2026-11-28T09:53:37.109980Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-traffic-scale-03"
+    },
+    {
+      "at": "2026-11-28T09:58:37.069760Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "trusted_reset",
+      "case": "recovery-traffic-scale-03"
+    },
+    {
+      "at": "2026-11-28T10:01:18.155604Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-03"
+    },
+    {
+      "at": "2026-11-28T10:01:18.751986Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-03"
+    },
+    {
+      "at": "2026-11-28T10:02:36.595733Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-oom-memory-03"
+    },
+    {
+      "at": "2026-11-28T10:06:35.858998Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/resources/limits/memory",
+        "/spec/template/spec/containers/0/resources/requests/memory"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-oom-memory-03"
+    },
+    {
+      "at": "2026-11-28T10:15:02.557291Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-03"
+    },
+    {
+      "at": "2026-11-28T10:15:03.153390Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-03"
+    },
+    {
+      "at": "2026-11-28T10:16:21.400506Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-bad-rollout-restore-03"
+    },
+    {
+      "at": "2026-11-28T10:20:20.177954Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/image"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-bad-rollout-restore-03"
+    },
+    {
+      "at": "2026-11-28T10:28:38.659322Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-04"
+    },
+    {
+      "at": "2026-11-28T10:28:39.341360Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-04"
+    },
+    {
+      "at": "2026-11-28T10:33:22.015092Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-traffic-scale-04"
+    },
+    {
+      "at": "2026-11-28T10:38:22.277747Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "trusted_reset",
+      "case": "recovery-traffic-scale-04"
+    },
+    {
+      "at": "2026-11-28T10:41:03.365647Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-04"
+    },
+    {
+      "at": "2026-11-28T10:41:03.949980Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-04"
+    },
+    {
+      "at": "2026-11-28T10:42:21.406798Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-oom-memory-04"
+    },
+    {
+      "at": "2026-11-28T10:46:17.472945Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/resources/limits/memory",
+        "/spec/template/spec/containers/0/resources/requests/memory"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-oom-memory-04"
+    },
+    {
+      "at": "2026-11-28T10:54:44.157766Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-04"
+    },
+    {
+      "at": "2026-11-28T10:54:44.748974Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-04"
+    },
+    {
+      "at": "2026-11-28T10:56:02.401989Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-bad-rollout-restore-04"
+    },
+    {
+      "at": "2026-11-28T10:59:53.340270Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/image"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-bad-rollout-restore-04"
+    },
+    {
+      "at": "2026-11-28T11:08:10.964447Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-05"
+    },
+    {
+      "at": "2026-11-28T11:08:11.548962Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-traffic-scale-05"
+    },
+    {
+      "at": "2026-11-28T11:12:47.759738Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-traffic-scale-05"
+    },
+    {
+      "at": "2026-11-28T11:17:47.165386Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/replicas"
+      ],
+      "attribution": "trusted_reset",
+      "case": "recovery-traffic-scale-05"
+    },
+    {
+      "at": "2026-11-28T11:20:29.445458Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-05"
+    },
+    {
+      "at": "2026-11-28T11:20:30.053572Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-oom-memory-05"
+    },
+    {
+      "at": "2026-11-28T11:21:48.202252Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-oom-memory-05"
+    },
+    {
+      "at": "2026-11-28T11:25:58.220680Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/resources/limits/memory",
+        "/spec/template/spec/containers/0/resources/requests/memory"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-oom-memory-05"
+    },
+    {
+      "at": "2026-11-28T11:34:23.057900Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-05"
+    },
+    {
+      "at": "2026-11-28T11:34:23.943158Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/metadata/annotations"
+      ],
+      "attribution": "maintenance_fence",
+      "case": "recovery-bad-rollout-restore-05"
+    },
+    {
+      "at": "2026-11-28T11:35:41.282036Z",
+      "user": "system:admin",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/env",
+        "/spec/template/spec/containers/0/image",
+        "/spec/template/spec/containers/0/imagePullPolicy",
+        "/spec/template/spec/containers/0/resources"
+      ],
+      "attribution": "trusted_fault",
+      "case": "recovery-bad-rollout-restore-05"
+    },
+    {
+      "at": "2026-11-28T11:39:30.977837Z",
+      "user": "system:serviceaccount:demo:cloudops-writer",
+      "verb": "patch",
+      "name": "checkout",
+      "code": 200,
+      "uid_tested": true,
+      "changed_paths": [
+        "/spec/template/spec/containers/0/image"
+      ],
+      "attribution": "approved_action",
+      "case": "recovery-bad-rollout-restore-05"
+    }
+  ]
+}

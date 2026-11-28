@@ -1,0 +1,21 @@
+{
+  "private_evidence_tar_sha256": "38d4d84ad9bc4395de068d47ee402636073f0fba6ab8ff423cb8c9e6670dc693",
+  "files": {
+    "approval-decisions.json": "0c1d53c9ccf6e4f8dd22810a0b29f86f7cadb270191f544004cee7f12f4ca170",
+    "attempts-summary.json": "7ea433fa8f46fc3dbd5f0d28e0f46b7b3fc280cd670589074ffa3531807205d8",
+    "calibrations.json": "b31fe8919ad0f9049dd2e3436e8acd6f77a350f39ab74834c527644d4b7bc20b",
+    "cohort-freeze.json": "e927029daf0ecfba8f1f751bb08a138b269d1763e70ad41c1f2f13afa21f6a2e",
+    "cost.json": "be1e903f38399586dc5582a953e16a97a71c2d13abd421025777600e4237046d",
+    "dry-run.json": "2fd538d016801c9ac0c9a5da9ecf29ba16c62094476cb4cee071613c2a4e68fe",
+    "final-cleanup.json": "14b721b82ad44505e3a2a1da501177c4760e685062811f08872d506153f03440",
+    "final-scorecard.json": "c4f643868f6de25c54c00f03fd4d5e506d3cd0bf58d5434d340cac553fccbe0f",
+    "guards-junit.xml": "45075615255a7ef128214ab6ba5342144227ed76ab8bc960142729f1245869ee",
+    "install-receipt.json": "1742dd0b94dcf481cc7ff7b7e64f33342abd0e09679f873a18100b7ffd0f10ec",
+    "live-role.json": "5591eb1c74a10d62ab297a2597bb81370a4a0e932325c072aa6496567c7cfef3",
+    "mutation-reconciliation.json": "4df47cf128b770b201965d9658c4ba601bd57f7fb0cfaceb31bd09c2b39559bd",
+    "paired-comparison.json": "8b643e7828e6ce50138590bbb291f40f1c195a7c2a6ff9d25e1c04f7150c0536",
+    "provider-accounting.json": "521b1bdd046cc1ad8f86fc20c43f3166a05503348b21a10a7bd9d466196aab21",
+    "qualification-rubric.json": "9c81b5cf1d40a21f3e5e2717462b541a7d2eef341b2f4c210de5b3c552a31f4b",
+    "smoke-receipt.json": "a807b103e5c13cf585a4844afca0352e5abf20932ef5ffa5c72e2593c7ca43cc"
+  }
+}

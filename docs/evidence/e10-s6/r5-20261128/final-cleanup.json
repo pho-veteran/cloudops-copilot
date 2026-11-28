@@ -1,0 +1,224 @@
+{
+  "schema": "R5FinalCleanup/v1",
+  "writer_targets_at_export": [
+    {
+      "uid": "98930586-b841-4d7e-83aa-a5654f4f1a94",
+      "enabled": false,
+      "recovery_mode": true
+    }
+  ],
+  "dispatch_at_export": "recovery",
+  "ec2_lab_cleanup": {
+    "operation": "cleanup",
+    "at": "2026-11-28T11:55:21.442629+00:00",
+    "project": "cloudops-release-recovery-r5",
+    "owner": "eae52ca7-fdad-49a7-84c2-9581a9e84b0c",
+    "removed": {
+      "container": 10,
+      "network": 1,
+      "volume": 12
+    }
+  },
+  "laptop_dry_run_lab_cleanup": "cloudops-e10-s3-lab stopped and removed through manage-local-lab cleanup (owner-confirmed) at 2026-11-28T12:03Z; the cloudops-r5-check _test database project removed with down -v",
+  "tunnel": "stopped 2026-11-28T11:56Z; one session from 07:49:07Z with no reconnect",
+  "aws": {
+    "destroy_plan": "10 deletes, reviewed and applied 2026-11-28T11:56:57Z",
+    "retained_root_deleted": "vol-05590172ebdfc97e3 (available, no attachment, Project tag and name cloudops-engine-lab-v2-retained-root checked first)",
+    "key_pair_deleted": "key-0dac6d89db948c5e9",
+    "inventory": {
+      "checked_at": "2026-11-28T12:00:55Z",
+      "regions": 17,
+      "rows": [
+        {
+          "region": "ap-south-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "eu-north-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "eu-west-3",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "eu-west-2",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "eu-west-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "ap-northeast-3",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "ap-northeast-2",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "ap-northeast-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "ca-central-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "sa-east-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "ap-southeast-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "ap-southeast-2",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "eu-central-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "us-east-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 4
+        },
+        {
+          "region": "us-east-2",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "us-west-1",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        },
+        {
+          "region": "us-west-2",
+          "instances": 0,
+          "volumes": 0,
+          "snapshots": 0,
+          "eips": 0,
+          "enis": 0,
+          "spot": 0,
+          "key_pairs": 0,
+          "project_tagged": 0
+        }
+      ],
+      "tofu_state_resources": 0,
+      "tagging_api_note": "us-east-1 tag index still listed 4 deleted ARNs (terminated i-08a5f61d4362440f6, deleted vol-05590172ebdfc97e3, two deleted security-group rules); direct describes return terminated/NotFound for each, and no VPC or security group carries the Project tag."
+    }
+  }
+}

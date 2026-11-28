@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-28",
+  "region": "us-east-1",
+  "run": "R5",
+  "source": "AWS list prices as recorded in docs/evidence/e10-s2-ec2/cost.json (Price List API, effective 2026-11-01); per-second Linux billing; no Cost Explorer queries",
+  "rates_usd": {
+    "c5a.2xlarge_hour": 0.308,
+    "gp3_gb_month": 0.08,
+    "public_ipv4_hour": 0.005
+  },
+  "limits": {
+    "usd": 5.0,
+    "running_hours": 8,
+    "source": "R5 declaration (docs/engine-loop/README.md#r5-declaration)"
+  },
+  "stack": "cloudops-engine-lab-v2 (R4 stack identity reused, module security group unchanged)",
+  "instance_id": "i-08a5f61d4362440f6",
+  "type": "c5a.2xlarge",
+  "created_at": "2026-11-28T07:24:18+00:00",
+  "destroyed_at": "2026-11-28T11:56:57+00:00",
+  "retained_root_deleted_at": "2026-11-28T11:57:16+00:00",
+  "running_hours": 4.544,
+  "list_price_usd": {
+    "ec2": 1.3996,
+    "gp3_50gib": 0.0249,
+    "public_ipv4": 0.0227,
+    "total": 1.45
+  },
+  "data_transfer": "model traffic and evidence copies well under the free 100 GB per month",
+  "note": "An upper bound by wall clock from apply to destroy; the instance was never stopped."
+}

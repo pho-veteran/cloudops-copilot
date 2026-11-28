@@ -1,0 +1,1212 @@
+{
+  "recovery-oom-memory-01": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "oom_restarts",
+      "candidate": "set_memory_profile",
+      "runbook_citations": 3,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 18070,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "previous_log_attempts": [
+      [
+        {
+          "pod_uid": "8767bfb3-e2aa-46b0-b958-22e927e84135",
+          "container": "app",
+          "attempts": [
+            {
+              "attempt": 1,
+              "at": "2026-11-28T08:44:28.713943+00:00",
+              "elapsed_ms": 7,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_readable"
+            },
+            {
+              "attempt": 2,
+              "at": "2026-11-28T08:44:30.721296+00:00",
+              "elapsed_ms": 2014,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 3,
+              "at": "2026-11-28T08:44:32.728657+00:00",
+              "elapsed_ms": 4022,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 4,
+              "at": "2026-11-28T08:44:34.736179+00:00",
+              "elapsed_ms": 6029,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 5,
+              "at": "2026-11-28T08:44:36.751719+00:00",
+              "elapsed_ms": 8045,
+              "state": "running",
+              "restart_count": 2,
+              "outcome": "read"
+            }
+          ]
+        }
+      ]
+    ],
+    "plan": {
+      "id": "397b53fe-1b8d-4d57-8638-91c8d643c73e",
+      "digest": "80239377bda5cfb46239772850ef4455c9053108e844ab2be9655201235808bb",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 42184,
+      "detect": 1242,
+      "collect": 17796,
+      "analyze": 17090,
+      "approval": 878,
+      "apply": 7256,
+      "verify": 300327
+    }
+  },
+  "recovery-oom-memory-02": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "oom_restarts",
+      "candidate": "set_memory_profile",
+      "runbook_citations": 4,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 19004,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "previous_log_attempts": [
+      [
+        {
+          "pod_uid": "4727a531-ffe2-40c0-b16f-1014943116d5",
+          "container": "app",
+          "attempts": [
+            {
+              "attempt": 1,
+              "at": "2026-11-28T09:24:02.172014+00:00",
+              "elapsed_ms": 8,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_readable"
+            },
+            {
+              "attempt": 2,
+              "at": "2026-11-28T09:24:04.179332+00:00",
+              "elapsed_ms": 2015,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 3,
+              "at": "2026-11-28T09:24:06.187114+00:00",
+              "elapsed_ms": 4023,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 4,
+              "at": "2026-11-28T09:24:08.194418+00:00",
+              "elapsed_ms": 6030,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 5,
+              "at": "2026-11-28T09:24:10.209485+00:00",
+              "elapsed_ms": 8045,
+              "state": "running",
+              "restart_count": 2,
+              "outcome": "read"
+            }
+          ]
+        }
+      ]
+    ],
+    "plan": {
+      "id": "1f259d59-165b-4c06-a58d-438962fd94cd",
+      "digest": "ba7441b478133a8f19593a567f8231a9607e6b44747b46ba72b07224464e34c6",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 41866,
+      "detect": 1255,
+      "collect": 17864,
+      "analyze": 16781,
+      "approval": 741,
+      "apply": 7198,
+      "verify": 301055
+    }
+  },
+  "recovery-oom-memory-03": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "oom_restarts",
+      "candidate": "set_memory_profile",
+      "runbook_citations": 4,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 18962,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "previous_log_attempts": [
+      [
+        {
+          "pod_uid": "9c2c233e-5ac9-4086-bec5-570a6a65a307",
+          "container": "app",
+          "attempts": [
+            {
+              "attempt": 1,
+              "at": "2026-11-28T10:03:29.343750+00:00",
+              "elapsed_ms": 7,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_readable"
+            },
+            {
+              "attempt": 2,
+              "at": "2026-11-28T10:03:31.350893+00:00",
+              "elapsed_ms": 2014,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 3,
+              "at": "2026-11-28T10:03:33.359029+00:00",
+              "elapsed_ms": 4022,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 4,
+              "at": "2026-11-28T10:03:35.366736+00:00",
+              "elapsed_ms": 6030,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 5,
+              "at": "2026-11-28T10:03:37.384250+00:00",
+              "elapsed_ms": 8047,
+              "state": "running",
+              "restart_count": 2,
+              "outcome": "read"
+            }
+          ]
+        }
+      ]
+    ],
+    "plan": {
+      "id": "4d7ea937-d88e-407e-9b8c-ac53f015d485",
+      "digest": "30e9c5593f7efede62fcdd6a089deb2cd71b71e9ebd9c2c6765c2502631f2d0d",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 42024,
+      "detect": 1260,
+      "collect": 17962,
+      "analyze": 16395,
+      "approval": 730,
+      "apply": 7272,
+      "verify": 301250
+    }
+  },
+  "recovery-oom-memory-04": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "oom_restarts",
+      "candidate": "set_memory_profile",
+      "runbook_citations": 3,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 18851,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "previous_log_attempts": [
+      [
+        {
+          "pod_uid": "686182bb-da30-488b-817d-d33ca48e6a5f",
+          "container": "app",
+          "attempts": [
+            {
+              "attempt": 1,
+              "at": "2026-11-28T10:43:13.766924+00:00",
+              "elapsed_ms": 7,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_readable"
+            },
+            {
+              "attempt": 2,
+              "at": "2026-11-28T10:43:15.774405+00:00",
+              "elapsed_ms": 2014,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 3,
+              "at": "2026-11-28T10:43:17.781570+00:00",
+              "elapsed_ms": 4021,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 4,
+              "at": "2026-11-28T10:43:19.788970+00:00",
+              "elapsed_ms": 6029,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 5,
+              "at": "2026-11-28T10:43:21.796484+00:00",
+              "elapsed_ms": 8036,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 6,
+              "at": "2026-11-28T10:43:23.811829+00:00",
+              "elapsed_ms": 10052,
+              "state": "running",
+              "restart_count": 2,
+              "outcome": "read"
+            }
+          ]
+        }
+      ]
+    ],
+    "plan": {
+      "id": "30610abe-d8c6-4caf-ba08-0eb8a2cae0ab",
+      "digest": "ea139abc66934c21fbb11242f05c7e30958d1ad138f889175c219892defecca1",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 41998,
+      "detect": 1225,
+      "collect": 19630,
+      "analyze": 12093,
+      "approval": 731,
+      "apply": 7269,
+      "verify": 300604
+    }
+  },
+  "recovery-oom-memory-05": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "oom_restarts",
+      "candidate": "set_memory_profile",
+      "runbook_citations": 2,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 18848,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "previous_log_attempts": [
+      [
+        {
+          "pod_uid": "e757dfdf-6932-4a95-a373-fd898cb18277",
+          "container": "app",
+          "attempts": [
+            {
+              "attempt": 1,
+              "at": "2026-11-28T11:22:40.809950+00:00",
+              "elapsed_ms": 7,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_readable"
+            },
+            {
+              "attempt": 2,
+              "at": "2026-11-28T11:22:42.817071+00:00",
+              "elapsed_ms": 2014,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 3,
+              "at": "2026-11-28T11:22:44.825041+00:00",
+              "elapsed_ms": 4022,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 4,
+              "at": "2026-11-28T11:22:46.832454+00:00",
+              "elapsed_ms": 6029,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 5,
+              "at": "2026-11-28T11:22:48.840005+00:00",
+              "elapsed_ms": 8037,
+              "state": "terminated",
+              "restart_count": 1,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 6,
+              "at": "2026-11-28T11:22:50.855391+00:00",
+              "elapsed_ms": 10052,
+              "state": "running",
+              "restart_count": 2,
+              "outcome": "read"
+            }
+          ]
+        }
+      ]
+    ],
+    "plan": {
+      "id": "de77a620-9633-47ef-bace-da135b8c1b39",
+      "digest": "f1c28900eabba26d2e8202e1969a70e0eb4c737cb10f1d72a9cb1c5ee46f9d36",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 41951,
+      "detect": 1263,
+      "collect": 20051,
+      "analyze": 27145,
+      "approval": 736,
+      "apply": 7214,
+      "verify": 300670
+    }
+  },
+  "recovery-bad-rollout-restore-01": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "crashloop_startup",
+      "candidate": "restore_deployment_template",
+      "runbook_citations": 4,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 18793,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "previous_log_attempts": [
+      [
+        {
+          "pod_uid": "8ad9f485-7a68-4bb0-8bf5-73f837c2c248",
+          "container": "app",
+          "attempts": [
+            {
+              "attempt": 1,
+              "at": "2026-11-28T08:58:11.597645+00:00",
+              "elapsed_ms": 8,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_readable"
+            },
+            {
+              "attempt": 2,
+              "at": "2026-11-28T08:58:13.604907+00:00",
+              "elapsed_ms": 2016,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 3,
+              "at": "2026-11-28T08:58:15.612457+00:00",
+              "elapsed_ms": 4023,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 4,
+              "at": "2026-11-28T08:58:17.619858+00:00",
+              "elapsed_ms": 6031,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 5,
+              "at": "2026-11-28T08:58:19.627501+00:00",
+              "elapsed_ms": 8038,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 6,
+              "at": "2026-11-28T08:58:21.635017+00:00",
+              "elapsed_ms": 10046,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 7,
+              "at": "2026-11-28T08:58:23.642460+00:00",
+              "elapsed_ms": 12053,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 8,
+              "at": "2026-11-28T08:58:25.649955+00:00",
+              "elapsed_ms": 14061,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 9,
+              "at": "2026-11-28T08:58:27.657371+00:00",
+              "elapsed_ms": 16068,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 10,
+              "at": "2026-11-28T08:58:29.664832+00:00",
+              "elapsed_ms": 18075,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 11,
+              "at": "2026-11-28T08:58:31.672596+00:00",
+              "elapsed_ms": 20083,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 12,
+              "at": "2026-11-28T08:58:33.680664+00:00",
+              "elapsed_ms": 22091,
+              "state": "terminated",
+              "restart_count": 2,
+              "outcome": "not_running"
+            },
+            {
+              "attempt": 13,
+              "at": "2026-11-28T08:58:35.695901+00:00",
+              "elapsed_ms": 24107,
+              "state": "running",
+              "restart_count": 3,
+              "outcome": "read"
+            }
+          ]
+        }
+      ]
+    ],
+    "plan": {
+      "id": "5f63cc67-57dc-436b-a3ce-914f59d6776d",
+      "digest": "ef9090c44d435c9bacf38868c7ac292c92eac0c47dcc7a83365823d210a88f56",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 42281,
+      "detect": 1388,
+      "collect": 33726,
+      "analyze": 15436,
+      "approval": 741,
+      "apply": 7149,
+      "verify": 300349
+    }
+  },
+  "recovery-bad-rollout-restore-02": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "crashloop_startup",
+      "candidate": "restore_deployment_template",
+      "runbook_citations": 3,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 19789,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "plan": {
+      "id": "de62e841-3b49-4af5-860a-b6adc1d2117e",
+      "digest": "d7f7f7177a10b36ea3ed1fbef2f518efcc478b800b289c89eb09d70ae3c2e29d",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 39519,
+      "detect": 1363,
+      "collect": 9616,
+      "analyze": 10006,
+      "approval": 913,
+      "apply": 7211,
+      "verify": 300570
+    }
+  },
+  "recovery-bad-rollout-restore-03": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "crashloop_startup",
+      "candidate": "restore_deployment_template",
+      "runbook_citations": 2,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 19798,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "plan": {
+      "id": "864be159-99e8-4d87-8541-9ec23f34df3c",
+      "digest": "12dc4a67526da030c672846b2606fec3f645e4611e751656ab1155c3341835b9",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 39653,
+      "detect": 1205,
+      "collect": 9554,
+      "analyze": 18898,
+      "approval": 796,
+      "apply": 7280,
+      "verify": 300752
+    }
+  },
+  "recovery-bad-rollout-restore-04": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "crashloop_startup",
+      "candidate": "restore_deployment_template",
+      "runbook_citations": 3,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 20342,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "plan": {
+      "id": "19de73a6-18eb-42a0-b108-8c669d853e57",
+      "digest": "41fd0d03ef9a2c1b79eb62666f56691ca6f2a830b9c631758fd9756682e02c99",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 42441,
+      "detect": 1229,
+      "collect": 9477,
+      "analyze": 8427,
+      "approval": 1064,
+      "apply": 7248,
+      "verify": 300444
+    }
+  },
+  "recovery-bad-rollout-restore-05": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "crashloop_startup",
+      "candidate": "restore_deployment_template",
+      "runbook_citations": 3,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 19795,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata"
+      ]
+    },
+    "plan": {
+      "id": "d502a15d-d7de-42fa-a958-b09d65a808ac",
+      "digest": "c8c5a039918e158f51562b1f240611fc5000024e4114aebdeacec39658872f23",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "fail",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 39596,
+      "detect": 1229,
+      "collect": 9660,
+      "analyze": 10591,
+      "approval": 719,
+      "apply": 7206,
+      "verify": 301101
+    }
+  },
+  "recovery-traffic-scale-01": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 2,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 16123,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "840fdfa2-8bd1-4e6c-8119-e87d951bacfc",
+      "digest": "9f2f8ef3155064ae970746592ead23444460176a9d67c601c3693644242d8b87",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 87343,
+      "detect": 1371,
+      "collect": 9571,
+      "analyze": 7542,
+      "approval": 866,
+      "apply": 7221,
+      "verify": 180961
+    }
+  },
+  "recovery-traffic-scale-02": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 3,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 17646,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "871c725c-071e-4ff3-93ad-13207f05cc87",
+      "digest": "065fc3a046c77b68984552ea92d74226d7b92cc10f66053e18525bf9e2c81774",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 87735,
+      "detect": 1573,
+      "collect": 9596,
+      "analyze": 14307,
+      "approval": 706,
+      "apply": 7236,
+      "verify": 181123
+    }
+  },
+  "recovery-traffic-scale-03": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 4,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 17958,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "b0c94147-460b-4bf0-a44e-72162a34d4ec",
+      "digest": "000d406c59d1d2a1a574a88bb8c080ffa41ac622a18626bd1665e0c59dd3e0bd",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 87888,
+      "detect": 1583,
+      "collect": 9712,
+      "analyze": 14801,
+      "approval": 777,
+      "apply": 7393,
+      "verify": 181265
+    }
+  },
+  "recovery-traffic-scale-04": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 5,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 17958,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "dec2d2f4-caaf-4792-952b-326530bce5e0",
+      "digest": "d66a8f7c6c471d388c40161cf996d79129fe3b1c7cecff80095ff79aac1f5b0c",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 88231,
+      "detect": 1465,
+      "collect": 9711,
+      "analyze": 21809,
+      "approval": 803,
+      "apply": 7238,
+      "verify": 181063
+    }
+  },
+  "recovery-traffic-scale-05": {
+    "disposition": "completed",
+    "reason": null,
+    "qualifying_live_provenance": true,
+    "investigator": {
+      "status": "supported",
+      "cause_category": "traffic_latency_errors",
+      "candidate": "scale_deployment",
+      "runbook_citations": 4,
+      "calls": 1
+    },
+    "context": {
+      "runbook_status": "matched",
+      "message_bytes": 17967,
+      "unavailable_sources": [
+        "development_fixture",
+        "kubernetes.configmap.metadata",
+        "kubernetes.logs.previous"
+      ]
+    },
+    "plan": {
+      "id": "f1d04efa-d61a-4d9b-9bf0-d15e89572ac0",
+      "digest": "fdea6011939f8f32e344c7cde6022421bad9fd60afb6afed38d341c84afceece",
+      "policy_decision": "approve"
+    },
+    "execution": "succeeded",
+    "verification": "passed",
+    "writer": "open",
+    "steps_failed": [],
+    "incident_state": "open",
+    "rules_score": {
+      "cause_category": "fail",
+      "evidence_references": "fail",
+      "abstention_manual": "fail",
+      "eligible_plan": "fail",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "investigator_score": {
+      "cause_category": "pass",
+      "evidence_references": "pass",
+      "abstention_manual": "pass",
+      "eligible_plan": "pass",
+      "action_outcome": "pass",
+      "incident_resolution": "fail"
+    },
+    "timing_ms": {
+      "inject": 87636,
+      "detect": 1371,
+      "collect": 9681,
+      "analyze": 15024,
+      "approval": 949,
+      "apply": 7333,
+      "verify": 181138
+    }
+  }
+}

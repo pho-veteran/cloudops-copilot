@@ -1,0 +1,534 @@
+{
+  "schema": "R5DryRun/v1",
+  "cohort": "e10-s6-r5-dryrun-not-measured",
+  "lab": "owned source-built laptop recovery lab cloudops-e10-s3-lab at aed4bd3",
+  "gate": "memory and restore must get a correct cause category; actions reported, not required",
+  "requests": 4,
+  "observed_tokens": 26831,
+  "slots": {
+    "recovery-oom-memory-01": {
+      "recorded_disposition": "failed",
+      "recorded_reason": "post_check_failed",
+      "writer": "open",
+      "investigator": {
+        "status": "supported",
+        "cause_category": "oom_restarts"
+      },
+      "policy": "approve",
+      "execution": "verifying",
+      "verification": null,
+      "steps": [
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "begin",
+          "at": "2026-11-28T07:00:56.357972227Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "load",
+          "at": "2026-11-28T07:01:51.793087014Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "writer-enable",
+          "at": "2026-11-28T07:01:57.319626266Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "fault",
+          "at": "2026-11-28T07:03:05.550660795Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "observe",
+          "at": "2026-11-28T07:03:17.552005484Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "open",
+          "at": "2026-11-28T07:03:56.207155407Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "permit-analysis",
+          "at": "2026-11-28T07:03:56.919574520Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "collection",
+          "at": "2026-11-28T07:03:59.508543022Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "admission",
+          "at": "2026-11-28T07:08:06.669556461Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "analysis",
+          "at": "2026-11-28T07:08:10.409859340Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "propose",
+          "at": "2026-11-28T07:08:38.457942433Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "approval",
+          "at": "2026-11-28T07:08:39.155938218Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "recovery",
+          "at": "2026-11-28T07:08:39.687599306Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "evidence",
+          "at": "2026-11-28T07:13:46.933299539Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "post-check",
+          "at": "2026-11-28T07:13:47.421877599Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "failed": "post_check_failed",
+          "at": "2026-11-28T07:13:48Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "quarantine",
+          "at": "2026-11-28T07:13:48.082337542Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "load-stop",
+          "at": "2026-11-28T07:13:56.751577960Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "wait-plan-expiry",
+          "at": "2026-11-28T07:14:00.532268602Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "reset",
+          "at": "2026-11-28T07:19:00.540946605Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "record",
+          "at": "2026-11-28T07:19:03.934175260Z"
+        },
+        {
+          "case": "recovery-oom-memory-01",
+          "step": "done",
+          "at": "2026-11-28T07:19:04.591108840Z"
+        }
+      ]
+    },
+    "recovery-bad-rollout-restore-01": {
+      "recorded_disposition": "failed",
+      "recorded_reason": "recovery_failed",
+      "writer": "open",
+      "investigator": {
+        "status": "supported",
+        "cause_category": "crashloop_startup"
+      },
+      "policy": "approve",
+      "execution": "succeeded",
+      "verification": "passed",
+      "reset": "incomplete",
+      "steps": [
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "begin",
+          "at": "2026-11-28T07:22:49.296264464Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "load",
+          "at": "2026-11-28T07:23:51.924606552Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "writer-enable",
+          "at": "2026-11-28T07:23:57.510703725Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "fault",
+          "at": "2026-11-28T07:25:06.050151341Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "observe",
+          "at": "2026-11-28T07:25:18.048459015Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "open",
+          "at": "2026-11-28T07:26:01.519831137Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "permit-analysis",
+          "at": "2026-11-28T07:26:01.953819937Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "collection",
+          "at": "2026-11-28T07:26:04.704566928Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "admission",
+          "at": "2026-11-28T07:28:43.466558313Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "analysis",
+          "at": "2026-11-28T07:28:50.033444940Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "propose",
+          "at": "2026-11-28T07:29:16.869543743Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "approval",
+          "at": "2026-11-28T07:29:17.478327416Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "recovery",
+          "at": "2026-11-28T07:29:17.810742447Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "failed": "recovery_failed",
+          "at": "2026-11-28T07:38:58Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "evidence",
+          "at": "2026-11-28T07:38:58.839411984Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "quarantine",
+          "at": "2026-11-28T07:38:59.333034715Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "load-stop",
+          "at": "2026-11-28T07:39:09.552916896Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "wait-plan-expiry",
+          "at": "2026-11-28T07:39:10.170390127Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "reset",
+          "at": "2026-11-28T07:39:11.372015983Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "record",
+          "at": "2026-11-28T07:40:08.229782359Z"
+        },
+        {
+          "case": "recovery-bad-rollout-restore-01",
+          "step": "done",
+          "at": "2026-11-28T07:40:08.564810167Z"
+        }
+      ]
+    },
+    "recovery-traffic-scale-01": {
+      "recorded_disposition": "completed",
+      "recorded_reason": null,
+      "writer": "open",
+      "investigator": {
+        "status": "supported",
+        "cause_category": "traffic_latency_errors"
+      },
+      "policy": "approve",
+      "execution": "succeeded",
+      "verification": "passed",
+      "reset": "reset_complete",
+      "steps": [
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "begin",
+          "at": "2026-11-28T07:45:37.812785902Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "load",
+          "at": "2026-11-28T07:46:31.684168040Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "writer-enable",
+          "at": "2026-11-28T07:46:37.096344391Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "fault",
+          "at": "2026-11-28T07:47:46.353115673Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "observe",
+          "at": "2026-11-28T07:47:57.925134692Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "open",
+          "at": "2026-11-28T07:47:59.844989326Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "permit-analysis",
+          "at": "2026-11-28T07:48:00.283283321Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "collection",
+          "at": "2026-11-28T07:48:02.757826166Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "admission",
+          "at": "2026-11-28T07:50:40.197159858Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "analysis",
+          "at": "2026-11-28T07:50:43.067736342Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "propose",
+          "at": "2026-11-28T07:51:07.444632255Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "approval",
+          "at": "2026-11-28T07:51:08.081599958Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "recovery",
+          "at": "2026-11-28T07:51:08.490175340Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "execution_state": "verifying",
+          "at": "2026-11-28T07:52:18Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "execution_state": "verifying",
+          "at": "2026-11-28T07:53:26Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "execution_state": "succeeded",
+          "at": "2026-11-28T07:54:34Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "evidence",
+          "at": "2026-11-28T07:54:34.755046613Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "post-check",
+          "at": "2026-11-28T07:54:35.221393056Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "quarantine",
+          "at": "2026-11-28T07:54:43.120499939Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "load-stop",
+          "at": "2026-11-28T07:54:51.453774021Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "wait-plan-expiry",
+          "at": "2026-11-28T07:54:55.298736248Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "reset",
+          "at": "2026-11-28T07:56:16.467472991Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "record",
+          "at": "2026-11-28T07:57:46.422217452Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "done",
+          "at": "2026-11-28T07:57:46.760413610Z"
+        }
+      ]
+    },
+    "recovery-oom-memory-02": {
+      "recorded_disposition": "completed",
+      "recorded_reason": null,
+      "writer": "open",
+      "investigator": {
+        "status": "supported",
+        "cause_category": "oom_restarts"
+      },
+      "policy": "approve",
+      "execution": "succeeded",
+      "verification": "passed",
+      "reset": "reset_complete",
+      "steps": [
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "begin",
+          "at": "2026-11-28T07:59:48.639212018Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "load",
+          "at": "2026-11-28T08:00:43.234118463Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "writer-enable",
+          "at": "2026-11-28T08:00:49.144893599Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "fault",
+          "at": "2026-11-28T08:01:58.657384977Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "observe",
+          "at": "2026-11-28T08:02:10.901350822Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "open",
+          "at": "2026-11-28T08:02:51.527120361Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "permit-analysis",
+          "at": "2026-11-28T08:02:51.961432231Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "collection",
+          "at": "2026-11-28T08:02:54.398631278Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "admission",
+          "at": "2026-11-28T08:05:31.283614668Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "analysis",
+          "at": "2026-11-28T08:05:34.492394051Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "propose",
+          "at": "2026-11-28T08:05:53.123503739Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "approval",
+          "at": "2026-11-28T08:05:53.756810647Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "recovery",
+          "at": "2026-11-28T08:05:54.182580724Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "execution_state": "verifying",
+          "at": "2026-11-28T08:07:02Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "execution_state": "verifying",
+          "at": "2026-11-28T08:08:11Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "execution_state": "verifying",
+          "at": "2026-11-28T08:09:19Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "execution_state": "verifying",
+          "at": "2026-11-28T08:10:27Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "execution_state": "succeeded",
+          "at": "2026-11-28T08:11:35Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "evidence",
+          "at": "2026-11-28T08:11:35.254893144Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "post-check",
+          "at": "2026-11-28T08:11:35.753095444Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "quarantine",
+          "at": "2026-11-28T08:11:43.606566696Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "load-stop",
+          "at": "2026-11-28T08:11:52.065300225Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "wait-plan-expiry",
+          "at": "2026-11-28T08:11:55.860205344Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "reset",
+          "at": "2026-11-28T08:11:58.448489909Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "record",
+          "at": "2026-11-28T08:12:54.112595702Z"
+        },
+        {
+          "case": "recovery-oom-memory-02",
+          "step": "done",
+          "at": "2026-11-28T08:12:54.451300460Z"
+        }
+      ]
+    }
+  }
+}
