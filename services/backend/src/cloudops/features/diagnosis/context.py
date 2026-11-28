@@ -1360,6 +1360,22 @@ def assemble(
     )
 
 
+def guidance_query(
+    db, incident_id: UUID, run_id: UUID, *, policy: EgressPolicy, context_profile: str = "e06"
+) -> str | None:
+    """The trusted Knowledge query of one analysis. The engine profile asks for the guide
+    of its detector's top family over the stored evidence; otherwise (and when that is
+    unavailable) None keeps the stored Run question, as before."""
+    if context_profile != "engine":
+        return None
+    scope = resolve_scope(db, incident_id, run_id)
+    if scope is None:
+        return None
+    from cloudops.features.diagnosis.engine import path
+
+    return path.guidance_query(load_materials(db, scope), policy)
+
+
 def build(
     db,
     incident_id: UUID,
