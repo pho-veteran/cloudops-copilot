@@ -1,0 +1,276 @@
+{
+  "policy": "delegated approval policy (docs/engine-loop/README.md#delegated-approval-policy), unchanged from R4",
+  "approver": "r5-agent-operator: automated coordinating agent under owner delegation, not a human operator",
+  "decisions": {
+    "recovery-oom-memory-01": {
+      "case_id": "recovery-oom-memory-01",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "80239377bda5cfb46239772850ef4455c9053108e844ab2be9655201235808bb",
+      "plan_id": "397b53fe-1b8d-4d57-8638-91c8d643c73e",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "80239377bda5cfb46239772850ef4455c9053108e844ab2be9655201235808bb",
+      "server_time": "2026-11-28T08:47:27.888284Z"
+    },
+    "recovery-oom-memory-02": {
+      "case_id": "recovery-oom-memory-02",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "ba7441b478133a8f19593a567f8231a9607e6b44747b46ba72b07224464e34c6",
+      "plan_id": "1f259d59-165b-4c06-a58d-438962fd94cd",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "ba7441b478133a8f19593a567f8231a9607e6b44747b46ba72b07224464e34c6",
+      "server_time": "2026-11-28T09:27:01.576449Z"
+    },
+    "recovery-oom-memory-03": {
+      "case_id": "recovery-oom-memory-03",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "30e9c5593f7efede62fcdd6a089deb2cd71b71e9ebd9c2c6765c2502631f2d0d",
+      "plan_id": "4d7ea937-d88e-407e-9b8c-ac53f015d485",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "30e9c5593f7efede62fcdd6a089deb2cd71b71e9ebd9c2c6765c2502631f2d0d",
+      "server_time": "2026-11-28T10:06:28.484703Z"
+    },
+    "recovery-oom-memory-04": {
+      "case_id": "recovery-oom-memory-04",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "ea139abc66934c21fbb11242f05c7e30958d1ad138f889175c219892defecca1",
+      "plan_id": "30610abe-d8c6-4caf-ba08-0eb8a2cae0ab",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "ea139abc66934c21fbb11242f05c7e30958d1ad138f889175c219892defecca1",
+      "server_time": "2026-11-28T10:46:10.091457Z"
+    },
+    "recovery-oom-memory-05": {
+      "case_id": "recovery-oom-memory-05",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "f1c28900eabba26d2e8202e1969a70e0eb4c737cb10f1d72a9cb1c5ee46f9d36",
+      "plan_id": "de77a620-9633-47ef-bace-da135b8c1b39",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "f1c28900eabba26d2e8202e1969a70e0eb4c737cb10f1d72a9cb1c5ee46f9d36",
+      "server_time": "2026-11-28T11:25:50.884830Z"
+    },
+    "recovery-bad-rollout-restore-01": {
+      "case_id": "recovery-bad-rollout-restore-01",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "ef9090c44d435c9bacf38868c7ac292c92eac0c47dcc7a83365823d210a88f56",
+      "plan_id": "5f63cc67-57dc-436b-a3ce-914f59d6776d",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "ef9090c44d435c9bacf38868c7ac292c92eac0c47dcc7a83365823d210a88f56",
+      "server_time": "2026-11-28T09:01:09.687517Z"
+    },
+    "recovery-bad-rollout-restore-02": {
+      "case_id": "recovery-bad-rollout-restore-02",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "d7f7f7177a10b36ea3ed1fbef2f518efcc478b800b289c89eb09d70ae3c2e29d",
+      "plan_id": "de62e841-3b49-4af5-860a-b6adc1d2117e",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "d7f7f7177a10b36ea3ed1fbef2f518efcc478b800b289c89eb09d70ae3c2e29d",
+      "server_time": "2026-11-28T09:40:35.428624Z"
+    },
+    "recovery-bad-rollout-restore-03": {
+      "case_id": "recovery-bad-rollout-restore-03",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "12dc4a67526da030c672846b2606fec3f645e4611e751656ab1155c3341835b9",
+      "plan_id": "864be159-99e8-4d87-8541-9ec23f34df3c",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "12dc4a67526da030c672846b2606fec3f645e4611e751656ab1155c3341835b9",
+      "server_time": "2026-11-28T10:20:12.776827Z"
+    },
+    "recovery-bad-rollout-restore-04": {
+      "case_id": "recovery-bad-rollout-restore-04",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "41fd0d03ef9a2c1b79eb62666f56691ca6f2a830b9c631758fd9756682e02c99",
+      "plan_id": "19de73a6-18eb-42a0-b108-8c669d853e57",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "41fd0d03ef9a2c1b79eb62666f56691ca6f2a830b9c631758fd9756682e02c99",
+      "server_time": "2026-11-28T10:59:45.828010Z"
+    },
+    "recovery-bad-rollout-restore-05": {
+      "case_id": "recovery-bad-rollout-restore-05",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "c8c5a039918e158f51562b1f240611fc5000024e4114aebdeacec39658872f23",
+      "plan_id": "d502a15d-d7de-42fa-a958-b09d65a808ac",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "c8c5a039918e158f51562b1f240611fc5000024e4114aebdeacec39658872f23",
+      "server_time": "2026-11-28T11:39:23.620072Z"
+    },
+    "recovery-traffic-scale-01": {
+      "case_id": "recovery-traffic-scale-01",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "9f2f8ef3155064ae970746592ead23444460176a9d67c601c3693644242d8b87",
+      "plan_id": "840fdfa2-8bd1-4e6c-8119-e87d951bacfc",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "9f2f8ef3155064ae970746592ead23444460176a9d67c601c3693644242d8b87",
+      "server_time": "2026-11-28T08:34:30.376024Z"
+    },
+    "recovery-traffic-scale-02": {
+      "case_id": "recovery-traffic-scale-02",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "065fc3a046c77b68984552ea92d74226d7b92cc10f66053e18525bf9e2c81774",
+      "plan_id": "871c725c-071e-4ff3-93ad-13207f05cc87",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "065fc3a046c77b68984552ea92d74226d7b92cc10f66053e18525bf9e2c81774",
+      "server_time": "2026-11-28T09:14:02.525862Z"
+    },
+    "recovery-traffic-scale-03": {
+      "case_id": "recovery-traffic-scale-03",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "000d406c59d1d2a1a574a88bb8c080ffa41ac622a18626bd1665e0c59dd3e0bd",
+      "plan_id": "b0c94147-460b-4bf0-a44e-72162a34d4ec",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "000d406c59d1d2a1a574a88bb8c080ffa41ac622a18626bd1665e0c59dd3e0bd",
+      "server_time": "2026-11-28T09:53:29.608949Z"
+    },
+    "recovery-traffic-scale-04": {
+      "case_id": "recovery-traffic-scale-04",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "d66a8f7c6c471d388c40161cf996d79129fe3b1c7cecff80095ff79aac1f5b0c",
+      "plan_id": "dec2d2f4-caaf-4792-952b-326530bce5e0",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "d66a8f7c6c471d388c40161cf996d79129fe3b1c7cecff80095ff79aac1f5b0c",
+      "server_time": "2026-11-28T10:33:14.623748Z"
+    },
+    "recovery-traffic-scale-05": {
+      "case_id": "recovery-traffic-scale-05",
+      "conditions": {
+        "action_in_allowed_candidates": true,
+        "digest_equals_reviewed": true,
+        "parameters_within_qualified_profile": true,
+        "target_uid_equals_frozen": true,
+        "unexpired": true
+      },
+      "decision": "approve",
+      "plan_digest": "fdea6011939f8f32e344c7cde6022421bad9fd60afb6afed38d341c84afceece",
+      "plan_id": "f1d04efa-d61a-4d9b-9bf0-d15e89572ac0",
+      "policy_sha256": "c597130e3cf1b5c72f1f919a39b35ab2fc4a764c85865e071e7da538ff7d2385",
+      "policy_version": "r5.delegated-approval/v1",
+      "reason": "all conditions hold",
+      "reviewed_digest": "fdea6011939f8f32e344c7cde6022421bad9fd60afb6afed38d341c84afceece",
+      "server_time": "2026-11-28T11:12:40.298415Z"
+    }
+  }
+}

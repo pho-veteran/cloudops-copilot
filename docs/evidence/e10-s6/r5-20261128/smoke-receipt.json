@@ -1,0 +1,148 @@
+{
+  "schema": "R5SmokeReceipt/v1",
+  "cohort": "e10-s6-r5-smoke-not-measured",
+  "authority": "separate (3 requests)",
+  "requests": 1,
+  "observed_tokens": 5154,
+  "http_status": [
+    200
+  ],
+  "model_matches": true,
+  "slots": {
+    "recovery-traffic-scale-01": {
+      "recorded_disposition": "completed",
+      "recorded_reason": null,
+      "writer": "open",
+      "investigator": {
+        "status": "supported",
+        "cause_category": "traffic_latency_errors"
+      },
+      "policy": "approve",
+      "execution": "succeeded",
+      "verification": "passed",
+      "reset": "reset_complete",
+      "steps": [
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "begin",
+          "at": "2026-11-28T08:13:53.830179362Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "load",
+          "at": "2026-11-28T08:14:53.115876605Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "writer-enable",
+          "at": "2026-11-28T08:15:00.893750648Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "fault",
+          "at": "2026-11-28T08:16:10.279408209Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "observe",
+          "at": "2026-11-28T08:16:27.426291839Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "open",
+          "at": "2026-11-28T08:16:30.354607014Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "permit-analysis",
+          "at": "2026-11-28T08:16:30.989860646Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "collection",
+          "at": "2026-11-28T08:16:33.221644942Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "admission",
+          "at": "2026-11-28T08:19:10.242420204Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "analysis",
+          "at": "2026-11-28T08:19:15.025331041Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "propose",
+          "at": "2026-11-28T08:19:32.150980164Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "approval",
+          "at": "2026-11-28T08:19:33.021854772Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "recovery",
+          "at": "2026-11-28T08:19:33.642896896Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "execution_state": "verifying",
+          "at": "2026-11-28T08:20:42Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "execution_state": "verifying",
+          "at": "2026-11-28T08:21:51Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "execution_state": "succeeded",
+          "at": "2026-11-28T08:22:59Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "evidence",
+          "at": "2026-11-28T08:22:59.911743209Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "post-check",
+          "at": "2026-11-28T08:23:00.579377906Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "quarantine",
+          "at": "2026-11-28T08:23:13.024252477Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "load-stop",
+          "at": "2026-11-28T08:23:21.357634511Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "wait-plan-expiry",
+          "at": "2026-11-28T08:23:25.643033796Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "reset",
+          "at": "2026-11-28T08:24:36.297113242Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "record",
+          "at": "2026-11-28T08:26:08.218984282Z"
+        },
+        {
+          "case": "recovery-traffic-scale-01",
+          "step": "done",
+          "at": "2026-11-28T08:26:08.684625090Z"
+        }
+      ]
+    }
+  }
+}

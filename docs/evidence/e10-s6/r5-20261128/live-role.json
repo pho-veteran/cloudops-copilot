@@ -1,0 +1,22 @@
+{
+  "schema": "R5LiveRole/v1",
+  "at": "2026-11-28T08:15:06.200134+00:00",
+  "account": "r5-viewer",
+  "role": null,
+  "calls": {
+    "propose_plan": {
+      "status": 403,
+      "code": null
+    },
+    "decide_plan": {
+      "status": 403,
+      "code": null
+    },
+    "propose_inverse_plan": {
+      "status": 403,
+      "code": null
+    }
+  },
+  "ids": "nonexistent; establishes permission ordering only",
+  "pass": true
+}

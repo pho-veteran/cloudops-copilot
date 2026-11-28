@@ -1,0 +1,92 @@
+{
+  "schema": "R5ProviderAccounting/v1",
+  "model": "cmd/deepseek/deepseek-v4.1-flash via the operator laptop route http://localhost:20128/v1, reached from EC2 only through a reverse SSH tunnel bound to the Docker bridge 172.17.0.1",
+  "limits": {
+    "requests": 120,
+    "tokens": 2000000,
+    "paid_fallback": "none allowed"
+  },
+  "campaign": {
+    "requests": 15,
+    "observed_tokens": 95526,
+    "http_status": [
+      200
+    ],
+    "model_matches_all": true,
+    "stop_reasons": [],
+    "reserved": {
+      "requests_reserved": 15,
+      "requests_with_receipt": 15,
+      "observed_tokens_lower_bound": 95526,
+      "requests_without_observed_tokens": 0,
+      "reserved_tokens": 581520,
+      "reserved_spend_microusd": 0,
+      "stop_reasons": []
+    }
+  },
+  "smoke": {
+    "requests": 1,
+    "observed_tokens": 5154
+  },
+  "ec2_route_probes": {
+    "count": 16,
+    "tokens": 775,
+    "served_models": [
+      "deepseek/deepseek-v4.1-flash"
+    ],
+    "http_status": [
+      200
+    ]
+  },
+  "laptop_uses": [
+    {
+      "at": "2026-11-28T06:08:38Z",
+      "use": "session probe",
+      "requests": 1,
+      "tokens": 44
+    },
+    {
+      "at": "2026-11-28T06:09:25Z",
+      "use": "dev: 3 stored R4 restore contexts rebuilt with the stage C waiver and guidance query",
+      "requests": 3,
+      "tokens": 19263
+    },
+    {
+      "at": "2026-11-28T06:42:56Z",
+      "use": "qualification rubric (E06 driver, cloudops_r5_qual_test, aed4bd3)",
+      "requests": 12,
+      "tokens": 28429
+    },
+    {
+      "at": "2026-11-28T07:00:56Z",
+      "use": "laptop route probe from worker namespace",
+      "requests": 1,
+      "tokens": 44
+    },
+    {
+      "at": "2026-11-28T07:51:00Z",
+      "use": "laptop dry run analysis memory-01, restore-01, traffic-01 (authority-dryrun)",
+      "requests": 3,
+      "tokens": 18982
+    },
+    {
+      "at": "2026-11-28T07:51:00Z",
+      "use": "laptop dry run route probes x3",
+      "requests": 3,
+      "tokens": 132
+    },
+    {
+      "at": "2026-11-28T07:55:00Z",
+      "use": "AC4 controls fixture driver (cloudops_r5_ctrl_test, aed4bd3)",
+      "requests": 12,
+      "tokens": 28159
+    },
+    {
+      "at": "2026-11-28T08:05:52Z",
+      "use": "laptop dry run recheck memory-02 analysis + route probe",
+      "requests": 2,
+      "tokens": 7893
+    }
+  ],
+  "no_paid_fallback": "Every settled usage receipt and route probe reports the requested model (served id deepseek/deepseek-v4.1-flash); the route configuration was not changed; pricing is unavailable, so spend is reported as null, never zero."
+}

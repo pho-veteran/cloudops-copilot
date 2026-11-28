@@ -1,0 +1,108 @@
+{
+  "schema": "R5InstallReceipt/v1",
+  "project": "cloudops-release-recovery-r5",
+  "host": "EC2 c5a.2xlarge i-08a5f61d4362440f6, Debian 13, us-east-1a (deploy/ec2, stack identity cloudops-engine-lab-v2 reused)",
+  "source_revision": "aed4bd33397d29b56042785c7963a735585c41dc",
+  "bundle_manifest_sha256": "23a8e40e590316d561facad8d5459e2ca1f570126a054b2153a7005f26482a8b",
+  "images": {
+    "backend": {
+      "id": "sha256:d10fabb5f4787ba36c255cb646d77adf98699a409fd1b6fc8b66ba136af6f60a",
+      "ref": "cloudops-release-backend:aed4bd33397d29b56042785c7963a735585c41dc-d10fabb5f4787ba36c255cb646d77adf98699a409fd1b6fc8b66ba136af6f60a"
+    },
+    "db": {
+      "id": "sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7",
+      "ref": "cloudops-release-db:aed4bd33397d29b56042785c7963a735585c41dc-1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7"
+    },
+    "https": {
+      "id": "sha256:0beb43fecf28649bc1a7053ba587e1aa75945e6e5166de89bcd1db51f7a51738",
+      "ref": "cloudops-release-https:aed4bd33397d29b56042785c7963a735585c41dc-0beb43fecf28649bc1a7053ba587e1aa75945e6e5166de89bcd1db51f7a51738"
+    }
+  },
+  "verification": [
+    "Verified aed4bd33397d29b56042785c7963a735585c41dc linux/amd64 with lab images",
+    "Verified aed4bd33397d29b56042785c7963a735585c41dc linux/amd64 with lab images and loaded image IDs",
+    "INSTALL-VERIFIED"
+  ],
+  "guards_image": "sha256:d10fabb5f4787ba36c255cb646d77adf98699a409fd1b6fc8b66ba136af6f60a",
+  "knowledge_index": {
+    "attempt_id": "aead0183-4c56-45f9-8c0f-85055952d986",
+    "chunk_count": 64,
+    "document_count": 8,
+    "generation_id": "e8c061b9-b1de-45d4-abd3-944a74ab589f",
+    "outcome": "indexed",
+    "reason": null,
+    "source_digest": "57902e145dafcae12c114375747acf6fc205b1021c8dd3c6a03171a5d91874df"
+  },
+  "knowledge_status": {
+    "catalog_search_available": true,
+    "has_active_generation": true,
+    "retrieval_mode": "catalog_full_text",
+    "semantic_mode": "not_configured",
+    "state": "ready"
+  },
+  "host_events": [
+    {
+      "swapfix": "/cloudops-release-recovery-r5-alertmanager-1",
+      "memory": 134217728,
+      "memory_swap": 134217728,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-api-1",
+      "memory": 536870912,
+      "memory_swap": 536870912,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-worker-1",
+      "memory": 536870912,
+      "memory_swap": 536870912,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-executor-1",
+      "memory": 268435456,
+      "memory_swap": 268435456,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-observer-1",
+      "memory": 268435456,
+      "memory_swap": 268435456,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-prometheus-1",
+      "memory": 1073741824,
+      "memory_swap": 1073741824,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-https-1",
+      "memory": 134217728,
+      "memory_swap": 134217728,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-k3s-1",
+      "memory": 4294967296,
+      "memory_swap": 4294967296,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    },
+    {
+      "swapfix": "/cloudops-release-recovery-r5-db-1",
+      "memory": 805306368,
+      "memory_swap": 805306368,
+      "swap_max_after": "0",
+      "at": "2026-11-28T08:04:32Z"
+    }
+  ]
+}
