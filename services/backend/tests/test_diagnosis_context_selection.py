@@ -15,6 +15,7 @@ from cloudops.features.diagnosis.context import (
     build,
     family_matrix,
     load_materials,
+    recomputed_digest,
     resolve_scope,
     usability,
 )
@@ -444,6 +445,11 @@ def test_analysis_selection_is_independent_of_manual_selection(db, context, tmp_
     ]
     assert "K001" in engine.messages[1].content
     assert "runbook_not_selected" not in engine.limitations
+    assert recomputed_digest(engine) == engine.digest
+    assert (
+        recomputed_digest(_build(db, context, context_profile="engine"))
+        == _build(db, context, context_profile="engine").digest
+    )
 
     with sessions()() as session, session.begin():
         manual_row = session.scalar(
