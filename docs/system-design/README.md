@@ -2,8 +2,9 @@
 
 This folder describes the design of CloudOps Copilot as implemented on `main` (`9eb2b06`),
 for the capstone report. It explains what each part does, why it is designed that way,
-and what has been measured. Feature-level operating instructions stay in the other
-files under `docs/`. The diagnosis improvement loop is described in
+and what has been measured. Feature behaviour lives in [docs/features/](../README.md#features),
+operating instructions in [docs/guides/](../README.md#guides), and current results in the
+[capstone report](../report/README.md). The diagnosis improvement loop is described in
 [docs/engine-loop/](../engine-loop/README.md).
 
 | File | Contents |
@@ -179,6 +180,11 @@ Key properties:
 
 ## 6. Measured results
 
+This section records the starting point of the diagnosis work, measured at `31b9a1c`.
+Current results, including engine loop v2 and the live campaigns R4 and R5, are in the
+[capstone report](../report/results.md). In short, R5 scored 15/15 on cause category, and
+all 15 actions were applied and verified, with 0 wrong-scope writes.
+
 | Measurement | Setting | Result | Source |
 | --- | --- | --- | --- |
 | Controlled diagnosis qualification | 12 synthetic E06 cases, `gpt-6.1-sol`, prompt v3, one trial each | 10/10 positives (2/2 per family, 4/4 Pending/ImagePull manual-only), healthy abstention and injection case safe; all 5 negatives/controls pass | `docs/evidence/e06-r5/README.md` |
@@ -205,8 +211,10 @@ These are the first targets of the improvement loop.
   fields (`features/workloads/kubernetes.py`).
 - **Limited inputs.** Deployments only. Prometheus series must carry a `deployment_uid`
   label.
-- **Diagnosis quality is not yet established on live data** (5/15). The planned stages
-  A-E in [docs/engine-loop/algorithm.md](../engine-loop/algorithm.md) address this.
+- **Diagnosis quality was not established on live data at `31b9a1c`** (5/15). Stages A-E
+  ([algorithm](../engine-loop/algorithm.md)) and the R5 fixes raised it to 15/15 on the
+  owned EC2 lab ([results](../report/results.md)). Generalization beyond the lab remains
+  open ([limitations](../report/limitations.md)).
 - **Hardening is deliberately limited for this capstone.** Missing: login throttling,
   per-component database roles, security headers and non-root containers (see
   [core-recovery-and-runtime.md §10](core-recovery-and-runtime.md)).

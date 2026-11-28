@@ -14,7 +14,7 @@ An image reference in a template or event is not proof that the image exists, th
 - Inspect Deployment template image fields when present. This is declared metadata, not proof of registry availability or digest identity.
 - Do not inspect or request `imagePullSecrets`, Secret values or registry credentials through this guide.
 
-See [scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md).
+See [scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md).
 
 ## Supporting and contradicting observations
 
@@ -49,6 +49,6 @@ Abstain from blaming credentials, network or image policy without evidence. Do n
 
 ## Related guidance
 
-- [Scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md)
+- [Scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md)
 - [Investigate Pending and unschedulable Pods](pending-unschedulable.md)
 - [Investigate CrashLoop and startup failures after a change](crashloop-startup.md)

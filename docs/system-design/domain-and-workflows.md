@@ -18,14 +18,14 @@ Every behaviour below is tagged with one of these labels.
 | Term | Definition | Source |
 |---|---|---|
 | Workload | One Kubernetes Deployment bound to `(cluster, namespace, name, uid)`. A changed Deployment UID creates a different persisted identity. Retired identities stay readable in history but cannot admit new work. | `features/workloads/models.py` (`Workload`), `README.md` |
-| Scope | The host-configured allowlist of Deployments. Synchronization resolves names to UIDs and records per-target state; it writes application metadata only and grants no writer authority. A singleton row stores the pinned cluster fingerprint and config digest. | `features/workloads/scope_config.py`, `reconcile.py`, `docs/workload-scope.md` |
-| Observation | A persisted, sanitized rollout-health reading of one workload by the separate observer process (**Opt-in**, `observation` Compose profile). | `features/workloads/observation_*.py`, `docs/workload-observation.md` |
-| Baseline | An immutable, Operator-confirmed known-good snapshot (`deployment-images-resources/v1`) built from two fresh, healthy, identical observations at least five seconds apart, confirmed within five minutes. All confirmed baselines are retained. | `features/workloads/baseline_service.py`, `docs/workload-baselines.md` |
+| Scope | The host-configured allowlist of Deployments. Synchronization resolves names to UIDs and records per-target state; it writes application metadata only and grants no writer authority. A singleton row stores the pinned cluster fingerprint and config digest. | `features/workloads/scope_config.py`, `reconcile.py`, `docs/features/workloads/scope.md` |
+| Observation | A persisted, sanitized rollout-health reading of one workload by the separate observer process (**Opt-in**, `observation` Compose profile). | `features/workloads/observation_*.py`, `docs/features/workloads/observation.md` |
+| Baseline | An immutable, Operator-confirmed known-good snapshot (`deployment-images-resources/v1`) built from two fresh, healthy, identical observations at least five seconds apart, confirmed within five minutes. All confirmed baselines are retained. | `features/workloads/baseline_service.py`, `docs/features/workloads/baselines.md` |
 | Incident | The unit of operator work for one workload. Origin is either `operator` (with an actor) or `alertmanager` (with a configured source ID), enforced by a database check constraint. | `features/incidents/models.py` (`ORIGIN_CHECK`) |
-| Alert episode | One Alertmanager firing episode keyed by `(source_id, fingerprint, startsAt)`. An accepted episode binds exactly one incident and one Run. Episodes are never pruned because they are the deduplication identity. | `features/incidents/intake_models.py`, `docs/alert-intake.md` |
-| Investigation Run | One evidence-collection request for an incident with an immutable question, an absolute UTC window (15/30/60-minute preset or an explicit 1–60 minute interval) and an origin. At most one non-terminal Run exists per incident (partial unique index `one_open_run_per_incident`). | `features/investigations/models.py`, `docs/incident-admission.md` |
+| Alert episode | One Alertmanager firing episode keyed by `(source_id, fingerprint, startsAt)`. An accepted episode binds exactly one incident and one Run. Episodes are never pruned because they are the deduplication identity. | `features/incidents/intake_models.py`, `docs/features/incidents/alert-intake.md` |
+| Investigation Run | One evidence-collection request for an incident with an immutable question, an absolute UTC window (15/30/60-minute preset or an explicit 1–60 minute interval) and an origin. At most one non-terminal Run exists per incident (partial unique index `one_open_run_per_incident`). | `features/investigations/models.py`, `docs/features/incidents/admission.md` |
 | Job / attempt | A durable background work item (`jobs`) and each leased execution of it (`job_attempts`). Default budget: three attempts, 30-second lease, 5-second heartbeat. | `shared/jobs.py`, `shared/config.py` |
-| Checkpoint | A committed, fenced stage of a job, for example `collect_source:<source_key>`, so a takeover reuses committed sources instead of reading them again. | `shared/jobs.py` (`JobCheckpoint`), `docs/job-dispatch.md` |
+| Checkpoint | A committed, fenced stage of a job, for example `collect_source:<source_key>`, so a takeover reuses committed sources instead of reading them again. | `shared/jobs.py` (`JobCheckpoint`), `docs/features/investigations/job-dispatch.md` |
 | Evidence | One immutable record per `(run_id, source_key, catalog_version)` holding redacted, bounded payload, coverage, time relation and the SHA-256 of the canonical stored JSON. | `features/investigations/models.py`, `storage.py` |
 | Source / catalog | The `standard_v1` catalog has five Kubernetes slots, six Prometheus query slots and `development_fixture`. | `features/investigations/catalog.py` |
 | Pack coverage | Per-diagnosis-family coverage derived from required and optional sources for `crashloop_startup`, `oom_restarts`, `traffic_latency_errors`, `pending_unschedulable` and `image_pull`. Status is `available`, `partial` or `unavailable`. | `features/investigations/catalog.py` |
@@ -33,13 +33,13 @@ Every behaviour below is tagged with one of these labels.
 | Analysis | One bounded diagnosis of a Run (`purpose` is `operational` or `evaluation`), with at most 3 model calls, 1 repair and a 15-minute deadline. **Opt-in**: it requires a qualified model profile. | `features/diagnosis/models.py`, `lifecycle.py` |
 | Finding: `RCAAdvice/v1` | The model's raw structured output. It cites evidence and runbooks only by alias (`E001`, `K001`) and contains no scope, endpoint or action parameters. | `features/diagnosis/advice.py` |
 | Finding: `RCAResult/v1` | The server-normalized, evidence-bound result, with aliases resolved to exact citations. It is marked `machine_validation=structural_v1` and `quality=not_established`. | `features/diagnosis/advice.py` |
-| Knowledge / runbook guidance | Immutable runbook document versions and chunks, indexed in generations. A Run guidance selection is the first saved full-text retrieval for a Run. It is methodology, not telemetry, diagnosis or execution approval. | `features/knowledge/*`, `docs/run-guidance.md` |
+| Knowledge / runbook guidance | Immutable runbook document versions and chunks, indexed in generations. A Run guidance selection is the first saved full-text retrieval for a Run. It is methodology, not telemetry, diagnosis or execution approval. | `features/knowledge/*`, `docs/features/knowledge/run-guidance.md` |
 | Plan | An immutable recovery proposal (`scale_deployment`, `restore_deployment_template` or `set_memory_profile`) with a content digest, target epoch and 5-minute TTL. | `features/recovery/models.py`, `service.py` |
 | Approval | An Operator decision on an exact plan version and digest, bound to a session-scoped review receipt (`plan_reviews`). | `features/recovery/service.py` |
 | Execution | One approved operation sent through the isolated executor gateway (**Opt-in**), holding a per-workload target lock (`one_recovery_per_target`). | `features/recovery/models.py`, `gateway.py` |
-| Verification | Fixed-window post-change checks against a qualified profile (180 s for scale, 300 s for restore or memory), stored apart from Runs. **Opt-in.** | `features/recovery/verification*.py`, `docs/recovery-verification.md` |
+| Verification | Fixed-window post-change checks against a qualified profile (180 s for scale, 300 s for restore or memory), stored apart from Runs. **Opt-in.** | `features/recovery/verification*.py`, `docs/features/recovery/verification.md` |
 | Inverse plan | A separately approved rollback derived by swapping the acknowledged before and desired states, available only inside a recorded rollback window. **Opt-in.** | `features/recovery/rollback.py` |
-| Recommendation report | A versioned, advisory KRR resource report for one workload, with immutable terminal export bytes. There is no apply route. | `features/recommendations/*`, `docs/resource-reports.md` |
+| Recommendation report | A versioned, advisory KRR resource report for one workload, with immutable terminal export bytes. There is no apply route. | `features/recommendations/*`, `docs/features/resources/reports.md` |
 | Handoff / resolution snapshot | Markdown composed from stored records only. Resolving an incident freezes a `HandoffSnapshot/v3` envelope (snapshot plus Markdown) on the `resolve` activity row. | `features/incidents/handoff.py`, `lifecycle.py` |
 
 ## State machines
@@ -60,7 +60,7 @@ stateDiagram-v2
 - Every transition requires an Operator and a reason, and appends an `incident_activity` row.
 - Resolve fails with `409 execution_active` while an admitted execution blocks. In one transaction it retires unsent executions, cancels queued Runs (`incident_resolved`), invalidates proposed plans, pins referenced evidence and freezes the snapshot.
 - Reopen re-pins the newest usable Run (`pin_latest_on_reopen`) and does not change saved snapshot bytes.
-- A resolved Alertmanager notification sets only `alert_signal=resolved`. It never resolves, reopens or cancels anything (`docs/alert-intake.md`).
+- A resolved Alertmanager notification sets only `alert_signal=resolved`. It never resolves, reopens or cancels anything (`docs/features/incidents/alert-intake.md`).
 
 ### Investigation Run
 
@@ -85,7 +85,7 @@ stateDiagram-v2
     waiting_for_quota --> failed: hold not resumed before deadline (deadline_expired)
 ```
 
-Non-terminal states are `queued`, `collecting`, `analyzing` and `waiting_for_quota`. Terminal states are `insufficient_evidence`, `completed`, `failed` and `cancelled`. Late collection callbacks never change a cancelled Run (`CollectionHandler.started/failed/publish` return early). Cancel rules are in `docs/job-dispatch.md`: a `collecting` Run, or one with a provider call `in_flight`, returns `409 run_not_cancellable`. The `terminal()` helper in `features/diagnosis/lifecycle.py` maps any failed operational Analysis, including an expired quota hold swept by `expire_waits()` in `worker.py`, to Run `failed` / `analysis_failed`.
+Non-terminal states are `queued`, `collecting`, `analyzing` and `waiting_for_quota`. Terminal states are `insufficient_evidence`, `completed`, `failed` and `cancelled`. Late collection callbacks never change a cancelled Run (`CollectionHandler.started/failed/publish` return early). Cancel rules are in `docs/features/investigations/job-dispatch.md`: a `collecting` Run, or one with a provider call `in_flight`, returns `409 run_not_cancellable`. The `terminal()` helper in `features/diagnosis/lifecycle.py` maps any failed operational Analysis, including an expired quota hold swept by `expire_waits()` in `worker.py`, to Run `failed` / `analysis_failed`.
 
 ### Analysis
 
@@ -148,7 +148,7 @@ stateDiagram-v2
     verifying --> manual_intervention: inconclusive
 ```
 
-`classify()` maps each state to `active`, `terminal`, `terminal_unknown_locked`, `terminal_unknown_released` or `unrecognized`. `active` and `unrecognized` block new Runs, promotion, claims and resolution. Unknown states fail closed. Reconciliation allows at most 6 receipt reads within a 120-second deadline (`outcomes.py`, `docs/foundation.md`). The tracker term `uncertain` corresponds to the implemented `outcome_unknown`.
+`classify()` maps each state to `active`, `terminal`, `terminal_unknown_locked`, `terminal_unknown_released` or `unrecognized`. `active` and `unrecognized` block new Runs, promotion, claims and resolution. Unknown states fail closed. Reconciliation allows at most 6 receipt reads within a 120-second deadline (`outcomes.py`, `docs/guides/foundation.md`). The tracker term `uncertain` corresponds to the implemented `outcome_unknown`.
 
 ### Verification
 
@@ -234,7 +234,7 @@ sequenceDiagram
     O->>API: GET runs, evidence metadata, then /content on selection
 ```
 
-Idempotency keys are scoped per actor. The same key with different input returns `409 idempotency_conflict` (`features/incidents/service.py`, `docs/incident-admission.md`).
+Idempotency keys are scoped per actor. The same key with different input returns `409 idempotency_conflict` (`features/incidents/service.py`, `docs/features/incidents/admission.md`).
 
 ### (c) Collection → analysis → findings (**Opt-in** analysis)
 
@@ -283,7 +283,7 @@ sequenceDiagram
     O->>API: POST /api/incidents/{id}/lifecycle resolve
 ```
 
-Sources: `features/recovery/service.py`, `gateway.py`, `verification.py`. Without a qualified profile, an acknowledged legacy scale ends `manual_intervention` / `inconclusive` (`docs/foundation.md`).
+Sources: `features/recovery/service.py`, `gateway.py`, `verification.py`. Without a qualified profile, an acknowledged legacy scale ends `manual_intervention` / `inconclusive` (`docs/guides/foundation.md`).
 
 ### (e) Re-investigation and comparison (**Default**)
 
@@ -300,7 +300,7 @@ sequenceDiagram
     U->>API: GET /evidence/{id}/citation?locator_kind&locator_key
 ```
 
-A same-name replacement Deployment returns `status=not_comparable`, and unrelated workloads return 422 (`docs/investigation-comparison.md`, `features/investigations/comparison_api.py`). Comparison never starts collection or creates pins.
+A same-name replacement Deployment returns `status=not_comparable`, and unrelated workloads return 422 (`docs/features/investigations/comparison.md`, `features/investigations/comparison_api.py`). Comparison never starts collection or creates pins.
 
 ### (f) Handoff, resolve and reopen with frozen snapshots (**Default**)
 
@@ -319,7 +319,7 @@ sequenceDiagram
     API->>DB: state=open, re-pin latest useful Run, saved snapshot unchanged
 ```
 
-Saved v1, v2 and unversioned snapshots keep their original renderer and bytes (`docs/foundation.md`, `features/incidents/handoff.py`).
+Saved v1, v2 and unversioned snapshots keep their original renderer and bytes (`docs/guides/foundation.md`, `features/incidents/handoff.py`).
 
 ## Roles and permission matrix
 
@@ -344,4 +344,4 @@ Roles are `viewer` and `operator` (`users.role` check constraint, `features/acce
 | Executor target enable or quarantine, restore cleanup | No | No | `recovery.maintenance` over Unix socket, `recovery_restore`, `diagnosis_recovery` |
 | Alertmanager delivery | No | No | Machine Bearer token only, never a session |
 
-No HTTP route issues dispatch permits, edits the Knowledge corpus, purges evidence or releases an executor target (`entrypoints/dispatch_admin.py`, `entrypoints/cli.py`, `features/recovery/gateway.py`). Both roles can read all incidents; there is no per-tenant ACL (`docs/investigation-comparison.md`).
+No HTTP route issues dispatch permits, edits the Knowledge corpus, purges evidence or releases an executor target (`entrypoints/dispatch_admin.py`, `entrypoints/cli.py`, `features/recovery/gateway.py`). Both roles can read all incidents; there is no per-tenant ACL (`docs/features/investigations/comparison.md`).

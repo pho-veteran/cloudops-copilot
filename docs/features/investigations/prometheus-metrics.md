@@ -1,0 +1,213 @@
+# Scoped Prometheus metric evidence
+
+[#48](https://github.com/pho-veteran/cloudops-copilot/issues/48) implements the metric producer in the [E04 investigation catalog](https://github.com/pho-veteran/cloudops-copilot/issues/7). It reads six fixed Prometheus query slots for the exact configured workload, stores bounded evidence with the existing retention rules and renders a chart, an accessible table and persisted timeline markers. Viewing or comparing this evidence never starts collection, calls a model or authorizes recovery.
+
+The default base stack remains `COLLECTION_SOURCE_MODE=development_fixture`; no Prometheus endpoint is contacted. The adapter is installed only when the deployment chooses `prometheus` and supplies a trusted read configuration. Kubernetes metric/label bindings are deployment configuration, not user input.
+
+## Read configuration
+
+`PROMETHEUS_READ_CONFIG` names a read-only JSON file:
+
+```json
+{
+  "schema": "PrometheusReadConfig/v1",
+  "endpoint_id": "lab-prometheus",
+  "producer_version": "prometheus/v3.5.0",
+  "server": "https://prometheus.example:8443/prometheus",
+  "ca_data": "<base64 PEM>",
+  "token": "<optional bearer token>",
+  "step_seconds": 30,
+  "binding": {
+    "deployment_uid_label": "deployment_uid",
+    "namespace_label": "namespace"
+  },
+  "queries": {
+    "request_rate": {"query": "sum by (namespace, deployment_uid) (rate(...))", "unit": "requests/s"},
+    "error_ratio": {"query": "sum by (namespace, deployment_uid) (...)", "unit": "ratio"},
+    "p95_latency": {"query": "histogram_quantile(...) with namespace/deployment_uid", "unit": "seconds"},
+    "memory_working_set": {"query": "sum by (namespace, deployment_uid) (...)", "unit": "bytes"},
+    "memory_limit": {"query": "sum by (namespace, deployment_uid) (...)", "unit": "bytes"},
+    "restarts": {"query": "sum by (namespace, deployment_uid) (increase(...))", "unit": "count"}
+  }
+}
+```
+
+API startup validates the collection mode and database schema. With Prometheus selected, a missing or invalid read configuration leaves saved reads available and reports the source as unconfigured in Connections. Worker startup and source checks require valid Prometheus configuration before any read. The server must be one fixed HTTPS URL with an optional path prefix. Credentials in the URL, queries, fragments, backslashes and percent escapes are rejected by configuration validation. `step_seconds` is 30–300. Each of the six server-owned query templates must bind both `{{namespace}}` and `{{workload_uid}}`. Values are escaped before substitution. Every query must **retain** the configured binding labels in its returned series, for example with `sum by (namespace, deployment_uid)`. An aggregation that drops them is rejected as unproven ownership. The deployment configuration supplies the endpoint, query and credential.
+
+The client uses verified TLS from `ca_data`, no environment proxy, no redirects and a single connection. Each read has an `asyncio.timeout` that covers connection, headers and a slow body, plus a 2 MiB response cap and a 5-second share of the attempt deadline. Provider warnings are recorded as a count, never copied verbatim. Tokens, CA material and response bodies are never logged or stored as evidence.
+
+## Binding and series identity
+
+Every returned series must carry the configured UID label equal to the Run's immutable workload UID and the configured namespace label equal to the Run's namespace. Unmatched series are dropped. If no matching series is returned at all, coverage is `unavailable` with `ownership_unproven`. A matching series with no finite samples is `unavailable` with `no_samples`; if valid and invalid/missing series coexist, coverage is `partial` with the corresponding reasons. A same-name Deployment replacement therefore cannot align old series to the new UID. The configured label proof is stable across Pod churn and does not depend on a current Pod list.
+
+The stored series shape is bounded and allowlisted:
+
+```json
+{
+  "series": [
+    {
+      "uid": "<sha256 of the canonical full label set>",
+      "name": "cloudops_requests_per_second",
+      "namespace": "demo",
+      "workload_uid": "<uid>",
+      "pod": "checkout-fixture",
+      "container": "checkout",
+      "unit": "requests/s",
+      "samples": [[1730000000, 12.5], [1730000030, 13.1]]
+    }
+  ]
+}
+```
+
+`uid` is the semantic series identity; arbitrary label values are represented only through that digest. `name` is the retained `__name__` when present; an aggregation drops `__name__`, so the provider stores the stable configured query name (for example `Request rate`) instead of inventing a metric name. At most 25 series are retained per query, in canonical `uid` order, and the existing storage cap keeps at most 20,000 samples per Run. Metric series are not limited by the Kubernetes 10-Pod/20-container state budget; the per-query series and sample caps remain authoritative. Missing values are not zero; non-finite or malformed entries are omitted and counted in `query_metadata.warnings`. `NaN`/`Inf` never become a chart point or a zero sample.
+
+Each metric source stores:
+
+```json
+{
+  "query_id": "request_rate",
+  "query_version": "standard_v1",
+  "binding_version": "uid_label_v1",
+  "producer_version": "prometheus/v3.5.0",
+  "query": "<template>",
+  "resolved_query": "<substituted query>",
+  "window": {"start": "<UTC>", "end": "<UTC>"},
+  "step": 30,
+  "unit": "requests/s",
+  "warnings": ["2 malformed or non-finite sample entries were omitted."],
+  "source_identity": {
+    "endpoint_id": "lab-prometheus",
+    "cluster_id": "local-k3s",
+    "namespace": "demo",
+    "workload_uid": "<uid>"
+  }
+}
+```
+
+The existing evidence storage applies whitelisting, credential redaction, deterministic truncation, the 256 KiB per-slot allocation and canonical SHA-256. A Run without a captured window returns `not_captured` without inventing a query window.
+
+## Coverage and UI states
+
+| Situation | Coverage | Reasons |
+|---|---|---|
+| Finite samples, matching binding, no truncation | `available` | none |
+| Some finite samples but per-series step/boundary gaps, non-finite values or truncation | `partial` | `no_samples`, `truncated`, `stale` |
+| No finite samples | `unavailable` | `no_samples` |
+| No series matches the configured identity | `unavailable` | `ownership_unproven` |
+| Provider denied the read | `unavailable` | `forbidden` |
+| Total deadline exceeded | `unavailable` | `timeout` |
+| Provider/transport/JSON failure | `unavailable` | `source_unavailable` |
+| Response exceeded the byte cap | `unavailable` | `truncated` |
+| Run window was not captured | `unavailable` | `not_captured` |
+
+The traffic pack requires `request_rate`, `error_ratio` and `p95_latency`; when those three are available it can be `available` even while Kubernetes state/events/logs remain missing. Other packs keep their missing required sources. No pack result is an RCA or a recovery authorization.
+
+The selected evidence panel replaces the raw JSON view for `series` with a bounded SVG chart, a series selector, an accessible sample table, query metadata and the timeline. A missing or empty series prints “No finite samples were returned … Missing data is not zero”; `ownership_unproven` is shown explicitly. Chart and table use browser-local time labels. The chart splits at missing query steps instead of interpolating across gaps, and isolated finite samples remain visible. Metric metadata and the timeline remain readable when payload content is unavailable or expired. Viewer access remains read-only. The plot retains a readable minimum width inside its own horizontally scrollable, keyboard-focusable region. The connected Edge journey verified desktop and 320/390 px in both themes without page-level horizontal overflow.
+
+## Timeline
+
+`GET /api/incidents/{incident_id}/runs/{run_id}/timeline` (operation ID `get_run_timeline`) returns at most 500 persisted markers and a 128 KiB response:
+
+- the Run's captured window start/end;
+- E02 `WorkloadObservation.observed_at` markers with health/coverage/generation (rollout observation time, not a claimed deployment occurrence);
+- E03 incident activity with the recorded creation time and a bounded text excerpt;
+- E07 execution creation/finish timestamps with execution/plan IDs and state.
+
+Markers are sorted by time/kind/ID. Per-source, total-count and byte cutoffs set `truncated`, which the UI displays; execution timestamps are filtered to the selected window before the source limit. A missing window returns no markers and an explicit limitation. Alignment is correlation only. The endpoint authorizes the exact incident/Run, reads only PostgreSQL and never calls a provider or mutates state. Both application roles may read it.
+
+## Bounds and concurrency
+
+- Six metric slots, 30-second default step, at most 25 series per slot.
+- 2 MiB per query response, 5-second read share, 90-second attempt deadline.
+- Existing 20,000 samples and 8 MiB Run envelopes remain authoritative.
+- No migration, new table or background worker. The existing checkpoint/publication and dispatch-permit rules apply unchanged.
+- Provider reads happen outside database transactions; publication remains inside the fenced finish/checkpoint transaction.
+
+## Local lab
+
+The metrics lab is an optional overlay on the existing disposable E01 lab. It adds a labeled metrics fixture, the Prometheus scrape target and the Caddy `/prometheus/*` TLS route. The fixture is a lab source, **not** an app exporter; its series carry the configured Deployment UID and namespace. Start the TLS proxy first so the CA and read config can be written before the API/worker start:
+
+```sh
+uv run --project services/backend python scripts/bootstrap-integration.py
+LAB="docker compose -p cloudops-e01-https -f compose.yaml -f compose.https.yaml -f compose.integration.yaml -f compose.metrics.yaml"
+$LAB up -d --build --wait --wait-timeout 240 --no-deps https prometheus metrics-fixture
+uv run --project services/backend python scripts/bootstrap-metrics.py
+$LAB up -d --build --wait --wait-timeout 240 api worker
+$LAB exec api python -m cloudops.entrypoints.cli account operator --role operator
+$LAB exec api python -m cloudops.entrypoints.cli account viewer --role viewer
+```
+
+The fixture mode is selected before starting it:
+
+```sh
+METRICS_FIXTURE_MODE=finite|empty|nonfinite|gapped $LAB up -d metrics-fixture
+```
+
+`finite` exposes all six sources; `empty` exposes none; `nonfinite` emits `NaN` values; `gapped` intermittently omits series. For `empty`/`nonfinite`/`gapped`, restart `metrics-fixture` and create a new Run so the stored snapshot reflects the selected mode. Use `probe-metrics.py --window-minutes 1` (and wait for the selected mode to fill the window) when isolating a mode; Prometheus lookback/staleness may retain a recent sample when a scrape is omitted, so the gapped receipt records the retained query result rather than an assumed fixed sample count.
+
+Run the read-only receipt after the accounts exist:
+
+```sh
+printf '%s\n%s\n' "$OPERATOR_PASSWORD" "$VIEWER_PASSWORD" |
+  uv run --project services/backend python scripts/probe-metrics.py \
+    --ca tmp/e01-integration/prometheus/ca.crt --password-stdin
+```
+
+The probe creates one incident/Run through the real API/worker, checks six metric sources, query metadata, timeline markers, Viewer reads and optional API/worker restart with the same evidence IDs/digests. It writes `tmp/prometheus48-receipt.json`; keep sanitized receipts under `docs/evidence/prometheus48/`. It never prints passwords or tokens. Stop and remove only the task-owned Compose project after recording results; do not remove unrelated volumes.
+
+## Real retained-lab telemetry
+
+The [retained lab](../../guides/local-lab.md#retained-local-testing-lab) uses `compose.lab.yaml`
+and `prometheus-real.yaml`, independently of `compose.metrics.yaml`. Do not add the
+synthetic metrics overlay to that command. The original finite/empty/non-finite/gapped
+fixture and its historical receipts remain unchanged.
+
+The sample app exposes actual HTTP counters and duration buckets. The finite load
+driver requests `/work`; Prometheus derives rate/error ratio/p95. Zero traffic can
+produce unavailable ratios/quantiles, not fabricated zero latency. Per-Pod discovery
+retains namespace, Deployment UID, Pod UID and container at scrape time. Setup stamps
+the actual Deployment UID using conditional patches; verification independently
+checks the controlling Deployment → ReplicaSet → Pod UID chain.
+
+Resource rules join on **Pod UID**, namespace and Pod name, and record the Deployment
+UID at evaluation time. They cannot attach an old same-name Pod's cAdvisor samples
+to its replacement. Kubelet scrapes require the cluster CA, serving-name validation
+and a separate ServiceAccount with only the named node's `nodes/metrics` permission.
+There is no `nodes/proxy`, Secret read, insecure TLS or product-reader expansion.
+If the real cAdvisor `id` cannot prove Pod UID, resource samples are dropped and
+verification fails; do not replace this with a historical name-to-current-owner join.
+
+`verify` runs promtool configuration/rule checks and the supplied rule tests, checks
+actual target health and finite samples for both workloads. Rule fixtures cover
+measured errors and rejection of a reused Pod name with a different UID. Those
+fixtures require execution with the pinned Prometheus image; YAML parsing alone is
+not a PromQL or scrape pass. Measured traffic errors flow through real Prometheus
+rules → Alertmanager → authenticated existing HTTPS intake. Read intake receipts to
+prove delivery; an alert rule file alone does not establish notification success.
+
+Prometheus uses a persistent volume, 48-hour retention and a 2-GB block target with
+additional WAL/head/compaction space. KRR remains on demand: explicitly build/start
+`krr` with the retained lab Compose command before requesting an existing report.
+Use the stable `history` workload for live idle/steady/peak phases, for example three
+successive two-hour loads at rates 1, 5 and 15. Observe actual scrape coverage and token
+expiry throughout. Six elapsed hours, point count or a successful KRR exit does not
+qualify recommendations. The existing wrapper continues to withhold them; there is
+no new recommendation/apply policy, synthetic backfill or live model configuration.
+
+## Verification and limits
+
+Focused backend cases cover config rejection, TLS/HTTP failure classification, total deadline, binding/replacement, non-finite and empty samples, deterministic truncation, batch/checkpoint parity, storage validation, timeline scoping and permissions. Web cases cover the chart/table, missing data, warnings, series selection and timeline failure. The repository suite, Ruff, generated-contract/drift and web build remain required.
+
+The lab uses an actual pinned Prometheus plus a labeled metrics fixture; it is not a live application exporter, a qualified production telemetry installation or an availability SLO. Denied/timeout/oversized behavior uses a controlled transport, while finite/empty/gapped/non-finite data uses the real Prometheus query path. AI diagnosis, live Kubernetes packs, recovery execution and E10 deployment remain with their owners. This slice does not close E04 or the system release.
+
+## Recorded local acceptance
+
+- [`browser-acceptance.json`](../../evidence/prometheus48/browser-acceptance.json): fresh connected Microsoft Edge captures at 1280/390/320 px in light/dark, native keyboard chart scrolling, exact source navigation/back/reload, Viewer read-only, real gapped/empty results, session revocation and retry after API interruption. Controlled cloned stale/expired records and 201 seeded activities exercise their rendering and truncation states without altering the original evidence.
+
+- [`acceptance.json`](../../evidence/prometheus48/acceptance.json): corrected-candidate source hashes, finite/empty/non-finite/gapped normal worker/API results, verified-TLS denied/timeout/oversized gateway cases, independently recomputed digests across API/worker restart, focused regressions and the remaining browser gate. Earlier captures below remain historical.
+
+- [`api.json`](../../evidence/prometheus48/api.json): real TLS Prometheus read, six `prometheus.*` sources with unit/window/step/query metadata, traffic pack `available`, Run `insufficient_evidence`/`analysis_unavailable`, Viewer read and API/worker restart preserving evidence IDs and SHA-256.
+- [`empty.json`](../../evidence/prometheus48/empty.json), [`nonfinite.json`](../../evidence/prometheus48/nonfinite.json) and [`gapped.json`](../../evidence/prometheus48/gapped.json): isolated one-minute windows for the empty, non-finite and intermittent fixture modes; each receipt records the explicit coverage/reason states and the analysis-unavailable outcome.
+- [`source-binding.json`](../../evidence/prometheus48/source-binding.json): SHA-256 hashes of the committed metric/timeline/UI/lab sources at the implementation commit.
+- [`browser.json`](../../evidence/prometheus48/browser.json) and screenshots are historical evidence from the earlier candidate on the loopback HTTP development origin. The images named `metric-desktop-dark.png` and `metric-320-dark.png` show light surfaces and do not establish dark-theme acceptance. These captures also predate the corrected gap rendering and unavailable-content timeline. The later connected Edge journey above supersedes this visual gap. No certificate or trust bypass was applied.
+- The lab fixture is labeled synthetic telemetry. It is not an application exporter, live RCA or recovery evidence.

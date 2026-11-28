@@ -17,6 +17,6 @@ def test_env_example_documents_live_mode():
 
 
 def test_foundation_docs_declare_live_adapter():
-    docs = Path("docs/foundation.md").read_text(encoding="utf-8")
+    docs = Path("docs/guides/foundation.md").read_text(encoding="utf-8")
     assert "live_kubernetes" in docs
     assert "Only the fixture adapter is installed" not in docs

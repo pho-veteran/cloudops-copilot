@@ -25,7 +25,7 @@
 - Missing, partial, stale, truncated, `not_applicable`, ownership and identity-change states remain visible and are never converted to zero or a ruled-out cause.
 - OOM and traffic v2 explicitly separate absent metric series from contradictory observations; missing telemetry cannot support or refute a hypothesis. A competing explanation is scoped to the observed restart/container or request interval rather than ruling out unrelated failures.
 - Pending and ImagePull have no recovery template mapping. The release checker enforces that mapping.
-- Restore guidance links [healthy baseline preparation](../../../docs/workload-baselines.md) and reports the current `restore_not_implemented` boundary; it does not instruct an external configuration rollback or unhealthy baseline confirmation.
+- Restore guidance links [healthy baseline preparation](../../features/workloads/baselines.md) and reports the current `restore_not_implemented` boundary; it does not instruct an external configuration rollback or unhealthy baseline confirmation.
 - Memory guidance records that no profile execution API exists at the reviewed source. Scaling guidance records the actual bounded `scale_deployment` contract (`replicas` 1–3, exact plan, approval, fresh eligibility and controller/capacity checks).
 - No guide includes a writable patch, shell command, raw credential, Secret content, external image or HTML execution path. Local links are checked by the corpus validator.
 

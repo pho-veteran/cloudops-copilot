@@ -1,6 +1,6 @@
 """Exercise real sender, intake and bounded dispatch in an isolated HTTPS lab.
 
-This probe changes durable lab state; see docs/alert-intake.md before running it.
+This probe changes durable lab state; see docs/features/incidents/alert-intake.md before running it.
 """
 
 import argparse

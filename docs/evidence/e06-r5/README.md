@@ -2,7 +2,7 @@
 
 The qualified primary is `gpt-6.1-sol` on the owner-authorized local gateway, with `e06.rca_prompt/v3`, `max_completion_tokens=1024`, a 32KiB input bound and the exact identity in [rubric.json](rubric.json). `codex/gpt-6.1-terra` is compatibility-only: its actual fixed probe returned served model `gpt-6.1-terra`, but it has no diagnostic qualification. No provider credential is published or enabled by default.
 
-The [frozen inputs](../../../services/backend/tests/fixtures/e06/cases.json) and [independent oracle](../../../services/backend/tests/fixtures/e06/oracle.json) remain unchanged from the first cohort. Expected labels never enter model context. [Instructions](../../diagnosis-acceptance.md) explain reproducible admission, egress, finite budgets, qualification and smoke.
+The [frozen inputs](../../../services/backend/tests/fixtures/e06/cases.json) and [independent oracle](../../../services/backend/tests/fixtures/e06/oracle.json) remain unchanged from the first cohort. Expected labels never enter model context. [Instructions](../../acceptance/e06-model-acceptance.md) explain reproducible admission, egress, finite budgets, qualification and smoke.
 
 ## Results and retained failures
 
@@ -31,7 +31,7 @@ Only the complete v3 cohort establishes qualification. Earlier outcomes are not 
 | AC4 durable bounded recovery | [R3 process/state evidence](../e06-r3-lifecycle/acceptance.json), [actual retained dump/restore drill](../e06-r3-lifecycle/restore.json), current worker/budget regressions and installed restart. No new dump/restore drill is claimed. |
 | AC5 egress/untrusted input | Same context/egress/validator, actual injected/clean pair with unchanged scope/authority, [R2 denials](../e06-r2-context/egress-denials.json) and [finite controls](offline-controls.json). |
 | AC6 installed/degraded journeys | Fresh live-model [API](installed-api.json)/[Edge](installed-ui.json) journeys plus [R4 unchanged component fingerprints and quota/session/Knowledge/history matrix](../e06-r4-ui/acceptance.json); current generated-contract and HTTPS CI. |
-| AC7 reproducible diagnostic handoff | Frozen oracle, retained failing cohorts, exact qualified tuple, per-call usage/timing/digests, [setup and limits](../../diagnosis-acceptance.md) and consumer boundaries below. |
+| AC7 reproducible diagnostic handoff | Frozen oracle, retained failing cohorts, exact qualified tuple, per-call usage/timing/digests, [setup and limits](../../acceptance/e06-model-acceptance.md) and consumer boundaries below. |
 
 Focused checks:12 controlled driver/lifecycle cases,81 context/advice unit cases,811 unit/context/validation/lifecycle cases;230 web tests and production build. Required whole-repository backend/migration/contracts/HTTPS and web CI is reported against the final PR head. Old R3/R4 receipts retain their actual source fingerprints: R4 component hashes are unchanged; restore-path differences are the R4 lazy advice import and the versioned prompt correction, not a fresh restore execution.
 

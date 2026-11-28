@@ -15,7 +15,7 @@ All paths below are relative to `services/backend/src/cloudops/` unless they sta
 | Table count | 44 application tables (each created by a migration and mapped by an ORM model) | `grep create_table` over migrations, `__tablename__` over models |
 | Startup guard | API, worker and observer call `require_schema()` and refuse to run against an unmigrated schema | `shared/database.py`, `entrypoints/*.py` |
 | Database triggers | None found in migrations. Immutability is enforced by unique constraints, check constraints and service code | `migrations/versions/*.py` |
-| Downgrade policy | Several feature migrations refuse to downgrade when the downgrade would discard retained evidence, for example 0008, 0009, 0012, 0015, 0016 and 0019 | `docs/foundation.md`, `docs/job-dispatch.md`, `docs/diagnosis-lifecycle.md`, `docs/recovery-verification.md`, `docs/connection-checks.md` |
+| Downgrade policy | Several feature migrations refuse to downgrade when the downgrade would discard retained evidence, for example 0008, 0009, 0012, 0015, 0016 and 0019 | `docs/guides/foundation.md`, `docs/features/investigations/job-dispatch.md`, `docs/features/diagnosis/lifecycle.md`, `docs/features/recovery/verification.md`, `docs/features/connections/checks.md` |
 
 Conventions: primary keys are UUIDs (`uuid4`) unless noted, timestamps are `timestamptz`, and structured documents are `JSONB`.
 
@@ -49,7 +49,7 @@ Conventions: primary keys are UUIDs (`uuid4`) unless noted, timestamps are `time
 | `admissions` | `actor_id`, `key`, `request_hash`, `incident_id`, `run_id`, `signature_version` | Idempotency record. Unique `(actor_id, key)`. |
 | `incident_activity` | `incident_id`, `kind`, `text`, `actor_id`, `created_at`, `snapshot` | Notes and transitions. A `resolve` row stores the frozen `HandoffSnapshot` in `snapshot`. |
 | `alert_episodes` | `source_id`, `fingerprint`, `starts_at_key`, `outcome`, `workload_uid`, `incident_id`, `run_id`, `signal` | Unique `alert_episode_key`. Check `episode_binding`: only `accepted` episodes link an incident and a Run. Never pruned. |
-| `alert_intake_receipts` | `delivery_id`, `received_at`, `source_id`, `alert_status`, `outcome`, `reason`, plain ID links | No foreign keys, so pruning stays independent. The newest 5,000 are kept (`docs/alert-intake.md`). |
+| `alert_intake_receipts` | `delivery_id`, `received_at`, `source_id`, `alert_status`, `outcome`, `reason`, plain ID links | No foreign keys, so pruning stays independent. The newest 5,000 are kept (`docs/features/incidents/alert-intake.md`). |
 
 ### Investigations and evidence (E04): `features/investigations/models.py`
 
@@ -253,33 +253,33 @@ Source: `shared/jobs.py`, `entrypoints/worker.py`, `entrypoints/dispatch.py`, `s
 - **Lease.** Each claim issues a new `lease_token`, sets `lease_until = now + 30 s` and inserts a `job_attempts` row that records the permit authority and generation. A heartbeat thread renews the lease every 5 seconds.
 - **Fencing.** Checkpoints, finish and call-start admission require the current lease token, an unexpired lease and the same permit generation. An older token cannot publish.
 - **States.** Job states are `queued`, `running`, `held` (waiting for an explicit Operator resume, with no `due_at`), `completed`, `failed` and `cancelled`.
-- **Lock order.** Host permit lock, then one short PostgreSQL transaction, never the reverse. No transaction or host lock spans a network call (`docs/job-dispatch.md`).
+- **Lock order.** Host permit lock, then one short PostgreSQL transaction, never the reverse. No transaction or host lock spans a network call (`docs/features/investigations/job-dispatch.md`).
 
 ## Immutability, versioning and retention rules
 
 | Record | Rule | Source |
 |---|---|---|
-| Evidence | Immutable per `(run_id, source_key, catalog_version)`. Identical republication keeps IDs, and conflicting content is rejected. SHA-256 covers the canonical post-redaction JSON. Purge clears only `payload`; metadata and digest remain, and reads return `410 evidence_expired`. | `features/investigations/storage.py`, `docs/foundation.md` |
+| Evidence | Immutable per `(run_id, source_key, catalog_version)`. Identical republication keeps IDs, and conflicting content is rejected. SHA-256 covers the canonical post-redaction JSON. Purge clears only `payload`; metadata and digest remain, and reads return `410 evidence_expired`. | `features/investigations/storage.py`, `docs/guides/foundation.md` |
 | Evidence retention | `expires_at = collected_at + 30 days`. `latest`, `resolution` and `analysis` pins hold content independently. Purge is the trusted `cli evidence-purge [--apply]` command. | `storage.py`, `retention.py`, `entrypoints/cli.py` |
 | Run request | Question, window and origin are fixed at admission. Legacy rows keep `not_captured` instead of an invented window. | `features/investigations/models.py` |
-| Baselines | Confirmed rows are never updated or deleted. Legacy `v0` rows keep their original JSON and digest. | `docs/workload-baselines.md` |
-| Runbook versions | The same `(document_key, version)` with different bytes or metadata is rejected against all retained history. Removing a document changes only generation membership. There is no purge command. | `docs/knowledge-index.md` |
-| Knowledge selection | The first successful selection for a Run is kept, including a saved no-match, even after reindexing. | `docs/run-guidance.md` |
+| Baselines | Confirmed rows are never updated or deleted. Legacy `v0` rows keep their original JSON and digest. | `docs/features/workloads/baselines.md` |
+| Runbook versions | The same `(document_key, version)` with different bytes or metadata is rejected against all retained history. Removing a document changes only generation membership. There is no purge command. | `docs/features/knowledge/runbook-index.md` |
+| Knowledge selection | The first successful selection for a Run is kept, including a saved no-match, even after reindexing. | `docs/features/knowledge/run-guidance.md` |
 | Analysis | `diagnosis_results` is immutable. The private context snapshot is discarded at terminal states while the digest and summary remain. | `features/diagnosis/lifecycle.py` |
 | Plans | `content` and `digest` are immutable. A changed target needs a new plan. | `features/recovery/service.py` |
 | Verification | The first finalization time and result are immutable (`finalize()` returns early when already finalized). | `features/recovery/verification.py` |
 | Resolution snapshot | `HandoffSnapshot/v3` and its Markdown are frozen on the `resolve` activity row. Reopen, later notes and later Runs do not regenerate it. Older v1, v2 and unversioned saves keep their bytes. | `features/incidents/lifecycle.py`, `handoff.py` |
-| Recommendation report | `export_text` and `export_sha256` are written once in the fenced terminal transaction. `publish()` refuses a report that already has export text. Read-time applicability is excluded from the bytes. | `features/recommendations/service.py`, `docs/resource-reports.md` |
-| Report history | Keyset pagination over `(created_at, id)`. Replaced workload identities stay separate. | `docs/resource-reports.md` |
+| Recommendation report | `export_text` and `export_sha256` are written once in the fenced terminal transaction. `publish()` refuses a report that already has export text. Read-time applicability is excluded from the bytes. | `features/recommendations/service.py`, `docs/features/resources/reports.md` |
+| Report history | Keyset pagination over `(created_at, id)`. Replaced workload identities stay separate. | `docs/features/resources/reports.md` |
 
 ## State stored outside PostgreSQL
 
 | Store | Location | Contents | Writer | Source |
 |---|---|---|---|---|
-| Dispatch permit | `JOB_DISPATCH_ROOT` (`job_dispatch` volume at `/run/cloudops-job-permit`) | `permit.json` (`DispatchPermit/v1`: authority ID, generation, mode, allowed classes, validity), `permit.lock`, append-only `audit.jsonl` | `dispatch_admin` only. API and worker mount it read-only. | `shared/dispatch_permit.py`, `docs/job-dispatch.md` |
+| Dispatch permit | `JOB_DISPATCH_ROOT` (`job_dispatch` volume at `/run/cloudops-job-permit`) | `permit.json` (`DispatchPermit/v1`: authority ID, generation, mode, allowed classes, validity), `permit.lock`, append-only `audit.jsonl` | `dispatch_admin` only. API and worker mount it read-only. | `shared/dispatch_permit.py`, `docs/features/investigations/job-dispatch.md` |
 | Executor journal | `EXECUTOR_ROOT/authority.sqlite` (`executor_authority` volume) | SQLite tables `control`, `targets` (uid, epoch, enabled, proof), `attempts`, `audit`, `exclusions`, `inverse_links` | Executor gateway process. **Opt-in** (`compose.integration.yaml`). | `features/recovery/gateway.py` |
 | Executor identity pin | `EXECUTOR_AUTHORITY_PIN` (`executor_identity` volume), required to be outside the journal directory | Device and inode identity of the journal | `executor-init` (`recovery.authority`) | `features/recovery/authority.py` |
 | Gateway maintenance socket | `EXECUTOR_ROOT/maintenance.sock` | Unix socket authenticated by peer credentials (`SO_PEERCRED`). Not a store, but part of the authority boundary. | Gateway | `gateway.py` |
-| Runbook sources | `runbooks/*.md`, `runbooks/catalog.json` in the repository | Reviewed corpus. It is read only by the trusted `knowledge-index` CLI. The searchable index itself is in PostgreSQL (`tsvector` columns). | Source control | `docs/knowledge-index.md` |
+| Runbook sources | `runbooks/*.md`, `runbooks/catalog.json` in the repository | Reviewed corpus. It is read only by the trusted `knowledge-index` CLI. The searchable index itself is in PostgreSQL (`tsvector` columns). | Source control | `docs/features/knowledge/runbook-index.md` |
 | Trusted configuration | Files named by `WORKLOADS_FILE`, `KUBE_READ_CONFIG`, `PROMETHEUS_READ_CONFIG`, `DIAGNOSIS_*_FILE`, `RECOVERY_*_FILE`, `ALERT_INTAKE_CONFIG` | Scope, read credentials, model and egress policy, recovery policy, intake token digest | Deployment operator | [interfaces.md](interfaces.md) |
 | Simulation state | Browser localStorage (`cloudops-experience-v1`) | **Simulation** only | Browser | `apps/web/src/App.tsx` |

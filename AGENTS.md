@@ -33,6 +33,6 @@
 - The persisted app is the default web entry; `?simulation=1` retains the localStorage simulation. Never promote simulation RCA/actions into API results.
 - Backend feature modules own schemas/services/persistence; entrypoints register dependencies. Shared config/database/job mechanics do not import feature policy.
 - Regenerate OpenAPI/TypeScript with `scripts/contracts.py --write` in the backend Python environment; do not edit generated transport artifacts by hand.
-- Follow README and `docs/foundation.md` for setup, PostgreSQL checks and UI journeys. Test databases must end in `_test`; never run destructive tests against application data.
+- Follow README and `docs/guides/foundation.md` for setup, PostgreSQL checks and UI journeys. Test databases must end in `_test`; never run destructive tests against application data.
 - Foundation collection is synthetic and bounded. AI diagnosis, live cluster access and execution remain unavailable until their owning EPICs implement them.
 

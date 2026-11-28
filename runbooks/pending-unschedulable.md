@@ -14,7 +14,7 @@ Pending is a scheduling observation, not proof of insufficient CPU, memory, quot
 - Check whether a container actually started. If not, current/previous logs may be `not_applicable`; they are not a hidden success.
 - Inspect workload observations and timeline for rollout/readiness context, but do not infer node capacity from them.
 
-See [scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md).
+See [scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md).
 
 ## Supporting and contradicting observations
 
@@ -47,6 +47,6 @@ Abstain from a capacity or quota conclusion when evidence is missing or partial,
 
 ## Related guidance
 
-- [Scoped Kubernetes investigation evidence](../docs/kubernetes-evidence.md)
+- [Scoped Kubernetes investigation evidence](../docs/features/investigations/kubernetes-evidence.md)
 - [Investigate image pull failures](image-pull.md)
 - [Review bounded Deployment scaling](scale-deployment.md) — read the limitations; scaling is not a Pending remedy in this release.

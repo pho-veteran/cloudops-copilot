@@ -73,14 +73,14 @@ flowchart LR
 
 ### 1.3 Trust boundaries
 
-1. **Reader versus writer.** API, worker, observer and KRR receive reader files only (`KUBE_READ_CONFIG`, `PROMETHEUS_READ_CONFIG`). The `Kubernetes` class in `features/workloads/kubernetes.py` sends `PATCH` only when a caller passes a patch, and only the gateway does that. The lab RBAC lets the writer `get`/`patch` named Deployments only (`docs/e01-local-lab.md`, "Writer and maintenance protocol").
+1. **Reader versus writer.** API, worker, observer and KRR receive reader files only (`KUBE_READ_CONFIG`, `PROMETHEUS_READ_CONFIG`). The `Kubernetes` class in `features/workloads/kubernetes.py` sends `PATCH` only when a caller passes a patch, and only the gateway does that. The lab RBAC lets the writer `get`/`patch` named Deployments only (`docs/guides/local-lab.md`, "Writer and maintenance protocol").
 2. **Dispatch authority outside PostgreSQL.** Whether any job class may run is decided by `permit.json` on a host volume, not by any database row (`shared/dispatch_permit.py`).
 3. **Executor isolation.** The gateway keeps its own SQLite journal, admission lock and an identity pin stored outside the journal directory (`authority.identity_path`, `authority.read_identity`). Maintenance happens only over a Unix socket whose peer UID must be 0 (`Gateway.maintain`). No application container mounts that socket.
 4. **Separate keys.** Only the worker mounts the gateway dispatch key and the KRR request key. The gateway compares the bearer value with `hmac.compare_digest` (`create_gateway_app`).
 
 ## 2. Durable job engine
 
-Sources: `shared/jobs.py`, `shared/dispatch_permit.py`, `entrypoints/worker.py`, `entrypoints/dispatch.py`, `docs/job-dispatch.md`. Status: Default.
+Sources: `shared/jobs.py`, `shared/dispatch_permit.py`, `entrypoints/worker.py`, `entrypoints/dispatch.py`, `docs/features/investigations/job-dispatch.md`. Status: Default.
 
 ### 2.1 Data and kinds
 
@@ -166,7 +166,7 @@ sync(db):
         validate binding again; publish_live(...) or publish_legacy(...); applied_sequence = seq
 ```
 
-The v2 policy pins the cluster with `SHA256(normalized_server + "\n" + SHA256(CA_DER))` (`scope_config.cluster_fingerprint`). Outcomes (`docs/workload-scope.md`): same UID keeps the workload UUID and history; a new UID retires the old identity and creates a new one that inherits no baseline; a real Kubernetes 404 marks the target missing; 403/timeout keeps the previous identity and reports unavailable; a wrong pin publishes nothing. Every publication advances the workload's `observation_epoch`, which later fences late observations. Live reads re-check the UID: `Kubernetes.deployment` raises `target_changed` when `metadata.uid` differs.
+The v2 policy pins the cluster with `SHA256(normalized_server + "\n" + SHA256(CA_DER))` (`scope_config.cluster_fingerprint`). Outcomes (`docs/features/workloads/scope.md`): same UID keeps the workload UUID and history; a new UID retires the old identity and creates a new one that inherits no baseline; a real Kubernetes 404 marks the target missing; 403/timeout keeps the previous identity and reports unavailable; a wrong pin publishes nothing. Every publication advances the workload's `observation_epoch`, which later fences late observations. Live reads re-check the UID: `Kubernetes.deployment` raises `target_changed` when `metadata.uid` differs.
 
 ### 3.2 Observation and freshness (Opt-in observer)
 
@@ -354,7 +354,7 @@ Why the fence excludes a late write: every functional patch tests its captured `
 
 ## 6. Verification and inverse rollback (Opt-in)
 
-Sources: `features/recovery/verification_policy.py`, `verification.py`, `verification_evaluator.py`, `rollback.py`; `docs/recovery-verification.md`.
+Sources: `features/recovery/verification_policy.py`, `verification.py`, `verification_evaluator.py`, `rollback.py`; `docs/features/recovery/verification.md`.
 
 ### 6.1 Qualified profiles
 
@@ -386,7 +386,7 @@ When the policy sets `inverse_policy = captured-old-state/v1` and `inverse_windo
 
 ## 7. Backup and restore safety invariants (Opt-in procedure)
 
-Sources: `features/recovery/restore.py`, `entrypoints/recovery_restore.py`, `docs/release-restore.md`, `docs/job-dispatch.md`.
+Sources: `features/recovery/restore.py`, `entrypoints/recovery_restore.py`, `docs/guides/release-restore.md`, `docs/features/investigations/job-dispatch.md`.
 
 Three authorities live outside PostgreSQL and are never part of a database backup: the host dispatch permit, the executor journal and the executor identity pin. A backup is one `pg_dump` snapshot. Its **cutoff** lies between two recorded `now(), pg_current_xact_id()` reads taken before and after the dump. Everything committed after the cutoff is lost, and the procedure says so explicitly.
 
@@ -416,11 +416,11 @@ Invariants and the mechanism that enforces each one:
 4. **Authority cannot be recreated silently.** A missing or replaced journal or pin makes `read_identity` fail: the gateway refuses to start or returns `503 authority_unavailable`. `executor-init` is a separate trusted step and grants no enablement.
 5. **New writes need fresh human intent.** After enablement, a write still needs a new plan, a new session-bound review and a new approval.
 
-The procedure does not detect an unannounced database rollback performed outside it (`docs/job-dispatch.md`).
+The procedure does not detect an unannounced database rollback performed outside it (`docs/features/investigations/job-dispatch.md`).
 
 ## 8. Resource recommendations (advisory only)
 
-Sources: `features/recommendations/*`, `services/krr/runner.py`, `docs/resource-reports.md`. Admission and stored reports are Default; live KRR invocation is Opt-in (runner and `RECOMMENDATION_SOURCE_POLICY` configured).
+Sources: `features/recommendations/*`, `services/krr/runner.py`, `docs/features/resources/reports.md`. Admission and stored reports are Default; live KRR invocation is Opt-in (runner and `RECOMMENDATION_SOURCE_POLICY` configured).
 
 - **Admission** (`api.create`): Operator only; `requested_hours` 6..24 (default 6); at most one queued/running report per workload; shared queue limit. Creates job `recommendation_report_v1` (permit class `recommendation`).
 - **Invocation bounds.** Only the six-hour profile invokes KRR; other durations end `insufficient_data` without a tool call. Worker side: `producer.RUNNER_DEADLINE_SECONDS = 150` covers connect, headers and the full response; the source collector (`sources.py`) has a 45 s total deadline, 5/8 s phase timeouts, at most 23 GETs, 8 MiB per response, 256 series per metric and 200,000 samples. Runner side: one concurrent invocation, 16 KiB request, `subprocess.run(timeout=120)`, 2 MB raw report, 256 KiB normalized response. The runner re-attests the metrics source and compares the target scope before and after the run (`runner_target_changed`).
@@ -431,7 +431,7 @@ Sources: `features/recommendations/*`, `services/krr/runner.py`, `docs/resource-
 
 ## 9. Connections and freshness
 
-Sources: `features/connections/service.py`, `features/health/service.py`, `docs/connection-checks.md`. Default (provider checks need reader configuration).
+Sources: `features/connections/service.py`, `features/health/service.py`, `docs/features/connections/checks.md`. Default (provider checks need reader configuration).
 
 ```text
 create(component ∈ {cluster, prometheus, database, worker}, idempotency key):   # Operator, Origin, CSRF
@@ -463,6 +463,6 @@ create(component ∈ {cluster, prometheus, database, worker}, idempotency key): 
 
 ## Unverified or out-of-scope points
 
-- Exact RBAC rules for reader and writer accounts are taken from `docs/e01-local-lab.md`; the RBAC manifests created by `scripts/bootstrap-integration.py` were not re-read for this chapter.
+- Exact RBAC rules for reader and writer accounts are taken from `docs/guides/local-lab.md`; the RBAC manifests created by `scripts/bootstrap-integration.py` were not re-read for this chapter.
 - Internals of `observation_evaluator.evaluate`, `qualification.qualify` and `verification_sources.capture` are summarized from their documentation and top-level branches, not line by line.
 - Evidence receipts under `docs/evidence/` were not re-validated; statements about lab campaigns are quoted from the owning documents.

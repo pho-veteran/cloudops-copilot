@@ -12,7 +12,7 @@ services:
     network_mode: "service:https"
     volumes:
       - ./config/lab/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      # Holds the sender token and a copy of the proxy CA (see docs/alert-intake.md).
+      # Holds the sender token and a copy of the proxy CA (see docs/features/incidents/alert-intake.md).
       - ${CLOUDOPS_LAB_DIR:-./tmp/e01-integration}/intake-sender:/run/cloudops-intake:ro
     depends_on:
       https:

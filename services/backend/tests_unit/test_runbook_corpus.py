@@ -546,15 +546,16 @@ def test_metadata_change_requires_new_version(checker, tmp_path):
 
 @pytest.fixture
 def release_corpus(tmp_path):
-    (tmp_path / "docs").mkdir()
     for name in (
-        "kubernetes-evidence.md",
-        "prometheus-metrics.md",
-        "workload-baselines.md",
-        "job-dispatch.md",
-        "foundation.md",
+        "features/investigations/kubernetes-evidence.md",
+        "features/investigations/prometheus-metrics.md",
+        "features/workloads/baselines.md",
+        "features/investigations/job-dispatch.md",
+        "guides/foundation.md",
     ):
-        (tmp_path / "docs" / name).write_text("# Linked documentation\n", encoding="utf-8")
+        target = tmp_path / "docs" / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("# Linked documentation\n", encoding="utf-8")
     shutil.copytree(ROOT / "runbooks", tmp_path / "runbooks")
     return tmp_path
 
