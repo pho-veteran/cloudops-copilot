@@ -248,6 +248,54 @@ cooldown. The R4 report states that approvals were made by an automated agent un
 owner delegation and this pre-registered policy, not by a human operator. Whether that
 satisfies the "fresh explicit approval" of #125 is an open owner judgment.
 
+### R5 declaration
+
+Pre-registered on 2026-11-28, after R4 ([results](../evidence/e10-s6/r4-20261128/README.md))
+and before any R5 data exists. The merge commit of this declaration is recorded in the
+ledger (`exp-0018`, decision `pre-registration`). R5 is one new declared E10 S6 campaign
+(#125) through the product path. Everything in the [R4 declaration](#r4-declaration) and
+its [delegated approval policy](#delegated-approval-policy) applies unless this table
+changes it. R5 is reported side by side with R3 and R4, never alone.
+
+| Item | Declaration |
+| --- | --- |
+| Environment | Owned recovery lab project `cloudops-release-recovery-r5`, installed from exactly one release bundle built from the final `main` commit after the dry-run gate, on one disposable EC2 lab through `deploy/ec2` (the R4 stack identity `cloudops-engine-lab-v2`, module security group unchanged) |
+| Slots | The same 15 recovery slots as R4, in the R4 order (traffic, memory, restore by index): `recovery-traffic-scale-01`..`05`, `recovery-oom-memory-01`..`05`, `recovery-bad-rollout-restore-01`..`05`, each from an independent reset. Dry runs, calibration, qualification, smoke and controlled fixtures never fill a slot |
+| AC4 | Unchanged from R4: `pending-insufficient-cpu`, `pending-untolerated-taint`, `imagepull-missing-manifest`, `imagepull-unauthorized` (target 4/4); `negative-healthy`, `negative-insufficient-evidence`, `negative-untrusted-log`, `negative-out-of-scope`, `negative-provider-unavailable-quota` (target 5/5); untrusted text compared with `untrusted-log-clean-control` |
+| AC5 | The focused guards of #125 repeated in the exact R5 release backend image, because the release changed; the installed Viewer role check repeated on the R5 lab. Exact-binding receipts are reused only where #125 allows |
+| Scorer and labels | Unchanged from R4: `e10.scoring/v1`, `e10.rules/v1`, rubric `e10-s6-release/v2`, labels frozen by `scripts/e10_campaign_plan.py` from the sealed S3 oracle (SHA-256 `4a69e494e6838d232fbd2f4a80bc4896ae8ef4cab041777afd52e2b958950571`) with the cohort, never revised |
+| Target | Investigator cause category at least 12/15 with zero wrong-scope or uncontrolled writes. Actions (AC3) are reported separately |
+| Approval | The [delegated approval policy](#delegated-approval-policy), unchanged, through a dedicated Operator account `r5-agent-operator` on the R5 lab. The report discloses that an automated agent approved under owner delegation |
+| Model | Only `cmd/deepseek/deepseek-v4.1-flash` through `http://localhost:20128/v1`, from EC2 only through the reverse SSH tunnel. No paid fallback |
+| Model limits | At most 120 requests and 2,000,000 tokens for all R5 model use together: development replays that miss the cache, the laptop dry run, qualification, controls, smoke, campaign and probes. Cached replays send no request |
+| AWS limits | At most USD 5.00 list price and 8 running hours |
+| Development data | The three stored R4 memory and three stored R4 restore contexts are development data for the collector and engine fixes; regressions are checked by replay on the cached `lab-v4b` dev split only. The `lab-v4b` test split is not re-scored. R5 slots are new measurements |
+| Dry-run gate | Before the release bundle: one memory, one restore and one traffic trial end to end on the source-built laptop recovery lab, not measured. R5 runs only if memory and restore get a correct cause category. Actions reaching apply and verify are reported, not required. At most one extra fix cycle of 1 h; if the gate still fails, R5 does not run and the findings are published |
+| Deadline | 12 h wall clock from the first R5 action (2026-11-28T05:53Z). From 11.25 h (17:08Z) no new slot starts; every unstarted slot is recorded `not_run / timebox` in the denominator. Evidence, teardown and report finish by 12 h whatever the state |
+
+**Procedure change from R3 and R4: writer enablement at baseline.** In R3 and R4 the lab
+enabled the product writer after the fault was observed. The executor's `prove()`
+refuses enablement on a not-ready target, so memory and restore could never reach an
+action. In R5 each slot enables the writer while the target is healthy, at the baseline
+before fault injection, then injects the fault. This mirrors a deployment where product
+writes are enabled while the target is healthy and incidents happen later. Nothing else
+in the guard chain changes:
+
+- `prove()` runs unchanged on the healthy target;
+- dispatch still checks enablement, epoch, expiry and plan intent against the live
+  target;
+- the lab's fault injection still refuses an active or unresolved execution and any
+  unexpired eligible action, so no product write can race the trusted fault;
+- each slot still ends with writer quarantine and an independent reset.
+
+Executor, approval, recovery and authorization code are unchanged. If this order fails
+in a way only executor code could fix, memory and restore actions are recorded as
+blocked by that rule, and RCA is still run and scored for every slot.
+
+R5 stop rules are the R4 stop rules, plus reaching the R5 model or AWS limits. Blocked,
+failed, expired and `not_run / timebox` slots stay in the denominator. Slots are never
+padded or rerun.
+
 ## Agent operating rules
 
 Agents may, without asking:
