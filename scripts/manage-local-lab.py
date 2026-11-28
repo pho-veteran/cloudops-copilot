@@ -2248,7 +2248,12 @@ class Lab:
             "local://lab/lifecycle",
         )
 
-    def no_execution(self):
+    def no_execution(self, baseline_writer=None):
+        """No active or unresolved execution, and the writer quarantined.
+
+        ``baseline_writer`` is the one exception, for a recovery fault only: the trial's
+        writer may stay open when it was enabled at that trial's healthy baseline and
+        its epoch is unchanged since. Every other condition still applies."""
         value = self.dc(
             "exec",
             "-T",
@@ -2259,8 +2264,21 @@ class Lab:
         )
         require(int(value) == 0, "Active or unresolved execution; lab reset/fault refused.")
         status = self.maintenance()
+        baseline = (baseline_writer or {}).get("writer_baseline") or {}
+
+        def closed(target):
+            if not target["enabled"] and target["recovery_mode"]:
+                return True
+            return (
+                bool(baseline)
+                and target["uid"] == baseline.get("target_uid")
+                and target["epoch"] == baseline.get("epoch")
+                and target["enabled"]
+                and not target["recovery_mode"]
+            )
+
         require(
-            all(not target["enabled"] and target["recovery_mode"] for target in status["targets"])
+            all(closed(target) for target in status["targets"])
             and not any(
                 row.get("safety_exclusion_request") is None
                 for row in status.get("unknown_attributions", [])
@@ -3716,16 +3734,35 @@ print(json.dumps({
         private_write(folder / f"{scenario_id}.json", json.dumps(qualification, indent=2) + "\n")
         print(json.dumps({"qualification": str(folder / f"{scenario_id}.json")}))
 
-    def writer(self, operation):
-        """Open or close the isolated writer around one explicitly approved product action."""
+    def writer(self, operation, at_baseline=False):
+        """Open or close the isolated writer around one explicitly approved product action.
+
+        ``at_baseline`` opens it while the trial's target is still healthy, before the
+        fault, as a deployment would have product writes enabled before an incident. The
+        executor still proves the healthy target, and dispatch still checks enablement,
+        epoch, expiry and plan intent against the live target."""
         require(RECOVERY_LAB, "Writer lifecycle commands belong to the E10 S3 recovery lab.")
+        trial = None
         if operation == "enable":
             require(self.trial_path.is_file(), "Enable the writer only for an active trial.")
             trial = json.loads(self.trial_path.read_text())
-            require(
-                trial["scenario_kind"] == "recovery" and trial["status"] == "observed",
-                "Enable the writer only after a qualified recovery fault is observed.",
-            )
+            if at_baseline:
+                require(
+                    trial["scenario_kind"] == "recovery"
+                    and trial["status"] == "ready"
+                    and trial.get("writer_baseline") is None
+                    and not (self.directory / "fault.json").exists(),
+                    "Enable the writer at baseline only for a ready recovery trial before its fault.",
+                )
+                require(
+                    self.eligible_action_count() == 0,
+                    "An unexpired eligible action exists; baseline writer enablement is refused.",
+                )
+            else:
+                require(
+                    trial["scenario_kind"] == "recovery" and trial["status"] == "observed",
+                    "Enable the writer only after a qualified recovery fault is observed.",
+                )
             load = trial.get("load") or {}
             active = self.active_loads()
             require(
@@ -3754,9 +3791,30 @@ print(json.dumps({
             for kind in ("collection", "recommendation"):
                 self.dispatch("resume", "--class", kind)
         status = self.maintenance()
-        self.receipt("writer-" + operation, {"results": results, "targets": status["targets"]})
+        self.receipt(
+            "writer-" + operation,
+            {
+                "results": results,
+                "targets": status["targets"],
+                "at_baseline": at_baseline,
+            },
+        )
         if operation == "enable":
             require(set(results.values()) == {"applied"}, "Writer enablement was not applied.")
+            if at_baseline:
+                target = next(
+                    item for item in status["targets"] if item["uid"] == trial["target_uid"]
+                )
+                require(
+                    target["enabled"] and not target["recovery_mode"],
+                    "Baseline writer enablement did not open the trial target.",
+                )
+                trial["writer_baseline"] = {
+                    "target_uid": target["uid"],
+                    "epoch": target["epoch"],
+                    "enabled_at": datetime.now(timezone.utc).isoformat(),
+                }
+                private_write(self.trial_path, json.dumps(trial, indent=2) + "\n")
         else:
             require(
                 all(
@@ -4099,7 +4157,15 @@ print(json.dumps({
                 control.get("local_fault_operation") == scenario,
                 "The selected fixture fault does not match this catalog scenario.",
             )
-        self.no_execution()
+        if (
+            trial is not None
+            and trial["scenario_kind"] == "recovery"
+            and scenario in set(RECOVERY_FAULTS.values())
+            and trial.get("writer_baseline")
+        ):
+            self.no_execution(baseline_writer=trial)
+        else:
+            self.no_execution()
         require(
             self.eligible_action_count() == 0,
             "An unexpired eligible action exists; fault injection is refused.",
@@ -5052,6 +5118,11 @@ def main():
     qualify.add_argument("--seconds", type=int, default=240)
     writer = sub.add_parser("writer", help="Open or re-quarantine the isolated writer.")
     writer.add_argument("writer_operation", choices=["enable", "quarantine"])
+    writer.add_argument(
+        "--at-baseline",
+        action="store_true",
+        help="Enable at the healthy baseline of a ready recovery trial, before its fault.",
+    )
     args = parser.parse_args()
     require(
         args.project == OWNED_PROJECT,
@@ -5132,7 +5203,11 @@ def main():
         elif args.operation == "qualify":
             lab.qualify(args.scenario_id, args.rate, args.seconds)
         elif args.operation == "writer":
-            lab.writer(args.writer_operation)
+            require(
+                not args.at_baseline or args.writer_operation == "enable",
+                "--at-baseline applies to writer enable only.",
+            )
+            lab.writer(args.writer_operation, at_baseline=args.at_baseline)
         elif args.operation == "cleanup":
             lab.cleanup(args.confirm_owner)
         elif args.operation == "containment":

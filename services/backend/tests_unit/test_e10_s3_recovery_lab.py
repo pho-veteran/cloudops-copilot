@@ -474,3 +474,59 @@ def test_probe_incident_request_carries_no_scenario_or_control_text():
         words.update(str(value) for value in control.values() if isinstance(value, str))
     words |= {"e10", "trial", "scenario", "fault", "oom", "overload", "bad-image", "rollout"}
     assert not [word for word in words if word.lower() in text]
+
+
+def _open_target(epoch="epoch-1"):
+    return {"uid": "original", "epoch": epoch, "enabled": True, "recovery_mode": False}
+
+
+def test_writer_opens_at_the_healthy_baseline_and_records_its_epoch(lab, driver, monkeypatch):
+    monkeypatch.setattr(driver, "RECOVERY_LAB", True)
+    trial = ready_trial(driver, "recovery-oom-memory")
+    trial.update(target_uid="original", load={"state": "running", "container_id": "load-1"})
+    lab.trial_path.write_text(json.dumps(trial))
+    monkeypatch.setattr(lab, "active_loads", lambda: [{"Id": "load-1"}])
+    monkeypatch.setattr(
+        lab, "dc", lambda *args, **kwargs: json.dumps({"permit": {"mode": "recovery"}})
+    )
+    monkeypatch.setattr(lab, "dispatch", lambda *args: None)
+    calls = []
+
+    def maintenance(operation="status"):
+        calls.append(operation)
+        if operation == "status":
+            return {"targets": [_open_target()]}
+        return {"status": "applied"}
+
+    monkeypatch.setattr(lab, "maintenance", maintenance)
+    lab.writer("enable", at_baseline=True)
+    assert calls == ["enable_target", "exit_recovery_mode", "status"]
+    recorded = json.loads(lab.trial_path.read_text())["writer_baseline"]
+    assert recorded["target_uid"] == "original" and recorded["epoch"] == "epoch-1"
+    # Once per trial, and never after the fault.
+    with pytest.raises(RuntimeError, match="ready recovery trial before its fault"):
+        lab.writer("enable", at_baseline=True)
+    trial["status"] = "injected"
+    lab.trial_path.write_text(json.dumps(trial))
+    with pytest.raises(RuntimeError, match="ready recovery trial before its fault"):
+        lab.writer("enable", at_baseline=True)
+
+
+def test_fault_accepts_only_the_same_baseline_writer(lab, driver, monkeypatch):
+    monkeypatch.setattr(lab, "dc", lambda *args, **kwargs: "0")
+    trial = {"writer_baseline": {"target_uid": "original", "epoch": "epoch-1"}}
+    status = {"targets": [_open_target()], "unknown_attributions": []}
+    monkeypatch.setattr(lab, "maintenance", lambda *args: status)
+    driver.Lab.no_execution(lab, baseline_writer=trial)
+    with pytest.raises(RuntimeError, match="Writer must be quarantined"):
+        driver.Lab.no_execution(lab)
+    status["targets"] = [_open_target("epoch-2")]
+    with pytest.raises(RuntimeError, match="Writer must be quarantined"):
+        driver.Lab.no_execution(lab, baseline_writer=trial)
+    status["targets"] = [_open_target()]
+    status["unknown_attributions"] = [{"id": "a", "safety_exclusion_request": None}]
+    with pytest.raises(RuntimeError, match="Writer must be quarantined"):
+        driver.Lab.no_execution(lab, baseline_writer=trial)
+    monkeypatch.setattr(lab, "dc", lambda *args, **kwargs: "1")
+    with pytest.raises(RuntimeError, match="Active or unresolved execution"):
+        driver.Lab.no_execution(lab, baseline_writer=trial)
